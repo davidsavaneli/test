@@ -1,0 +1,134 @@
+:root {
+  /* primary */
+  --tz-color-primary-rgb: 51, 64, 78;
+  --tz-color-primary: rgb(var(--tz-color-primary-rgb));
+  --tz-color-primary-shade100: rgba(var(--tz-color-primary-rgb), 0.06);
+  --tz-color-primary-shade200: rgba(var(--tz-color-primary-rgb), 0.1);
+  --tz-color-primary-shade300: rgba(var(--tz-color-primary-rgb), 0.14);
+  --tz-color-primary-shade400: rgba(var(--tz-color-primary-rgb), 0.3);
+  --tz-color-primary-shade500: rgba(var(--tz-color-primary-rgb), 0.5);
+  --tz-color-primary-shade600: rgba(var(--tz-color-primary-rgb), 0.7);
+  --tz-color-primary-shade700: rgba(var(--tz-color-primary-rgb), 0.8);
+  --tz-color-primary-shade800: rgba(var(--tz-color-primary-rgb), 0.9);
+
+  /* secondary */
+  --tz-color-secondary-rgb: 255, 255, 255;
+  --tz-color-secondary: rgb(var(--tz-color-secondary-rgb));
+  --tz-color-secondary-shade100: rgba(var(--tz-color-secondary-rgb), 0.06);
+  --tz-color-secondary-shade200: rgba(var(--tz-color-secondary-rgb), 0.1);
+  --tz-color-secondary-shade300: rgba(var(--tz-color-secondary-rgb), 0.14);
+  --tz-color-secondary-shade400: rgba(var(--tz-color-secondary-rgb), 0.3);
+  --tz-color-secondary-shade500: rgba(var(--tz-color-secondary-rgb), 0.5);
+  --tz-color-secondary-shade600: rgba(var(--tz-color-secondary-rgb), 0.7);
+  --tz-color-secondary-shade700: rgba(var(--tz-color-secondary-rgb), 0.8);
+  --tz-color-secondary-shade800: rgba(var(--tz-color-secondary-rgb), 0.9);
+
+  /* tertiary */
+  --tz-color-tertiary-rgb: 116, 121, 126;
+  --tz-color-tertiary: rgb(var(--tz-color-tertiary-rgb));
+  --tz-color-tertiary-shade100: rgba(var(--tz-color-tertiary-rgb), 0.06);
+  --tz-color-tertiary-shade200: rgba(var(--tz-color-tertiary-rgb), 0.1);
+  --tz-color-tertiary-shade300: rgba(var(--tz-color-tertiary-rgb), 0.14);
+  --tz-color-tertiary-shade400: rgba(var(--tz-color-tertiary-rgb), 0.3);
+  --tz-color-tertiary-shade500: rgba(var(--tz-color-tertiary-rgb), 0.5);
+  --tz-color-tertiary-shade600: rgba(var(--tz-color-tertiary-rgb), 0.7);
+  --tz-color-tertiary-shade700: rgba(var(--tz-color-tertiary-rgb), 0.8);
+  --tz-color-tertiary-shade800: rgba(var(--tz-color-tertiary-rgb), 0.9);
+
+  /* dark */
+  --tz-color-dark-rgb: 18, 127, 139;
+  --tz-color-dark: rgb(var(--tz-color-dark-rgb));
+  --tz-color-dark-shade100: rgba(var(--tz-color-dark-rgb), 0.06);
+  --tz-color-dark-shade200: rgba(var(--tz-color-dark-rgb), 0.1);
+  --tz-color-dark-shade300: rgba(var(--tz-color-dark-rgb), 0.14);
+  --tz-color-dark-shade400: rgba(var(--tz-color-dark-rgb), 0.3);
+  --tz-color-dark-shade500: rgba(var(--tz-color-dark-rgb), 0.5);
+  --tz-color-dark-shade600: rgba(var(--tz-color-dark-rgb), 0.7);
+  --tz-color-dark-shade700: rgba(var(--tz-color-dark-rgb), 0.8);
+  --tz-color-dark-shade800: rgba(var(--tz-color-dark-rgb), 0.9);
+
+  /* medium */
+  --tz-color-medium-rgb: 42, 161, 175;
+  --tz-color-medium: rgb(var(--tz-color-medium-rgb));
+  --tz-color-medium-shade100: rgba(var(--tz-color-medium-rgb), 0.06);
+  --tz-color-medium-shade200: rgba(var(--tz-color-medium-rgb), 0.1);
+  --tz-color-medium-shade300: rgba(var(--tz-color-medium-rgb), 0.14);
+  --tz-color-medium-shade400: rgba(var(--tz-color-medium-rgb), 0.3);
+  --tz-color-medium-shade500: rgba(var(--tz-color-medium-rgb), 0.5);
+  --tz-color-medium-shade600: rgba(var(--tz-color-medium-rgb), 0.7);
+  --tz-color-medium-shade700: rgba(var(--tz-color-medium-rgb), 0.8);
+  --tz-color-medium-shade800: rgba(var(--tz-color-medium-rgb), 0.9);
+
+  /* light */
+  --tz-color-light-rgb: 113, 198, 201;
+  --tz-color-light: rgb(var(--tz-color-light-rgb));
+  --tz-color-light-shade100: rgba(var(--tz-color-light-rgb), 0.06);
+  --tz-color-light-shade200: rgba(var(--tz-color-light-rgb), 0.1);
+  --tz-color-light-shade300: rgba(var(--tz-color-light-rgb), 0.14);
+  --tz-color-light-shade400: rgba(var(--tz-color-light-rgb), 0.3);
+  --tz-color-light-shade500: rgba(var(--tz-color-light-rgb), 0.5);
+  --tz-color-light-shade600: rgba(var(--tz-color-light-rgb), 0.7);
+  --tz-color-light-shade700: rgba(var(--tz-color-light-rgb), 0.8);
+  --tz-color-light-shade800: rgba(var(--tz-color-light-rgb), 0.9);
+
+  /* success */
+  --tz-color-success-rgb: 0, 168, 84;
+  --tz-color-success: rgb(var(--tz-color-success-rgb));
+  --tz-color-success-shade100: rgba(var(--tz-color-success-rgb), 0.06);
+  --tz-color-success-shade200: rgba(var(--tz-color-success-rgb), 0.1);
+  --tz-color-success-shade300: rgba(var(--tz-color-success-rgb), 0.14);
+  --tz-color-success-shade400: rgba(var(--tz-color-success-rgb), 0.3);
+  --tz-color-success-shade500: rgba(var(--tz-color-success-rgb), 0.5);
+  --tz-color-success-shade600: rgba(var(--tz-color-success-rgb), 0.7);
+  --tz-color-success-shade700: rgba(var(--tz-color-success-rgb), 0.8);
+  --tz-color-success-shade800: rgba(var(--tz-color-success-rgb), 0.9);
+
+  /* error */
+  --tz-color-error-rgb: 240, 65, 52;
+  --tz-color-error: rgb(var(--tz-color-error-rgb));
+  --tz-color-error-shade100: rgba(var(--tz-color-error-rgb), 0.06);
+  --tz-color-error-shade200: rgba(var(--tz-color-error-rgb), 0.1);
+  --tz-color-error-shade300: rgba(var(--tz-color-error-rgb), 0.14);
+  --tz-color-error-shade400: rgba(var(--tz-color-error-rgb), 0.3);
+  --tz-color-error-shade500: rgba(var(--tz-color-error-rgb), 0.5);
+  --tz-color-error-shade600: rgba(var(--tz-color-error-rgb), 0.7);
+  --tz-color-error-shade700: rgba(var(--tz-color-error-rgb), 0.8);
+  --tz-color-error-shade800: rgba(var(--tz-color-error-rgb), 0.9);
+
+  /* info */
+  --tz-color-info-rgb: 0, 162, 174;
+  --tz-color-info: rgb(var(--tz-color-info-rgb));
+  --tz-color-info-shade100: rgba(var(--tz-color-info-rgb), 0.06);
+  --tz-color-info-shade200: rgba(var(--tz-color-info-rgb), 0.1);
+  --tz-color-info-shade300: rgba(var(--tz-color-info-rgb), 0.14);
+  --tz-color-info-shade400: rgba(var(--tz-color-info-rgb), 0.3);
+  --tz-color-info-shade500: rgba(var(--tz-color-info-rgb), 0.5);
+  --tz-color-info-shade600: rgba(var(--tz-color-info-rgb), 0.7);
+  --tz-color-info-shade700: rgba(var(--tz-color-info-rgb), 0.8);
+  --tz-color-info-shade800: rgba(var(--tz-color-info-rgb), 0.9);
+
+  /* warning */
+  --tz-color-warning-rgb: 255, 191, 0;
+  --tz-color-warning: rgb(var(--tz-color-warning-rgb));
+  --tz-color-warning-shade100: rgba(var(--tz-color-warning-rgb), 0.06);
+  --tz-color-warning-shade200: rgba(var(--tz-color-warning-rgb), 0.1);
+  --tz-color-warning-shade300: rgba(var(--tz-color-warning-rgb), 0.14);
+  --tz-color-warning-shade400: rgba(var(--tz-color-warning-rgb), 0.3);
+  --tz-color-warning-shade500: rgba(var(--tz-color-warning-rgb), 0.5);
+  --tz-color-warning-shade600: rgba(var(--tz-color-warning-rgb), 0.7);
+  --tz-color-warning-shade700: rgba(var(--tz-color-warning-rgb), 0.8);
+  --tz-color-warning-shade800: rgba(var(--tz-color-warning-rgb), 0.9);
+
+  /* semantic — derived from brand; flip automatically when the palette is swapped per mode */
+  --tz-color-text: rgb(var(--tz-color-primary-rgb));
+  --tz-color-text-muted: rgb(var(--tz-color-tertiary-rgb));
+  --tz-color-background: rgb(var(--tz-color-secondary-rgb));
+  --tz-color-surface: rgb(var(--tz-color-secondary-rgb));
+  --tz-color-border: rgba(var(--tz-color-primary-rgb), 0.12);
+}
+
+body {
+  background-color: var(--tz-color-background);
+  color: var(--tz-color-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
