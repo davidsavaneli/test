@@ -413,7 +413,30 @@ small, typed return interface, `useCallback`-stable handlers.
 
 ---
 
-## 11. Checklist — adding a new component
+## 11. Testing
+
+- **Stack:** Vitest + React Testing Library + `@testing-library/jest-dom` + jsdom. All dev-only —
+  nothing ships in the package.
+- **Run:** `npm test` (one-shot) or `npm run test:watch`.
+- **Config:** `vitest.config.ts` — jsdom env, `globals: true`, setup in `vitest.setup.ts` (jest-dom
+  matchers + RTL `cleanup`), and CSS Modules `classNameStrategy: 'non-scoped'` so `styles.contained`
+  resolves to `"contained"` and class assertions stay readable.
+- **Location:** co-located `*.test.ts(x)` next to the source file. Test globs are excluded from
+  `tsconfig.build.json`, so they never emit into `dist`.
+- **What to test** (high value, low brittleness):
+  - Pure logic — `applyTheme` (hex→rgb, 3-digit expansion, YIQ contrast, `CONTRAST_OVERRIDE`),
+    `ThemeProvider` (dark-merge order, localStorage persistence, `useTheme` throwing outside a provider).
+  - Behavior & a11y contracts — rendering, `loading`/`disabled`/`nonClickable` states, icon-swap,
+    `aria-*` / `role`, ref forwarding, the `--tz-btn-rgb` inline var, variant/size class names.
+- **What NOT to test:** computed colors / visual styling (jsdom doesn't apply CSS files), and HTML
+  snapshots (brittle against the constant visual iteration this library goes through).
+- **Gotchas:**
+  - In-control loaders are `aria-hidden` (the control's `aria-busy` carries the a11y signal), so
+    query them with `getByRole('status', { hidden: true })`.
+  - `jsdom` is pinned to `25` — newer jsdom pulls an ESM-only transitive dep that Node `<20.19`
+    can't `require()`. Bump it only together with the Node version.
+
+## 12. Checklist — adding a new component
 
 1. `src/components/<Name>/` with `<Name>.tsx`, `<Name>.module.css`, `index.ts`.
 2. Follow the anatomy in §6: `forwardRef`, props `extends Omit<…HTMLAttributes, 'color'>`,
@@ -425,4 +448,6 @@ small, typed return interface, `useCallback`-stable handlers.
 6. Export via the component `index.ts` and add `export * from './<Name>'` to
    `src/components/index.ts`.
 7. Add a section to `playground/main.tsx` exercising variants × colors × sizes × states.
-8. `npm run typecheck` must pass. Verify visually in the playground (light **and** dark mode).
+8. Add a co-located `<Name>.test.tsx` covering behavior + a11y contracts (see §11).
+9. `npm run typecheck` **and** `npm test` must pass. Verify visually in the playground (light
+   **and** dark mode).
