@@ -6,16 +6,16 @@ import styles from './Loader.module.css'
 export type LoaderSize = 'sm' | 'md' | 'lg'
 
 export interface LoaderProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
-  /** Preset size — sets the dot diameter, spacing and bounce travel. Defaults to `md`. */
+  /** Preset size — matches the Icon sizes: `sm` 16px · `md` 20px · `lg` 24px. Defaults to `md`. */
   size?: LoaderSize
-  /** Brand palette token used to color the dots. Omit to inherit the surrounding text color (`currentColor`). */
+  /** Brand palette token used to color the spinner. Omit to inherit the surrounding text color (`currentColor`). */
   color?: TechzyColor
 }
 
 /**
- * Three dots that bounce up and down in a staggered wave. Works standalone as a
- * loading indicator or inside a `Button`, where it inherits the button color via
- * `currentColor` unless an explicit `color` is given.
+ * A circular spinner. Works standalone as a loading indicator or inside a
+ * `Button`, where it inherits the button color via `currentColor` unless an
+ * explicit `color` is given.
  */
 export const Loader = forwardRef<HTMLSpanElement, LoaderProps>(function Loader(
   { size = 'md', color, className, style, ...props },
@@ -29,10 +29,6 @@ export const Loader = forwardRef<HTMLSpanElement, LoaderProps>(function Loader(
       {...props}
       className={clsx(styles.loader, styles[size], className)}
       style={color ? ({ color: `var(--tz-color-${color})`, ...style } as CSSProperties) : style}
-    >
-      <span className={styles.dot} />
-      <span className={styles.dot} />
-      <span className={styles.dot} />
-    </span>
+    />
   )
 })

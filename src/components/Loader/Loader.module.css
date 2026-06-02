@@ -1,55 +1,37 @@
+/* circular spinner — colored via currentColor so it inherits the surrounding text color */
 .loader {
-  display: inline-flex;
-  align-items: center;
+  display: inline-block;
+  flex-shrink: 0;
   vertical-align: middle;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border-style: solid;
+  border-color: currentColor;
+  border-right-color: transparent;
+  animation: tz-loader-spin 0.6s linear infinite;
 }
 
-/* sizes — dot diameter, gap between dots and bounce travel scale together */
+/* sizes — match the Icon sizes exactly */
 .sm {
-  gap: 3px;
-  --tz-loader-dot: 4px;
-  --tz-loader-travel: 3px;
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
 }
 
 .md {
-  gap: 4px;
-  --tz-loader-dot: 6px;
-  --tz-loader-travel: 4px;
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
 }
 
 .lg {
-  gap: 5px;
-  --tz-loader-dot: 8px;
-  --tz-loader-travel: 5px;
+  width: 24px;
+  height: 24px;
+  border-width: 3px;
 }
 
-/* dot — colored via currentColor so it inherits the surrounding text color */
-.dot {
-  width: var(--tz-loader-dot);
-  height: var(--tz-loader-dot);
-  border-radius: 50%;
-  background-color: currentColor;
-  animation: tz-loader-bounce 1.4s var(--tz-ease-standard) infinite both;
-}
-
-/* stagger — negative delays so the wave is already mid-motion on mount */
-.dot:nth-child(1) {
-  animation-delay: -0.32s;
-}
-
-.dot:nth-child(2) {
-  animation-delay: -0.16s;
-}
-
-/* third dot keeps the default 0s delay, trailing the wave */
-
-@keyframes tz-loader-bounce {
-  0%,
-  80%,
-  100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(calc(-1 * var(--tz-loader-travel)));
+@keyframes tz-loader-spin {
+  to {
+    transform: rotate(360deg);
   }
 }

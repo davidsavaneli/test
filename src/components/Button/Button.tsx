@@ -1,4 +1,4 @@
-import { forwardRef, type ButtonHTMLAttributes, type CSSProperties } from 'react'
+import { forwardRef, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
 import { clsx } from 'clsx'
 import type { TechzyColor } from '../../theme'
 import { Loader } from '../Loader'
@@ -14,12 +14,16 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   color?: TechzyColor
   /** Preset size — drives height (`--tz-control-height-*`), padding and font size. */
   size?: ButtonSize
-  /** Shows a spinner and blocks interaction (also sets the native `disabled`). */
+  /** Shows the loader and blocks interaction (also sets the native `disabled`). While loading, the loader replaces whichever icon is present (start by default, end when only `endIcon` is set). */
   loading?: boolean
   /** Stretches the button to fill its container. */
   fullWidth?: boolean
   /** Pill shape (fully rounded corners). */
   rounded?: boolean
+  /** Icon before the label. Replaced by the loader while `loading`. */
+  startIcon?: ReactNode
+  /** Icon after the label. Replaced by the loader while `loading` when no `startIcon` is set. */
+  endIcon?: ReactNode
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -31,6 +35,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     fullWidth = false,
     rounded = false,
     disabled = false,
+    startIcon,
+    endIcon,
     className,
     style,
     type = 'button',
@@ -39,6 +45,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   },
   ref,
 ) {
+  // The loader replaces whichever icon is present: start by default, end when only `endIcon` is set.
+  const loaderAtEnd = loading && !startIcon && endIcon != null
+
   return (
     <button
       ref={ref}
@@ -58,8 +67,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       style={{ '--tz-btn-rgb': `var(--tz-color-${color}-rgb)`, ...style } as CSSProperties}
       {...props}
     >
-      {loading && <Loader size={size} className={styles.loader} aria-hidden="true" />}
-      <span className={styles.content}>{children}</span>
+      {/* leading slot — the loader takes the start icon's place while loading */}
+      {loading && !loaderAtEnd ? <Loader size={size} aria-hidden="true" /> : startIcon}
+      {children != null && children !== false && <span className={styles.label}>{children}</span>}
+      {/* trailing slot — the loader takes the end icon's place when there's no start icon */}
+      {loaderAtEnd ? <Loader size={size} aria-hidden="true" /> : !loading && endIcon}
     </button>
   )
 })

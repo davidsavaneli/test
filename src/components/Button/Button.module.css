@@ -1,12 +1,12 @@
 .button {
-  position: relative; /* anchor for the centered loading spinner */
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--tz-space-xs); /* space between the leading icon/loader, label and trailing icon */
   border: 1px solid transparent; /* keeps height identical across variants */
   border-radius: var(--tz-radius-xs);
   font-family: var(--tz-font-family);
-  font-weight: var(--tz-font-weight-medium);
+  font-weight: var(--tz-font-weight-regular);
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
@@ -22,7 +22,7 @@
 /* sizes */
 .sm {
   height: var(--tz-control-height-sm);
-  padding: 0 var(--tz-space-xs);
+  padding: 0 var(--tz-space-sm);
   font-size: var(--tz-font-size-sm);
 }
 
@@ -34,7 +34,7 @@
 
 .lg {
   height: var(--tz-control-height-lg);
-  padding: 0 var(--tz-space-md);
+  padding: 0 var(--tz-space-sm);
   font-size: var(--tz-font-size-lg);
 }
 
@@ -99,22 +99,8 @@
   cursor: progress;
 }
 
-/* label/icon wrapper — owns the gap between an icon and text */
-.content {
+/* text label — kept fully visible while loading (only the icon is swapped for the loader) */
+.label {
   display: inline-flex;
   align-items: center;
-  gap: var(--tz-space-xs);
-}
-
-/* while loading the Loader takes over; content stays in place (hidden) to hold the width */
-.loading .content {
-  visibility: hidden;
-}
-
-/* Loader overlay — centered over the hidden content; inherits the button text color */
-.loader {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }

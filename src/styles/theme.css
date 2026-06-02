@@ -138,13 +138,13 @@
   --tz-font-weight-bold: 600;
 
   /* font size */
-  --tz-font-size-xxs: 10px;
-  --tz-font-size-xs: 12px;
-  --tz-font-size-sm: 14px;
-  --tz-font-size-md: 16px;
-  --tz-font-size-lg: 18px;
-  --tz-font-size-xl: 22px;
-  --tz-font-size-xxl: 28px;
+  --tz-font-size-xxs: 8px;
+  --tz-font-size-xs: 10px;
+  --tz-font-size-sm: 12px;
+  --tz-font-size-md: 14px;
+  --tz-font-size-lg: 16px;
+  --tz-font-size-xl: 20px;
+  --tz-font-size-xxl: 26px;
 
   /* radius */
   --tz-radius-xxs: 4px;
