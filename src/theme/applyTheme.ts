@@ -11,6 +11,9 @@ export interface TechzyTheme {
   warning: string
 }
 
+/** Names of the brand palette tokens (maps to `--tz-color-<name>`). */
+export type TechzyColor = keyof TechzyTheme
+
 function hexToRgbTriplet(hex: string): string {
   let h = hex.trim().replace(/^#/, '')
   if (h.length === 3) {

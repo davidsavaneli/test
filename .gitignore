@@ -1,5 +1,8 @@
 node_modules/
 dist/
+
+# raw Iconsax dump — input for `npm run build:icons`, not committed (icons.ts is the source of truth)
+icons-raw/
 *.log
 .DS_Store
 .env

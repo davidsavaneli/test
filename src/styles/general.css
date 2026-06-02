@@ -1,0 +1,6 @@
+body {
+  font-family: var(--tz-font-family);
+  background-color: var(--tz-color-background);
+  color: var(--tz-color-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}

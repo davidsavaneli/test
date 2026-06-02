@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
 :root {
   /* primary */
   --tz-color-primary-rgb: 51, 64, 78;
@@ -125,10 +127,69 @@
   --tz-color-background: rgb(var(--tz-color-secondary-rgb));
   --tz-color-surface: rgb(var(--tz-color-secondary-rgb));
   --tz-color-border: rgba(var(--tz-color-primary-rgb), 0.12);
-}
 
-body {
-  background-color: var(--tz-color-background);
-  color: var(--tz-color-text);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  /* typography */
+  --tz-font-family:
+    "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+
+  --tz-font-weight-regular: 400;
+  --tz-font-weight-medium: 500;
+  --tz-font-weight-bold: 600;
+
+  /* font size */
+  --tz-font-size-xxs: 10px;
+  --tz-font-size-xs: 12px;
+  --tz-font-size-sm: 14px;
+  --tz-font-size-md: 16px;
+  --tz-font-size-lg: 18px;
+  --tz-font-size-xl: 22px;
+  --tz-font-size-xxl: 28px;
+
+  /* radius */
+  --tz-radius-xxs: 4px;
+  --tz-radius-xs: 8px;
+  --tz-radius-sm: 16px;
+  --tz-radius-md: 24px;
+  --tz-radius-lg: 32px;
+  --tz-radius-xl: 40px;
+  --tz-radius-xxl: 48px;
+
+  /* spacing — one scale for margin, padding and gap */
+  --tz-space-xxs: 4px;
+  --tz-space-xs: 8px;
+  --tz-space-sm: 16px;
+  --tz-space-md: 24px;
+  --tz-space-lg: 32px;
+  --tz-space-xl: 40px;
+  --tz-space-xxl: 48px;
+
+  /* shadow — elevation for cards, dropdowns, modals, popovers */
+  --tz-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --tz-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --tz-shadow-md: 0 6px 16px rgba(0, 0, 0, 0.1);
+  --tz-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.14);
+  --tz-shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.18);
+
+  /* z-index — layering scale for overlays */
+  --tz-z-dropdown: 1000;
+  --tz-z-sticky: 1100;
+  --tz-z-overlay: 1200;
+  --tz-z-modal: 1300;
+  --tz-z-popover: 1400;
+  --tz-z-toast: 1500;
+  --tz-z-tooltip: 1600;
+
+  /* transition — duration + easing for consistent motion */
+  --tz-duration-fast: 120ms;
+  --tz-duration-normal: 200ms;
+  --tz-duration-slow: 320ms;
+  --tz-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --tz-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --tz-ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+  /* control height — inputs, selects, buttons (matches Button sizes) */
+  --tz-control-height-sm: 32px;
+  --tz-control-height-md: 40px;
+  --tz-control-height-lg: 48px;
 }
