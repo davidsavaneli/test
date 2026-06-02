@@ -12,12 +12,12 @@ export type TypographyVariant =
   | 'body'
   | 'bodySmall'
   | 'caption'
-  | 'overline'
+  | 'uppercase'
 
 export type TypographyAlign = 'left' | 'center' | 'right' | 'justify'
 
-/** Text color: a brand palette token, or the semantic `text` / `muted` roles. Omit to inherit the surrounding color. */
-export type TypographyColor = TechzyColor | 'text' | 'muted'
+/** Text color: a brand palette token, or the semantic `text` role. Omit to inherit the surrounding color. */
+export type TypographyColor = TechzyColor | 'text'
 
 /** Default HTML element rendered for each variant. Override with the `as` prop. */
 const variantElement: Record<TypographyVariant, ElementType> = {
@@ -29,18 +29,17 @@ const variantElement: Record<TypographyVariant, ElementType> = {
   body: 'p',
   bodySmall: 'p',
   caption: 'span',
-  overline: 'span',
+  uppercase: 'span',
 }
 
 function resolveColor(color?: TypographyColor): string | undefined {
   if (!color) return undefined
   if (color === 'text') return 'var(--tz-color-text)'
-  if (color === 'muted') return 'var(--tz-color-text-muted)'
   return `var(--tz-color-${color})`
 }
 
 export interface TypographyProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
-  /** Type scale + default element. `h1`–`h4` headings · `subtitle` · `body` (default) · `bodySmall` · `caption` · `overline`. */
+  /** Type scale + default element. `h1`–`h4` headings · `subtitle` · `body` (default) · `bodySmall` · `caption` · `uppercase`. */
   variant?: TypographyVariant
   /** Render a different HTML element (or component) than the variant's default — keeps the styling, changes the tag. */
   as?: ElementType

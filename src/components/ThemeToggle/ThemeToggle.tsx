@@ -1,63 +1,34 @@
-import { forwardRef, type ButtonHTMLAttributes } from 'react'
-import { clsx } from 'clsx'
+import { forwardRef } from 'react'
 import { useTheme } from '../../theme'
-import styles from './ThemeToggle.module.css'
+import { Icon } from '../Icon'
+import { IconButton, type IconButtonProps } from '../IconButton'
 
-export type ThemeToggleProps = ButtonHTMLAttributes<HTMLButtonElement>
+/** Inherits `IconButton`'s look (variant, color, size); the icon and toggle behavior are built in. */
+export type ThemeToggleProps = Omit<IconButtonProps, 'children'>
 
+/**
+ * A one-tap color-theme switch. Renders an `IconButton` showing the `Sun` icon
+ * in light mode and the `Moon` icon in dark mode, and flips `mode` on click.
+ * Styling comes from `IconButton`, so `variant`, `color` and `size` pass through.
+ */
 export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(function ThemeToggle(
-  { className, ...props },
+  { variant = 'outlined', ...props },
   ref,
 ) {
   const { mode, toggleMode } = useTheme()
   const isDark = mode === 'dark'
 
   return (
-    <button
+    <IconButton
       ref={ref}
-      type="button"
+      variant={variant}
       role="switch"
       aria-checked={isDark}
       aria-label="Toggle color theme"
       {...props}
-      className={clsx(styles.toggle, className)}
       onClick={toggleMode}
     >
-      {isDark ? <MoonIcon /> : <SunIcon />}
-    </button>
+      <Icon name={isDark ? 'Moon' : 'Sun'} />
+    </IconButton>
   )
 })
-
-function SunIcon() {
-  return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" />
-    </svg>
-  )
-}
-
-function MoonIcon() {
-  return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-    </svg>
-  )
-}

@@ -2,7 +2,7 @@
 
 :root {
   /* primary */
-  --tz-color-primary-rgb: 51, 64, 78;
+  --tz-color-primary-rgb: 19, 64, 78;
   --tz-color-primary: rgb(var(--tz-color-primary-rgb));
   --tz-color-primary-shade100: rgba(var(--tz-color-primary-rgb), 0.06);
   --tz-color-primary-shade200: rgba(var(--tz-color-primary-rgb), 0.1);
@@ -14,7 +14,7 @@
   --tz-color-primary-shade800: rgba(var(--tz-color-primary-rgb), 0.9);
 
   /* secondary */
-  --tz-color-secondary-rgb: 255, 255, 255;
+  --tz-color-secondary-rgb: 244, 249, 248;
   --tz-color-secondary: rgb(var(--tz-color-secondary-rgb));
   --tz-color-secondary-shade100: rgba(var(--tz-color-secondary-rgb), 0.06);
   --tz-color-secondary-shade200: rgba(var(--tz-color-secondary-rgb), 0.1);
@@ -26,7 +26,7 @@
   --tz-color-secondary-shade800: rgba(var(--tz-color-secondary-rgb), 0.9);
 
   /* tertiary */
-  --tz-color-tertiary-rgb: 116, 121, 126;
+  --tz-color-tertiary-rgb: 92, 118, 135;
   --tz-color-tertiary: rgb(var(--tz-color-tertiary-rgb));
   --tz-color-tertiary-shade100: rgba(var(--tz-color-tertiary-rgb), 0.06);
   --tz-color-tertiary-shade200: rgba(var(--tz-color-tertiary-rgb), 0.1);
@@ -38,7 +38,7 @@
   --tz-color-tertiary-shade800: rgba(var(--tz-color-tertiary-rgb), 0.9);
 
   /* dark */
-  --tz-color-dark-rgb: 18, 127, 139;
+  --tz-color-dark-rgb: 5, 100, 114;
   --tz-color-dark: rgb(var(--tz-color-dark-rgb));
   --tz-color-dark-shade100: rgba(var(--tz-color-dark-rgb), 0.06);
   --tz-color-dark-shade200: rgba(var(--tz-color-dark-rgb), 0.1);
@@ -50,7 +50,7 @@
   --tz-color-dark-shade800: rgba(var(--tz-color-dark-rgb), 0.9);
 
   /* medium */
-  --tz-color-medium-rgb: 42, 161, 175;
+  --tz-color-medium-rgb: 3, 154, 161;
   --tz-color-medium: rgb(var(--tz-color-medium-rgb));
   --tz-color-medium-shade100: rgba(var(--tz-color-medium-rgb), 0.06);
   --tz-color-medium-shade200: rgba(var(--tz-color-medium-rgb), 0.1);
@@ -62,7 +62,7 @@
   --tz-color-medium-shade800: rgba(var(--tz-color-medium-rgb), 0.9);
 
   /* light */
-  --tz-color-light-rgb: 113, 198, 201;
+  --tz-color-light-rgb: 173, 195, 201;
   --tz-color-light: rgb(var(--tz-color-light-rgb));
   --tz-color-light-shade100: rgba(var(--tz-color-light-rgb), 0.06);
   --tz-color-light-shade200: rgba(var(--tz-color-light-rgb), 0.1);
@@ -98,7 +98,7 @@
   --tz-color-error-shade800: rgba(var(--tz-color-error-rgb), 0.9);
 
   /* info */
-  --tz-color-info-rgb: 0, 162, 174;
+  --tz-color-info-rgb: 3, 154, 161;
   --tz-color-info: rgb(var(--tz-color-info-rgb));
   --tz-color-info-shade100: rgba(var(--tz-color-info-rgb), 0.06);
   --tz-color-info-shade200: rgba(var(--tz-color-info-rgb), 0.1);
@@ -121,9 +121,21 @@
   --tz-color-warning-shade700: rgba(var(--tz-color-warning-rgb), 0.8);
   --tz-color-warning-shade800: rgba(var(--tz-color-warning-rgb), 0.9);
 
+  /* contrast (text) color for `contained` controls — readable on each color.
+     applyTheme() recomputes these per mode from each color's luminance. */
+  --tz-color-primary-contrast: #ffffff;
+  --tz-color-secondary-contrast: rgb(var(--tz-color-primary-rgb));
+  --tz-color-tertiary-contrast: #ffffff;
+  --tz-color-dark-contrast: #ffffff;
+  --tz-color-medium-contrast: #ffffff;
+  --tz-color-light-contrast: #ffffff;
+  --tz-color-success-contrast: #ffffff;
+  --tz-color-error-contrast: #ffffff;
+  --tz-color-info-contrast: #ffffff;
+  --tz-color-warning-contrast: #ffffff;
+
   /* semantic — derived from brand; flip automatically when the palette is swapped per mode */
   --tz-color-text: rgb(var(--tz-color-primary-rgb));
-  --tz-color-text-muted: rgb(var(--tz-color-tertiary-rgb));
   --tz-color-background: rgb(var(--tz-color-secondary-rgb));
   --tz-color-surface: rgb(var(--tz-color-secondary-rgb));
   --tz-color-border: rgba(var(--tz-color-primary-rgb), 0.12);
@@ -180,16 +192,11 @@
   --tz-z-toast: 1500;
   --tz-z-tooltip: 1600;
 
-  /* transition — duration + easing for consistent motion */
-  --tz-duration-fast: 120ms;
-  --tz-duration-normal: 200ms;
-  --tz-duration-slow: 320ms;
-  --tz-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --tz-ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --tz-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  /* transition — single duration for consistent motion */
+  --tz-duration: 300ms;
 
   /* control height — inputs, selects, buttons (matches Button sizes) */
-  --tz-control-height-sm: 32px;
-  --tz-control-height-md: 40px;
-  --tz-control-height-lg: 48px;
+  --tz-control-height-sm: 30px;
+  --tz-control-height-md: 36px;
+  --tz-control-height-lg: 42px;
 }

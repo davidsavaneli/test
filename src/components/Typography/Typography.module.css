@@ -50,7 +50,7 @@
   line-height: 1.4;
 }
 
-.overline {
+.uppercase {
   font-size: var(--tz-font-size-xxs);
   line-height: 1.4;
   text-transform: uppercase;

@@ -64,7 +64,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         disabled && styles.disabled,
         className,
       )}
-      style={{ '--tz-btn-rgb': `var(--tz-color-${color}-rgb)`, ...style } as CSSProperties}
+      style={
+        {
+          '--tz-btn-rgb': `var(--tz-color-${color}-rgb)`,
+          '--tz-btn-on': `var(--tz-color-${color}-contrast, #fff)`,
+          ...style,
+        } as CSSProperties
+      }
       {...props}
     >
       {/* leading slot — the loader takes the start icon's place while loading */}
