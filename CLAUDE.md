@@ -122,7 +122,13 @@ Derived from brand tokens so they flip automatically when the palette is swapped
 --tz-font-weight-regular: 400; /* DEFAULT for body and most components */
 --tz-font-weight-medium: 500;
 --tz-font-weight-bold: 600; /* only h1–h4 headings */
+--tz-line-height: 1.4; /* single line-height for ALL Typography variants */
 ```
+
+`--tz-line-height` is set once on the `.typography` base and every variant inherits it (no
+per-variant line-heights). Controls (`Button`, `IconButton`) keep `line-height: 1` for crisp
+vertical centering — they are not text blocks. `reset.css` uses `var(--tz-line-height, 1.4)` so it
+still works when imported standalone.
 
 Font-size scale (used by Typography variants and control sizes):
 
@@ -144,9 +150,9 @@ Spacing is one scale for margin, padding, and gap.
 Inputs, selects, buttons — the `sm/md/lg` sizing baseline:
 
 ```css
---tz-control-height-sm: 30px;
---tz-control-height-md: 36px; /* default */
---tz-control-height-lg: 42px;
+--tz-control-height-sm: 34px;
+--tz-control-height-md: 40px; /* default */
+--tz-control-height-lg: 46px;
 ```
 
 ### 3.6 Shadow, z-index, motion
@@ -363,6 +369,29 @@ unless a `color` token is set. `aria-hidden`, `focusable={false}`.
 inherit) · `align` · `truncate`. Default element per variant (`h1→h1 … body→p … caption/uppercase→
 span`). Headings `h1–h4` are bold; everything else is `--tz-font-weight-regular`. No default
 margins.
+
+### TextField
+
+A labeled text input. `label` · `size` · `error` + `helperText` (red border/ring + helper in the
+error color) · `required` (asterisk) · `fullWidth` · `disabled` · `adornment` + `adornmentPosition`
+(`left` default / `right`) · `onAdornmentClick` (makes an **icon** adornment a clickable `IconButton`;
+needs `adornmentLabel` for its `aria-label`, default `"Field action"`; ignored for string adornments).
+The `adornment` is type-driven: a **string/number** renders as a muted text prefix/suffix
+(e.g. `"https://"`, `"$"`, `"kg"`) that reads into the input; any other **node** renders as an icon
+inside an `IconButton` (`variant="text"`) — clickable when `onAdornmentClick` is set, otherwise
+`nonClickable` + `aria-hidden` (decorative). The icon box fills the control's inner height as a flush
+square (CSS overrides the `IconButton` size via `align-self: stretch` + `aspect-ratio: 1`), so the
+icon's inset is identical on top, bottom and its outer side; the `<input>` drops its padding on whichever
+side the adornment occupies. Input-level constraints:
+`regex` (allowed-input filter — a change whose value fails the pattern is rejected, e.g. `/^\d*$/`)
+and `mask` (`9` digit · `a` letter · `*` alphanumeric · other chars literal, e.g. `"(999) 999-9999"`).
+Works controlled (`value`+`onChange`) or uncontrolled (`defaultValue`); with a `mask`, `onChange`
+emits the **masked** value. Structure: `.control` owns the border/background and shows the focus
+ring via `:focus-within`; the bare `<input>` is transparent. The label and helper text render
+through `Typography` (consistent type scale; helper color flips to `error`), while the label stays
+a native `<label htmlFor>` for the input association (Typography's types don't expose `htmlFor`).
+a11y: label `htmlFor`, `aria-invalid` while `error`, `aria-describedby` → helper. **No form library is bundled** (dep-light) — validation
+logic lives in the consuming app; TextField just renders the result.
 
 ### ThemeToggle
 

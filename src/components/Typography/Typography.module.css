@@ -1,58 +1,50 @@
-/* base — no default margins; inherits color unless a `color` token is given */
+/* base — no default margins; one line-height for all variants; inherits color unless a `color` token is given */
 .typography {
   margin: 0;
   font-family: var(--tz-font-family);
   font-weight: var(--tz-font-weight-regular);
+  line-height: var(--tz-line-height);
 }
 
 /* variants — size comes from the --tz-font-size-* scale; headings are bold */
 .h1 {
   font-size: var(--tz-font-size-xxl);
   font-weight: var(--tz-font-weight-bold);
-  line-height: 1.2;
 }
 
 .h2 {
   font-size: var(--tz-font-size-xl);
   font-weight: var(--tz-font-weight-bold);
-  line-height: 1.25;
 }
 
 .h3 {
   font-size: var(--tz-font-size-lg);
   font-weight: var(--tz-font-weight-bold);
-  line-height: 1.3;
 }
 
 .h4 {
   font-size: var(--tz-font-size-md);
   font-weight: var(--tz-font-weight-bold);
-  line-height: 1.4;
 }
 
 .subtitle {
   font-size: var(--tz-font-size-sm);
-  line-height: 1.5;
 }
 
 .body {
   font-size: var(--tz-font-size-md);
-  line-height: 1.6;
 }
 
 .bodySmall {
   font-size: var(--tz-font-size-sm);
-  line-height: 1.6;
 }
 
 .caption {
   font-size: var(--tz-font-size-xs);
-  line-height: 1.4;
 }
 
 .uppercase {
   font-size: var(--tz-font-size-xxs);
-  line-height: 1.4;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }

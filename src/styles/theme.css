@@ -158,6 +158,9 @@
   --tz-font-size-xl: 20px;
   --tz-font-size-xxl: 26px;
 
+  /* line height — single value for all text (controls keep their own line-height: 1 for centering) */
+  --tz-line-height: 1.4;
+
   /* radius */
   --tz-radius-xxs: 4px;
   --tz-radius-xs: 8px;
@@ -196,7 +199,7 @@
   --tz-duration: 300ms;
 
   /* control height — inputs, selects, buttons (matches Button sizes) */
-  --tz-control-height-sm: 30px;
-  --tz-control-height-md: 36px;
-  --tz-control-height-lg: 42px;
+  --tz-control-height-sm: 34px;
+  --tz-control-height-md: 40px;
+  --tz-control-height-lg: 46px;
 }
