@@ -7,6 +7,7 @@ import {
   Icon,
   IconButton,
   Loader,
+  NumberField,
   TextField,
   ThemeProvider,
   ThemeToggle,
@@ -448,6 +449,22 @@ function TextFieldSection() {
           />
         </div>
       </Block>
+
+      <Block label="more masks (9 = digit · a = letter · * = alphanumeric)">
+        <div style={colStyle}>
+          <TextField
+            label="Card Number"
+            mask="9999 9999 9999 9999"
+            adornment={<Icon name="Card" />}
+            placeholder="0000 0000 0000 0000"
+            fullWidth
+          />
+          <TextField label="Expiry" mask="99/99" placeholder="MM/YY" fullWidth />
+          <TextField label="Date" mask="99/99/9999" placeholder="DD/MM/YYYY" fullWidth />
+          <TextField label="Time" mask="99:99" placeholder="HH:MM" fullWidth />
+          <TextField label="License Plate" mask="aa-999-aa" placeholder="AB-123-CD" fullWidth />
+        </div>
+      </Block>
     </Section>
   )
 }
@@ -455,12 +472,20 @@ function TextFieldSection() {
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email'),
   password: z.string().min(6, 'At least 6 characters'),
+  // nullable so the field can start empty (null); the `: boolean` annotation stops TS 6 from
+  // inferring a `v is number` type-predicate (which would narrow the type and break the null default).
+  quantity: z
+    .number()
+    .min(1, 'At least 1')
+    .max(10, 'Max 10')
+    .nullable()
+    .refine((v): boolean => v !== null, 'Required'),
 })
 
 function FormSection() {
   const form = useForm({
     schema: loginSchema,
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '', password: '', quantity: null },
     onSubmit: (values, { reset }) => {
       alert(`Submitted:\n${JSON.stringify(values, null, 2)}`)
       reset() // clear the fields after a successful submit
@@ -474,7 +499,7 @@ function FormSection() {
           form={form}
           style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 360 }}
         >
-          <TextField name="email" label="Email" placeholder="you@example.com" fullWidth />
+          <TextField name="email" required label="Email" placeholder="you@example.com" fullWidth />
           <TextField
             name="password"
             required
@@ -483,10 +508,51 @@ function FormSection() {
             placeholder="••••••"
             fullWidth
           />
+          <NumberField name="quantity" required label="Quantity" min={0} max={10} fullWidth />
           <Button type="submit" loading={form.isSubmitting}>
             Sign In
           </Button>
         </Form>
+      </Block>
+    </Section>
+  )
+}
+
+function NumberFieldSection() {
+  const [qty, setQty] = useState<number | null>(2)
+  const colStyle: CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16,
+    maxWidth: 360,
+  }
+
+  return (
+    <Section title="NumberField">
+      <Block label="default value · min / max / step · controlled · disabled">
+        <div style={colStyle}>
+          <NumberField label="Label" placeholder="0"  fullWidth />
+          <NumberField label="Quantity" defaultValue={1} min={0} max={10} fullWidth />
+          <NumberField label="Price (step 0.5)" defaultValue={9.5} step={0.5} min={0} fullWidth />
+          <NumberField
+            label="Amount (live grouped)"
+            defaultValue={32345345}
+            thousandSeparator="."
+            max={999999999}
+            helperText="Groups live as you type — e.g. 32.345.345"
+            fullWidth
+          />
+          <NumberField
+            label="Controlled"
+            value={qty}
+            onChange={setQty}
+            min={0}
+            max={5}
+            helperText={`Value: ${qty ?? '—'}`}
+            fullWidth
+          />
+          <NumberField label="Disabled" defaultValue={42} disabled fullWidth />
+        </div>
       </Block>
     </Section>
   )
@@ -511,6 +577,7 @@ function Demo() {
 
       <TypographySection />
       <TextFieldSection />
+      <NumberFieldSection />
       <FormSection />
       <ButtonSection />
       <IconButtonSection />

@@ -73,6 +73,13 @@ describe('Button', () => {
     expect(screen.queryByTestId('end')).not.toBeInTheDocument()
   })
 
+  it('trails the loader after the label (right) on a plain button with no icons', () => {
+    render(<Button loading>Sign In</Button>)
+    const btn = screen.getByRole('button')
+    const loader = screen.getByRole('status', { hidden: true })
+    expect(btn.lastElementChild).toBe(loader) // loader sits after the label, not before
+  })
+
   it('forwards the ref to the button element', () => {
     const ref = createRef<HTMLButtonElement>()
     render(<Button ref={ref}>X</Button>)

@@ -124,6 +124,11 @@ describe('TextField', () => {
     })
   })
 
+  it('is full width by default', () => {
+    const { container } = render(<TextField label="Title" />)
+    expect(container.firstElementChild?.className).toContain('fullWidth')
+  })
+
   it('forwards the ref to the input element', () => {
     const ref = createRef<HTMLInputElement>()
     render(<TextField label="Title" ref={ref} />)

@@ -14,7 +14,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   color?: TechzyColor
   /** Preset size — drives height (`--tz-control-height-*`), padding and font size. */
   size?: ButtonSize
-  /** Shows the loader and blocks interaction (also sets the native `disabled`). While loading, the loader replaces whichever icon is present (start by default, end when only `endIcon` is set). */
+  /** Shows the loader and blocks interaction (also sets the native `disabled`). The loader replaces the `startIcon` when present, otherwise it trails the label at the end (right) — so a plain button shows the spinner on the right. The text stays visible. */
   loading?: boolean
   /** Stretches the button to fill its container. */
   fullWidth?: boolean
@@ -45,8 +45,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   },
   ref,
 ) {
-  // The loader replaces whichever icon is present: start by default, end when only `endIcon` is set.
-  const loaderAtEnd = loading && !startIcon && endIcon != null
+  // The loader replaces the start icon when there is one; otherwise it sits at the end (right) —
+  // including a plain button with no icons, so the spinner trails the label.
+  const loaderAtEnd = loading && !startIcon
 
   return (
     <button

@@ -66,7 +66,7 @@ export interface TextFieldProps extends Omit<
   helperText?: ReactNode
   /** Adds a red asterisk after the label (visual hint only — combine with native `required` if needed). */
   required?: boolean
-  /** Stretches the field to fill its container width. */
+  /** Stretches the field to fill its container width. Defaults to `true`. */
   fullWidth?: boolean
   /**
    * Content shown inside the field. A **string/number** renders as a muted prefix/suffix
@@ -104,7 +104,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     error,
     helperText,
     required = false,
-    fullWidth = false,
+    fullWidth = true,
     adornment,
     adornmentPosition = 'left',
     onAdornmentClick,
