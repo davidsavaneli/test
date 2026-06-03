@@ -477,6 +477,7 @@ function FormSection() {
           <TextField name="email" label="Email" placeholder="you@example.com" fullWidth />
           <TextField
             name="password"
+            required
             type="password"
             label="Password"
             placeholder="••••••"
