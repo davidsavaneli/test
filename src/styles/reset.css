@@ -21,7 +21,13 @@ body {
   padding: 0;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
     sans-serif;
 }
 

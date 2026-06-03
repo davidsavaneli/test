@@ -1,0 +1,10 @@
+# build output & deps
+dist
+node_modules
+
+# lockfile (huge, machine-managed)
+package-lock.json
+
+# generated icon registry — owned by scripts/build-icons.mjs, not hand-formatted
+src/icons/icons.ts
+src/icons/names.ts

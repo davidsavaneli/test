@@ -65,27 +65,27 @@ Each brand color is stored as a **comma-separated RGB triplet** (not hex) so we 
 shades with `rgba()`:
 
 ```css
---tz-color-primary-rgb: 19, 64, 78;          /* the triplet */
---tz-color-primary: rgb(var(--tz-color-primary-rgb));   /* solid convenience */
+--tz-color-primary-rgb: 19, 64, 78; /* the triplet */
+--tz-color-primary: rgb(var(--tz-color-primary-rgb)); /* solid convenience */
 --tz-color-primary-shade100: rgba(var(--tz-color-primary-rgb), 0.06);
 /* ...shade200..shade800 */
---tz-color-primary-contrast: #ffffff;         /* readable text color on a solid fill */
+--tz-color-primary-contrast: #ffffff; /* readable text color on a solid fill */
 ```
 
 **Brand palette (10 colors)** — light-mode defaults:
 
-| token       | hex       | role                                  |
-| ----------- | --------- | ------------------------------------- |
-| `primary`   | `#13404e` | primary brand / default text          |
-| `secondary` | `#f4f9f8` | page background / surface             |
-| `tertiary`  | `#5c7687` | muted accent                          |
-| `dark`      | `#056472` | dark brand shade                      |
-| `medium`    | `#039aa1` | mid brand shade                       |
-| `light`     | `#adc3c9` | light brand shade                     |
-| `success`   | `#00a854` | semantic — success                    |
-| `error`     | `#f04134` | semantic — error/danger               |
-| `info`      | `#039aa1` | semantic — info                       |
-| `warning`   | `#ffbf00` | semantic — warning                    |
+| token       | hex       | role                         |
+| ----------- | --------- | ---------------------------- |
+| `primary`   | `#13404e` | primary brand / default text |
+| `secondary` | `#f4f9f8` | page background / surface    |
+| `tertiary`  | `#5c7687` | muted accent                 |
+| `dark`      | `#056472` | dark brand shade             |
+| `medium`    | `#039aa1` | mid brand shade              |
+| `light`     | `#adc3c9` | light brand shade            |
+| `success`   | `#00a854` | semantic — success           |
+| `error`     | `#f04134` | semantic — error/danger      |
+| `info`      | `#039aa1` | semantic — info              |
+| `warning`   | `#ffbf00` | semantic — warning           |
 
 > The hex values above are the library's built-in defaults. Consuming apps override them through
 > `ThemeProvider` (see §5). Components must reference colors by **token name**, never by hex.
@@ -118,20 +118,20 @@ Derived from brand tokens so they flip automatically when the palette is swapped
 ### 3.3 Typography tokens
 
 ```css
---tz-font-family: "Inter", system-ui, -apple-system, ... sans-serif;
---tz-font-weight-regular: 400;   /* DEFAULT for body and most components */
+--tz-font-family: 'Inter', system-ui, -apple-system, ... sans-serif;
+--tz-font-weight-regular: 400; /* DEFAULT for body and most components */
 --tz-font-weight-medium: 500;
---tz-font-weight-bold: 600;      /* only h1–h4 headings */
+--tz-font-weight-bold: 600; /* only h1–h4 headings */
 ```
 
 Font-size scale (used by Typography variants and control sizes):
 
-| token              | px  | token              | px  |
-| ------------------ | --- | ------------------ | --- |
-| `--tz-font-size-xxs` | 8  | `--tz-font-size-lg`  | 16 |
-| `--tz-font-size-xs`  | 10 | `--tz-font-size-xl`  | 20 |
-| `--tz-font-size-sm`  | 12 | `--tz-font-size-xxl` | 26 |
-| `--tz-font-size-md`  | 14 |                      |    |
+| token                | px  | token                | px  |
+| -------------------- | --- | -------------------- | --- |
+| `--tz-font-size-xxs` | 8   | `--tz-font-size-lg`  | 16  |
+| `--tz-font-size-xs`  | 10  | `--tz-font-size-xl`  | 20  |
+| `--tz-font-size-sm`  | 12  | `--tz-font-size-xxl` | 26  |
+| `--tz-font-size-md`  | 14  |                      |     |
 
 ### 3.4 Radius & spacing (shared 4→48 scale)
 
@@ -145,7 +145,7 @@ Inputs, selects, buttons — the `sm/md/lg` sizing baseline:
 
 ```css
 --tz-control-height-sm: 30px;
---tz-control-height-md: 36px;   /* default */
+--tz-control-height-md: 36px; /* default */
 --tz-control-height-lg: 42px;
 ```
 
@@ -191,14 +191,37 @@ style={{
 ```
 
 ```css
-.contained { background: rgb(var(--tz-btn-rgb)); border-color: rgb(var(--tz-btn-rgb)); color: var(--tz-btn-on, #fff); }
-.contained:hover:not(:disabled) { filter: brightness(0.92); }
-.filled    { background: rgba(var(--tz-btn-rgb), 0.12); color: rgb(var(--tz-btn-rgb)); }
-.filled:hover:not(:disabled)   { background: rgba(var(--tz-btn-rgb), 0.2); }
-.outlined  { background: transparent; border-color: rgba(var(--tz-btn-rgb), 0.5); color: rgb(var(--tz-btn-rgb)); }
-.outlined:hover:not(:disabled) { background: rgba(var(--tz-btn-rgb), 0.08); border-color: rgb(var(--tz-btn-rgb)); }
-.text      { background: transparent; color: rgb(var(--tz-btn-rgb)); }
-.text:hover:not(:disabled)     { background: rgba(var(--tz-btn-rgb), 0.08); }
+.contained {
+  background: rgb(var(--tz-btn-rgb));
+  border-color: rgb(var(--tz-btn-rgb));
+  color: var(--tz-btn-on, #fff);
+}
+.contained:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+.filled {
+  background: rgba(var(--tz-btn-rgb), 0.12);
+  color: rgb(var(--tz-btn-rgb));
+}
+.filled:hover:not(:disabled) {
+  background: rgba(var(--tz-btn-rgb), 0.2);
+}
+.outlined {
+  background: transparent;
+  border-color: rgba(var(--tz-btn-rgb), 0.5);
+  color: rgb(var(--tz-btn-rgb));
+}
+.outlined:hover:not(:disabled) {
+  background: rgba(var(--tz-btn-rgb), 0.08);
+  border-color: rgb(var(--tz-btn-rgb));
+}
+.text {
+  background: transparent;
+  color: rgb(var(--tz-btn-rgb));
+}
+.text:hover:not(:disabled) {
+  background: rgba(var(--tz-btn-rgb), 0.08);
+}
 ```
 
 Any future tintable control (Chip, Badge, Tab, …) should reuse this exact pattern.
@@ -284,16 +307,16 @@ Rules baked into the pattern:
 
 ### Standard prop vocabulary (reuse these names/types)
 
-| prop          | type                                  | default       | notes                                            |
-| ------------- | ------------------------------------- | ------------- | ------------------------------------------------ |
-| `variant`     | `'contained'\|'filled'\|'outlined'\|'text'` | `'contained'` | for tintable controls                            |
-| `color`       | `TechzyColor`                         | `'primary'`   | brand token; drives `--tz-btn-rgb`               |
-| `size`        | `'sm'\|'md'\|'lg'`                     | `'md'`        | maps to control-height / font / icon size        |
-| `loading`     | `boolean`                             | `false`       | shows `Loader`, sets native `disabled` + `aria-busy` |
-| `disabled`    | `boolean`                             | `false`       | `opacity: 0.5` + `cursor: not-allowed`           |
-| `rounded`     | `boolean`                             | `false`       | pill (`999px`) / circle                          |
-| `fullWidth`   | `boolean`                             | `false`       | `width: 100%`                                    |
-| `nonClickable`| `boolean`                             | `false`       | non-interactive but **normal** look (not dimmed) — `pointer-events: none` + `tabIndex={-1}` + `aria-disabled`, no native `disabled` |
+| prop           | type                                        | default       | notes                                                                                                                               |
+| -------------- | ------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `variant`      | `'contained'\|'filled'\|'outlined'\|'text'` | `'contained'` | for tintable controls                                                                                                               |
+| `color`        | `TechzyColor`                               | `'primary'`   | brand token; drives `--tz-btn-rgb`                                                                                                  |
+| `size`         | `'sm'\|'md'\|'lg'`                          | `'md'`        | maps to control-height / font / icon size                                                                                           |
+| `loading`      | `boolean`                                   | `false`       | shows `Loader`, sets native `disabled` + `aria-busy`                                                                                |
+| `disabled`     | `boolean`                                   | `false`       | `opacity: 0.5` + `cursor: not-allowed`                                                                                              |
+| `rounded`      | `boolean`                                   | `false`       | pill (`999px`) / circle                                                                                                             |
+| `fullWidth`    | `boolean`                                   | `false`       | `width: 100%`                                                                                                                       |
+| `nonClickable` | `boolean`                                   | `false`       | non-interactive but **normal** look (not dimmed) — `pointer-events: none` + `tabIndex={-1}` + `aria-disabled`, no native `disabled` |
 
 ### Color inheritance (`Icon`, `Loader`, `Typography`)
 
@@ -364,6 +387,9 @@ small, typed return interface, `useCallback`-stable handlers.
   themselves) and the contrast constants in `applyTheme.ts`.
 - **English JSDoc** on every exported component and every public prop. Keep it short and describe
   behavior + default.
+- **Formatting is Prettier** (`.prettierrc.json`: single quotes, no semicolons, `printWidth: 100`,
+  `trailingComma: "all"`). Run `npm run format`; `npm run format:check` must pass. Don't hand-fight
+  the formatter. The generated icon files and the lockfile are in `.prettierignore`.
 - **Accessibility is part of the component**, not an afterthought: `aria-busy` while loading,
   `aria-label` for icon-only controls, `role`/`aria-checked` for toggles, `aria-hidden` for
   decorative icons, `role="status"` for the loader.
@@ -385,13 +411,16 @@ small, typed return interface, `useCallback`-stable handlers.
 
 ## 10. Build, scripts & publishing
 
-| script               | does                                                            |
-| -------------------- | --------------------------------------------------------------- |
-| `npm run playground` | `vite` dev server for `playground/main.tsx`                     |
-| `npm run dev`        | `vite build --watch` (library watch build)                      |
-| `npm run build`      | lib build + types + CSS assembly (see below)                    |
-| `npm run build:icons`| regenerate the icon registry                                    |
-| `npm run typecheck`  | `tsc --noEmit`                                                   |
+| script                 | does                                         |
+| ---------------------- | -------------------------------------------- |
+| `npm run playground`   | `vite` dev server for `playground/main.tsx`  |
+| `npm run dev`          | `vite build --watch` (library watch build)   |
+| `npm run build`        | lib build + types + CSS assembly (see below) |
+| `npm run build:icons`  | regenerate the icon registry                 |
+| `npm run typecheck`    | `tsc --noEmit`                               |
+| `npm test`             | run the Vitest suite once (`vitest run`)     |
+| `npm run format`       | Prettier-format the whole repo               |
+| `npm run format:check` | verify formatting (CI-friendly, no writes)   |
 
 - **Output:** Vite library mode, entry `src/index.ts`. Emits ESM `dist/index.js` and CJS
   `dist/index.cjs`. `react`, `react-dom`, and `clsx` are **externalized** (peer deps).

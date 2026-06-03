@@ -52,8 +52,7 @@ export function ThemeProvider({ config, children }: ThemeProviderProps) {
   useLayoutEffect(() => {
     const { light, dark } = config.colors
     // dark = light base, then library dark defaults, then the app's own dark overrides
-    const palette =
-      mode === 'dark' ? { ...light, ...DEFAULT_DARK_COLORS, ...dark } : light
+    const palette = mode === 'dark' ? { ...light, ...DEFAULT_DARK_COLORS, ...dark } : light
     applyTheme(palette)
 
     const root = document.documentElement

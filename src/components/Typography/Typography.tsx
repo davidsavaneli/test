@@ -1,4 +1,10 @@
-import { forwardRef, type CSSProperties, type ElementType, type HTMLAttributes, type ReactNode } from 'react'
+import {
+  forwardRef,
+  type CSSProperties,
+  type ElementType,
+  type HTMLAttributes,
+  type ReactNode,
+} from 'react'
 import { clsx } from 'clsx'
 import type { TechzyColor } from '../../theme'
 import styles from './Typography.module.css'
@@ -69,12 +75,7 @@ export const Typography = forwardRef<HTMLElement, TypographyProps>(function Typo
   return (
     <Component
       ref={ref}
-      className={clsx(
-        styles.typography,
-        styles[variant],
-        truncate && styles.truncate,
-        className,
-      )}
+      className={clsx(styles.typography, styles[variant], truncate && styles.truncate, className)}
       style={
         {
           ...(resolvedColor && { color: resolvedColor }),

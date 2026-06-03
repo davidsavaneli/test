@@ -21,11 +21,17 @@ const HASH_RE = /-[0-9a-f]{12}-$/
 
 /** filename -> clean kebab base (`iconsax-3-dots-more-<hash>-.svg` -> `3-dots-more`) */
 const baseName = (file) =>
-  file.replace(/\.svg$/i, '').replace(/^iconsax-/, '').replace(HASH_RE, '')
+  file
+    .replace(/\.svg$/i, '')
+    .replace(/^iconsax-/, '')
+    .replace(HASH_RE, '')
 
 /** `3-dots-more` -> `3DotsMore` (uppercases the first letter of each dash-segment) */
 const toPascal = (kebab) =>
-  kebab.split('-').map((s) => s.replace(/[a-z]/i, (c) => c.toUpperCase())).join('')
+  kebab
+    .split('-')
+    .map((s) => s.replace(/[a-z]/i, (c) => c.toUpperCase()))
+    .join('')
 
 /** `Clock2` -> `Clock3`, `Clock` -> `Clock2` — resolves name clashes deterministically */
 const bump = (name) => {
@@ -35,7 +41,8 @@ const bump = (name) => {
 
 /** Strip wrapper chrome and normalize colors. Returns inner markup for an icon. */
 function processSvg(raw) {
-  const strokeBased = (raw.match(/<svg[^>]*\bfill="([^"]+)"/i) || [, ''])[1].toLowerCase() === 'none'
+  const strokeBased =
+    (raw.match(/<svg[^>]*\bfill="([^"]+)"/i) || [, ''])[1].toLowerCase() === 'none'
 
   let inner = raw
     .replace(/^[\s\S]*?<svg[^>]*>/i, '') // drop opening <svg ...> (incl. width/height)
@@ -66,7 +73,9 @@ if (!existsSync(RAW_DIR)) {
   process.exit(1)
 }
 
-const rawFiles = readdirSync(RAW_DIR).filter((f) => f.endsWith('.svg')).sort()
+const rawFiles = readdirSync(RAW_DIR)
+  .filter((f) => f.endsWith('.svg'))
+  .sort()
 if (rawFiles.length === 0) {
   // Guard: never overwrite the committed registry with an empty one.
   console.error(`${RAW_DIR}/ has no .svg files.\nDrop the Iconsax SVG dump there and re-run.`)
