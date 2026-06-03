@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { z } from 'zod'
 import {
   Button,
+  Checkbox,
   Form,
   Icon,
   IconButton,
@@ -480,12 +481,13 @@ const loginSchema = z.object({
     .max(10, 'Max 10')
     .nullable()
     .refine((v): boolean => v !== null, 'Required'),
+  acceptTerms: z.boolean().refine((v) => v, 'You must accept the terms'),
 })
 
 function FormSection() {
   const form = useForm({
     schema: loginSchema,
-    defaultValues: { email: '', password: '', quantity: null },
+    defaultValues: { email: '', password: '', quantity: null, acceptTerms: false },
     onSubmit: (values, { reset }) => {
       alert(`Submitted:\n${JSON.stringify(values, null, 2)}`)
       reset() // clear the fields after a successful submit
@@ -509,6 +511,7 @@ function FormSection() {
             fullWidth
           />
           <NumberField name="quantity" required label="Quantity" min={0} max={10} fullWidth />
+          <Checkbox name="acceptTerms" required label="I accept the terms" />
           <Button type="submit" loading={form.isSubmitting}>
             Sign In
           </Button>
@@ -531,7 +534,7 @@ function NumberFieldSection() {
     <Section title="NumberField">
       <Block label="default value · min / max / step · controlled · disabled">
         <div style={colStyle}>
-          <NumberField label="Label" placeholder="0"  fullWidth />
+          <NumberField label="Label" placeholder="0" fullWidth />
           <NumberField label="Quantity" defaultValue={1} min={0} max={10} fullWidth />
           <NumberField label="Price (step 0.5)" defaultValue={9.5} step={0.5} min={0} fullWidth />
           <NumberField
@@ -558,6 +561,61 @@ function NumberFieldSection() {
   )
 }
 
+function CheckboxSection() {
+  const col: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 12 }
+  return (
+    <Section title="Checkbox">
+      <Block label="basic · checked colors">
+        <div style={col}>
+          <Checkbox label="Checkbox" />
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <Checkbox color="success" defaultChecked aria-label="Success" />
+            <Checkbox color="error" defaultChecked aria-label="Error" />
+            <Checkbox color="primary" defaultChecked aria-label="Primary" />
+          </div>
+        </div>
+      </Block>
+
+      <Block label="group (vertical / horizontal)">
+        <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
+          <div style={col}>
+            <Typography variant="bodySmall" color="tertiary">
+              Form Label
+            </Typography>
+            <Checkbox label="Checkbox 1" />
+            <Checkbox label="Checkbox 2" />
+          </div>
+          <div style={col}>
+            <Typography variant="bodySmall" color="tertiary">
+              Form Label
+            </Typography>
+            <div style={{ display: 'flex', gap: 24 }}>
+              <Checkbox label="Checkbox 1" />
+              <Checkbox label="Checkbox 2" />
+            </div>
+          </div>
+        </div>
+      </Block>
+
+      <Block label="sizes">
+        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+          <Checkbox size="lg" label="Large" />
+          <Checkbox size="md" label="Medium" />
+          <Checkbox size="sm" label="Small" />
+        </div>
+      </Block>
+
+      <Block label="states">
+        <div style={col}>
+          <Checkbox label="Disabled" disabled />
+          <Checkbox label="Disabled Checked" disabled defaultChecked />
+          <Checkbox label="Required" error helperText="Please accept" />
+        </div>
+      </Block>
+    </Section>
+  )
+}
+
 function Demo() {
   return (
     <div
@@ -578,6 +636,7 @@ function Demo() {
       <TypographySection />
       <TextFieldSection />
       <NumberFieldSection />
+      <CheckboxSection />
       <FormSection />
       <ButtonSection />
       <IconButtonSection />

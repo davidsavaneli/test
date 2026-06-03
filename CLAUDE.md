@@ -429,6 +429,18 @@ touched/error come from `field()`. The steppers are **`filled`** `IconButton`s s
 negative `margin-right` to tighten the gap). NumberField has no CSS of its own; it reuses
 `TextField.module.css` entirely.
 
+### Checkbox
+
+A labeled checkbox. The native `<input type="checkbox">` is **visually hidden** (sr-only) but stays
+focusable + announced; a styled `.box` shows the state, and the tick is a **CSS checkmark** (rotated
+corner — no icon dependency). `label` · `color` (checked fill, default `primary`) · `size` (box +
+label) · `error` + `helperText` · `required` · `disabled` · `checked`/`defaultChecked` ·
+`onChange(checked)` (emits a `boolean`). Uses the `--tz-btn-rgb`/`--tz-btn-on` pattern: checked →
+`background: rgb(var(--tz-btn-rgb))` with a contrast-colored tick; `:focus-visible` ring; `error`
+reddens the box border. Like the other fields, a **`name`** prop binds it to a surrounding `<Form>` —
+its form value is a **`boolean`** (validate with e.g. `z.boolean().refine((v) => v, 'Required')` for a
+must-accept box). Own CSS module (`Checkbox.module.css`); helper renders via `Typography`.
+
 ### ThemeToggle
 
 Wraps `IconButton` (default `variant="outlined"`). Shows `Icon name="Sun"` in light mode, `"Moon"`
