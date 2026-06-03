@@ -4,6 +4,9 @@
   "description": "Techzy UI — reusable React component library for admin panels.",
   "type": "module",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "sideEffects": [
     "**/*.css"
   ],
