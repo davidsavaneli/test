@@ -11,7 +11,7 @@ export default defineConfig({
     cssCodeSplit: false,
     sourcemap: true,
     rollupOptions: {
-      external: ['clsx', /^react($|\/)/, /^react-dom($|\/)/],
+      external: ['clsx', /^react($|\/)/, /^react-dom($|\/)/, /^zod($|\/)/],
       output: {
         assetFileNames: (info) => {
           const name = info.name ?? info.names?.[0] ?? ''

@@ -110,6 +110,20 @@ describe('TextField', () => {
     })
   })
 
+  describe('password reveal', () => {
+    it('adds a reveal toggle and flips the input type for type="password"', () => {
+      render(<TextField label="Password" type="password" />)
+      const input = screen.getByLabelText('Password')
+      expect(input).toHaveAttribute('type', 'password')
+
+      const toggle = screen.getByRole('button', { name: 'Show password' })
+      fireEvent.click(toggle)
+
+      expect(input).toHaveAttribute('type', 'text')
+      expect(screen.getByRole('button', { name: 'Hide password' })).toBeInTheDocument()
+    })
+  })
+
   it('forwards the ref to the input element', () => {
     const ref = createRef<HTMLInputElement>()
     render(<TextField label="Title" ref={ref} />)

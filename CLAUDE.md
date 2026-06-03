@@ -16,9 +16,13 @@ change only what differs.
   foundation for Techzy admin panels.
 - **Stack:** React 19 (peer dep `>=18`), TypeScript (strict), Vite 6 library mode, CSS Modules,
   dual ESM/CJS output.
-- **Dependency policy — keep it light.** Runtime deps are only `clsx`. No state-management or
-  styling libraries. Local state uses React Context + hooks (never zustand/redux); app-level
-  state lives in the consuming apps, not here.
+- **Scope & dependency policy — batteries-included for admin panels.** The goal is to pre-build as
+  much reusable logic as possible so consuming apps stay thin; adding weight or a dependency is fine
+  when it materially simplifies app code. (This supersedes the earlier "keep it light at all costs"
+  rule.) Today the only **bundled** runtime dep is `clsx`; **`zod` is an _optional_ peer dependency**
+  that powers the form layer (`useForm`) and is never bundled (it's `external` in the build, used via
+  the consumer's own instance). Prefer React Context + hooks for internal state; reach for a
+  dependency when it clearly earns its place.
 
 ---
 
@@ -38,6 +42,11 @@ src/
     index.ts
   hooks/
     useDisclosure.ts      # example hook (open/close/toggle)
+    index.ts
+  form/
+    useForm.ts            # zod-powered form hook (validation, blur-then-live, submit gating)
+    Form.tsx              # <Form form={...}> provider — binds nested fields by `name`
+    formContext.ts        # FormContext + useFormContext (TextField auto-binds through this)
     index.ts
   icons/
     icons.ts              # generated inline-SVG registry (committed source of truth)
@@ -382,7 +391,10 @@ inside an `IconButton` (`variant="text"`) — clickable when `onAdornmentClick` 
 `nonClickable` + `aria-hidden` (decorative). The icon box fills the control's inner height as a flush
 square (CSS overrides the `IconButton` size via `align-self: stretch` + `aspect-ratio: 1`), so the
 icon's inset is identical on top, bottom and its outer side; the `<input>` drops its padding on whichever
-side the adornment occupies. Input-level constraints:
+side the adornment occupies. Passing **`type="password"`** auto-adds a show/hide reveal toggle
+(`Eye`/`EyeSlash`) in the right adornment slot — it flips the input between `password`/`text` and
+overrides the `adornment` props for that field (no separate `isPassword` prop; the standard `type`
+drives it). Input-level constraints:
 `regex` (allowed-input filter — a change whose value fails the pattern is rejected, e.g. `/^\d*$/`)
 and `mask` (`9` digit · `a` letter · `*` alphanumeric · other chars literal, e.g. `"(999) 999-9999"`).
 Works controlled (`value`+`onChange`) or uncontrolled (`defaultValue`); with a `mask`, `onChange`
@@ -390,8 +402,10 @@ emits the **masked** value. Structure: `.control` owns the border/background and
 ring via `:focus-within`; the bare `<input>` is transparent. The label and helper text render
 through `Typography` (consistent type scale; helper color flips to `error`), while the label stays
 a native `<label htmlFor>` for the input association (Typography's types don't expose `htmlFor`).
-a11y: label `htmlFor`, `aria-invalid` while `error`, `aria-describedby` → helper. **No form library is bundled** (dep-light) — validation
-logic lives in the consuming app; TextField just renders the result.
+a11y: label `htmlFor`, `aria-invalid` while `error`, `aria-describedby` → helper. TextField is purely
+presentational on its own, but inside a `<Form>` a **`name`** prop auto-binds it to the form
+(value/onChange/onBlur/error/helperText) via context — explicit props still win. The validation engine
+is `useForm` (see the Form section).
 
 ### ThemeToggle
 
@@ -404,6 +418,45 @@ in dark; flips `mode` via `useTheme().toggleMode` on click. `role="switch"`, `ar
 
 `useDisclosure(initial = false)` → `{ isOpen, open, close, toggle }`. Model new hooks on this:
 small, typed return interface, `useCallback`-stable handlers.
+
+### Form — `useForm` (Zod-powered)
+
+A small form helper (`src/form/`) — the in-library alternative to bundling Formik in every app.
+`useForm({ schema, defaultValues, onSubmit?, mode? })` where `schema` is a **Zod** object schema
+(field names = its top-level keys) and `defaultValues` is the controlled source of truth. `zod` is an
+**optional peer dep** — only needed when you use `useForm`; values/types are inferred from the schema
+via `z.infer`.
+
+Returns `{ values, errors, touched, isValid, isSubmitted, isSubmitting, field, setValue, setValues, reset, handleSubmit }`
+(the `FormApi` type). `handleSubmit` validates the whole form and calls `onSubmit` with the
+**parsed** values only when valid (awaiting an async `onSubmit` toggles `isSubmitting`). `onSubmit`
+gets a second **helpers** arg — `(values, { reset, setValue, setValues })` — so you can clear the
+form on success: `onSubmit: (values, { reset }) => { await save(values); reset() }`. (`reset()` is
+also on the form object for a standalone "Clear" button.)
+
+**Two ways to bind a field** (prefer the first):
+
+1. **`<Form form={form}>` + a `name` prop** — `<Form>` renders a native `<form noValidate>` wired to
+   `handleSubmit` and shares the instance via context; any nested `<TextField name="email" />`
+   auto-pulls value/onChange/onBlur/error/helperText. No spread.
+2. **Spread `field(name)`** onto a `<TextField />` directly (works without a `<Form>` wrapper).
+
+Explicit props always win over the bound ones. `mode` controls when errors show: `blurThenLive`
+(default — after blur/submit, then live on change), `change` (from the first keystroke), or `submit`
+(only after a submit attempt). Validation is derived from the live `values` (no stale error state);
+errors are stored for every invalid field but only _shown_ per `mode`. Don't pass an explicit
+`helperText` to a bound field — the form owns it. Single-level (flat) schemas today; nested paths use
+`issue.path[0]`.
+
+```tsx
+const schema = z.object({ email: z.string().email(), password: z.string().min(6) })
+const form = useForm({ schema, defaultValues: { email: '', password: '' }, onSubmit: save })
+<Form form={form}>
+  <TextField name="email" label="Email" />
+  <TextField name="password" type="password" label="Password" />
+  <Button type="submit" loading={form.isSubmitting}>Sign In</Button>
+</Form>
+```
 
 ---
 
@@ -422,7 +475,9 @@ small, typed return interface, `useCallback`-stable handlers.
 - **Accessibility is part of the component**, not an afterthought: `aria-busy` while loading,
   `aria-label` for icon-only controls, `role`/`aria-checked` for toggles, `aria-hidden` for
   decorative icons, `role="status"` for the loader.
-- **Stay dependency-light** (see §1). New runtime deps need a strong justification.
+- **Dependencies earn their place** (see §1). Prefer pre-building reusable logic in the lib over
+  pushing it to every app; add a dependency when it materially simplifies consumer code. Keep new
+  deps **bundle-free where possible** (`external` + optional peer, like `zod`).
 
 ---
 

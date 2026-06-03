@@ -4,11 +4,14 @@ import {
   useState,
   type ChangeEvent,
   type CSSProperties,
+  type FocusEvent,
   type InputHTMLAttributes,
   type MouseEvent,
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
+import { useFormContext } from '../../form/formContext'
+import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
 import { Typography } from '../Typography'
 import styles from './TextField.module.css'
@@ -89,14 +92,16 @@ export interface TextFieldProps extends Omit<
  * a string prefix/suffix (e.g. `"https://"`) or an icon, which can be made
  * interactive via `onAdornmentClick`. Supports an allowed-input `regex` filter and
  * a formatting `mask`. Works controlled (`value` + `onChange`) or uncontrolled
- * (`defaultValue`); when a `mask` is set, `onChange` emits the masked value.
- * Styling comes entirely from `--tz-*` tokens.
+ * (`defaultValue`); when a `mask` is set, `onChange` emits the masked value. Passing
+ * `type="password"` automatically adds a show/hide reveal toggle in the right adornment
+ * slot. Inside a `<Form>`, a `name` prop auto-binds value/validation from the form (no need to
+ * spread `field()`). Styling comes entirely from `--tz-*` tokens.
  */
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
   {
     label,
     size = 'md',
-    error = false,
+    error,
     helperText,
     required = false,
     fullWidth = false,
@@ -106,10 +111,13 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     adornmentLabel = 'Field action',
     regex,
     mask,
+    name,
     value,
     defaultValue,
     onChange,
+    onBlur,
     disabled = false,
+    type,
     id: idProp,
     className,
     style,
@@ -121,9 +129,17 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   const id = idProp ?? reactId
   const helperId = `${id}-helper`
 
-  const isControlled = value !== undefined
+  // Auto-bind to a surrounding <Form> by `name` — so `<TextField name="email" />` just works,
+  // pulling value/onChange/onBlur/error/helperText from the form. Explicit props still win.
+  const form = useFormContext()
+  const bound = form && name ? form.field(name) : undefined
+
+  const resolvedError = error ?? bound?.error ?? false
+  const resolvedHelperText = helperText ?? bound?.helperText
+
+  const isControlled = value !== undefined || bound !== undefined
   const [internal, setInternal] = useState<string>(defaultValue != null ? String(defaultValue) : '')
-  const currentValue = isControlled ? value : internal
+  const currentValue = value !== undefined ? value : bound ? bound.value : internal
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     let next = event.target.value
@@ -133,30 +149,54 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       if (!regex.test(candidate)) return // reject the change, leaving the value unchanged
     }
     if (!isControlled) setInternal(next)
-    if (onChange) {
-      event.target.value = next // hand the consumer the masked/filtered value
-      onChange(event)
-    }
+    event.target.value = next // hand consumers the masked/filtered value
+    bound?.onChange(event)
+    onChange?.(event)
   }
 
-  const hasAdornment = adornment != null && adornment !== false
-  const isTextAdornment = typeof adornment === 'string' || typeof adornment === 'number'
+  const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+    bound?.onBlur(event)
+    onBlur?.(event)
+  }
+
+  // Password fields get an automatic reveal toggle in the (right) adornment slot; it flips the
+  // input between `password` and `text` and overrides any adornment props for that field.
+  const [revealed, setRevealed] = useState(false)
+  const isPasswordField = type === 'password'
+  const inputType = isPasswordField && revealed ? 'text' : type
+
+  const effAdornment = isPasswordField ? <Icon name={revealed ? 'EyeSlash' : 'Eye'} /> : adornment
+  const effAdornmentPosition = isPasswordField ? 'right' : adornmentPosition
+  const effOnAdornmentClick = isPasswordField
+    ? () => setRevealed((shown) => !shown)
+    : onAdornmentClick
+  const effAdornmentLabel = isPasswordField
+    ? revealed
+      ? 'Hide password'
+      : 'Show password'
+    : adornmentLabel
+
+  const hasAdornment = effAdornment != null && effAdornment !== false
+  const isTextAdornment = typeof effAdornment === 'string' || typeof effAdornment === 'number'
 
   let adornmentNode: ReactNode = null
   if (hasAdornment) {
     if (isTextAdornment) {
-      adornmentNode = <span className={styles.textAdornment}>{adornment}</span>
-    } else if (onAdornmentClick) {
+      adornmentNode = <span className={styles.textAdornment}>{effAdornment}</span>
+    } else if (effOnAdornmentClick) {
       adornmentNode = (
         <IconButton
           variant="text"
           size={size}
           disabled={disabled}
-          aria-label={adornmentLabel}
-          onClick={onAdornmentClick}
+          aria-label={effAdornmentLabel}
+          onClick={effOnAdornmentClick}
+          // Don't steal focus from the input on click — keeps the control's focus ring tied to the
+          // input itself (clicking the icon shouldn't light up the field's :focus-within ring).
+          onMouseDown={(event) => event.preventDefault()}
           className={styles.iconButton}
         >
-          {adornment}
+          {effAdornment}
         </IconButton>
       )
     } else {
@@ -171,7 +211,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
           aria-hidden="true"
           className={styles.iconButton}
         >
-          {adornment}
+          {effAdornment}
         </IconButton>
       )
     }
@@ -183,7 +223,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         styles.field,
         styles[size],
         fullWidth && styles.fullWidth,
-        error && styles.error,
+        resolvedError && styles.error,
         disabled && styles.disabled,
         className,
       )}
@@ -205,34 +245,37 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       <div
         className={clsx(
           styles.control,
-          hasAdornment && adornmentPosition === 'left' && styles.hasLeftAdornment,
-          hasAdornment && adornmentPosition === 'right' && styles.hasRightAdornment,
+          hasAdornment && effAdornmentPosition === 'left' && styles.hasLeftAdornment,
+          hasAdornment && effAdornmentPosition === 'right' && styles.hasRightAdornment,
         )}
       >
-        {adornmentPosition === 'left' && adornmentNode}
+        {effAdornmentPosition === 'left' && adornmentNode}
         <input
           ref={ref}
           id={id}
+          name={name}
+          type={inputType}
           className={styles.input}
           value={currentValue}
           onChange={handleChange}
+          onBlur={handleBlur}
           disabled={disabled}
-          aria-invalid={error || undefined}
-          aria-describedby={helperText != null ? helperId : undefined}
+          aria-invalid={resolvedError || undefined}
+          aria-describedby={resolvedHelperText != null ? helperId : undefined}
           {...props}
         />
-        {adornmentPosition === 'right' && adornmentNode}
+        {effAdornmentPosition === 'right' && adornmentNode}
       </div>
 
-      {helperText != null && (
+      {resolvedHelperText != null && (
         <Typography
           as="span"
           id={helperId}
           variant="bodySmall"
-          color={error ? 'error' : 'tertiary'}
+          color={resolvedError ? 'error' : 'tertiary'}
           className={styles.helper}
         >
-          {helperText}
+          {resolvedHelperText}
         </Typography>
       )}
     </div>

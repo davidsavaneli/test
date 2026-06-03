@@ -1,7 +1,9 @@
 import { StrictMode, useState, type CSSProperties, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { z } from 'zod'
 import {
   Button,
+  Form,
   Icon,
   IconButton,
   Loader,
@@ -9,6 +11,7 @@ import {
   ThemeProvider,
   ThemeToggle,
   Typography,
+  useForm,
   type ThemeConfig,
 } from '../src'
 import '../src/styles/reset.css'
@@ -449,6 +452,45 @@ function TextFieldSection() {
   )
 }
 
+const loginSchema = z.object({
+  email: z.string().email('Enter a valid email'),
+  password: z.string().min(6, 'At least 6 characters'),
+})
+
+function FormSection() {
+  const form = useForm({
+    schema: loginSchema,
+    defaultValues: { email: '', password: '' },
+    onSubmit: (values, { reset }) => {
+      alert(`Submitted:\n${JSON.stringify(values, null, 2)}`)
+      reset() // clear the fields after a successful submit
+    },
+  })
+
+  return (
+    <Section title="Form (useForm + zod)">
+      <Block label="validation — bind by name (blur, then live)">
+        <Form
+          form={form}
+          style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 360 }}
+        >
+          <TextField name="email" label="Email" placeholder="you@example.com" fullWidth />
+          <TextField
+            name="password"
+            type="password"
+            label="Password"
+            placeholder="••••••"
+            fullWidth
+          />
+          <Button type="submit" loading={form.isSubmitting}>
+            Sign In
+          </Button>
+        </Form>
+      </Block>
+    </Section>
+  )
+}
+
 function Demo() {
   return (
     <div
@@ -468,6 +510,7 @@ function Demo() {
 
       <TypographySection />
       <TextFieldSection />
+      <FormSection />
       <ButtonSection />
       <IconButtonSection />
       <LoaderSection />

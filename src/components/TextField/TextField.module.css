@@ -14,7 +14,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  margin-bottom: var(--tz-space-xs);
+  margin-bottom: var(--tz-space-xxs);
 }
 
 .required {
