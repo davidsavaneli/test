@@ -52,6 +52,7 @@ src/
   layout/
     RootLayout.tsx        # admin shell (sidebar + header + content)
     Sidebar.tsx           # auto-generated nav from routes' staticData + FirstRouteRedirect + buildNavTree
+    access.ts             # RBAC access store (setAccessKeys/hasAccess/useAccessKeys) — filters the menu by roles
     layout.css            # tz-prefixed global shell styles (bundled into dist/index.css)
     index.ts
   icons/
@@ -508,8 +509,9 @@ component and pass `<Outlet/>` as `children`. **`Sidebar`** auto-builds a 3-leve
 — no manual menu config. **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item.
 
 Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
-`{ name?: string; icon?: IconName; order?: number; hidden?: boolean }` — a route with **no `name`**
-never appears; `hidden` keeps it routed but off the menu; `order` sorts (asc, then alphabetical).
+`{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }` — a route
+with **no `name`** never appears; `hidden` keeps it routed but off the menu; `order` sorts (asc, then
+alphabetical); `roles` gates it by access (see RBAC below).
 Path segments infer structure: `/dashboard` (1 seg) → top-level link; `/components/theme-toggle`
 (2 seg, no children) → clickable group row; `/components/forms/button` (3 seg) → module `components` →
 group `forms` → page; an index route at a group path (`/components/forms/`) makes the group a
@@ -519,9 +521,24 @@ group `forms` → page; an index route at a group path (`/components/forms/`) ma
 The tree logic is a pure, tested `buildNavTree(routes)` (router-free); `useNavTree` feeds it the live
 routes. Styles are `tz-`-prefixed global classes in `layout.css` (token-only → light/dark-safe),
 bundled into `dist/index.css`. The `declare module '@tanstack/react-router'` augmentation ships in the
-published `.d.ts`. Exports: `RootLayout`, `Sidebar`, `FirstRouteRedirect`, and types `IconName`,
+published `.d.ts`. Exports: `RootLayout`, `Sidebar`, `FirstRouteRedirect`, the access helpers
+(`setAccessKeys`, `getAccessKeys`, `hasAccess`, `useAccessKeys`), and types `IconName`,
 `NavLeaf`, `NavGroup`, `NavModule`. Gotcha: never name a leaf route file `loader.tsx` (reserved by the
 router plugin) — use a `loader/index.tsx` folder.
+
+**RBAC — role-based menu filtering (`src/layout/access.ts`).** A page declares allowed `accessKeys`
+via `staticData.roles: string[]` (**OR** semantics — the user needs any one; omitted/empty = public).
+Access is a **module singleton** with a React subscription, so it's readable both inside React
+(`useAccessKeys()` — reactive, re-renders the `Sidebar`) and outside it (`hasAccess(roles)` — for
+TanStack `beforeLoad` guards, which run before React). The app calls `setAccessKeys(keys)` after
+login/`getUser` (and `setAccessKeys([])` on logout); `getAccessKeys()` is the non-reactive read.
+`useNavTree` subscribes via `useAccessKeys()` (a `useMemo` dep) and **filters routes through
+`hasAccess(sd.roles)` before `buildNavTree`**, keeping the builder pure — forbidden pages drop out
+live, and empty groups/modules vanish on their own (they're only created when a child is added).
+`FirstRouteRedirect` needs no change — it lands on the first item of the already-filtered tree, i.e.
+the first allowed page. Defaults are inert: pages without `roles`, and apps that never call
+`setAccessKeys` (keys stay `[]`), behave exactly as before. For direct-URL defense-in-depth, guard the
+route too: `beforeLoad: () => { if (!hasAccess(['Analyst'])) throw redirect({ to: '/' }) }`.
 
 ```tsx
 // app: src/routes/__root.tsx
@@ -534,6 +551,22 @@ export const Route = createRootRoute({
 })
 // app: src/routes/index.tsx  →  component: FirstRouteRedirect
 // app: a page  →  createFileRoute('/dashboard/')({ staticData: { name: 'Dashboard', icon: 'Category', order: 0 } })
+
+// RBAC: feed the user's roles in once (after login), gate pages with `roles`, guard direct URLs.
+import { setAccessKeys, hasAccess } from '@techzy/ui'
+setAccessKeys((await getUser()).response.accessKeys) //   [] on logout
+// a gated page:
+createFileRoute('/dashboard/')({
+  staticData: {
+    name: 'Dashboard',
+    icon: 'Category',
+    order: 0,
+    roles: ['Analyst', 'SystemUserManager'],
+  },
+  beforeLoad: () => {
+    if (!hasAccess(['Analyst', 'SystemUserManager'])) throw redirect({ to: '/' })
+  },
+})
 ```
 
 ---

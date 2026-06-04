@@ -166,10 +166,49 @@ peer: `npm i @tanstack/react-router` (>=1).
   you don't place it yourself).
 - **`FirstRouteRedirect`** — use as the `/` route's component; forwards to the first menu item.
 - Each route self-registers via **`staticData`** (typed once you import from the package):
-  `{ name?: string; icon?: IconName; order?: number; hidden?: boolean }`. No `name` → not in the menu.
-  Segments infer structure: `/dashboard` → top link; `/components/forms/button` → module → group →
-  page; an index route at a group path makes the group its own page. Module/group label+icon come
-  from that folder's `route.tsx` `staticData`.
+  `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }`. No `name`
+  → not in the menu. Segments infer structure: `/dashboard` → top link; `/components/forms/button` →
+  module → group → page; an index route at a group path makes the group its own page. Module/group
+  label+icon come from that folder's `route.tsx` `staticData`.
+
+### Role-based access (RBAC)
+
+Gate pages by the user's `accessKeys` (e.g. from your backend `getUser` →
+`response.accessKeys: string[]`). A page lists allowed keys in `staticData.roles`; **OR** semantics —
+the user needs **any one** match. A page with no `roles` is public.
+
+- **`setAccessKeys(keys)`** — feed the user's keys in once after login / app init; pass `[]` on logout.
+  The menu **and** the `/` redirect immediately reflect the new roles (the sidebar re-renders live).
+- **`hasAccess(roles?)`** — `true` if `roles` is omitted/empty or the user has any one. Works
+  **outside React** (call it in a route `beforeLoad` guard for direct-URL protection).
+- **`useAccessKeys()`** — reactive read of the current keys (re-renders on change); rarely needed
+  directly. `getAccessKeys()` is the non-reactive read.
+
+Forbidden pages just disappear from the menu (and empty groups/modules with them), and
+`FirstRouteRedirect` lands on the first **allowed** page. If you never call `setAccessKeys`, every
+`roles`-less page shows as normal.
+
+```tsx
+// after login / on app init:
+import { setAccessKeys, hasAccess } from 'sava-test'
+const { accessKeys } = (await getUser()).response
+setAccessKeys(accessKeys) //   on logout: setAccessKeys([])
+
+// a page declares who may see it:
+export const Route = createFileRoute('/dashboard/')({
+  staticData: {
+    name: 'Dashboard',
+    icon: 'Category',
+    order: 0,
+    roles: ['Analyst', 'SystemUserManager'],
+  },
+  // defense-in-depth for direct URLs (runs outside React → uses hasAccess, not the hook):
+  beforeLoad: () => {
+    if (!hasAccess(['Analyst', 'SystemUserManager'])) throw redirect({ to: '/' })
+  },
+  component: DashboardPage,
+})
+```
 
 ```tsx
 // src/routes/__root.tsx

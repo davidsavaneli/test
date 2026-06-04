@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-router'
 import { Icon } from '../components/Icon'
 import type { IconName } from '../icons/names'
+import { hasAccess, useAccessKeys } from './access'
 import './layout.css'
 
 export type { IconName }
@@ -24,6 +25,8 @@ declare module '@tanstack/react-router' {
     order?: number
     /** Routed but hidden from the menu. */
     hidden?: boolean
+    /** Allowed accessKeys (OR — user needs any one). Omitted/empty = public. */
+    roles?: string[]
   }
 }
 
@@ -194,15 +197,19 @@ export function buildNavTree(routes: NavRoute[]): { links: NavLeaf[]; modules: N
 
 function useNavTree(): { links: NavLeaf[]; modules: NavModule[] } {
   const router = useRouter()
+  const accessKeys = useAccessKeys() // re-render the menu when the user's roles change (login/logout)
   return useMemo(
     () =>
       buildNavTree(
-        Object.values(router.looseRoutesById).map((route) => ({
-          fullPath: route.fullPath,
-          staticData: route.options?.staticData,
-        })),
+        Object.values(router.looseRoutesById)
+          .map((route) => ({
+            fullPath: route.fullPath,
+            staticData: route.options?.staticData,
+          }))
+          // Drop pages the current user can't access — empty groups/modules then vanish on their own.
+          .filter((route) => hasAccess(route.staticData?.roles)),
       ),
-    [router],
+    [router, accessKeys],
   )
 }
 
