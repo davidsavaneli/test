@@ -1,6 +1,6 @@
 {
   "name": "sava-test",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Techzy UI — reusable React component library for admin panels.",
   "type": "module",
   "license": "MIT",
@@ -38,16 +38,21 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
+    "@tanstack/react-router": ">=1.0.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
     "zod": ">=3.23.0"
   },
   "peerDependenciesMeta": {
+    "@tanstack/react-router": {
+      "optional": true
+    },
     "zod": {
       "optional": true
     }
   },
   "devDependencies": {
+    "@tanstack/react-router": "^1.170.11",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

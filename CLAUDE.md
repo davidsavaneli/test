@@ -19,9 +19,10 @@ change only what differs.
 - **Scope & dependency policy — batteries-included for admin panels.** The goal is to pre-build as
   much reusable logic as possible so consuming apps stay thin; adding weight or a dependency is fine
   when it materially simplifies app code. (This supersedes the earlier "keep it light at all costs"
-  rule.) Today the only **bundled** runtime dep is `clsx`; **`zod` is an _optional_ peer dependency**
-  that powers the form layer (`useForm`) and is never bundled (it's `external` in the build, used via
-  the consumer's own instance). Prefer React Context + hooks for internal state; reach for a
+  rule.) Today the only **bundled** runtime dep is `clsx`. Two **optional peer dependencies** are
+  `external` (never bundled, used via the consumer's own instance): **`zod`** powers the form layer
+  (`useForm`), and **`@tanstack/react-router`** (`>=1`) powers the admin shell (`RootLayout` /
+  `Sidebar` / `FirstRouteRedirect`). Prefer React Context + hooks for internal state; reach for a
   dependency when it clearly earns its place.
 
 ---
@@ -47,6 +48,11 @@ src/
     useForm.ts            # zod-powered form hook (validation, blur-then-live, submit gating)
     Form.tsx              # <Form form={...}> provider — binds nested fields by `name`
     formContext.ts        # FormContext + useFormContext (TextField auto-binds through this)
+    index.ts
+  layout/
+    RootLayout.tsx        # admin shell (sidebar + header + content)
+    Sidebar.tsx           # auto-generated nav from routes' staticData + FirstRouteRedirect + buildNavTree
+    layout.css            # tz-prefixed global shell styles (bundled into dist/index.css)
     index.ts
   icons/
     icons.ts              # generated inline-SVG registry (committed source of truth)
@@ -490,6 +496,44 @@ const form = useForm({ schema, defaultValues: { email: '', password: '' }, onSub
   <TextField name="password" type="password" label="Password" />
   <Button type="submit" loading={form.isSubmitting}>Sign In</Button>
 </Form>
+```
+
+### Layout — `RootLayout` / `Sidebar` / `FirstRouteRedirect` (TanStack Router)
+
+The admin-panel shell (`src/layout/`). Powered by **`@tanstack/react-router`** (optional peer, `>=1`,
+`external` in the build). `RootLayout({ brand?, headerStart?, headerEnd?, children })` renders a left
+sidebar (brand + `<Sidebar/>`), a top header, and a content container; set it as the **root route's**
+component and pass `<Outlet/>` as `children`. **`Sidebar`** auto-builds a 3-level menu (module → group
+→ page) by walking `useRouter().looseRoutesById` and reading each route's `fullPath` + `staticData`
+— no manual menu config. **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item.
+
+Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
+`{ name?: string; icon?: IconName; order?: number; hidden?: boolean }` — a route with **no `name`**
+never appears; `hidden` keeps it routed but off the menu; `order` sorts (asc, then alphabetical).
+Path segments infer structure: `/dashboard` (1 seg) → top-level link; `/components/theme-toggle`
+(2 seg, no children) → clickable group row; `/components/forms/button` (3 seg) → module `components` →
+group `forms` → page; an index route at a group path (`/components/forms/`) makes the group a
+**"Case B"** page (icon/label navigate + expand, chevron only toggles). Module/group chrome
+(label/icon/order) comes from that folder's `route.tsx` `staticData`, else the segment is prettified.
+
+The tree logic is a pure, tested `buildNavTree(routes)` (router-free); `useNavTree` feeds it the live
+routes. Styles are `tz-`-prefixed global classes in `layout.css` (token-only → light/dark-safe),
+bundled into `dist/index.css`. The `declare module '@tanstack/react-router'` augmentation ships in the
+published `.d.ts`. Exports: `RootLayout`, `Sidebar`, `FirstRouteRedirect`, and types `IconName`,
+`NavLeaf`, `NavGroup`, `NavModule`. Gotcha: never name a leaf route file `loader.tsx` (reserved by the
+router plugin) — use a `loader/index.tsx` folder.
+
+```tsx
+// app: src/routes/__root.tsx
+export const Route = createRootRoute({
+  component: () => (
+    <RootLayout brand={<Icon name="Box" />} headerEnd={<ThemeToggle />}>
+      <Outlet />
+    </RootLayout>
+  ),
+})
+// app: src/routes/index.tsx  →  component: FirstRouteRedirect
+// app: a page  →  createFileRoute('/dashboard/')({ staticData: { name: 'Dashboard', icon: 'Category', order: 0 } })
 ```
 
 ---

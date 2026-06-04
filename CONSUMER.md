@@ -8,6 +8,12 @@ The package is a reusable React component library (currently published as **`sav
 name is `@techzy/ui`). Stack on the consumer side: React 18+ and TypeScript. Everything is imported
 from the package root.
 
+> **How to use this doc:** it's the conceptual map. For exact prop names, types and defaults, rely on
+> the package's **shipped TypeScript types** (autocomplete + JSDoc on every prop) — they're
+> authoritative and always match the installed version. This file is a snapshot: after upgrading
+> (`npm i sava-test@latest`), re-copy it from the library so it doesn't drift. If the package was
+> installed under a different name than `sava-test`, import from that name instead.
+
 ---
 
 ## 1. Install
@@ -149,7 +155,61 @@ function SignIn() {
   `.nullable()` and annotate any `required` refine as `(v): boolean => v !== null` (TS infers a
   type-predicate otherwise and breaks the `null` default).
 
-## 6. Conventions for the app
+## 6. Admin shell + auto-generated sidebar (TanStack Router)
+
+For apps on **TanStack Router** (file-based routing), the library ships the whole shell. Install the
+peer: `npm i @tanstack/react-router` (>=1).
+
+- **`RootLayout`** — `brand?`, `headerStart?`, `headerEnd?`, `children`. Set it as the **root route's**
+  component and pass `<Outlet/>`. Renders sidebar + header + content.
+- **`Sidebar`** — auto-builds the menu from the routes' `staticData` (rendered inside `RootLayout`;
+  you don't place it yourself).
+- **`FirstRouteRedirect`** — use as the `/` route's component; forwards to the first menu item.
+- Each route self-registers via **`staticData`** (typed once you import from the package):
+  `{ name?: string; icon?: IconName; order?: number; hidden?: boolean }`. No `name` → not in the menu.
+  Segments infer structure: `/dashboard` → top link; `/components/forms/button` → module → group →
+  page; an index route at a group path makes the group its own page. Module/group label+icon come
+  from that folder's `route.tsx` `staticData`.
+
+```tsx
+// src/routes/__root.tsx
+import { createRootRoute, Outlet } from '@tanstack/react-router'
+import { RootLayout, Icon, Typography, ThemeToggle } from 'sava-test'
+
+export const Route = createRootRoute({
+  component: () => (
+    <RootLayout
+      brand={
+        <>
+          <Icon name="Box" color="primary" size="lg" />
+          <Typography variant="h4">Techzy Admin</Typography>
+        </>
+      }
+      headerEnd={<ThemeToggle />}
+    >
+      <Outlet />
+    </RootLayout>
+  ),
+})
+
+// src/routes/index.tsx  →  the "/" route forwards to the first menu item
+import { createFileRoute } from '@tanstack/react-router'
+import { FirstRouteRedirect } from 'sava-test'
+export const Route = createFileRoute('/')({ component: FirstRouteRedirect })
+
+// any page registers itself in the menu:
+export const Route = createFileRoute('/dashboard/')({
+  staticData: { name: 'Dashboard', icon: 'Category', order: 0 },
+  component: DashboardPage,
+})
+// group chrome lives in the group's route.tsx:
+//   createFileRoute('/components/forms')({ staticData: { name: 'Forms', icon: 'DocumentText', order: 0 } })
+```
+
+> Gotcha: never name a leaf route file `loader.tsx` (reserved by the TanStack Router plugin) — use a
+> `loader/index.tsx` folder instead.
+
+## 7. Conventions for the app
 
 - **Title Case** all visible UI text.
 - Use the components' **`color` / `size` props and design tokens** — don't hardcode colors or sizes.
