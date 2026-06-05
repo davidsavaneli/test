@@ -123,6 +123,15 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 
 **ThemeToggle** — wraps `IconButton`; flips the theme mode. Pass-through `variant`/`color`/`size`.
 
+**Badge** — wraps a child (e.g. a `Button`/`IconButton`) and pins a count or dot to its corner:
+`<Badge content={2}><IconButton …/></Badge>`. `content` (`number | string`) → a count (numbers cap to
+`${max}+`, `max` default 99; a `0` hides unless `showZero`); `dot` → a plain indicator. `color`
+(default `primary`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
+
+**Tooltip** — wraps a single element and shows a floating label on hover/focus:
+`<Tooltip content="Save"><IconButton …/></Tooltip>`. `content: ReactNode`, `placement`
+(`top` default · `bottom` · `left` · `right`). Closes on `Escape`; a11y-wired via `aria-describedby`.
+
 **Hooks** — `useDisclosure(initial?)` → `{ isOpen, open, close, toggle }`.
 
 ## 5. Forms (Zod-powered) — the easy way

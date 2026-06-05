@@ -1,0 +1,90 @@
+/* Tooltip — floating label on hover/focus. Token-only, theme-aware (brand `primary` fill). */
+
+.root {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.tooltip {
+  position: absolute;
+  z-index: var(--tz-z-tooltip);
+  width: max-content;
+  max-width: 240px;
+  padding: var(--tz-space-xxs) var(--tz-space-xs);
+  border-radius: var(--tz-radius-xs);
+  background: var(--tz-color-primary);
+  color: var(--tz-color-primary-contrast);
+  font-size: var(--tz-font-size-sm);
+  font-weight: var(--tz-font-weight-regular);
+  line-height: var(--tz-line-height);
+  text-align: center;
+  box-shadow: var(--tz-shadow-md);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--tz-duration),
+    visibility var(--tz-duration);
+  pointer-events: none;
+}
+
+.tooltip[data-open='true'] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: inherit;
+}
+
+/* placement: position the bubble + its arrow, the gap comes from the margin */
+.top {
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: var(--tz-space-xs);
+  transform: translateX(-50%);
+}
+.top .arrow {
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.bottom {
+  top: 100%;
+  left: 50%;
+  margin-top: var(--tz-space-xs);
+  transform: translateX(-50%);
+}
+.bottom .arrow {
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.left {
+  top: 50%;
+  right: 100%;
+  margin-right: var(--tz-space-xs);
+  transform: translateY(-50%);
+}
+.left .arrow {
+  top: 50%;
+  right: -4px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.right {
+  top: 50%;
+  left: 100%;
+  margin-left: var(--tz-space-xs);
+  transform: translateY(-50%);
+}
+.right .arrow {
+  top: 50%;
+  left: -4px;
+  transform: translateY(-50%) rotate(45deg);
+}

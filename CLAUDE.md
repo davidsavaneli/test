@@ -458,6 +458,26 @@ in dark; flips `mode` via `useTheme().toggleMode` on click. `role="switch"`, `ar
 `aria-label="Toggle color theme"`. Props = `Omit<IconButtonProps, 'children'>`, so `variant`,
 `color`, `size` pass through.
 
+### Badge
+
+A **wrapper** that pins a small count/dot to a child's corner — wrap a `Button`/`IconButton` (or any
+node): `<Badge content={2}><IconButton…/></Badge>`. `content` (`number | string`) renders a count;
+a `number` is capped to `${max}+` (`max` default `99`) and a numeric `0` is hidden unless `showZero`.
+`dot` renders a plain indicator instead (decorative → `aria-hidden`); `content` wins over `dot`.
+`color` (default `primary`) tints via the **`--tz-btn-rgb` / `--tz-btn-on`** pattern; `placement`
+(`top-right` default · `top-left` · `bottom-right` · `bottom-left`) picks the corner. The badge has a
+`box-shadow` ring in `--tz-color-background` so it reads as cut-out over the control. Own CSS module.
+
+### Tooltip
+
+A **wrapper** that shows a floating label on hover/focus of a single child element:
+`<Tooltip content="Save"><IconButton…/></Tooltip>`. `content: ReactNode` (empty → renders just the
+child); `placement` (`top` default · `bottom` · `left` · `right`) with a matching arrow. Opens on
+`mouseenter`/`focus`, closes on `mouseleave`/`blur`/`Escape`; the child is cloned to get
+`aria-describedby` while open, and the label is `role="tooltip"`. Fill is `--tz-color-primary` /
+`-primary-contrast` (flips with the theme), `--tz-z-tooltip`, `--tz-shadow-md`, opacity/visibility
+fade over `--tz-duration`. Takes a single `ReactElement` child (cloned for a11y). Own CSS module.
+
 ### Hooks
 
 `useDisclosure(initial = false)` → `{ isOpen, open, close, toggle }`. Model new hooks on this:

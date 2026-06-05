@@ -1,0 +1,62 @@
+/* Badge — pins a tinted count/dot to a child's corner. Token-only, theme-aware.
+   Color comes from the shared --tz-btn-rgb / --tz-btn-on pattern. */
+
+.root {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.badge {
+  position: absolute;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: rgb(var(--tz-btn-rgb));
+  color: var(--tz-btn-on, #fff);
+  /* a ring in the page color so the badge reads as "cut out" over the control */
+  box-shadow: 0 0 0 2px var(--tz-color-background);
+  pointer-events: none;
+}
+
+.value {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: var(--tz-font-size-xs);
+  font-weight: var(--tz-font-weight-medium);
+  line-height: 1;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.topRight {
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+}
+
+.topLeft {
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.bottomRight {
+  right: 0;
+  bottom: 0;
+  transform: translate(50%, 50%);
+}
+
+.bottomLeft {
+  bottom: 0;
+  left: 0;
+  transform: translate(-50%, 50%);
+}

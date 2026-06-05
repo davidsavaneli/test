@@ -8,6 +8,7 @@ import {
   createRouter,
 } from '@tanstack/react-router'
 import { FirstRouteRedirect, Icon, PageLayout, RootLayout, Typography } from '../../../src'
+import { BadgeSection } from '../Badge'
 import { ButtonSection } from '../Button'
 import { CheckboxSection } from '../Checkbox'
 import { FormSection } from '../Form'
@@ -16,6 +17,7 @@ import { IconSection } from '../Icon'
 import { LoaderSection } from '../Loader'
 import { NumberFieldSection } from '../NumberField'
 import { TextFieldSection } from '../TextField'
+import { TooltipSection } from '../Tooltip'
 import { TypographySection } from '../Typography'
 
 /* Admin shell demo (RootLayout + auto Sidebar + auto Breadcrumbs + PageLayout).
@@ -100,6 +102,18 @@ const loaderRoute = createRoute({
   staticData: { name: 'Loader', icon: 'Routing', order: 3 },
   component: inPage(LoaderSection),
 })
+const badgeRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'badge',
+  staticData: { name: 'Badge', icon: 'Notification', order: 4 },
+  component: inPage(BadgeSection),
+})
+const tooltipRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'tooltip',
+  staticData: { name: 'Tooltip', icon: 'MessageText', order: 5 },
+  component: inPage(TooltipSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -138,7 +152,14 @@ const shellRouter = createRouter({
     shellIndexRoute,
     iconsRoute,
     componentsRoute.addChildren([
-      generalRoute.addChildren([buttonRoute, iconButtonRoute, typographyRoute, loaderRoute]),
+      generalRoute.addChildren([
+        buttonRoute,
+        iconButtonRoute,
+        typographyRoute,
+        loaderRoute,
+        badgeRoute,
+        tooltipRoute,
+      ]),
       formsRoute.addChildren([textFieldRoute, numberFieldRoute, checkboxRoute, formRoute]),
     ]),
   ]),
