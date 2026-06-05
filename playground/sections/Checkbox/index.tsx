@@ -5,7 +5,7 @@ import { Block, Section } from '../../shared'
 export function CheckboxSection() {
   const col: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 12 }
   return (
-    <Section title="Checkbox">
+    <Section>
       <Block label="basic · checked colors">
         <div style={col}>
           <Checkbox label="Checkbox" />

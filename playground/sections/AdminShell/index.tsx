@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react'
 import {
   Outlet,
   RouterProvider,
@@ -6,7 +7,7 @@ import {
   createRoute,
   createRouter,
 } from '@tanstack/react-router'
-import { FirstRouteRedirect, Icon, RootLayout, Typography } from '../../../src'
+import { FirstRouteRedirect, Icon, PageLayout, RootLayout, Typography } from '../../../src'
 import { ButtonSection } from '../Button'
 import { CheckboxSection } from '../Checkbox'
 import { FormSection } from '../Form'
@@ -17,21 +18,25 @@ import { NumberFieldSection } from '../NumberField'
 import { TextFieldSection } from '../TextField'
 import { TypographySection } from '../Typography'
 
-/* Admin shell demo (RootLayout + auto Sidebar + auto Breadcrumbs).
+/* Admin shell demo (RootLayout + auto Sidebar + auto Breadcrumbs + PageLayout).
    RootLayout/Sidebar/Breadcrumbs need a TanStack Router. We build a tiny code-based router whose routes
    carry `staticData` — exactly how a file-based consumer app would. The sidebar + breadcrumb trail
-   generate themselves from these routes, the header shows the active page title, and each page renders
-   the matching component section. */
+   generate themselves from these routes; the content area stacks breadcrumbs → page title → the page,
+   and each page wraps its body in `PageLayout`. */
 
-function DashboardPage() {
+// Wrap a page body in PageLayout — exactly how a consuming app renders a route's content.
+const inPage = (Body: ComponentType) => () => (
+  <PageLayout>
+    <Body />
+  </PageLayout>
+)
+
+function DashboardBody() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <Typography variant="h2">Dashboard</Typography>
-      <Typography color="tertiary">
-        Welcome to the Techzy UI playground. Use the sidebar to open each component — the breadcrumb
-        trail above updates automatically and always starts with the home icon (→ this page).
-      </Typography>
-    </div>
+    <Typography color="tertiary">
+      Welcome to the Techzy UI playground. Use the sidebar to open each component — the breadcrumb
+      trail and page title above update automatically.
+    </Typography>
   )
 }
 
@@ -61,7 +66,7 @@ const dashboardRoute = createRoute({
   getParentRoute: () => shellRoot,
   path: 'dashboard',
   staticData: { name: 'Dashboard', icon: 'Category', order: 0 },
-  component: DashboardPage,
+  component: inPage(DashboardBody),
 })
 
 // `/icons` — top-level link: the full icon gallery with search + click-to-copy.
@@ -69,7 +74,7 @@ const iconsRoute = createRoute({
   getParentRoute: () => shellRoot,
   path: 'icons',
   staticData: { name: 'Icons', icon: 'Category2', order: 1 },
-  component: IconSection,
+  component: inPage(IconSection),
 })
 
 // `/components` — a module container (renders its child pages; not a page itself).
@@ -91,25 +96,25 @@ const buttonRoute = createRoute({
   getParentRoute: () => generalRoute,
   path: 'button',
   staticData: { name: 'Button', icon: 'Magicpen', order: 0 },
-  component: ButtonSection,
+  component: inPage(ButtonSection),
 })
 const iconButtonRoute = createRoute({
   getParentRoute: () => generalRoute,
   path: 'icon-button',
   staticData: { name: 'Icon Button', icon: 'Brush', order: 1 },
-  component: IconButtonSection,
+  component: inPage(IconButtonSection),
 })
 const typographyRoute = createRoute({
   getParentRoute: () => generalRoute,
   path: 'typography',
   staticData: { name: 'Typography', icon: 'TextBlock', order: 2 },
-  component: TypographySection,
+  component: inPage(TypographySection),
 })
 const loaderRoute = createRoute({
   getParentRoute: () => generalRoute,
   path: 'loader',
   staticData: { name: 'Loader', icon: 'Routing', order: 3 },
-  component: LoaderSection,
+  component: inPage(LoaderSection),
 })
 
 // Group: Form controls.
@@ -123,25 +128,25 @@ const textFieldRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'text-field',
   staticData: { name: 'Text Field', icon: 'Edit2', order: 0 },
-  component: TextFieldSection,
+  component: inPage(TextFieldSection),
 })
 const numberFieldRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'number-field',
   staticData: { name: 'Number Field', icon: 'Keyboard', order: 1 },
-  component: NumberFieldSection,
+  component: inPage(NumberFieldSection),
 })
 const checkboxRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'checkbox',
   staticData: { name: 'Checkbox', icon: 'TickSquare', order: 2 },
-  component: CheckboxSection,
+  component: inPage(CheckboxSection),
 })
 const formRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form',
   staticData: { name: 'Form', icon: 'Edit', order: 3 },
-  component: FormSection,
+  component: inPage(FormSection),
 })
 
 const shellRouter = createRouter({

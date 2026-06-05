@@ -13,7 +13,7 @@ export function TextFieldSection() {
   }
 
   return (
-    <Section title="TextField">
+    <Section>
       <Block label="basic">
         <div style={colStyle}>
           <TextField label="Title" placeholder="Enter a title" fullWidth />

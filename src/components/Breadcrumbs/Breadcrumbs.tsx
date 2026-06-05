@@ -1,9 +1,31 @@
+import type { ReactNode } from 'react'
 import { Link, type LinkProps } from '@tanstack/react-router'
 import { Icon } from '../Icon'
+import { ICON_NAMES, type IconName } from '../../icons/names'
 import { useBreadcrumbs } from '../Sidebar/Sidebar'
 import styles from './Breadcrumbs.module.css'
 
 const linkTo = (to: string) => to as LinkProps['to']
+const ICON_NAME_SET = new Set<string>(ICON_NAMES)
+
+export interface BreadcrumbsProps {
+  /**
+   * Separator between crumbs. A known `IconName` (e.g. `"ArrowRight4"`) renders as an icon; any other
+   * string renders as plain text; or pass a node. Defaults to `"/"`.
+   */
+  separator?: IconName | ReactNode
+}
+
+function Separator({ separator }: { separator: IconName | ReactNode }) {
+  if (typeof separator === 'string' && ICON_NAME_SET.has(separator)) {
+    return <Icon name={separator as IconName} size="sm" className={styles.separator} />
+  }
+  return (
+    <span className={styles.separator} aria-hidden="true">
+      {separator}
+    </span>
+  )
+}
 
 /**
  * Auto-generated breadcrumb trail for the current route, rendered at the top of `RootLayout`'s
@@ -12,7 +34,7 @@ const linkTo = (to: string) => to as LinkProps['to']
  * `staticData.name`. Intermediate crumbs link to their page when navigable; the current page is
  * plain text. Renders nothing when the current route has no named matches. Token-only styling.
  */
-export function Breadcrumbs() {
+export function Breadcrumbs({ separator = '/' }: BreadcrumbsProps = {}) {
   const { homeTo, items } = useBreadcrumbs()
   if (items.length === 0) return null
 
@@ -34,7 +56,7 @@ export function Breadcrumbs() {
           const isLast = index === items.length - 1
           return (
             <li className={styles.item} key={`${item.label}-${index}`}>
-              <Icon name="ArrowRight2" size="sm" className={styles.separator} />
+              <Separator separator={separator} />
               {item.to && !isLast ? (
                 <Link to={linkTo(item.to)} className={styles.link}>
                   {item.label}

@@ -3,7 +3,7 @@ import { Block, COLORS, rowStyle, Section, SIZES, VARIANTS } from '../../shared'
 
 export function IconButtonSection() {
   return (
-    <Section title="IconButton">
+    <Section>
       <Block label="variants × colors">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {VARIANTS.map((v) => (

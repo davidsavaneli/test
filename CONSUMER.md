@@ -192,16 +192,19 @@ peer: `npm i @tanstack/react-router` (>=1).
 
 - **`RootLayout`** — `logo?`, `header?`, `children`. Set it as the **root route's** component and pass
   `<Outlet/>`. Renders sidebar + header + content. `logo` is any node shown atop the sidebar (an
-  `<img>`, an `<Icon>`, …). The **header is built-in**: its left auto-shows the current page title (the
-  active route's `staticData.name`, e.g. "Dashboard"), and its right is configured via
+  `<img>`, an `<Icon>`, …). The **header** holds only right-side controls via
   `header?: { theme?: boolean; onLogout?: () => void }` — `theme` (default `true`) shows the
-  `ThemeToggle`; passing `onLogout` adds a logout button that calls it.
+  `ThemeToggle`; passing `onLogout` adds a logout button. The content area auto-stacks
+  **`Breadcrumbs` → the page title (the active route's `staticData.name`, as an `h2`) → your page**.
+- **`PageLayout`** — the surface-card container your page body sits in (border + radius + padding).
+  Wrap each route's content: `<PageLayout>…</PageLayout>`. Extends `HTMLAttributes<HTMLDivElement>`,
+  exported named **and** default from `sava-test/components` (and `sava-test/components/PageLayout`).
 - **`Sidebar`** — auto-builds the menu from the routes' `staticData` (rendered inside `RootLayout`;
   you don't place it yourself).
-- **`Breadcrumbs`** — auto-rendered at the top of the content area. Always starts with a home icon
-  (links to the first allowed page) and adds a crumb per matched route that has a `staticData.name`
-  (module → group → page); the current page is plain text. Also exported from `sava-test/components`
-  if you want to place it yourself.
+- **`Breadcrumbs`** — auto-rendered above the page title. Starts with a home icon (links to the first
+  allowed page) + a crumb per matched route with a `staticData.name`; the current page is plain text.
+  `separator?: IconName | ReactNode` (default `"/"`) — an `IconName` like `"ArrowRight4"` renders as an
+  icon. Also exported from `sava-test/components` if you want to place it yourself.
 - **`FirstRouteRedirect`** — use as the `/` route's component; forwards to the first menu item.
 - Each route self-registers via **`staticData`** (typed once you import from the package):
   `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }`. No `name`
@@ -278,10 +281,12 @@ import { createFileRoute } from '@tanstack/react-router'
 import { FirstRouteRedirect } from 'sava-test/components'
 export const Route = createFileRoute('/')({ component: FirstRouteRedirect })
 
-// any page registers itself in the menu:
+// any page registers itself in the menu and wraps its body in PageLayout:
+import { PageLayout } from 'sava-test/components'
 export const Route = createFileRoute('/dashboard/')({
   staticData: { name: 'Dashboard', icon: 'Category', order: 0 },
-  component: DashboardPage,
+  // breadcrumbs + the "Dashboard" title render above automatically — the page only renders its body
+  component: () => <PageLayout>…dashboard content…</PageLayout>,
 })
 // group chrome lives in the group's route.tsx:
 //   createFileRoute('/components/forms')({ staticData: { name: 'Forms', icon: 'DocumentText', order: 0 } })

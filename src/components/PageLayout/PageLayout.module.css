@@ -1,0 +1,8 @@
+/* Page content card. Token-only, so it follows the active theme. */
+
+.pageLayout {
+  background: var(--tz-color-surface);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-md);
+  padding: var(--tz-space-lg);
+}

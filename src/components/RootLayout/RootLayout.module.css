@@ -35,26 +35,18 @@
 .topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--tz-space-md);
+  justify-content: flex-end;
+  gap: var(--tz-space-xs);
   padding: var(--tz-space-md) var(--tz-space-xl);
   background: var(--tz-color-surface);
   border-bottom: 1px solid var(--tz-color-border);
 }
 
-.topbarStart {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.topbarEnd {
-  display: flex;
-  align-items: center;
-  gap: var(--tz-space-xs);
-}
-
 .content {
   flex: 1;
   padding: var(--tz-space-xl);
+}
+
+.pageTitle {
+  margin: 0 0 var(--tz-space-lg);
 }

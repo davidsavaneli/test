@@ -3,7 +3,7 @@ import { Block, cap, COLORS, rowStyle, Section, SIZES, VARIANTS } from '../../sh
 
 export function ButtonSection() {
   return (
-    <Section title="Button">
+    <Section>
       <Block label="variants × colors">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {VARIANTS.map((v) => (

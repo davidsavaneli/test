@@ -26,10 +26,11 @@ export interface RootLayoutProps {
 /**
  * The admin-panel shell: a left sidebar (`logo` + auto-generated `Sidebar`), a top header, and a
  * content container. Set it as the root route's component and pass `<Outlet />` as `children`; the
- * `Sidebar` builds itself from the routes' `staticData`. The header shows the current page title
- * (the active route's `staticData.name`) on the left, and on the right an optional `ThemeToggle`
- * (on by default) plus a logout button when `header.onLogout` is given. Styling is token-based, so
- * it follows the active `ThemeProvider` mode. Requires `@tanstack/react-router` (peer).
+ * `Sidebar` builds itself from the routes' `staticData`. The header holds an optional `ThemeToggle`
+ * (on by default) plus a logout button when `header.onLogout` is given. The content area stacks
+ * **`Breadcrumbs` → the page title (the active route's `staticData.name`) → `children`**; pages wrap
+ * their own body in `PageLayout`. Styling is token-based, so it follows the active `ThemeProvider`
+ * mode. Requires `@tanstack/react-router` (peer).
  */
 export function RootLayout({ logo, header, children }: RootLayoutProps) {
   const title = usePageTitle()
@@ -44,20 +45,20 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
       </aside>
       <div className={styles.main}>
         <header className={styles.topbar}>
-          <div className={styles.topbarStart}>
-            {title ? <Typography variant="h4">{title}</Typography> : null}
-          </div>
-          <div className={styles.topbarEnd}>
-            {showTheme ? <ThemeToggle /> : null}
-            {onLogout ? (
-              <IconButton aria-label="Log out" variant="text" onClick={onLogout}>
-                <Icon name="Logout" />
-              </IconButton>
-            ) : null}
-          </div>
+          {showTheme ? <ThemeToggle /> : null}
+          {onLogout ? (
+            <IconButton aria-label="Log out" variant="text" onClick={onLogout}>
+              <Icon name="Logout" />
+            </IconButton>
+          ) : null}
         </header>
         <main className={styles.content}>
           <Breadcrumbs />
+          {title ? (
+            <Typography variant="h2" className={styles.pageTitle}>
+              {title}
+            </Typography>
+          ) : null}
           {children}
         </main>
       </div>

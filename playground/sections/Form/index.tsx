@@ -27,7 +27,7 @@ export function FormSection() {
   })
 
   return (
-    <Section title="Form (useForm + zod)">
+    <Section>
       <Block label="validation — bind by name (blur, then live)">
         <Form
           form={form}

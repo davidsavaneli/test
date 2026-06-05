@@ -15,7 +15,7 @@ const TYPO_VARIANTS = [
 
 export function TypographySection() {
   return (
-    <Section title="Typography">
+    <Section>
       <Block label="variants">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {TYPO_VARIANTS.map((v) => (

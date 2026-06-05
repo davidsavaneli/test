@@ -12,7 +12,7 @@ export function NumberFieldSection() {
   }
 
   return (
-    <Section title="NumberField">
+    <Section>
       <Block label="default value · min / max / step · controlled · disabled">
         <div style={colStyle}>
           <NumberField label="Label" placeholder="0" fullWidth />

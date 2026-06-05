@@ -39,6 +39,7 @@ src/
     RootLayout/           # admin shell (sidebar + header + content)
     Sidebar/              # auto-generated nav (Sidebar + FirstRouteRedirect + buildNavTree + nav hooks)
     Breadcrumbs/          # auto-generated breadcrumb trail (home → module → group → page)
+    PageLayout/           # surface-card container a page's body sits in
     index.ts              # re-exports every component (UI + shell)
   theme/
     applyTheme.ts         # TechzyTheme type, hex→rgb, contrast logic, applyTheme()
@@ -507,14 +508,17 @@ The admin-panel shell lives under `src/components/` (`RootLayout/`, `Sidebar/`, 
 shipped as ordinary components, so it imports from `sava-test/components` like everything else. Powered
 by **`@tanstack/react-router`** (optional peer, `>=1`, `external` in the build). `RootLayout({ logo?, header?, children })` renders a left sidebar (`logo` +
 `<Sidebar/>`), a top header, and a content container; set it as the **root route's** component and
-pass `<Outlet/>` as `children`. The **header is built-in, not slotted**: its left shows the current
-page title automatically (the active route's `staticData.name`, via `usePageTitle()`), and its right
-shows an optional `ThemeToggle` and logout button driven by the `header` config —
-`header?: { theme?: boolean /* default true */; onLogout?: () => void }` (the logout `IconButton` only
-appears when `onLogout` is given). The content area auto-renders **`Breadcrumbs`** above `children`.
+pass `<Outlet/>` as `children`. The **header** holds only the right-side controls driven by the
+`header` config — `header?: { theme?: boolean /* default true */; onLogout?: () => void }` (a
+`ThemeToggle`, on by default, plus a logout `IconButton` that appears when `onLogout` is given). The
+content area stacks **`Breadcrumbs` → the page title (the active route's `staticData.name`, via the
+internal `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**.
 **`Sidebar`** auto-builds a 3-level menu (module → group → page) by
 walking `useRouter().looseRoutesById` and reading each route's `fullPath` + `staticData` — no manual
-menu config. **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item.
+menu config. **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item. **`PageLayout`**
+is a plain surface-card container (`border` + `radius` + `padding`, token-only) for a page's content;
+it extends `HTMLAttributes<HTMLDivElement>` and ships named **and** default from
+`sava-test/components/PageLayout`.
 
 Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
 `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }` — a route
@@ -546,7 +550,10 @@ link only when they map to a real navigable menu page (reusing the access-filter
 forbidden/non-page ancestors render as plain text); the current page is always plain text
 (`aria-current="page"`). Renders nothing when the route has no named matches. The `Breadcrumbs`
 component is also exported from `sava-test/components` if an app wants the trail elsewhere (the
-`useBreadcrumbs` hook stays internal).
+`useBreadcrumbs` hook stays internal). **`separator?: IconName | ReactNode`** (default `"/"`): a known
+`IconName` (e.g. `"ArrowRight4"`) renders as an `<Icon>`, any other string as text, or pass a node.
+Every crumb shares one color (`--tz-color-tertiary`); links darken to `--tz-color-text` and underline
+on hover.
 
 **RBAC — role-based menu filtering (`src/helpers/access.ts`).** A page declares allowed `accessKeys`
 via `staticData.roles: string[]` (**OR** semantics — the user needs any one; omitted/empty = public).

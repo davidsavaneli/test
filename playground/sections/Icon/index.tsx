@@ -27,7 +27,7 @@ export function IconSection() {
   }
 
   return (
-    <Section title="Icon">
+    <Section>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <TextField
           value={query}

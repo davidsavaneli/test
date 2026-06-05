@@ -3,7 +3,7 @@ import { Block, COLORS, rowStyle, Section, SIZES } from '../../shared'
 
 export function LoaderSection() {
   return (
-    <Section title="Loader">
+    <Section>
       <Block label="sizes">
         <div style={{ ...rowStyle, gap: 28 }}>
           {SIZES.map((s) => (
