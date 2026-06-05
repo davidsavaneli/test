@@ -1,0 +1,60 @@
+/* Admin shell (sidebar + header + content). Token-only, so it follows the active theme. */
+
+.shell {
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  min-height: 100vh;
+  background: var(--tz-color-background);
+  color: var(--tz-color-text);
+  font-family: var(--tz-font-family);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-lg);
+  padding: var(--tz-space-md);
+  background: var(--tz-color-surface);
+  border-right: 1px solid var(--tz-color-border);
+  overflow-y: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+  padding: var(--tz-space-xs) var(--tz-space-sm);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tz-space-md);
+  padding: var(--tz-space-md) var(--tz-space-xl);
+  background: var(--tz-color-surface);
+  border-bottom: 1px solid var(--tz-color-border);
+}
+
+.topbarStart {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.topbarEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+}
+
+.content {
+  flex: 1;
+  padding: var(--tz-space-xl);
+}

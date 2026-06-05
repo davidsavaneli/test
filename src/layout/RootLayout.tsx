@@ -1,37 +1,65 @@
 import type { ReactNode } from 'react'
-import { Sidebar } from './Sidebar'
-import './layout.css'
+import { Icon } from '../components/Icon'
+import { IconButton } from '../components/IconButton'
+import { ThemeToggle } from '../components/ThemeToggle'
+import { Typography } from '../components/Typography'
+import { Breadcrumbs } from './Breadcrumbs'
+import { Sidebar, usePageTitle } from './Sidebar'
+import styles from './RootLayout.module.css'
+
+export interface RootLayoutHeader {
+  /** Show the built-in light/dark theme toggle on the right of the header. Defaults to `true`. */
+  theme?: boolean
+  /** When provided, renders a logout button on the right of the header that calls this on click. */
+  onLogout?: () => void
+}
 
 export interface RootLayoutProps {
-  /** Logo + title area at the top of the sidebar. */
-  brand?: ReactNode
-  /** Left side of the header (e.g. page title / breadcrumbs). */
-  headerStart?: ReactNode
-  /** Right side of the header (e.g. `ThemeToggle`, user menu). */
-  headerEnd?: ReactNode
+  /** Brand logo at the top of the sidebar — pass an `<img>`, an `<Icon>`, or any node. */
+  logo?: ReactNode
+  /** Header config: the built-in theme toggle (`theme`, default `true`) and an optional `onLogout`. */
+  header?: RootLayoutHeader
   /** Routed content — the consumer passes `<Outlet />`. */
   children: ReactNode
 }
 
 /**
- * The admin-panel shell: a left sidebar (brand + auto-generated `Sidebar`), a top header, and a
+ * The admin-panel shell: a left sidebar (`logo` + auto-generated `Sidebar`), a top header, and a
  * content container. Set it as the root route's component and pass `<Outlet />` as `children`; the
- * `Sidebar` builds itself from the routes' `staticData`. Styling is token-based, so it follows the
- * active `ThemeProvider` mode. Requires `@tanstack/react-router` (peer).
+ * `Sidebar` builds itself from the routes' `staticData`. The header shows the current page title
+ * (the active route's `staticData.name`) on the left, and on the right an optional `ThemeToggle`
+ * (on by default) plus a logout button when `header.onLogout` is given. Styling is token-based, so
+ * it follows the active `ThemeProvider` mode. Requires `@tanstack/react-router` (peer).
  */
-export function RootLayout({ brand, headerStart, headerEnd, children }: RootLayoutProps) {
+export function RootLayout({ logo, header, children }: RootLayoutProps) {
+  const title = usePageTitle()
+  const showTheme = header?.theme ?? true
+  const onLogout = header?.onLogout
+
   return (
-    <div className="tz-shell">
-      <aside className="tz-sidebar">
-        {brand ? <div className="tz-brand">{brand}</div> : null}
+    <div className={styles.shell}>
+      <aside className={styles.sidebar}>
+        {logo ? <div className={styles.brand}>{logo}</div> : null}
         <Sidebar />
       </aside>
-      <div className="tz-main">
-        <header className="tz-topbar">
-          <div className="tz-topbar__start">{headerStart}</div>
-          <div className="tz-topbar__end">{headerEnd}</div>
+      <div className={styles.main}>
+        <header className={styles.topbar}>
+          <div className={styles.topbarStart}>
+            {title ? <Typography variant="h4">{title}</Typography> : null}
+          </div>
+          <div className={styles.topbarEnd}>
+            {showTheme ? <ThemeToggle /> : null}
+            {onLogout ? (
+              <IconButton aria-label="Log out" variant="text" onClick={onLogout}>
+                <Icon name="Logout" />
+              </IconButton>
+            ) : null}
+          </div>
         </header>
-        <main className="tz-content">{children}</main>
+        <main className={styles.content}>
+          <Breadcrumbs />
+          {children}
+        </main>
       </div>
     </div>
   )

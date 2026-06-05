@@ -160,10 +160,19 @@ function SignIn() {
 For apps on **TanStack Router** (file-based routing), the library ships the whole shell. Install the
 peer: `npm i @tanstack/react-router` (>=1).
 
-- **`RootLayout`** — `brand?`, `headerStart?`, `headerEnd?`, `children`. Set it as the **root route's**
-  component and pass `<Outlet/>`. Renders sidebar + header + content.
+- **`RootLayout`** — `logo?`, `header?`, `children`. Set it as the **root route's** component and pass
+  `<Outlet/>`. Renders sidebar + header + content. `logo` is any node shown atop the sidebar (an
+  `<img>`, an `<Icon>`, …). The **header is built-in**: its left auto-shows the current page title (the
+  active route's `staticData.name`, e.g. "Dashboard"), and its right is configured via
+  `header?: { theme?: boolean; onLogout?: () => void }` — `theme` (default `true`) shows the
+  `ThemeToggle`; passing `onLogout` adds a logout button that calls it. (`usePageTitle()` is also
+  exported if you want the title elsewhere.)
 - **`Sidebar`** — auto-builds the menu from the routes' `staticData` (rendered inside `RootLayout`;
   you don't place it yourself).
+- **`Breadcrumbs`** — auto-rendered at the top of the content area. Always starts with a home icon
+  (links to the first allowed page) and adds a crumb per matched route that has a `staticData.name`
+  (module → group → page); the current page is plain text. Exported standalone (with the
+  `useBreadcrumbs()` hook) if you want it elsewhere.
 - **`FirstRouteRedirect`** — use as the `/` route's component; forwards to the first menu item.
 - Each route self-registers via **`staticData`** (typed once you import from the package):
   `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }`. No `name`
@@ -212,24 +221,28 @@ export const Route = createFileRoute('/dashboard/')({
 
 ```tsx
 // src/routes/__root.tsx
-import { createRootRoute, Outlet } from '@tanstack/react-router'
-import { RootLayout, Icon, Typography, ThemeToggle } from 'sava-test'
+import { createRootRoute, Outlet, useNavigate } from '@tanstack/react-router'
+import { RootLayout, Icon } from 'sava-test'
 
-export const Route = createRootRoute({
-  component: () => (
+function Shell() {
+  const navigate = useNavigate()
+  return (
     <RootLayout
-      brand={
-        <>
-          <Icon name="Box" color="primary" size="lg" />
-          <Typography variant="h4">Techzy Admin</Typography>
-        </>
-      }
-      headerEnd={<ThemeToggle />}
+      logo={<Icon name="Box" color="primary" size="lg" />}
+      header={{
+        theme: true, // show the ThemeToggle (default true)
+        onLogout: () => {
+          auth.logout()
+          navigate({ to: '/login' })
+        },
+      }}
     >
       <Outlet />
     </RootLayout>
-  ),
-})
+  )
+}
+
+export const Route = createRootRoute({ component: Shell })
 
 // src/routes/index.tsx  →  the "/" route forwards to the first menu item
 import { createFileRoute } from '@tanstack/react-router'

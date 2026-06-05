@@ -52,8 +52,11 @@ src/
   layout/
     RootLayout.tsx        # admin shell (sidebar + header + content)
     Sidebar.tsx           # auto-generated nav from routes' staticData + FirstRouteRedirect + buildNavTree
+    Breadcrumbs.tsx       # auto-generated breadcrumb trail (home → module → group → page)
     access.ts             # RBAC access store (setAccessKeys/hasAccess/useAccessKeys) — filters the menu by roles
-    layout.css            # tz-prefixed global shell styles (bundled into dist/index.css)
+    RootLayout.module.css # shell styles (CSS Modules; bundled into dist/index.css)
+    Sidebar.module.css    # nav styles (CSS Modules; bundled into dist/index.css)
+    Breadcrumbs.module.css# breadcrumb styles (CSS Modules; bundled into dist/index.css)
     index.ts
   icons/
     icons.ts              # generated inline-SVG registry (committed source of truth)
@@ -502,11 +505,16 @@ const form = useForm({ schema, defaultValues: { email: '', password: '' }, onSub
 ### Layout — `RootLayout` / `Sidebar` / `FirstRouteRedirect` (TanStack Router)
 
 The admin-panel shell (`src/layout/`). Powered by **`@tanstack/react-router`** (optional peer, `>=1`,
-`external` in the build). `RootLayout({ brand?, headerStart?, headerEnd?, children })` renders a left
-sidebar (brand + `<Sidebar/>`), a top header, and a content container; set it as the **root route's**
-component and pass `<Outlet/>` as `children`. **`Sidebar`** auto-builds a 3-level menu (module → group
-→ page) by walking `useRouter().looseRoutesById` and reading each route's `fullPath` + `staticData`
-— no manual menu config. **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item.
+`external` in the build). `RootLayout({ logo?, header?, children })` renders a left sidebar (`logo` +
+`<Sidebar/>`), a top header, and a content container; set it as the **root route's** component and
+pass `<Outlet/>` as `children`. The **header is built-in, not slotted**: its left shows the current
+page title automatically (the active route's `staticData.name`, via `usePageTitle()`), and its right
+shows an optional `ThemeToggle` and logout button driven by the `header` config —
+`header?: { theme?: boolean /* default true */; onLogout?: () => void }` (the logout `IconButton` only
+appears when `onLogout` is given). The content area auto-renders **`Breadcrumbs`** above `children`.
+**`Sidebar`** auto-builds a 3-level menu (module → group → page) by
+walking `useRouter().looseRoutesById` and reading each route's `fullPath` + `staticData` — no manual
+menu config. **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item.
 
 Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
 `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }` — a route
@@ -519,12 +527,22 @@ group `forms` → page; an index route at a group path (`/components/forms/`) ma
 (label/icon/order) comes from that folder's `route.tsx` `staticData`, else the segment is prettified.
 
 The tree logic is a pure, tested `buildNavTree(routes)` (router-free); `useNavTree` feeds it the live
-routes. Styles are `tz-`-prefixed global classes in `layout.css` (token-only → light/dark-safe),
-bundled into `dist/index.css`. The `declare module '@tanstack/react-router'` augmentation ships in the
-published `.d.ts`. Exports: `RootLayout`, `Sidebar`, `FirstRouteRedirect`, the access helpers
-(`setAccessKeys`, `getAccessKeys`, `hasAccess`, `useAccessKeys`), and types `IconName`,
-`NavLeaf`, `NavGroup`, `NavModule`. Gotcha: never name a leaf route file `loader.tsx` (reserved by the
-router plugin) — use a `loader/index.tsx` folder.
+routes. Styles are **CSS Modules** (`RootLayout.module.css` + `Sidebar.module.css`, token-only →
+light/dark-safe), bundled into `dist/index.css`. The `declare module '@tanstack/react-router'` augmentation ships in the
+published `.d.ts`. Exports: `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect`,
+`usePageTitle`, `useBreadcrumbs`, the access helpers (`setAccessKeys`, `getAccessKeys`, `hasAccess`,
+`useAccessKeys`), and types `IconName`, `NavLeaf`, `NavGroup`, `NavModule`, `RootLayoutHeader`,
+`Breadcrumb`. Gotcha: never name a leaf route file `loader.tsx` (reserved by the router plugin) —
+use a `loader/index.tsx` folder.
+
+**Breadcrumbs.** `RootLayout` auto-renders `<Breadcrumbs/>` at the top of the content area, so apps
+get a trail for free. It's built from the active match chain via `useBreadcrumbs()` — one crumb per
+matched route that declares a `staticData.name` (module → group → page). It always opens with a home
+icon linking to the first allowed menu page (same target as `FirstRouteRedirect`). Intermediate crumbs
+link only when they map to a real navigable menu page (reusing the access-filtered nav tree, so
+forbidden/non-page ancestors render as plain text); the current page is always plain text
+(`aria-current="page"`). Renders nothing when the route has no named matches. `Breadcrumbs` and
+`useBreadcrumbs()` are also exported standalone if an app wants the trail elsewhere.
 
 **RBAC — role-based menu filtering (`src/layout/access.ts`).** A page declares allowed `accessKeys`
 via `staticData.roles: string[]` (**OR** semantics — the user needs any one; omitted/empty = public).
@@ -541,10 +559,10 @@ the first allowed page. Defaults are inert: pages without `roles`, and apps that
 route too: `beforeLoad: () => { if (!hasAccess(['Analyst'])) throw redirect({ to: '/' }) }`.
 
 ```tsx
-// app: src/routes/__root.tsx
+// app: src/routes/__root.tsx — logo in the sidebar; header shows the page title + theme toggle + logout
 export const Route = createRootRoute({
   component: () => (
-    <RootLayout brand={<Icon name="Box" />} headerEnd={<ThemeToggle />}>
+    <RootLayout logo={<Icon name="Box" />} header={{ theme: true, onLogout: () => auth.logout() }}>
       <Outlet />
     </RootLayout>
   ),

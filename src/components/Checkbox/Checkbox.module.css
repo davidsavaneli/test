@@ -90,18 +90,18 @@
 
 /* sizes — box dimensions + label font from the shared scale */
 .sm .box {
-  width: 16px;
-  height: 16px;
-  border-radius: calc(var(--tz-radius-xs) / 1.4);
+  width: 14px;
+  height: 14px;
+  border-radius: calc(var(--tz-radius-xs) / 1.6);
 }
 .md .box {
-  width: 20px;
-  height: 20px;
-  border-radius: calc(var(--tz-radius-xs) / 1.2);
+  width: 18px;
+  height: 18px;
+  border-radius: calc(var(--tz-radius-xs) / 1.3);
 }
 .lg .box {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: var(--tz-radius-xs);
 }
 

@@ -10,7 +10,7 @@ import {
 import { Icon } from '../components/Icon'
 import type { IconName } from '../icons/names'
 import { hasAccess, useAccessKeys } from './access'
-import './layout.css'
+import styles from './Sidebar.module.css'
 
 export type { IconName }
 
@@ -229,6 +229,63 @@ function useFirstNavTo() {
   return firstNavTo(useNavTree())
 }
 
+/**
+ * The current page's title — the `staticData.name` of the deepest matched route that declares one.
+ * Used by `RootLayout` to label the header automatically (e.g. "Dashboard").
+ */
+export function usePageTitle(): string | undefined {
+  const router = useRouter()
+  const matches = useRouterState({ select: (s) => s.matches })
+  for (let i = matches.length - 1; i >= 0; i--) {
+    const route = router.looseRoutesById[matches[i].routeId]
+    const name = route?.options?.staticData?.name
+    if (name) return name
+  }
+  return undefined
+}
+
+/** One breadcrumb. `to` is set only when the crumb points at a real, navigable menu page. */
+export interface Breadcrumb {
+  label: string
+  to?: string
+}
+
+/** Every `to` that the menu actually navigates to (top links, group pages, leaves). */
+function navigablePaths(tree: { links: NavLeaf[]; modules: NavModule[] }): Set<string> {
+  const set = new Set<string>()
+  for (const link of tree.links) set.add(link.to)
+  for (const mod of tree.modules)
+    for (const group of mod.groups) {
+      if (group.to) set.add(group.to)
+      for (const leaf of group.children ?? []) set.add(leaf.to)
+    }
+  return set
+}
+
+/**
+ * Breadcrumb trail for the current route, derived from the active match chain: one crumb per matched
+ * route that declares a `staticData.name` (module → group → page). `homeTo` is the first allowed menu
+ * page (same target as `FirstRouteRedirect`). Intermediate crumbs link only when they map to a real
+ * navigable page; the last crumb (the current page) is always plain text.
+ */
+export function useBreadcrumbs(): { homeTo?: string; items: Breadcrumb[] } {
+  const tree = useNavTree()
+  const matches = useRouterState({ select: (s) => s.matches })
+  const homeTo = firstNavTo(tree)
+  const navigable = navigablePaths(tree)
+
+  const items: Breadcrumb[] = []
+  for (const match of matches) {
+    const name = match.staticData?.name
+    if (!name) continue
+    const full = `/${trimSlashes(match.pathname)}`
+    items.push({ label: name, to: navigable.has(full) ? full : undefined })
+  }
+  // The current page is where you already are — never a link.
+  if (items.length > 0) items[items.length - 1] = { label: items[items.length - 1].label }
+  return { homeTo, items }
+}
+
 /** Drop-in component for the `/` route: forwards to whatever sits FIRST in the menu. */
 export function FirstRouteRedirect() {
   const to = useFirstNavTo()
@@ -241,25 +298,25 @@ export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   return (
-    <nav className="tz-nav">
+    <nav className={styles.nav}>
       {links.length > 0 ? (
-        <div className="tz-nav-module">
+        <div className={styles.navModule}>
           {links.map((link) => (
             <Link
               key={link.to}
               to={linkTo(link.to)}
-              className="tz-nav-row"
+              className={styles.navRow}
               data-active={pathname === link.to ? 'true' : undefined}
             >
               <GroupIcon icon={link.icon} />
-              <span className="tz-nav-row__label">{link.label}</span>
+              <span className={styles.navRowLabel}>{link.label}</span>
             </Link>
           ))}
         </div>
       ) : null}
       {modules.map((mod) => (
-        <div className="tz-nav-module" key={mod.module}>
-          <div className="tz-nav-module__label">
+        <div className={styles.navModule} key={mod.module}>
+          <div className={styles.navModuleLabel}>
             {mod.icon ? <Icon name={mod.icon} size="sm" /> : null}
             {mod.module}
           </div>
@@ -286,28 +343,32 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
 
   if (!hasChildren && group.to) {
     return (
-      <Link to={linkTo(group.to)} className="tz-nav-row" data-active={active ? 'true' : undefined}>
+      <Link
+        to={linkTo(group.to)}
+        className={styles.navRow}
+        data-active={active ? 'true' : undefined}
+      >
         <GroupIcon icon={group.icon} />
-        <span className="tz-nav-row__label">{group.label}</span>
+        <span className={styles.navRowLabel}>{group.label}</span>
       </Link>
     )
   }
 
   const header =
     hasChildren && group.to ? (
-      <div className="tz-nav-combo" data-active={active ? 'true' : undefined}>
+      <div className={styles.navCombo} data-active={active ? 'true' : undefined}>
         <Link
           to={linkTo(group.to)}
-          className="tz-nav-combo__link"
+          className={styles.navComboLink}
           data-active={active ? 'true' : undefined}
           onClick={() => setOpen(true)}
         >
           <GroupIcon icon={group.icon} />
-          <span className="tz-nav-row__label">{group.label}</span>
+          <span className={styles.navRowLabel}>{group.label}</span>
         </Link>
         <button
           type="button"
-          className="tz-nav-combo__chevron"
+          className={styles.navComboChevron}
           onClick={toggle}
           aria-label={toggleLabel}
           aria-expanded={open}
@@ -315,7 +376,7 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
           <Icon
             name="ArrowDown2"
             size="sm"
-            className="tz-nav-chevron"
+            className={styles.navChevron}
             data-open={open ? 'true' : 'false'}
           />
         </button>
@@ -323,17 +384,17 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
     ) : (
       <button
         type="button"
-        className="tz-nav-row"
+        className={styles.navRow}
         data-active={active ? 'true' : undefined}
         aria-expanded={open}
         onClick={toggle}
       >
         <GroupIcon icon={group.icon} />
-        <span className="tz-nav-row__label">{group.label}</span>
+        <span className={styles.navRowLabel}>{group.label}</span>
         <Icon
           name="ArrowDown2"
           size="sm"
-          className="tz-nav-chevron"
+          className={styles.navChevron}
           data-open={open ? 'true' : 'false'}
         />
       </button>
@@ -343,13 +404,13 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
     <div>
       {header}
       {hasChildren && open ? (
-        <div className="tz-nav-leaves">
+        <div className={styles.navLeaves}>
           {group.children?.map((leaf) => (
-            <Link key={leaf.to} to={linkTo(leaf.to)} className="tz-nav-leaf">
+            <Link key={leaf.to} to={linkTo(leaf.to)} className={styles.navLeaf}>
               {leaf.icon ? (
                 <Icon name={leaf.icon} size="sm" />
               ) : (
-                <span className="tz-nav-leaf__dot" />
+                <span className={styles.navLeafDot} />
               )}
               {leaf.label}
             </Link>
@@ -363,7 +424,7 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
 function GroupIcon({ icon }: { icon?: IconName }) {
   if (!icon) return null
   return (
-    <span className="tz-nav-icon">
+    <span className={styles.navIcon}>
       <Icon name={icon} size="sm" />
     </span>
   )

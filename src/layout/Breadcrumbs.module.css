@@ -1,0 +1,60 @@
+/* Auto-generated breadcrumb trail. Token-only, so it follows the active theme. */
+
+.breadcrumbs {
+  margin-bottom: var(--tz-space-lg);
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--tz-space-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  min-width: 0;
+}
+
+.home {
+  display: inline-flex;
+  align-items: center;
+  color: var(--tz-color-tertiary);
+  text-decoration: none;
+  transition: color var(--tz-duration);
+}
+
+.home:hover {
+  color: var(--tz-color-primary);
+}
+
+.separator {
+  flex: none;
+  color: var(--tz-color-tertiary);
+  opacity: 0.6;
+}
+
+.link {
+  color: var(--tz-color-tertiary);
+  font-size: var(--tz-font-size-sm);
+  text-decoration: none;
+  transition: color var(--tz-duration);
+}
+
+.link:hover {
+  color: var(--tz-color-primary);
+}
+
+.current {
+  overflow: hidden;
+  color: var(--tz-color-text);
+  font-size: var(--tz-font-size-sm);
+  font-weight: var(--tz-font-weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
