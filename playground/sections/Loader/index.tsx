@@ -1,34 +1,33 @@
-import { Loader } from '../../../src'
-import { Block, COLORS, rowStyle, Section, SIZES } from '../../shared'
+import { Flex, Loader, Row } from '../../../src'
+import { Block, COLORS, Section, SIZES } from '../../shared'
 
 export function LoaderSection() {
   return (
     <Section>
       <Block label="sizes">
-        <div style={{ ...rowStyle, gap: 28 }}>
+        <Row gap={28} wrap>
           {SIZES.map((s) => (
             <Loader key={s} size={s} />
           ))}
-        </div>
+        </Row>
       </Block>
 
       <Block label="colors">
-        <div style={{ ...rowStyle, gap: 28 }}>
+        <Row gap={28} wrap>
           {COLORS.map((c) => (
             <Loader key={c} color={c} size="lg" />
           ))}
-        </div>
+        </Row>
       </Block>
 
       <Block label="inherits text color (currentColor)">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           {(['primary', 'success', 'error', 'warning', 'info'] as const).map((c) => (
-            <div
+            <Flex
               key={c}
+              align="center"
+              justify="center"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 width: 56,
                 height: 56,
                 borderRadius: 8,
@@ -37,9 +36,9 @@ export function LoaderSection() {
               }}
             >
               <Loader size="lg" />
-            </div>
+            </Flex>
           ))}
-        </div>
+        </Row>
       </Block>
     </Section>
   )

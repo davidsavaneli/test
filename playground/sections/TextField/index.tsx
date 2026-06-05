@@ -1,29 +1,23 @@
-import { useState, type CSSProperties } from 'react'
-import { Icon, TextField } from '../../../src'
+import { useState } from 'react'
+import { Col, Icon, TextField } from '../../../src'
 import { Block, Section, SIZES } from '../../shared'
 
 export function TextFieldSection() {
   const [phone, setPhone] = useState('')
   const [digits, setDigits] = useState('')
-  const colStyle: CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
-    maxWidth: 360,
-  }
 
   return (
     <Section>
       <Block label="basic">
-        <div style={colStyle}>
+        <Col gap={16} style={{ maxWidth: 360 }}>
           <TextField label="Title" placeholder="Enter a title" fullWidth />
           <TextField label="Title" defaultValue="სავაჭრო ცენტრი სითი მოლი Title D" fullWidth />
           <TextField label="Disabled" placeholder="Can't type here" disabled fullWidth />
-        </div>
+        </Col>
       </Block>
 
       <Block label="sizes">
-        <div style={colStyle}>
+        <Col gap={16} style={{ maxWidth: 360 }}>
           {SIZES.map((s) => (
             <TextField
               key={s}
@@ -33,11 +27,11 @@ export function TextFieldSection() {
               fullWidth
             />
           ))}
-        </div>
+        </Col>
       </Block>
 
       <Block label="adornment — icon (static / clickable) & text">
-        <div style={colStyle}>
+        <Col gap={16} style={{ maxWidth: 360 }}>
           <TextField
             label="Working Hours"
             adornment={<Icon name="Clock" />}
@@ -61,17 +55,17 @@ export function TextFieldSection() {
             placeholder="0"
             fullWidth
           />
-        </div>
+        </Col>
       </Block>
 
       <Block label="error state">
-        <div style={colStyle}>
+        <Col gap={16} style={{ maxWidth: 360 }}>
           <TextField label="Title" error helperText="Required" fullWidth />
-        </div>
+        </Col>
       </Block>
 
       <Block label="regex (digits only) · mask (phone)">
-        <div style={colStyle}>
+        <Col gap={16} style={{ maxWidth: 360 }}>
           <TextField
             label="Digits Only"
             value={digits}
@@ -90,11 +84,11 @@ export function TextFieldSection() {
             placeholder="(___) ___-____"
             fullWidth
           />
-        </div>
+        </Col>
       </Block>
 
       <Block label="more masks (9 = digit · a = letter · * = alphanumeric)">
-        <div style={colStyle}>
+        <Col gap={16} style={{ maxWidth: 360 }}>
           <TextField
             label="Card Number"
             mask="9999 9999 9999 9999"
@@ -106,7 +100,7 @@ export function TextFieldSection() {
           <TextField label="Date" mask="99/99/9999" placeholder="DD/MM/YYYY" fullWidth />
           <TextField label="Time" mask="99:99" placeholder="HH:MM" fullWidth />
           <TextField label="License Plate" mask="aa-999-aa" placeholder="AB-123-CD" fullWidth />
-        </div>
+        </Col>
       </Block>
     </Section>
   )

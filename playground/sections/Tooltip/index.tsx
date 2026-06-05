@@ -1,5 +1,5 @@
-import { Button, Icon, IconButton, Tooltip } from '../../../src'
-import { Block, rowStyle, Section } from '../../shared'
+import { Button, Icon, IconButton, Row, Tooltip } from '../../../src'
+import { Block, Section } from '../../shared'
 
 const PLACEMENTS = ['top', 'bottom', 'left', 'right'] as const
 
@@ -7,17 +7,17 @@ export function TooltipSection() {
   return (
     <Section>
       <Block label="placements (default top) — hover or focus">
-        <div style={{ ...rowStyle, gap: 40, padding: '24px 8px' }}>
+        <Row gap={40} wrap padding="24px 8px">
           {PLACEMENTS.map((p) => (
             <Tooltip key={p} content={`Tooltip on ${p}`} placement={p}>
               <Button variant="outlined">{p}</Button>
             </Tooltip>
           ))}
-        </div>
+        </Row>
       </Block>
 
       <Block label="on an IconButton">
-        <div style={{ ...rowStyle, gap: 24 }}>
+        <Row gap={24} wrap>
           <Tooltip content="Edit">
             <IconButton variant="filled" aria-label="Edit">
               <Icon name="Edit2" />
@@ -33,18 +33,18 @@ export function TooltipSection() {
               <Icon name="Setting2" />
             </IconButton>
           </Tooltip>
-        </div>
+        </Row>
       </Block>
 
       <Block label="longer content (wraps, max 240px)">
-        <div style={{ ...rowStyle, gap: 24, padding: '8px' }}>
+        <Row gap={24} wrap padding="8px">
           <Tooltip
             content="Tooltips wrap onto multiple lines once they reach their max width, so longer hints stay readable."
             placement="bottom"
           >
             <Button>Long Tooltip</Button>
           </Tooltip>
-        </div>
+        </Row>
       </Block>
     </Section>
   )

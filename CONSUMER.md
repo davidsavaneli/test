@@ -146,6 +146,15 @@ a title for a labeled divider with `align` (`left` · `center` default · `right
 `size` · `clickable` (interactive; off by default) · `disabled` · `startIcon` **or** `avatar` ·
 `onDelete` (adds a delete ✕). `<Chip avatar={<Avatar name="David Savaneli" />} onDelete={remove}>David</Chip>`.
 
+**Row / Col / Flex** — flexbox layout via props (no inline `style`). `gap` · `align` · `justify` ·
+`wrap` · `padding` · `grow` · `inline`. `gap`/`padding` accept a token key (`"md"`), a px number, or any
+CSS string. `Row` = centered horizontal, `Col` = vertical, `Flex` = the general one (`direction`).
+`<Row gap="md" justify="between"><Button>Save</Button></Row>`.
+
+**Grid** — CSS-grid layout: `cols` (fixed count) or `minItemWidth` (responsive — auto-fits columns and
+wraps to one when narrow), plus `gap`/`align`/`padding`. Great for forms side-by-side:
+`<Grid minItemWidth={220} gap={16}><TextField …/><TextField …/></Grid>`.
+
 **Hooks** — `useDisclosure(initial?)` → `{ isOpen, open, close, toggle }`.
 
 ## 5. Forms (Zod-powered) — the easy way

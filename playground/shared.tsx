@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
+import { Col } from '../src'
 
 /** Shared demo vocab so every section exercises the same axes. */
 export const VARIANTS = ['contained', 'filled', 'outlined', 'text'] as const
@@ -16,13 +17,6 @@ export const COLORS = [
 ] as const
 export const SIZES = ['sm', 'md', 'lg'] as const
 
-export const rowStyle: CSSProperties = {
-  display: 'flex',
-  gap: 12,
-  flexWrap: 'wrap',
-  alignItems: 'center',
-}
-
 /** Capitalize the first letter — for human-readable demo labels (e.g. `primary` -> `Primary`). */
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -37,18 +31,13 @@ export function Section({ children }: { children: ReactNode }) {
 /** Labeled sub-group inside a Section. */
 export function Block({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <Col gap={12}>
       <span
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          letterSpacing: 0.5,
-          textTransform: 'uppercase',
-        }}
+        style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}
       >
         {label}
       </span>
       {children}
-    </div>
+    </Col>
   )
 }

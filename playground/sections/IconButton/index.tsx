@@ -1,38 +1,38 @@
-import { Icon, IconButton } from '../../../src'
-import { Block, COLORS, rowStyle, Section, SIZES, VARIANTS } from '../../shared'
+import { Col, Icon, IconButton, Row } from '../../../src'
+import { Block, COLORS, Section, SIZES, VARIANTS } from '../../shared'
 
 export function IconButtonSection() {
   return (
     <Section>
       <Block label="variants × colors">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <Col gap={14}>
           {VARIANTS.map((v) => (
-            <div key={v} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Col key={v} gap={6}>
               <code style={{ fontSize: 11 }}>{v}</code>
-              <div style={rowStyle}>
+              <Row gap={12} wrap>
                 {COLORS.map((c) => (
                   <IconButton key={c} variant={v} color={c} aria-label={c}>
                     <Icon name="Setting2" />
                   </IconButton>
                 ))}
-              </div>
-            </div>
+              </Row>
+            </Col>
           ))}
-        </div>
+        </Col>
       </Block>
 
       <Block label="sizes">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           {SIZES.map((s) => (
             <IconButton key={s} size={s} aria-label={`size ${s}`}>
               <Icon name="Add" />
             </IconButton>
           ))}
-        </div>
+        </Row>
       </Block>
 
       <Block label="states">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           <IconButton loading aria-label="loading">
             <Icon name="Add" />
           </IconButton>
@@ -48,14 +48,14 @@ export function IconButtonSection() {
           <IconButton variant="filled" color="error" rounded aria-label="delete">
             <Icon name="Trash" />
           </IconButton>
-        </div>
-        <div style={rowStyle}>
+        </Row>
+        <Row gap={12} wrap>
           {SIZES.map((s) => (
             <IconButton key={s} size={s} loading aria-label={`loading ${s}`}>
               <Icon name="Add" />
             </IconButton>
           ))}
-        </div>
+        </Row>
         <IconButton color="error" nonClickable>
           <Icon name="Add" />
         </IconButton>

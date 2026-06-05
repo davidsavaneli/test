@@ -500,6 +500,20 @@ upright rule that stretches inside a flex row). With `children` it becomes a lab
 label `--tz-color-tertiary` / `font-size-sm` / medium. `role="separator"` (+ `aria-orientation` when
 vertical); a label is ignored for vertical. Own CSS module.
 
+### Flex / Row / Col
+
+Flexbox layout primitives — set layout via props instead of inline `style`. **`Flex`** is the engine
+(`direction` `row`/`column` · `gap` · `align` `start/center/end/stretch/baseline` · `justify`
+`start/center/end/between/around/evenly` · `wrap` · `padding` · `inline` · `grow`). **`Row`** = `Flex`
+`direction="row"` + `align="center"`; **`Col`** = `Flex` `direction="column"`. `gap`/`padding` take a
+**`Spacing`**: a `--tz-space-*` scale key (`"md"`), a raw px `number`, or any CSS string (e.g.
+`"24px 8px"`) — scale keys resolve to tokens, numbers to px. Styled via **inline style** (the values
+are fully dynamic — a deliberate exception to the CSS-Modules rule for this layout primitive); consumer
+`style` merges last. All three `forwardRef` to the `<div>` and live in `src/components/Flex/`.
+**`Grid`** (same folder) is the CSS-grid sibling: `cols` (fixed count → `repeat(n, minmax(0,1fr))`, or a
+raw template string) or **`minItemWidth`** (responsive `repeat(auto-fit, minmax(<w>, 1fr))` — wraps to
+one column when narrow), plus `gap`/`align`/`padding`/`inline`.
+
 ### Chip
 
 A compact pill tag/token. `variant` (`contained` · `filled` **default** · `outlined` · `text`),

@@ -1,6 +1,15 @@
 import { z } from 'zod'
-import { Button, Checkbox, Form, NumberField, TextField, Typography } from '../../../src'
-import { useForm } from '../../../src'
+import {
+  Button,
+  Checkbox,
+  Col,
+  Form,
+  Grid,
+  NumberField,
+  TextField,
+  Typography,
+  useForm,
+} from '../../../src'
 import { Block, Section } from '../../shared'
 
 const schema = z.object({
@@ -46,34 +55,37 @@ export function FormSection() {
   return (
     <Section>
       <Block label="validation — submit empty to scroll to the first red field">
-        <Typography variant="bodySmall" color="tertiary">
-          Press “Sign Up” with fields empty — the page smooth-scrolls to (and focuses) the topmost
-          invalid field. Fill the top ones and submit again to watch it jump to the next.
-        </Typography>
-        <Form
-          form={form}
-          style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 380 }}
-        >
-          <TextField name="firstName" required label="First Name" placeholder="David" />
-          <TextField name="lastName" required label="Last Name" placeholder="Savaneli" />
-          <TextField name="email" required label="Email" placeholder="you@example.com" />
-          <TextField name="phone" required label="Phone" placeholder="(555) 123-4567" />
-          <TextField name="company" required label="Company" placeholder="Techzy" />
-          <TextField name="address" required label="Address" placeholder="123 Main St" />
-          <TextField name="city" required label="City" placeholder="Tbilisi" />
-          <TextField
-            name="password"
-            required
-            type="password"
-            label="Password"
-            placeholder="••••••"
-          />
-          <NumberField name="quantity" required label="Quantity" min={0} max={10} />
-          <Checkbox name="acceptTerms" required label="I accept the terms" />
-          <Button type="submit" loading={form.isSubmitting}>
-            Sign Up
-          </Button>
-        </Form>
+        <Col gap={16} style={{ maxWidth: 560 }}>
+          <Typography variant="bodySmall" color="tertiary">
+            Press “Sign Up” with fields empty — the page smooth-scrolls to (and focuses) the topmost
+            invalid field. Fill the top ones and submit again to watch it jump to the next.
+          </Typography>
+          <Form form={form}>
+            <Col gap={16}>
+              <Grid minItemWidth={220} gap={16}>
+                <TextField name="firstName" required label="First Name" placeholder="David" />
+                <TextField name="lastName" required label="Last Name" placeholder="Savaneli" />
+                <TextField name="email" required label="Email" placeholder="you@example.com" />
+                <TextField name="phone" required label="Phone" placeholder="(555) 123-4567" />
+                <TextField name="company" required label="Company" placeholder="Techzy" />
+                <TextField name="city" required label="City" placeholder="Tbilisi" />
+                <TextField name="address" required label="Address" placeholder="123 Main St" />
+                <TextField
+                  name="password"
+                  required
+                  type="password"
+                  label="Password"
+                  placeholder="••••••"
+                />
+                <NumberField name="quantity" required label="Quantity" min={0} max={10} />
+              </Grid>
+              <Checkbox name="acceptTerms" required label="I accept the terms" />
+              <Button type="submit" loading={form.isSubmitting}>
+                Sign Up
+              </Button>
+            </Col>
+          </Form>
+        </Col>
       </Block>
     </Section>
   )

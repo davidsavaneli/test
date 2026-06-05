@@ -1,38 +1,38 @@
-import { Button, Icon } from '../../../src'
-import { Block, cap, COLORS, rowStyle, Section, SIZES, VARIANTS } from '../../shared'
+import { Button, Col, Icon, Row } from '../../../src'
+import { Block, cap, COLORS, Section, SIZES, VARIANTS } from '../../shared'
 
 export function ButtonSection() {
   return (
     <Section>
       <Block label="variants × colors">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <Col gap={14}>
           {VARIANTS.map((v) => (
-            <div key={v} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Col key={v} gap={6}>
               <code style={{ fontSize: 11 }}>{v}</code>
-              <div style={rowStyle}>
+              <Row gap={12} wrap>
                 {COLORS.map((c) => (
                   <Button key={c} variant={v} color={c}>
                     {cap(c)}
                   </Button>
                 ))}
-              </div>
-            </div>
+              </Row>
+            </Col>
           ))}
-        </div>
+        </Col>
       </Block>
 
       <Block label="sizes">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           {SIZES.map((s) => (
             <Button key={s} size={s}>
               Size {s.toUpperCase()}
             </Button>
           ))}
-        </div>
+        </Row>
       </Block>
 
       <Block label="with icons">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           <Button startIcon={<Icon name="Add" />}>Start Icon</Button>
           <Button endIcon={<Icon name="ArrowRight2" />}>End Icon</Button>
           <Button startIcon={<Icon name="Setting2" />} endIcon={<Icon name="ArrowRight2" />}>
@@ -44,11 +44,11 @@ export function ButtonSection() {
           <Button variant="filled" color="success" startIcon={<Icon name="TickCircle" />}>
             Save
           </Button>
-        </div>
+        </Row>
       </Block>
 
       <Block label="states">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           <Button loading>Loading</Button>
           <Button loading startIcon={<Icon name="Add" />}>
             Loading + Start Icon
@@ -64,14 +64,14 @@ export function ButtonSection() {
           <Button variant="filled" color="success" rounded>
             Rounded
           </Button>
-        </div>
-        <div style={rowStyle}>
+        </Row>
+        <Row gap={12} wrap>
           {SIZES.map((s) => (
             <Button key={s} size={s} loading startIcon={<Icon name="Add" />}>
               Loading {s.toUpperCase()}
             </Button>
           ))}
-        </div>
+        </Row>
         <Button fullWidth>Full Width</Button>
       </Block>
     </Section>

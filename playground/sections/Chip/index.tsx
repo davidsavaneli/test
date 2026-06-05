@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Avatar, Chip, Icon } from '../../../src'
-import { Block, COLORS, rowStyle, Section, SIZES, VARIANTS } from '../../shared'
+import { Avatar, Chip, Icon, Row } from '../../../src'
+import { Block, COLORS, Section, SIZES, VARIANTS } from '../../shared'
 
 export function ChipSection() {
   const [tags, setTags] = useState(['Design', 'Engineering', 'Product', 'Marketing'])
@@ -8,27 +8,27 @@ export function ChipSection() {
   return (
     <Section>
       <Block label="variants">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           {VARIANTS.map((v) => (
             <Chip key={v} variant={v}>
               {v}
             </Chip>
           ))}
-        </div>
+        </Row>
       </Block>
 
       <Block label="colors (filled)">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           {COLORS.map((c) => (
             <Chip key={c} color={c}>
               {c}
             </Chip>
           ))}
-        </div>
+        </Row>
       </Block>
 
       <Block label="with icon · avatar · delete">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           <Chip startIcon={<Icon name="TickCircle" />} color="success">
             Verified
           </Chip>
@@ -43,11 +43,11 @@ export function ChipSection() {
             Mariam
           </Chip>
           <Chip onDelete={() => alert('deleted')}>Removable</Chip>
-        </div>
+        </Row>
       </Block>
 
       <Block label="clickable · disabled">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           <Chip clickable onClick={() => alert('Chip clicked')}>
             Clickable
           </Chip>
@@ -58,11 +58,11 @@ export function ChipSection() {
           <Chip clickable disabled onDelete={() => {}}>
             Disabled
           </Chip>
-        </div>
+        </Row>
       </Block>
 
       <Block label="removable set (click ✕ to remove)">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           {tags.map((t) => (
             <Chip
               key={t}
@@ -78,17 +78,17 @@ export function ChipSection() {
               Reset
             </Chip>
           )}
-        </div>
+        </Row>
       </Block>
 
       <Block label="sizes (sm · md · lg)">
-        <div style={rowStyle}>
+        <Row gap={12} wrap>
           {SIZES.map((s) => (
             <Chip key={s} size={s} avatar={<Avatar name="D S" />} onDelete={() => {}}>
               Size {s.toUpperCase()}
             </Chip>
           ))}
-        </div>
+        </Row>
       </Block>
     </Section>
   )

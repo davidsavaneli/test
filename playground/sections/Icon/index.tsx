@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { Icon, TextField, Typography } from '../../../src'
+import { Col, Icon, TextField, Typography } from '../../../src'
 import { icons } from '../../../src/icons/icons'
 import type { IconName } from '../../../src/icons/names'
 import { Section } from '../../shared'
@@ -28,7 +28,7 @@ export function IconSection() {
 
   return (
     <Section>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Col gap={16}>
         <TextField
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -62,7 +62,7 @@ export function IconSection() {
             ))}
           </div>
         )}
-      </div>
+      </Col>
     </Section>
   )
 }

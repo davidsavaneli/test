@@ -1,57 +1,55 @@
-import type { CSSProperties } from 'react'
-import { Checkbox, Typography } from '../../../src'
+import { Checkbox, Col, Row, Typography } from '../../../src'
 import { Block, Section } from '../../shared'
 
 export function CheckboxSection() {
-  const col: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 12 }
   return (
     <Section>
       <Block label="basic · checked colors">
-        <div style={col}>
+        <Col gap={12}>
           <Checkbox label="Checkbox" />
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <Row gap={16} wrap>
             <Checkbox color="success" defaultChecked aria-label="Success" />
             <Checkbox color="error" defaultChecked aria-label="Error" />
             <Checkbox color="primary" defaultChecked aria-label="Primary" />
-          </div>
-        </div>
+          </Row>
+        </Col>
       </Block>
 
       <Block label="group (vertical / horizontal)">
-        <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
-          <div style={col}>
+        <Row gap={48} wrap align="start">
+          <Col gap={12}>
             <Typography variant="bodySmall" color="tertiary">
               Form Label
             </Typography>
             <Checkbox label="Checkbox 1" />
             <Checkbox label="Checkbox 2" />
-          </div>
-          <div style={col}>
+          </Col>
+          <Col gap={12}>
             <Typography variant="bodySmall" color="tertiary">
               Form Label
             </Typography>
-            <div style={{ display: 'flex', gap: 24 }}>
+            <Row gap={24} wrap>
               <Checkbox label="Checkbox 1" />
               <Checkbox label="Checkbox 2" />
-            </div>
-          </div>
-        </div>
+            </Row>
+          </Col>
+        </Row>
       </Block>
 
       <Block label="sizes">
-        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+        <Row gap={24} wrap>
           <Checkbox size="lg" label="Large" />
           <Checkbox size="md" label="Medium" />
           <Checkbox size="sm" label="Small" />
-        </div>
+        </Row>
       </Block>
 
       <Block label="states">
-        <div style={col}>
+        <Col gap={12}>
           <Checkbox label="Disabled" disabled />
           <Checkbox label="Disabled Checked" disabled defaultChecked />
           <Checkbox label="Required" error />
-        </div>
+        </Col>
       </Block>
     </Section>
   )
