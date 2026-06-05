@@ -1,12 +1,18 @@
 import { z } from 'zod'
-import { Button, Checkbox, Form, NumberField, TextField, useForm } from '../../../src'
+import { Button, Checkbox, Form, NumberField, TextField, Typography } from '../../../src'
+import { useForm } from '../../../src'
 import { Block, Section } from '../../shared'
 
-const loginSchema = z.object({
+const schema = z.object({
+  firstName: z.string().min(1, 'Required'),
+  lastName: z.string().min(1, 'Required'),
   email: z.string().email('Enter a valid email'),
+  phone: z.string().min(1, 'Required'),
+  company: z.string().min(1, 'Required'),
+  address: z.string().min(1, 'Required'),
+  city: z.string().min(1, 'Required'),
   password: z.string().min(6, 'At least 6 characters'),
-  // nullable so the field can start empty (null); the `: boolean` annotation stops TS 6 from
-  // inferring a `v is number` type-predicate (which would narrow the type and break the null default).
+  // nullable so the field can start empty; `: boolean` stops TS from inferring a type-predicate.
   quantity: z
     .number()
     .min(1, 'At least 1')
@@ -18,34 +24,54 @@ const loginSchema = z.object({
 
 export function FormSection() {
   const form = useForm({
-    schema: loginSchema,
-    defaultValues: { email: '', password: '', quantity: null, acceptTerms: false },
+    schema,
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      company: '',
+      address: '',
+      city: '',
+      password: '',
+      quantity: null,
+      acceptTerms: false,
+    },
     onSubmit: (values, { reset }) => {
       alert(`Submitted:\n${JSON.stringify(values, null, 2)}`)
-      reset() // clear the fields after a successful submit
+      reset()
     },
   })
 
   return (
     <Section>
-      <Block label="validation — bind by name (blur, then live)">
+      <Block label="validation — submit empty to scroll to the first red field">
+        <Typography variant="bodySmall" color="tertiary">
+          Press “Sign Up” with fields empty — the page smooth-scrolls to (and focuses) the topmost
+          invalid field. Fill the top ones and submit again to watch it jump to the next.
+        </Typography>
         <Form
           form={form}
-          style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 360 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 380 }}
         >
-          <TextField name="email" required label="Email" placeholder="you@example.com" fullWidth />
+          <TextField name="firstName" required label="First Name" placeholder="David" />
+          <TextField name="lastName" required label="Last Name" placeholder="Savaneli" />
+          <TextField name="email" required label="Email" placeholder="you@example.com" />
+          <TextField name="phone" required label="Phone" placeholder="(555) 123-4567" />
+          <TextField name="company" required label="Company" placeholder="Techzy" />
+          <TextField name="address" required label="Address" placeholder="123 Main St" />
+          <TextField name="city" required label="City" placeholder="Tbilisi" />
           <TextField
             name="password"
             required
             type="password"
             label="Password"
             placeholder="••••••"
-            fullWidth
           />
-          <NumberField name="quantity" required label="Quantity" min={0} max={10} fullWidth />
+          <NumberField name="quantity" required label="Quantity" min={0} max={10} />
           <Checkbox name="acceptTerms" required label="I accept the terms" />
           <Button type="submit" loading={form.isSubmitting}>
-            Sign In
+            Sign Up
           </Button>
         </Form>
       </Block>

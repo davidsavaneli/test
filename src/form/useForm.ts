@@ -30,6 +30,12 @@ export interface UseFormOptions<S extends ZodType> {
   onSubmit?: (values: TypeOf<S>, helpers: FormHelpers<TypeOf<S>>) => void | Promise<void>
   /** When errors begin to show per field. Defaults to `blurThenLive`. */
   mode?: FormValidationMode
+  /**
+   * On a failed submit, smooth-scroll to (and focus) the first invalid field — the one that sits
+   * **highest** on the page. Needs the submit event's form element (works with `<Form>` or any
+   * `<form onSubmit={form.handleSubmit}>`). Defaults to `true`.
+   */
+  scrollToError?: boolean
 }
 
 /** Helpers handed to `onSubmit` (Formik-style), so you can clear or tweak the form on success. */
@@ -78,6 +84,31 @@ export interface FormApi<Values> {
   handleSubmit: (event?: SyntheticEvent) => void
 }
 
+/**
+ * Smooth-scroll to (and focus) the highest invalid field inside `scope`, matched by its `name`
+ * attribute. "Highest" = smallest viewport `top`, so it lands on the first red field regardless of
+ * DOM vs. visual order. No-op if none of the names resolve to an element.
+ */
+function scrollToFirstError(scope: Element, names: string[]) {
+  let target: HTMLElement | null = null
+  let top = Number.POSITIVE_INFINITY
+  for (const name of names) {
+    const selector = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(name) : name
+    const el = scope.querySelector<HTMLElement>(`[name="${selector}"]`)
+    if (!el) continue
+    const elTop = el.getBoundingClientRect().top
+    if (elTop < top) {
+      top = elTop
+      target = el
+    }
+  }
+  if (!target) return
+  if (typeof target.scrollIntoView === 'function') {
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+  target.focus({ preventScroll: true })
+}
+
 /** Runs the schema and reduces Zod issues to a `{ field: firstMessage }` map. */
 function collectErrors(schema: ZodType, values: unknown): Record<string, string> {
   const result = schema.safeParse(values)
@@ -102,6 +133,7 @@ export function useForm<S extends ZodType>({
   defaultValues,
   onSubmit,
   mode = 'blurThenLive',
+  scrollToError = true,
 }: UseFormOptions<S>): FormApi<TypeOf<S>> {
   type Values = TypeOf<S>
 
@@ -159,7 +191,17 @@ export function useForm<S extends ZodType>({
       setSubmitted(true)
 
       const result = schema.safeParse(values)
-      if (!result.success) return // errors are derived + now shown (submitted)
+      if (!result.success) {
+        // errors are derived + now shown (submitted); jump to the first red field if we have the form
+        const scope = event?.currentTarget
+        if (scrollToError && scope instanceof Element) {
+          const names = result.error.issues
+            .map((issue) => String(issue.path[0] ?? ''))
+            .filter(Boolean)
+          scrollToFirstError(scope, names)
+        }
+        return
+      }
 
       const outcome = onSubmit?.(result.data as Values, { reset, setValue, setValues })
       if (outcome instanceof Promise) {
@@ -167,7 +209,7 @@ export function useForm<S extends ZodType>({
         void outcome.finally(() => setIsSubmitting(false))
       }
     },
-    [schema, values, onSubmit, reset, setValue],
+    [schema, values, onSubmit, reset, setValue, scrollToError],
   )
 
   return {

@@ -52,3 +52,52 @@ describe('Form + name binding', () => {
     )
   })
 })
+
+describe('Form scroll-to-error', () => {
+  const multi = z.object({
+    email: z.string().email('Invalid email'),
+    code: z.string().min(1, 'Required'),
+  })
+
+  function MultiHarness({ scrollToError }: { scrollToError?: boolean }) {
+    const form = useForm({ schema: multi, defaultValues: { email: '', code: '' }, scrollToError })
+    return (
+      <Form form={form}>
+        <TextField name="email" label="Email" />
+        <TextField name="code" label="Code" />
+        <button type="submit">Go</button>
+      </Form>
+    )
+  }
+
+  const rectAt = (top: number) => (): DOMRect => ({
+    top,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    width: 0,
+    height: 0,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+  })
+
+  it('focuses the highest invalid field on a failed submit (by position, not DOM order)', () => {
+    const { container } = render(<MultiHarness />)
+    const email = screen.getByLabelText('Email') as HTMLInputElement
+    const code = screen.getByLabelText('Code') as HTMLInputElement
+    // make "code" sit higher than "email" — it must win even though "email" comes first
+    email.getBoundingClientRect = rectAt(200)
+    code.getBoundingClientRect = rectAt(50)
+
+    fireEvent.submit(container.querySelector('form')!)
+    expect(document.activeElement).toBe(code)
+  })
+
+  it('does not focus a field when scrollToError is false', () => {
+    const { container } = render(<MultiHarness scrollToError={false} />)
+    const email = screen.getByLabelText('Email')
+    fireEvent.submit(container.querySelector('form')!)
+    expect(document.activeElement).not.toBe(email)
+  })
+})

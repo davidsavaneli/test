@@ -521,10 +521,17 @@ small, typed return interface, `useCallback`-stable handlers.
 ### Form — `useForm` (Zod-powered)
 
 A small form helper (`src/form/`) — the in-library alternative to bundling Formik in every app.
-`useForm({ schema, defaultValues, onSubmit?, mode? })` where `schema` is a **Zod** object schema
-(field names = its top-level keys) and `defaultValues` is the controlled source of truth. `zod` is an
-**optional peer dep** — only needed when you use `useForm`; values/types are inferred from the schema
-via `z.infer`.
+`useForm({ schema, defaultValues, onSubmit?, mode?, scrollToError? })` where `schema` is a **Zod**
+object schema (field names = its top-level keys) and `defaultValues` is the controlled source of
+truth. `zod` is an **optional peer dep** — only needed when you use `useForm`; values/types are
+inferred from the schema via `z.infer`.
+
+**Scroll-to-error.** On a failed submit, `handleSubmit` smooth-scrolls to **and focuses the first
+invalid field** — the one with the smallest viewport `top` (the topmost red field, regardless of DOM
+vs. visual order), matched by its `name` inside the submit event's `currentTarget` form. So it works
+with `<Form>` and any `<form onSubmit={form.handleSubmit}>`. Opt out with `scrollToError: false`
+(default `true`). Uses `name` attributes (not `aria-invalid`), so it's immune to React's re-render
+timing; `scrollIntoView({ behavior: 'smooth', block: 'center' })` + `focus({ preventScroll: true })`.
 
 Returns `{ values, errors, touched, isValid, isSubmitted, isSubmitting, field, setValue, setValues, reset, handleSubmit }`
 (the `FormApi` type). `handleSubmit` validates the whole form and calls `onSubmit` with the

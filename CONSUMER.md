@@ -193,6 +193,8 @@ function SignIn() {
   `{...form.field('email')}` onto a field manually.)
 - `handleSubmit` validates the whole form and calls `onSubmit(parsedValues, { reset, setValue, setValues })`
   only when valid. `useForm` also returns `values`, `errors`, `isValid`, `isSubmitted`, `isSubmitting`, `reset`.
+- **Scroll-to-error:** on a failed submit the form smooth-scrolls to and focuses the **topmost** invalid
+  field automatically (the first red one on the page). Opt out with `useForm({ …, scrollToError: false })`.
 - Errors show after blur (then live), per `mode`. Field form-values are real types: number for
   `NumberField`, boolean for `Checkbox`. For a nullable/optional number, type the schema field with
   `.nullable()` and annotate any `required` refine as `(v): boolean => v !== null` (TS infers a
