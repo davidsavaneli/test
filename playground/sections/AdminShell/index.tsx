@@ -11,6 +11,7 @@ import { ButtonSection } from '../Button'
 import { CheckboxSection } from '../Checkbox'
 import { FormSection } from '../Form'
 import { IconButtonSection } from '../IconButton'
+import { IconSection } from '../Icon'
 import { LoaderSection } from '../Loader'
 import { NumberFieldSection } from '../NumberField'
 import { TextFieldSection } from '../TextField'
@@ -61,6 +62,14 @@ const dashboardRoute = createRoute({
   path: 'dashboard',
   staticData: { name: 'Dashboard', icon: 'Category', order: 0 },
   component: DashboardPage,
+})
+
+// `/icons` — top-level link: the full icon gallery with search + click-to-copy.
+const iconsRoute = createRoute({
+  getParentRoute: () => shellRoot,
+  path: 'icons',
+  staticData: { name: 'Icons', icon: 'Category2', order: 1 },
+  component: IconSection,
 })
 
 // `/components` — a module container (renders its child pages; not a page itself).
@@ -139,13 +148,14 @@ const shellRouter = createRouter({
   routeTree: shellRoot.addChildren([
     shellIndexRoute,
     dashboardRoute,
+    iconsRoute,
     componentsRoute.addChildren([
       generalRoute.addChildren([buttonRoute, iconButtonRoute, typographyRoute, loaderRoute]),
       formsRoute.addChildren([textFieldRoute, numberFieldRoute, checkboxRoute, formRoute]),
     ]),
   ]),
-  // Land on a deep page so the full trail (Home › Components › General › Button) shows immediately.
-  history: createMemoryHistory({ initialEntries: ['/components/general/button'] }),
+  // Open on the icon gallery so it's visible right away.
+  history: createMemoryHistory({ initialEntries: ['/icons'] }),
 })
 
 export function ShellDemo() {
