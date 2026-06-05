@@ -5,8 +5,8 @@ import {
   type ChangeEvent,
   type Dispatch,
   type FocusEvent,
-  type FormEvent,
   type SetStateAction,
+  type SyntheticEvent,
 } from 'react'
 import type { TypeOf, ZodType } from 'zod'
 
@@ -75,7 +75,7 @@ export interface FormApi<Values> {
   /** Reset to `defaultValues` (or the given values) and clear touched/submitted state. */
   reset: (next?: Values) => void
   /** Form `onSubmit` handler — validates, then calls `onSubmit` with parsed values when valid. */
-  handleSubmit: (event?: FormEvent) => void
+  handleSubmit: (event?: SyntheticEvent) => void
 }
 
 /** Runs the schema and reduces Zod issues to a `{ field: firstMessage }` map. */
@@ -154,7 +154,7 @@ export function useForm<S extends ZodType>({
   )
 
   const handleSubmit = useCallback(
-    (event?: FormEvent) => {
+    (event?: SyntheticEvent) => {
       event?.preventDefault()
       setSubmitted(true)
 
