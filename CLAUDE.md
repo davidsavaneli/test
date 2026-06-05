@@ -490,6 +490,15 @@ a11y: an image renders `<img alt>` (alt ← `alt`/`name`); a non-image avatar wi
 `size`/`color` normalize all of them (children are cloned to the group `size`). Both live in
 `src/components/Avatar/` (one folder, two exports); `Avatar` ships named **and** default. Own CSS module.
 
+### Divider
+
+A separator. Plain: `<Divider />` (full-width 1px line) or `<Divider orientation="vertical" />` (an
+upright rule that stretches inside a flex row). With `children` it becomes a labeled divider
+(`line — title — line`) positioned by `align` (`left` · `center` default · `right`), built with flex +
+`::before`/`::after` lines (the short side uses `--tz-space-md`). Line color `--tz-color-border`,
+label `--tz-color-tertiary` / `font-size-sm` / medium. `role="separator"` (+ `aria-orientation` when
+vertical); a label is ignored for vertical. Own CSS module.
+
 ### Hooks
 
 `useDisclosure(initial = false)` → `{ isOpen, open, close, toggle }`. Model new hooks on this:

@@ -1,0 +1,64 @@
+/* Divider — plain or labeled separator. Token-only, theme-aware. */
+
+.divider {
+  border: 0;
+}
+
+/* plain horizontal line */
+.horizontal {
+  width: 100%;
+  height: 1px;
+  background: var(--tz-color-border);
+}
+
+/* vertical rule (stretches inside a flex row) */
+.vertical {
+  display: inline-block;
+  align-self: stretch;
+  width: 1px;
+  min-height: 1em;
+  background: var(--tz-color-border);
+}
+
+/* labeled horizontal: line — title — line (overrides the plain line above) */
+.labelled {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+  width: 100%;
+  height: auto;
+  background: transparent;
+}
+
+.labelled::before,
+.labelled::after {
+  content: '';
+  height: 1px;
+  background: var(--tz-color-border);
+}
+
+.center::before,
+.center::after {
+  flex: 1;
+}
+
+.left::before {
+  flex: 0 0 var(--tz-space-md);
+}
+.left::after {
+  flex: 1;
+}
+
+.right::before {
+  flex: 1;
+}
+.right::after {
+  flex: 0 0 var(--tz-space-md);
+}
+
+.label {
+  color: var(--tz-color-tertiary);
+  font-size: var(--tz-font-size-sm);
+  font-weight: var(--tz-font-weight-medium);
+  white-space: nowrap;
+}

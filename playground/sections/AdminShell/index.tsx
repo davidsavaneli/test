@@ -10,6 +10,7 @@ import {
 import { FirstRouteRedirect, Icon, PageLayout, RootLayout, Typography } from '../../../src'
 import { AvatarSection } from '../Avatar'
 import { BadgeSection } from '../Badge'
+import { DividerSection } from '../Divider'
 import { ButtonSection } from '../Button'
 import { CheckboxSection } from '../Checkbox'
 import { FormSection } from '../Form'
@@ -121,6 +122,12 @@ const avatarRoute = createRoute({
   staticData: { name: 'Avatar', icon: 'User', order: 6 },
   component: inPage(AvatarSection),
 })
+const dividerRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'divider',
+  staticData: { name: 'Divider', icon: 'RowHorizontal', order: 7 },
+  component: inPage(DividerSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -167,6 +174,7 @@ const shellRouter = createRouter({
         badgeRoute,
         tooltipRoute,
         avatarRoute,
+        dividerRoute,
       ]),
       formsRoute.addChildren([textFieldRoute, numberFieldRoute, checkboxRoute, formRoute]),
     ]),

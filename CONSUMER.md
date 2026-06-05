@@ -138,6 +138,10 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 collapses overflow past `max` into `+N`: `<AvatarGroup max={3}>…</AvatarGroup>`. `size`/`color` apply
 to the whole group.
 
+**Divider** — a separator line. `<Divider />` (plain) · `<Divider orientation="vertical" />` · or pass
+a title for a labeled divider with `align` (`left` · `center` default · `right`):
+`<Divider align="left">Section</Divider>`.
+
 **Hooks** — `useDisclosure(initial?)` → `{ isOpen, open, close, toggle }`.
 
 ## 5. Forms (Zod-powered) — the easy way
