@@ -31,12 +31,15 @@ change only what differs.
 
 ```
 src/
-  components/
+  components/             # every component (incl. the admin shell) — each its own folder
     <Name>/
       <Name>.tsx          # component (forwardRef + props interface)
       <Name>.module.css   # scoped styles (CSS Modules)
-      index.ts            # barrel: re-export component + its types
-    index.ts              # re-exports every component
+      index.ts            # barrel: re-export component + its types + `as default`
+    RootLayout/           # admin shell (sidebar + header + content)
+    Sidebar/              # auto-generated nav (Sidebar + FirstRouteRedirect + buildNavTree + nav hooks)
+    Breadcrumbs/          # auto-generated breadcrumb trail (home → module → group → page)
+    index.ts              # re-exports every component (UI + shell)
   theme/
     applyTheme.ts         # TechzyTheme type, hex→rgb, contrast logic, applyTheme()
     ThemeProvider.tsx     # ThemeProvider, useTheme, ThemeConfig, dark-mode merge
@@ -49,26 +52,22 @@ src/
     Form.tsx              # <Form form={...}> provider — binds nested fields by `name`
     formContext.ts        # FormContext + useFormContext (TextField auto-binds through this)
     index.ts
-  layout/
-    RootLayout.tsx        # admin shell (sidebar + header + content)
-    Sidebar.tsx           # auto-generated nav from routes' staticData + FirstRouteRedirect + buildNavTree
-    Breadcrumbs.tsx       # auto-generated breadcrumb trail (home → module → group → page)
-    access.ts             # RBAC access store (setAccessKeys/hasAccess/useAccessKeys) — filters the menu by roles
-    RootLayout.module.css # shell styles (CSS Modules; bundled into dist/index.css)
-    Sidebar.module.css    # nav styles (CSS Modules; bundled into dist/index.css)
-    Breadcrumbs.module.css# breadcrumb styles (CSS Modules; bundled into dist/index.css)
-    index.ts
+  helpers/
+    access.ts             # RBAC access store (setAccessKeys/getAccessKeys/hasAccess/useAccessKeys)
   icons/
     icons.ts              # generated inline-SVG registry (committed source of truth)
-    names.ts              # generated IconName union (~1195 names)
+    names.ts              # generated IconName union + ICON_NAMES / ICON_COUNT (~1195 names)
+  entries/                # curated public surfaces, one file per subpath export
+    components.ts hooks.ts theme.ts icons.ts helpers.ts
   styles/
     reset.css             # global reset (consumer imports once)
     theme.css             # all --tz-* design tokens (consumer imports once)
     general.css           # base body styles (consumer imports once)
   css-modules.d.ts        # ambient decls for *.module.css and *.css
-  index.ts                # public entry: export * from components / hooks / theme
-playground/main.tsx       # local demo of every component (run via `npm run playground`)
+  index.ts                # root entry: re-exports every subpath (see §10 for the exports map)
+playground/main.tsx       # local demo (admin shell + component explorer; run via `npm run playground`)
 scripts/build-icons.mjs   # regenerates icons.ts + names.ts from a raw Iconsax dump
+scripts/post-build.mjs    # assembles dist/index.css + duplicates .d.ts → .d.cts (CJS types)
 ```
 
 ---
@@ -504,8 +503,9 @@ const form = useForm({ schema, defaultValues: { email: '', password: '' }, onSub
 
 ### Layout — `RootLayout` / `Sidebar` / `FirstRouteRedirect` (TanStack Router)
 
-The admin-panel shell (`src/layout/`). Powered by **`@tanstack/react-router`** (optional peer, `>=1`,
-`external` in the build). `RootLayout({ logo?, header?, children })` renders a left sidebar (`logo` +
+The admin-panel shell lives under `src/components/` (`RootLayout/`, `Sidebar/`, `Breadcrumbs/`) — it's
+shipped as ordinary components, so it imports from `sava-test/components` like everything else. Powered
+by **`@tanstack/react-router`** (optional peer, `>=1`, `external` in the build). `RootLayout({ logo?, header?, children })` renders a left sidebar (`logo` +
 `<Sidebar/>`), a top header, and a content container; set it as the **root route's** component and
 pass `<Outlet/>` as `children`. The **header is built-in, not slotted**: its left shows the current
 page title automatically (the active route's `staticData.name`, via `usePageTitle()`), and its right
@@ -527,13 +527,16 @@ group `forms` → page; an index route at a group path (`/components/forms/`) ma
 (label/icon/order) comes from that folder's `route.tsx` `staticData`, else the segment is prettified.
 
 The tree logic is a pure, tested `buildNavTree(routes)` (router-free); `useNavTree` feeds it the live
-routes. Styles are **CSS Modules** (`RootLayout.module.css` + `Sidebar.module.css`, token-only →
-light/dark-safe), bundled into `dist/index.css`. The `declare module '@tanstack/react-router'` augmentation ships in the
-published `.d.ts`. Exports: `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect`,
-`usePageTitle`, `useBreadcrumbs`, the access helpers (`setAccessKeys`, `getAccessKeys`, `hasAccess`,
-`useAccessKeys`), and types `IconName`, `NavLeaf`, `NavGroup`, `NavModule`, `RootLayoutHeader`,
-`Breadcrumb`. Gotcha: never name a leaf route file `loader.tsx` (reserved by the router plugin) —
-use a `loader/index.tsx` folder.
+routes. Styles are **CSS Modules** co-located in each folder (`RootLayout.module.css`,
+`Sidebar.module.css`, `Breadcrumbs.module.css`, token-only → light/dark-safe), bundled into
+`dist/index.css`. The `declare module '@tanstack/react-router'` augmentation ships in the published
+`.d.ts`. **Public exports:** `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect` (from
+`sava-test/components`) with types `RootLayoutProps`, `RootLayoutHeader`, `IconName`; the RBAC
+functions `setAccessKeys`/`getAccessKeys`/`hasAccess` (from `sava-test/helpers`) and `useAccessKeys`
+(from `sava-test/hooks`). **Internal (not exported):** `buildNavTree`, `useNavTree`, `firstNavTo`,
+`usePageTitle`, `useBreadcrumbs`, and the `NavLeaf`/`NavGroup`/`NavModule`/`NavRoute`/`Breadcrumb`
+types — RootLayout/Breadcrumbs use them via direct file imports. Gotcha: never name a leaf route file
+`loader.tsx` (reserved by the router plugin) — use a `loader/index.tsx` folder.
 
 **Breadcrumbs.** `RootLayout` auto-renders `<Breadcrumbs/>` at the top of the content area, so apps
 get a trail for free. It's built from the active match chain via `useBreadcrumbs()` — one crumb per
@@ -541,10 +544,11 @@ matched route that declares a `staticData.name` (module → group → page). It 
 icon linking to the first allowed menu page (same target as `FirstRouteRedirect`). Intermediate crumbs
 link only when they map to a real navigable menu page (reusing the access-filtered nav tree, so
 forbidden/non-page ancestors render as plain text); the current page is always plain text
-(`aria-current="page"`). Renders nothing when the route has no named matches. `Breadcrumbs` and
-`useBreadcrumbs()` are also exported standalone if an app wants the trail elsewhere.
+(`aria-current="page"`). Renders nothing when the route has no named matches. The `Breadcrumbs`
+component is also exported from `sava-test/components` if an app wants the trail elsewhere (the
+`useBreadcrumbs` hook stays internal).
 
-**RBAC — role-based menu filtering (`src/layout/access.ts`).** A page declares allowed `accessKeys`
+**RBAC — role-based menu filtering (`src/helpers/access.ts`).** A page declares allowed `accessKeys`
 via `staticData.roles: string[]` (**OR** semantics — the user needs any one; omitted/empty = public).
 Access is a **module singleton** with a React subscription, so it's readable both inside React
 (`useAccessKeys()` — reactive, re-renders the `Sidebar`) and outside it (`hasAccess(roles)` — for
@@ -624,26 +628,58 @@ createFileRoute('/dashboard/')({
 
 ## 10. Build, scripts & publishing
 
-| script                 | does                                         |
-| ---------------------- | -------------------------------------------- |
-| `npm run playground`   | `vite` dev server for `playground/main.tsx`  |
-| `npm run dev`          | `vite build --watch` (library watch build)   |
-| `npm run build`        | lib build + types + CSS assembly (see below) |
-| `npm run build:icons`  | regenerate the icon registry                 |
-| `npm run typecheck`    | `tsc --noEmit`                               |
-| `npm test`             | run the Vitest suite once (`vitest run`)     |
-| `npm run format`       | Prettier-format the whole repo               |
-| `npm run format:check` | verify formatting (CI-friendly, no writes)   |
+| script                 | does                                                 |
+| ---------------------- | ---------------------------------------------------- |
+| `npm run playground`   | `vite` dev server for `playground/main.tsx`          |
+| `npm run dev`          | `vite build --watch` (library watch build)           |
+| `npm run build`        | lib build + types + CSS assembly (see below)         |
+| `npm run build:icons`  | regenerate the icon registry                         |
+| `npm run typecheck`    | `tsc --noEmit`                                       |
+| `npm test`             | run the Vitest suite once (`vitest run`)             |
+| `npm run format`       | Prettier-format the whole repo                       |
+| `npm run format:check` | verify formatting (CI-friendly, no writes)           |
+| `npm run lint:pkg`     | `publint` — validate the package `exports`/types map |
 
-- **Output:** Vite library mode, entry `src/index.ts`. Emits ESM `dist/index.js` and CJS
-  `dist/index.cjs`. `react`, `react-dom`, and `clsx` are **externalized** (peer deps).
-- **Types:** `tsconfig.build.json` (src only) emits `dist/index.d.ts`.
-- **CSS:** `cssCodeSplit: false` → one `dist/index.css`. The build concatenates
-  `theme.css + general.css + index.css` into `dist/index.css`, and copies `reset.css` separately.
-  `sideEffects: ["**/*.css"]` keeps tree-shaking safe.
-- **Published files:** only `dist`.
-- **Consumers** import the components from the package root and the stylesheets once at app entry
-  (`reset.css`, then theme/general — bundled into `dist/index.css` on publish).
+### Subpath exports (the public API shape)
+
+The package exposes **scoped subpaths**, not just the root. The aggregator files in `src/entries/`
+define each surface; the root `src/index.ts` re-exports them all. `package.json` `exports` maps:
+
+| subpath                               | source entry                          | what's in it                                  |
+| ------------------------------------- | ------------------------------------- | --------------------------------------------- |
+| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution) |
+| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`              |
+| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)       |
+| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useForm`, `useAccessKeys`   |
+| `./theme`                             | `src/entries/theme.ts`                | `ThemeProvider`, `useTheme`, `applyTheme`     |
+| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`     |
+| `./helpers`                           | `src/entries/helpers.ts`              | `setAccessKeys`, `getAccessKeys`, `hasAccess` |
+| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                           |
+
+Rules when adding/moving public API: keep internal-only symbols **out** of the entry files (e.g.
+`useFormContext`, `usePageTitle`, `useBreadcrumbs`, nav-tree internals); a new top-level group gets a
+new `src/entries/<group>.ts` + an `exports` block. Every component folder's `index.ts` adds
+`export { <Name>, <Name> as default }` so `sava-test/components/<Name>` resolves as both.
+
+### Output & build
+
+- **JS:** Vite library mode, **multi-entry** (`src/index.ts`, the five `src/entries/*`, and one per
+  component folder via a glob). Each emits ESM `.js` + CJS `.cjs`. Components build into their own
+  directory (`dist/components/<Name>/index.js`) — **never a flat `dist/components/<Name>.js`** — so the
+  runtime file can't shadow the `index.d.ts` types during the barrel's `export *` under
+  `moduleResolution: bundler`. `output.exports: 'named'` (components ship named **and** default).
+  `react`/`react-dom`/`clsx`/`zod`/`@tanstack/react-router` are **external**.
+- **Types:** `tsc -p tsconfig.build.json` emits the `.d.ts` tree mirroring `src/`. `scripts/post-build.mjs`
+  then duplicates every `*.d.ts` → `*.d.cts` so the CJS (`require`) condition resolves CJS-flavored
+  types under `node16`/`nodenext`. Each `exports` entry splits `import`/`require`, each with its own
+  `types`.
+- **CSS:** `cssCodeSplit: false` → one CSS asset; `post-build.mjs` prepends `theme.css + general.css`
+  into `dist/index.css` and copies `reset.css`. `sideEffects: ["**/*.css"]` keeps tree-shaking safe.
+- **Validation:** run `npm run lint:pkg` (`publint`) before publishing — it must say "All good!".
+- **Published files:** only `dist`. **Consumers** import from the subpaths (or root) and the
+  stylesheets once at app entry (`sava-test/css/reset.css`, then `sava-test/css/styles.css`).
+  Subpath types need consumer `moduleResolution: "bundler"`/`"node16"`; the root import works on
+  classic `"node"` too (top-level `main`/`module`/`types` are kept as a fallback).
 
 ### TypeScript configs
 
@@ -687,9 +723,10 @@ createFileRoute('/dashboard/')({
    use the `--tz-btn-rgb` / `--tz-btn-on` pattern and the 4 standard variants.
 4. Style only with `--tz-*` tokens; transitions use `var(--tz-duration)`.
 5. Add English JSDoc to the component and every prop. Add accessibility attributes.
-6. Export via the component `index.ts` and add `export * from './<Name>'` to
-   `src/components/index.ts`.
+6. Export via the component `index.ts` — `export { <Name>, <Name> as default } from './<Name>'`
+   (the `as default` keeps `sava-test/components/<Name>` working) — and add `export * from './<Name>'`
+   to `src/components/index.ts`. No `src/entries/` change needed (it re-exports the whole barrel).
 7. Add a section to `playground/main.tsx` exercising variants × colors × sizes × states.
 8. Add a co-located `<Name>.test.tsx` covering behavior + a11y contracts (see §11).
-9. `npm run typecheck` **and** `npm test` must pass. Verify visually in the playground (light
-   **and** dark mode).
+9. `npm run typecheck`, `npm test`, **and** `npm run lint:pkg` must pass. Verify visually in the
+   playground (light **and** dark mode).

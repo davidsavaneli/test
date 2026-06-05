@@ -1,6 +1,6 @@
 import { Link, type LinkProps } from '@tanstack/react-router'
-import { Icon } from '../components/Icon'
-import { useBreadcrumbs } from './Sidebar'
+import { Icon } from '../Icon'
+import { useBreadcrumbs } from '../Sidebar/Sidebar'
 import styles from './Breadcrumbs.module.css'
 
 const linkTo = (to: string) => to as LinkProps['to']

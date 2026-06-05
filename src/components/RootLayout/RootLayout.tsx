@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
-import { Icon } from '../components/Icon'
-import { IconButton } from '../components/IconButton'
-import { ThemeToggle } from '../components/ThemeToggle'
-import { Typography } from '../components/Typography'
-import { Breadcrumbs } from './Breadcrumbs'
-import { Sidebar, usePageTitle } from './Sidebar'
+import { Icon } from '../Icon'
+import { IconButton } from '../IconButton'
+import { ThemeToggle } from '../ThemeToggle'
+import { Typography } from '../Typography'
+import { Breadcrumbs } from '../Breadcrumbs'
+import { Sidebar, usePageTitle } from '../Sidebar/Sidebar'
 import styles from './RootLayout.module.css'
 
 export interface RootLayoutHeader {

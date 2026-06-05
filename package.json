@@ -1,6 +1,6 @@
 {
   "name": "sava-test",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "Techzy UI — reusable React component library for admin panels.",
   "type": "module",
   "license": "MIT",
@@ -10,23 +10,92 @@
   "sideEffects": [
     "**/*.css"
   ],
+  "engines": {
+    "node": ">=18"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
-    "./styles.css": "./dist/index.css",
-    "./reset.css": "./dist/reset.css"
+    "./components": {
+      "import": {
+        "types": "./dist/entries/components.d.ts",
+        "default": "./dist/entries/components.js"
+      },
+      "require": {
+        "types": "./dist/entries/components.d.cts",
+        "default": "./dist/entries/components.cjs"
+      }
+    },
+    "./components/*": {
+      "import": {
+        "types": "./dist/components/*/index.d.ts",
+        "default": "./dist/components/*/index.js"
+      },
+      "require": {
+        "types": "./dist/components/*/index.d.cts",
+        "default": "./dist/components/*/index.cjs"
+      }
+    },
+    "./hooks": {
+      "import": {
+        "types": "./dist/entries/hooks.d.ts",
+        "default": "./dist/entries/hooks.js"
+      },
+      "require": {
+        "types": "./dist/entries/hooks.d.cts",
+        "default": "./dist/entries/hooks.cjs"
+      }
+    },
+    "./theme": {
+      "import": {
+        "types": "./dist/entries/theme.d.ts",
+        "default": "./dist/entries/theme.js"
+      },
+      "require": {
+        "types": "./dist/entries/theme.d.cts",
+        "default": "./dist/entries/theme.cjs"
+      }
+    },
+    "./icons": {
+      "import": {
+        "types": "./dist/entries/icons.d.ts",
+        "default": "./dist/entries/icons.js"
+      },
+      "require": {
+        "types": "./dist/entries/icons.d.cts",
+        "default": "./dist/entries/icons.cjs"
+      }
+    },
+    "./helpers": {
+      "import": {
+        "types": "./dist/entries/helpers.d.ts",
+        "default": "./dist/entries/helpers.js"
+      },
+      "require": {
+        "types": "./dist/entries/helpers.d.cts",
+        "default": "./dist/entries/helpers.cjs"
+      }
+    },
+    "./css/reset.css": "./dist/reset.css",
+    "./css/styles.css": "./dist/index.css",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json && cp src/styles/reset.css dist/reset.css && cat src/styles/theme.css src/styles/general.css dist/index.css > dist/index.css.tmp && mv dist/index.css.tmp dist/index.css",
+    "build": "vite build && tsc -p tsconfig.build.json && node scripts/post-build.mjs",
     "build:icons": "node scripts/build-icons.mjs",
     "dev": "vite build --watch",
     "playground": "vite",
@@ -35,6 +104,7 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "lint:pkg": "publint",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
@@ -60,6 +130,7 @@
     "@types/react-dom": "^19.2.3",
     "jsdom": "^25.0.1",
     "prettier": "^3.8.3",
+    "publint": "^0.3.14",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "typescript": "^6.0.3",

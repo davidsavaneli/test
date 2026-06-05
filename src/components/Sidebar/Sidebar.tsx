@@ -7,9 +7,9 @@ import {
   type LinkProps,
   type StaticDataRouteOption,
 } from '@tanstack/react-router'
-import { Icon } from '../components/Icon'
-import type { IconName } from '../icons/names'
-import { hasAccess, useAccessKeys } from './access'
+import { Icon } from '../Icon'
+import type { IconName } from '../../icons/names'
+import { hasAccess, useAccessKeys } from '../../helpers/access'
 import styles from './Sidebar.module.css'
 
 export type { IconName }

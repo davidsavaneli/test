@@ -5,14 +5,33 @@
 > it intentionally omits the library's own build/maintenance internals.
 
 The package is a reusable React component library (currently published as **`sava-test`**; the real
-name is `@techzy/ui`). Stack on the consumer side: React 18+ and TypeScript. Everything is imported
-from the package root.
+name is `@techzy/ui`). Stack on the consumer side: React 18+ and TypeScript.
 
 > **How to use this doc:** it's the conceptual map. For exact prop names, types and defaults, rely on
 > the package's **shipped TypeScript types** (autocomplete + JSDoc on every prop) — they're
 > authoritative and always match the installed version. This file is a snapshot: after upgrading
 > (`npm i sava-test@latest`), re-copy it from the library so it doesn't drift. If the package was
 > installed under a different name than `sava-test`, import from that name instead.
+
+### Import paths
+
+Imports are grouped by **subpath** (the root `'sava-test'` still re-exports everything, if you prefer
+one import):
+
+| subpath                                               | what's in it                                                                                                        |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `sava-test/components`                                | every UI component — `Button`, `TextField`, …, `Form`, `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect` |
+| `sava-test/components/<Name>`                         | a single component, e.g. `import Button from 'sava-test/components/Button'` (default **or** named)                  |
+| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useAccessKeys`                                                                         |
+| `sava-test/theme`                                     | `ThemeProvider`, `useTheme`, `applyTheme` + theme types                                                             |
+| `sava-test/icons`                                     | `Icon`, `IconName`, `ICON_NAMES`, the raw `icons` registry                                                          |
+| `sava-test/helpers`                                   | `setAccessKeys`, `getAccessKeys`, `hasAccess` (RBAC)                                                                |
+| `sava-test/css/reset.css`, `sava-test/css/styles.css` | the two stylesheets                                                                                                 |
+
+> Subpath imports need TypeScript `moduleResolution: "bundler"` (or `"node16"`/`"nodenext"`) — the
+> default in Vite/Next/CRA5 setups. On an older `"node"` resolution, import everything from the root
+> `'sava-test'` instead (works everywhere). Both ESM and CommonJS builds ship, so the bundler/runtime
+> doesn't matter.
 
 ---
 
@@ -31,9 +50,9 @@ npm i zod
 Import the stylesheets **once**, then wrap the app in `ThemeProvider`:
 
 ```tsx
-import 'sava-test/reset.css' // global reset
-import 'sava-test/styles.css' // design tokens + base styles
-import { ThemeProvider } from 'sava-test'
+import 'sava-test/css/reset.css' // global reset
+import 'sava-test/css/styles.css' // design tokens + base styles
+import { ThemeProvider } from 'sava-test/theme'
 
 const theme = {
   mode: 'light' as const,
@@ -71,7 +90,7 @@ createRoot(el).render(
 - **Always pass a color by token name** via the `color` prop (`color="error"`); never hardcode hex.
 - Sizes everywhere are `sm | md | lg` (default `md`).
 
-## 4. Components (all from `'sava-test'`)
+## 4. Components (all from `'sava-test/components'`)
 
 **Button** — `variant` (`contained` default · `filled` · `outlined` · `text`) · `color` · `size` ·
 `loading` (spinner replaces `startIcon`, else trails the label on the right) · `disabled` ·
@@ -110,7 +129,8 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 
 ```tsx
 import { z } from 'zod'
-import { useForm, Form, TextField, NumberField, Checkbox, Button } from 'sava-test'
+import { Form, TextField, NumberField, Checkbox, Button } from 'sava-test/components'
+import { useForm } from 'sava-test/hooks'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -160,19 +180,28 @@ function SignIn() {
 For apps on **TanStack Router** (file-based routing), the library ships the whole shell. Install the
 peer: `npm i @tanstack/react-router` (>=1).
 
+> **Migration — the `RootLayout` API changed (breaking).** The old `brand` / `headerStart` /
+> `headerEnd` props are gone. Update call sites:
+>
+> - `brand={…}` → **`logo={…}`** (any node atop the sidebar)
+> - `headerStart={…}` → **removed** — the header title now auto-derives from the active route's
+>   `staticData.name`
+> - `headerEnd={<ThemeToggle />}` (and a manual logout button) → **`header={{ theme: true, onLogout }}`**
+>   — the theme toggle is built in (`theme`, default `true`) and the logout button appears when you
+>   pass `onLogout`.
+
 - **`RootLayout`** — `logo?`, `header?`, `children`. Set it as the **root route's** component and pass
   `<Outlet/>`. Renders sidebar + header + content. `logo` is any node shown atop the sidebar (an
   `<img>`, an `<Icon>`, …). The **header is built-in**: its left auto-shows the current page title (the
   active route's `staticData.name`, e.g. "Dashboard"), and its right is configured via
   `header?: { theme?: boolean; onLogout?: () => void }` — `theme` (default `true`) shows the
-  `ThemeToggle`; passing `onLogout` adds a logout button that calls it. (`usePageTitle()` is also
-  exported if you want the title elsewhere.)
+  `ThemeToggle`; passing `onLogout` adds a logout button that calls it.
 - **`Sidebar`** — auto-builds the menu from the routes' `staticData` (rendered inside `RootLayout`;
   you don't place it yourself).
 - **`Breadcrumbs`** — auto-rendered at the top of the content area. Always starts with a home icon
   (links to the first allowed page) and adds a crumb per matched route that has a `staticData.name`
-  (module → group → page); the current page is plain text. Exported standalone (with the
-  `useBreadcrumbs()` hook) if you want it elsewhere.
+  (module → group → page); the current page is plain text. Also exported from `sava-test/components`
+  if you want to place it yourself.
 - **`FirstRouteRedirect`** — use as the `/` route's component; forwards to the first menu item.
 - Each route self-registers via **`staticData`** (typed once you import from the package):
   `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }`. No `name`
@@ -199,7 +228,7 @@ Forbidden pages just disappear from the menu (and empty groups/modules with them
 
 ```tsx
 // after login / on app init:
-import { setAccessKeys, hasAccess } from 'sava-test'
+import { setAccessKeys, hasAccess } from 'sava-test/helpers'
 const { accessKeys } = (await getUser()).response
 setAccessKeys(accessKeys) //   on logout: setAccessKeys([])
 
@@ -222,7 +251,7 @@ export const Route = createFileRoute('/dashboard/')({
 ```tsx
 // src/routes/__root.tsx
 import { createRootRoute, Outlet, useNavigate } from '@tanstack/react-router'
-import { RootLayout, Icon } from 'sava-test'
+import { RootLayout, Icon } from 'sava-test/components'
 
 function Shell() {
   const navigate = useNavigate()
@@ -246,7 +275,7 @@ export const Route = createRootRoute({ component: Shell })
 
 // src/routes/index.tsx  →  the "/" route forwards to the first menu item
 import { createFileRoute } from '@tanstack/react-router'
-import { FirstRouteRedirect } from 'sava-test'
+import { FirstRouteRedirect } from 'sava-test/components'
 export const Route = createFileRoute('/')({ component: FirstRouteRedirect })
 
 // any page registers itself in the menu:
