@@ -56,7 +56,8 @@
 }
 
 .input::placeholder {
-  color: var(--tz-color-tertiary);
+  color: var(--tz-color-primary-shade500);
+  opacity: 1; /* Firefox dims placeholders by default — keep our token's alpha exact */
 }
 
 .input:disabled {
