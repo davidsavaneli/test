@@ -17,7 +17,7 @@ export type ChipSize = 'sm' | 'md' | 'lg'
 export interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'> {
   /** Visual style. Defaults to `filled` (a soft tinted chip). */
   variant?: ChipVariant
-  /** Brand palette token that tints the chip. Defaults to `primary`. */
+  /** Brand palette token that tints the chip. Defaults to `dark`. */
   color?: TechzyColor
   /** Preset size — height + font. Defaults to `md`. */
   size?: ChipSize
@@ -48,7 +48,7 @@ export interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'>
 export const Chip = forwardRef<HTMLDivElement, ChipProps>(function Chip(
   {
     variant = 'filled',
-    color = 'primary',
+    color = 'dark',
     size = 'md',
     clickable = false,
     disabled = false,

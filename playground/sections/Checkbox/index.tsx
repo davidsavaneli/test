@@ -50,7 +50,7 @@ export function CheckboxSection() {
         <div style={col}>
           <Checkbox label="Disabled" disabled />
           <Checkbox label="Disabled Checked" disabled defaultChecked />
-          <Checkbox label="Required" error helperText="Please accept" />
+          <Checkbox label="Required" error />
         </div>
       </Block>
     </Section>

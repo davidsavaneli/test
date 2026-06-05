@@ -288,13 +288,13 @@ export type WidgetSize = 'sm' | 'md' | 'lg'
 export interface WidgetProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
   /** JSDoc on EVERY prop — short, English, describes behavior + default. */
   variant?: WidgetVariant
-  /** Brand palette token that tints the control. Defaults to `primary`. */
+  /** Brand palette token that tints the control. Defaults to `dark`. */
   color?: TechzyColor
   size?: WidgetSize
 }
 
 export const Widget = forwardRef<HTMLButtonElement, WidgetProps>(function Widget(
-  { variant = 'contained', color = 'primary', size = 'md', className, style, children, ...props },
+  { variant = 'contained', color = 'dark', size = 'md', className, style, children, ...props },
   ref,
 ) {
   return (
@@ -335,7 +335,7 @@ Rules baked into the pattern:
 | prop           | type                                        | default       | notes                                                                                                                               |
 | -------------- | ------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `variant`      | `'contained'\|'filled'\|'outlined'\|'text'` | `'contained'` | for tintable controls                                                                                                               |
-| `color`        | `TechzyColor`                               | `'primary'`   | brand token; drives `--tz-btn-rgb`                                                                                                  |
+| `color`        | `TechzyColor`                               | `'dark'`      | brand token; drives `--tz-btn-rgb`. Text/`Typography` default stays `primary` (via `--tz-color-text`).                              |
 | `size`         | `'sm'\|'md'\|'lg'`                          | `'md'`        | maps to control-height / font / icon size                                                                                           |
 | `loading`      | `boolean`                                   | `false`       | shows `Loader`, sets native `disabled` + `aria-busy`                                                                                |
 | `disabled`     | `boolean`                                   | `false`       | `opacity: 0.5` + `cursor: not-allowed`                                                                                              |
@@ -443,13 +443,14 @@ negative `margin-right` to tighten the gap). NumberField has no CSS of its own; 
 
 A labeled checkbox. The native `<input type="checkbox">` is **visually hidden** (sr-only) but stays
 focusable + announced; a styled `.box` shows the state, and the tick is a **CSS checkmark** (rotated
-corner — no icon dependency). `label` · `color` (checked fill, default `primary`) · `size` (box +
-label) · `error` + `helperText` · `required` · `disabled` · `checked`/`defaultChecked` ·
+corner — no icon dependency). `label` · `color` (checked fill, default `dark`) · `size` (box +
+label) · `error` · `required` · `disabled` · `checked`/`defaultChecked` ·
 `onChange(checked)` (emits a `boolean`). Uses the `--tz-btn-rgb`/`--tz-btn-on` pattern: checked →
 `background: rgb(var(--tz-btn-rgb))` with a contrast-colored tick; `:focus-visible` ring; `error`
-reddens the box border. Like the other fields, a **`name`** prop binds it to a surrounding `<Form>` —
-its form value is a **`boolean`** (validate with e.g. `z.boolean().refine((v) => v, 'Required')` for a
-must-accept box). Own CSS module (`Checkbox.module.css`); helper renders via `Typography`.
+**reddens the box only (no helper text)** + sets `aria-invalid`. Like the other fields, a **`name`**
+prop binds it to a surrounding `<Form>` — its form value is a **`boolean`** (validate with e.g.
+`z.boolean().refine((v) => v, 'Required')` for a must-accept box); the form's error reddens the box,
+but its message isn't rendered. Own CSS module (`Checkbox.module.css`).
 
 ### ThemeToggle
 
@@ -464,7 +465,7 @@ A **wrapper** that pins a small count/dot to a child's corner — wrap a `Button
 node): `<Badge content={2}><IconButton…/></Badge>`. `content` (`number | string`) renders a count;
 a `number` is capped to `${max}+` (`max` default `99`) and a numeric `0` is hidden unless `showZero`.
 `dot` renders a plain indicator instead (decorative → `aria-hidden`); `content` wins over `dot`.
-`color` (default `primary`) tints via the **`--tz-btn-rgb` / `--tz-btn-on`** pattern; `placement`
+`color` (default `dark`) tints via the **`--tz-btn-rgb` / `--tz-btn-on`** pattern; `placement`
 (`top-right` default · `top-left` · `bottom-right` · `bottom-left`) picks the corner. The badge has a
 `box-shadow` ring in `--tz-color-background` so it reads as cut-out over the control. Own CSS module.
 
@@ -483,7 +484,7 @@ fade over `--tz-duration`. Takes a single `ReactElement` child (cloned for a11y)
 **Avatar** shows, in priority order: an image (`src` — falls back automatically on load error), an
 `icon` (`IconName` or node), explicit `children` (e.g. initials `"D.S."`), initials derived from
 `name` (`"David Savaneli"` → `"DS"`), else a default `User` icon. `size` (`sm` 32 · `md` 40 · `lg` 48),
-`shape` (`circle` default · `square`), `color` (default `primary`, via `--tz-btn-rgb` / `--tz-btn-on`).
+`shape` (`circle` default · `square`), `color` (default `dark`, via `--tz-btn-rgb` / `--tz-btn-on`).
 a11y: an image renders `<img alt>` (alt ← `alt`/`name`); a non-image avatar with a name gets
 `role="img"` + `aria-label`. **AvatarGroup** overlaps `Avatar` children (negative margin + a
 `--tz-color-background` ring) and collapses the overflow past `max` into a trailing `+N` avatar;
@@ -502,7 +503,7 @@ vertical); a label is ignored for vertical. Own CSS module.
 ### Chip
 
 A compact pill tag/token. `variant` (`contained` · `filled` **default** · `outlined` · `text`),
-`color` (default `primary`), `size` (`sm`/`md`/`lg`) — tinted via the shared `--tz-btn-rgb` /
+`color` (default `dark`), `size` (`sm`/`md`/`lg`) — tinted via the shared `--tz-btn-rgb` /
 `--tz-btn-on` pattern across the four variants. **Static by default**; `clickable` makes it interactive
 (`role="button"`, pointer + hover, Enter/Space → click), `disabled` dims + inerts it. A leading
 `startIcon` **or** `avatar` (the avatar is sized to the chip and flush-left via a scoped

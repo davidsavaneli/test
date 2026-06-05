@@ -11,7 +11,6 @@ import {
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
 import type { TechzyColor } from '../../theme'
-import { Typography } from '../Typography'
 import styles from './Checkbox.module.css'
 
 export type CheckboxSize = 'sm' | 'md' | 'lg'
@@ -22,14 +21,12 @@ export interface CheckboxProps extends Omit<
 > {
   /** Text shown to the right of the box. */
   label?: ReactNode
-  /** Brand palette token used for the checked fill. Defaults to `primary`. */
+  /** Brand palette token used for the checked fill. Defaults to `dark`. */
   color?: TechzyColor
   /** Preset size — box dimensions and label font. */
   size?: CheckboxSize
-  /** Marks the field invalid: red box border and the `helperText` in the error color. */
+  /** Marks the field invalid — reddens the box only (no helper text). */
   error?: boolean
-  /** Helper / validation text under the checkbox. Adopts the error color while `error`. */
-  helperText?: ReactNode
   /** Adds a red asterisk after the label. */
   required?: boolean
   /** Controlled checked state. */
@@ -45,15 +42,14 @@ export interface CheckboxProps extends Omit<
  * accessible (keyboard + screen reader); a styled box shows the state, filled with `color` and a
  * CSS checkmark when checked. Controlled (`checked` + `onChange`) or uncontrolled (`defaultChecked`),
  * and — like the other fields — binds to a surrounding `<Form>` by `name` (its form value is a
- * `boolean`). Supports `error`/`helperText` for validation. Styling uses `--tz-*` tokens only.
+ * `boolean`). `error` reddens the box (no message text). Styling uses `--tz-*` tokens only.
  */
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
   {
     label,
-    color = 'primary',
+    color = 'dark',
     size = 'md',
     error,
-    helperText,
     required = false,
     checked,
     defaultChecked = false,
@@ -70,7 +66,6 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
 ) {
   const reactId = useId()
   const id = idProp ?? reactId
-  const helperId = `${id}-helper`
 
   // Auto-bind to a surrounding <Form> by `name` — the form value is a boolean.
   const form = useFormContext()
@@ -84,7 +79,6 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
   const isChecked = isControlled ? externalChecked! : internal
 
   const resolvedError = error ?? bound?.error ?? false
-  const resolvedHelperText = helperText ?? bound?.helperText
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const next = event.target.checked
@@ -126,7 +120,6 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           onBlur={handleBlur}
           disabled={disabled}
           aria-invalid={resolvedError || undefined}
-          aria-describedby={resolvedHelperText != null ? helperId : undefined}
           {...props}
         />
         <span className={styles.box} aria-hidden="true">
@@ -143,17 +136,6 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
           </span>
         )}
       </label>
-
-      {resolvedHelperText != null && (
-        <Typography
-          as="span"
-          id={helperId}
-          variant="bodySmall"
-          color={resolvedError ? 'error' : 'tertiary'}
-        >
-          {resolvedHelperText}
-        </Typography>
-      )}
     </div>
   )
 })

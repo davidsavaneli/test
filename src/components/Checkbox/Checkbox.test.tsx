@@ -41,10 +41,10 @@ describe('Checkbox', () => {
     expect(screen.getByRole('checkbox', { name: 'Subscribe' })).toBeDisabled()
   })
 
-  it('shows the error state', () => {
-    render(<Checkbox label="Terms" error helperText="Required" />)
+  it('reddens the box on error (aria-invalid, no helper text)', () => {
+    const { container } = render(<Checkbox label="Terms" error />)
     expect(screen.getByRole('checkbox', { name: 'Terms' })).toHaveAttribute('aria-invalid', 'true')
-    expect(screen.getByText('Required')).toBeInTheDocument()
+    expect(container.firstElementChild).toHaveClass('error')
   })
 
   it('applies the size class', () => {
@@ -71,16 +71,19 @@ describe('Checkbox', () => {
       )
     }
 
-    it('binds a boolean by name and validates via the schema', () => {
+    it('binds a boolean by name and reddens the box on invalid submit (no helper text)', () => {
       const { container } = render(<Harness />)
       const cb = screen.getByRole('checkbox', { name: 'Agree' })
+      const field = container.querySelector('form')!.firstElementChild as HTMLElement
 
       fireEvent.submit(container.querySelector('form')!)
-      expect(screen.getByText('Required')).toBeInTheDocument()
+      expect(cb).toHaveAttribute('aria-invalid', 'true')
+      expect(field).toHaveClass('error')
 
       fireEvent.click(cb)
       expect(cb).toBeChecked()
-      expect(screen.queryByText('Required')).not.toBeInTheDocument()
+      expect(cb).not.toHaveAttribute('aria-invalid')
+      expect(field).not.toHaveClass('error')
     })
   })
 })

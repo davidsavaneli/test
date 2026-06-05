@@ -119,14 +119,14 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 (live grouping, e.g. `"."` → `32.345.345`). `fullWidth` defaults true.
 
 **Checkbox** — `label` · `color` (checked fill) · `size` · `checked`/`defaultChecked` ·
-`onChange(boolean)` · `error` + `helperText` · `required` · `disabled`.
+`onChange(boolean)` · `error` (reddens the box only, no helper text) · `required` · `disabled`.
 
 **ThemeToggle** — wraps `IconButton`; flips the theme mode. Pass-through `variant`/`color`/`size`.
 
 **Badge** — wraps a child (e.g. a `Button`/`IconButton`) and pins a count or dot to its corner:
 `<Badge content={2}><IconButton …/></Badge>`. `content` (`number | string`) → a count (numbers cap to
 `${max}+`, `max` default 99; a `0` hides unless `showZero`); `dot` → a plain indicator. `color`
-(default `primary`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
+(default `dark`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
 
 **Tooltip** — wraps a single element and shows a floating label on hover/focus:
 `<Tooltip content="Save"><IconButton …/></Tooltip>`. `content: ReactNode`, `placement`

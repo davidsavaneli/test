@@ -27,7 +27,7 @@ export interface AvatarProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color
   size?: AvatarSize
   /** `circle` (default) or `square` (rounded rectangle). */
   shape?: AvatarShape
-  /** Brand palette token for the icon/initials background. Defaults to `primary`. */
+  /** Brand palette token for the icon/initials background. Defaults to `dark`. */
   color?: TechzyColor
 }
 
@@ -55,7 +55,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(function Avatar(
     name,
     size = 'md',
     shape = 'circle',
-    color = 'primary',
+    color = 'dark',
     className,
     style,
     children,
