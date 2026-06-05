@@ -1,0 +1,146 @@
+/* Chip — tintable tag/token. Color via the shared --tz-btn-rgb / --tz-btn-on pattern. Token-only. */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tz-space-xxs);
+  box-sizing: border-box;
+  max-width: 100%;
+  border: 1px solid transparent; /* keeps height equal across variants (like Button) */
+  border-radius: 999px;
+  font-family: var(--tz-font-family);
+  font-weight: var(--tz-font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+}
+
+/* sizes */
+.sm {
+  height: 24px;
+  padding: 0 var(--tz-space-xs);
+  font-size: var(--tz-font-size-xs);
+}
+.md {
+  height: 28px;
+  padding: 0 var(--tz-space-sm);
+  font-size: var(--tz-font-size-sm);
+}
+.lg {
+  height: 34px;
+  padding: 0 var(--tz-space-sm);
+  font-size: var(--tz-font-size-md);
+}
+
+/* variants (same model as Button) */
+.contained {
+  background: rgb(var(--tz-btn-rgb));
+  border-color: rgb(var(--tz-btn-rgb));
+  color: var(--tz-btn-on, #fff);
+}
+.filled {
+  background: rgba(var(--tz-btn-rgb), 0.12);
+  color: rgb(var(--tz-btn-rgb));
+}
+.outlined {
+  background: transparent;
+  border-color: rgba(var(--tz-btn-rgb), 0.5);
+  color: rgb(var(--tz-btn-rgb));
+}
+.text {
+  background: transparent;
+  color: rgb(var(--tz-btn-rgb));
+}
+
+/* interactive */
+.clickable {
+  cursor: pointer;
+  transition:
+    background var(--tz-duration),
+    border-color var(--tz-duration),
+    filter var(--tz-duration);
+}
+.clickable.contained:hover {
+  filter: brightness(0.92);
+}
+.clickable.filled:hover {
+  background: rgba(var(--tz-btn-rgb), 0.2);
+}
+.clickable.outlined:hover {
+  background: rgba(var(--tz-btn-rgb), 0.08);
+  border-color: rgb(var(--tz-btn-rgb));
+}
+.clickable.text:hover {
+  background: rgba(var(--tz-btn-rgb), 0.08);
+}
+.clickable:focus-visible {
+  outline: 2px solid rgba(var(--tz-btn-rgb), 0.5);
+  outline-offset: 2px;
+}
+
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* slots */
+.startIcon {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  margin-left: -2px;
+}
+
+.withAvatar {
+  padding-left: var(--tz-space-xxs);
+}
+
+.withDelete {
+  padding-right: var(--tz-space-xxs);
+}
+
+/* size the avatar to fit the chip (scoped class names → no clash with Avatar's own sizes) */
+.sm .avatar > * {
+  width: 18px;
+  height: 18px;
+  font-size: var(--tz-font-size-xxs);
+}
+.md .avatar > * {
+  width: 22px;
+  height: 22px;
+  font-size: var(--tz-font-size-xxs);
+}
+.lg .avatar > * {
+  width: 28px;
+  height: 28px;
+  font-size: var(--tz-font-size-xs);
+}
+
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--tz-duration);
+}
+.deleteBtn:hover {
+  opacity: 1;
+}
+.deleteBtn:disabled {
+  cursor: not-allowed;
+}

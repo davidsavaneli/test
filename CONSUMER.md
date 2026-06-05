@@ -142,6 +142,10 @@ to the whole group.
 a title for a labeled divider with `align` (`left` · `center` default · `right`):
 `<Divider align="left">Section</Divider>`.
 
+**Chip** — a compact tag. `variant` (`contained` · `filled` default · `outlined` · `text`) · `color` ·
+`size` · `clickable` (interactive; off by default) · `disabled` · `startIcon` **or** `avatar` ·
+`onDelete` (adds a delete ✕). `<Chip avatar={<Avatar name="David Savaneli" />} onDelete={remove}>David</Chip>`.
+
 **Hooks** — `useDisclosure(initial?)` → `{ isOpen, open, close, toggle }`.
 
 ## 5. Forms (Zod-powered) — the easy way

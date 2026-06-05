@@ -499,6 +499,19 @@ upright rule that stretches inside a flex row). With `children` it becomes a lab
 label `--tz-color-tertiary` / `font-size-sm` / medium. `role="separator"` (+ `aria-orientation` when
 vertical); a label is ignored for vertical. Own CSS module.
 
+### Chip
+
+A compact pill tag/token. `variant` (`contained` · `filled` **default** · `outlined` · `text`),
+`color` (default `primary`), `size` (`sm`/`md`/`lg`) — tinted via the shared `--tz-btn-rgb` /
+`--tz-btn-on` pattern across the four variants. **Static by default**; `clickable` makes it interactive
+(`role="button"`, pointer + hover, Enter/Space → click), `disabled` dims + inerts it. A leading
+`startIcon` **or** `avatar` (the avatar is sized to the chip and flush-left via a scoped
+`.<size> .avatar > *` rule), and a trailing delete button when `onDelete` is given (its click
+`stopPropagation`s so it never fires the chip's `onClick`; `deleteIcon`/`deleteLabel` customize it,
+default `CloseCircle` / `"Remove"`). Root is a `<div>` (not a `<button>`) so the delete `<button>`
+doesn't nest. Default variant is `filled` (a deliberate, chip-appropriate deviation from the
+`contained` default in §6's vocab). Own CSS module.
+
 ### Hooks
 
 `useDisclosure(initial = false)` → `{ isOpen, open, close, toggle }`. Model new hooks on this:
