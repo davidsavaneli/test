@@ -31,15 +31,6 @@ const inPage = (Body: ComponentType) => () => (
   </PageLayout>
 )
 
-function DashboardBody() {
-  return (
-    <Typography color="tertiary">
-      Welcome to the Techzy UI playground. Use the sidebar to open each component — the breadcrumb
-      trail and page title above update automatically.
-    </Typography>
-  )
-}
-
 const shellRoot = createRootRoute({
   component: () => (
     <RootLayout
@@ -60,13 +51,6 @@ const shellIndexRoute = createRoute({
   getParentRoute: () => shellRoot,
   path: '/',
   component: FirstRouteRedirect,
-})
-
-const dashboardRoute = createRoute({
-  getParentRoute: () => shellRoot,
-  path: 'dashboard',
-  staticData: { name: 'Dashboard', icon: 'Category', order: 0 },
-  component: inPage(DashboardBody),
 })
 
 // `/icons` — top-level link: the full icon gallery with search + click-to-copy.
@@ -152,7 +136,6 @@ const formRoute = createRoute({
 const shellRouter = createRouter({
   routeTree: shellRoot.addChildren([
     shellIndexRoute,
-    dashboardRoute,
     iconsRoute,
     componentsRoute.addChildren([
       generalRoute.addChildren([buttonRoute, iconButtonRoute, typographyRoute, loaderRoute]),
