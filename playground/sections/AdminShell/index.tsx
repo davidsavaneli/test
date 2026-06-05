@@ -8,6 +8,7 @@ import {
   createRouter,
 } from '@tanstack/react-router'
 import { FirstRouteRedirect, Icon, PageLayout, RootLayout, Typography } from '../../../src'
+import { AvatarSection } from '../Avatar'
 import { BadgeSection } from '../Badge'
 import { ButtonSection } from '../Button'
 import { CheckboxSection } from '../Checkbox'
@@ -114,6 +115,12 @@ const tooltipRoute = createRoute({
   staticData: { name: 'Tooltip', icon: 'MessageText', order: 5 },
   component: inPage(TooltipSection),
 })
+const avatarRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'avatar',
+  staticData: { name: 'Avatar', icon: 'User', order: 6 },
+  component: inPage(AvatarSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -159,6 +166,7 @@ const shellRouter = createRouter({
         loaderRoute,
         badgeRoute,
         tooltipRoute,
+        avatarRoute,
       ]),
       formsRoute.addChildren([textFieldRoute, numberFieldRoute, checkboxRoute, formRoute]),
     ]),

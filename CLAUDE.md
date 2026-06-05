@@ -478,6 +478,18 @@ child); `placement` (`top` default · `bottom` · `left` · `right`) with a matc
 `-primary-contrast` (flips with the theme), `--tz-z-tooltip`, `--tz-shadow-md`, opacity/visibility
 fade over `--tz-duration`. Takes a single `ReactElement` child (cloned for a11y). Own CSS module.
 
+### Avatar / AvatarGroup
+
+**Avatar** shows, in priority order: an image (`src` — falls back automatically on load error), an
+`icon` (`IconName` or node), explicit `children` (e.g. initials `"D.S."`), initials derived from
+`name` (`"David Savaneli"` → `"DS"`), else a default `User` icon. `size` (`sm` 32 · `md` 40 · `lg` 48),
+`shape` (`circle` default · `square`), `color` (default `primary`, via `--tz-btn-rgb` / `--tz-btn-on`).
+a11y: an image renders `<img alt>` (alt ← `alt`/`name`); a non-image avatar with a name gets
+`role="img"` + `aria-label`. **AvatarGroup** overlaps `Avatar` children (negative margin + a
+`--tz-color-background` ring) and collapses the overflow past `max` into a trailing `+N` avatar;
+`size`/`color` normalize all of them (children are cloned to the group `size`). Both live in
+`src/components/Avatar/` (one folder, two exports); `Avatar` ships named **and** default. Own CSS module.
+
 ### Hooks
 
 `useDisclosure(initial = false)` → `{ isOpen, open, close, toggle }`. Model new hooks on this:

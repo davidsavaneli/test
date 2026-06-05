@@ -1,0 +1,69 @@
+/* Avatar + AvatarGroup. Token-only, theme-aware (icon/initials fill via --tz-btn-rgb / --tz-btn-on). */
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  overflow: hidden;
+  background: rgb(var(--tz-btn-rgb));
+  color: var(--tz-btn-on, #fff);
+  font-weight: var(--tz-font-weight-medium);
+  line-height: 1;
+  user-select: none;
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+.square {
+  border-radius: var(--tz-radius-sm);
+}
+
+.img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sm {
+  width: 32px;
+  height: 32px;
+  font-size: var(--tz-font-size-xs);
+}
+
+.md {
+  width: 40px;
+  height: 40px;
+  font-size: var(--tz-font-size-sm);
+}
+
+.lg {
+  width: 48px;
+  height: 48px;
+  font-size: var(--tz-font-size-lg);
+}
+
+/* ── AvatarGroup ─────────────────────────────────────────────────────────── */
+
+.group {
+  display: inline-flex;
+  align-items: center;
+}
+
+.item {
+  position: relative;
+  box-shadow: 0 0 0 2px var(--tz-color-background);
+}
+
+.item:not(:first-child) {
+  margin-left: var(--avatar-overlap, -8px);
+}

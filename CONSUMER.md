@@ -132,6 +132,12 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 `<Tooltip content="Save"><IconButton …/></Tooltip>`. `content: ReactNode`, `placement`
 (`top` default · `bottom` · `left` · `right`). Closes on `Escape`; a11y-wired via `aria-describedby`.
 
+**Avatar** — `src` (image, auto-fallback on error) · `icon` (`IconName`/node) · `children` (e.g.
+`"D.S."`) · `name` (auto-initials `"David Savaneli"` → `"DS"`, also the accessible name) · `size`
+(`sm`/`md`/`lg`) · `shape` (`circle`/`square`) · `color`. **AvatarGroup** — overlaps `Avatar`s and
+collapses overflow past `max` into `+N`: `<AvatarGroup max={3}>…</AvatarGroup>`. `size`/`color` apply
+to the whole group.
+
 **Hooks** — `useDisclosure(initial?)` → `{ isOpen, open, close, toggle }`.
 
 ## 5. Forms (Zod-powered) — the easy way
