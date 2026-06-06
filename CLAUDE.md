@@ -36,6 +36,7 @@ src/
       <Name>.tsx          # component (forwardRef + props interface)
       <Name>.module.css   # scoped styles (CSS Modules)
       index.ts            # barrel: re-export component + its types + `as default`
+    Flex/                 # layout primitives — Flex engine + Row/Col presets + Grid (inline-style)
     RootLayout/           # admin shell (sidebar + header + content)
     Sidebar/              # auto-generated nav (Sidebar + FirstRouteRedirect + buildNavTree + nav hooks)
     Breadcrumbs/          # auto-generated breadcrumb trail (home → module → group → page)
@@ -500,7 +501,7 @@ upright rule that stretches inside a flex row). With `children` it becomes a lab
 label `--tz-color-tertiary` / `font-size-sm` / medium. `role="separator"` (+ `aria-orientation` when
 vertical); a label is ignored for vertical. Own CSS module.
 
-### Flex / Row / Col
+### Flex / Row / Col / Grid
 
 Flexbox layout primitives — set layout via props instead of inline `style`. **`Flex`** is the engine
 (`direction` `row`/`column` · `gap` · `align` `start/center/end/stretch/baseline` · `justify`
