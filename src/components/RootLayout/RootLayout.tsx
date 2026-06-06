@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { clsx } from 'clsx'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
 import { ThemeToggle } from '../ThemeToggle'
@@ -36,9 +37,10 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
   const title = usePageTitle()
   const showTheme = header?.theme ?? true
   const onLogout = header?.onLogout
+  const [collapsed, setCollapsed] = useState(false)
 
   return (
-    <div className={styles.shell}>
+    <div className={clsx(styles.shell, collapsed && styles.shellCollapsed)}>
       <aside className={styles.sidebar}>
         {logo ? <div className={styles.brand}>{logo}</div> : null}
         <div className={styles.navScroll}>
@@ -47,12 +49,23 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
       </aside>
       <div className={styles.main}>
         <header className={styles.topbar}>
-          {showTheme ? <ThemeToggle size="sm" /> : null}
-          {onLogout ? (
-            <IconButton aria-label="Log out" variant="text" size="sm" onClick={onLogout}>
-              <Icon name="Logout" />
-            </IconButton>
-          ) : null}
+          <IconButton
+            aria-label={collapsed ? 'Show sidebar' : 'Hide sidebar'}
+            aria-expanded={!collapsed}
+            variant="filled"
+            size="sm"
+            onClick={() => setCollapsed((c) => !c)}
+          >
+            <Icon name="Menu" />
+          </IconButton>
+          <div className={styles.headerEnd}>
+            {showTheme ? <ThemeToggle variant="filled" size="sm" /> : null}
+            {onLogout ? (
+              <IconButton aria-label="Log out" variant="text" size="sm" onClick={onLogout}>
+                <Icon name="Logout" />
+              </IconButton>
+            ) : null}
+          </div>
         </header>
         <main className={styles.content}>
           <Breadcrumbs />

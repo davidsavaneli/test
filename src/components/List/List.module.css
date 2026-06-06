@@ -23,18 +23,18 @@
 
 /* ── sizes ──────────────────────────────────────────────────────────────── */
 .sm {
-  min-height: var(--tz-control-height-sm);
+  min-height: calc(var(--tz-control-height-sm) - var(--tz-space-xxs) * 1.5);
   padding: var(--tz-space-xxs) var(--tz-space-sm);
   gap: var(--tz-space-xs);
   font-size: var(--tz-font-size-sm);
 }
 .md {
-  min-height: var(--tz-control-height-md);
+  min-height: calc(var(--tz-control-height-md) - var(--tz-space-xxs) * 1.5);
   padding: var(--tz-space-xxs) var(--tz-space-sm);
   font-size: var(--tz-font-size-md);
 }
 .lg {
-  min-height: var(--tz-control-height-lg);
+  min-height: calc(var(--tz-control-height-lg) - var(--tz-space-xxs) * 1.5);
   padding: var(--tz-space-xs) var(--tz-space-md);
   font-size: var(--tz-font-size-md);
 }
@@ -44,7 +44,8 @@
   display: inline-flex;
   align-items: center;
   flex: none;
-  color: var(--tz-color-tertiary);
+  /* muted by default; a container can override (e.g. the sidebar sets this to the text color) */
+  color: var(--tz-list-icon-color, var(--tz-color-tertiary));
 }
 
 .itemText {

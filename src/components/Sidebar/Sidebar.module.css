@@ -5,6 +5,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--tz-space-lg);
+  /* nav icons match the row label (text) color instead of the muted default */
+  --tz-list-icon-color: var(--tz-color-text);
 }
 
 .module {
@@ -28,16 +30,16 @@
 
 /* level-3 pages, indented under their group */
 .leaves {
-  padding-left: var(--tz-space-md);
+  padding-left: var(--tz-space-sm);
 }
 
 /* dot bullet shown in place of an icon on level-3 leaves */
 .leafDot {
-  width: 6px;
-  height: 6px;
+  width: var(--tz-space-xxs);
+  height: var(--tz-space-xxs);
   border-radius: 50%;
   background: currentColor;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 /* smooth expand/collapse of the leaf list — same grid-template-rows trick as Card */

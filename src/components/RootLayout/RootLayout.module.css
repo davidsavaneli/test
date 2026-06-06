@@ -2,11 +2,18 @@
 
 .shell {
   display: grid;
-  grid-template-columns: 264px 1fr;
+  /* first column tracks the sidebar's own (animatable) width */
+  grid-template-columns: auto 1fr;
   min-height: 100vh;
   background: var(--tz-color-background);
   color: var(--tz-color-text);
   font-family: var(--tz-font-family);
+}
+
+/* sidebar toggle: smoothly collapse the sidebar's width to 0 and hide it */
+.shellCollapsed .sidebar {
+  width: 0;
+  border-right-color: transparent;
 }
 
 /* sticky full-height sidebar: pinned during page scroll; brand fixed, nav scrolls on its own */
@@ -14,11 +21,14 @@
   position: sticky;
   top: 0;
   align-self: start;
+  width: 264px;
   height: 100vh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   background: var(--tz-color-surface);
   border-right: 1px solid var(--tz-color-border);
+  overflow: hidden;
+  transition: width var(--tz-duration);
 }
 
 /* brand row — fixed; same height as the header so their bottom borders form one line */
@@ -53,12 +63,19 @@
   z-index: var(--tz-z-sticky);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: var(--tz-space-xs);
   height: calc(var(--tz-control-height-md) + var(--tz-space-md));
   padding: 0 var(--tz-space-xl);
   background: var(--tz-color-surface);
   border-bottom: 1px solid var(--tz-color-border);
+}
+
+/* right-side header controls (theme toggle, logout) */
+.headerEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
 }
 
 .content {

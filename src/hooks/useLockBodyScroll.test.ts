@@ -13,7 +13,7 @@ describe('useLockBodyScroll', () => {
     const { rerender } = renderHook(({ locked }) => useLockBodyScroll(locked), {
       initialProps: { locked: true },
     })
-    expect(document.body.style.overflow).toBe('hidden')
+    expect(document.body.style.overflow).toBe('clip')
     rerender({ locked: false })
     expect(document.body.style.overflow).toBe('auto')
   })
@@ -21,7 +21,7 @@ describe('useLockBodyScroll', () => {
   it('restores on unmount', () => {
     document.body.style.overflow = 'scroll'
     const { unmount } = renderHook(() => useLockBodyScroll(true))
-    expect(document.body.style.overflow).toBe('hidden')
+    expect(document.body.style.overflow).toBe('clip')
     unmount()
     expect(document.body.style.overflow).toBe('scroll')
   })

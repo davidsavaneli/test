@@ -26,6 +26,21 @@ describe('IconButton', () => {
     expect(btn.className).toContain('rounded')
   })
 
+  it('sizes the child icon to match the button (explicit icon size wins)', () => {
+    const { rerender } = render(
+      <IconButton aria-label="x" size="lg">
+        <Icon name="Add" data-testid="icon" />
+      </IconButton>,
+    )
+    expect(screen.getByTestId('icon').getAttribute('class')).toContain('lg')
+    rerender(
+      <IconButton aria-label="x" size="lg">
+        <Icon name="Add" size="sm" data-testid="icon" />
+      </IconButton>,
+    )
+    expect(screen.getByTestId('icon').getAttribute('class')).toContain('sm')
+  })
+
   it('is disabled and shows the loader while loading', () => {
     render(
       <IconButton aria-label="x" loading>

@@ -363,17 +363,20 @@ All components are exported from the package root. Sizes are always `sm | md | l
 `--tz-space-sm`; font size `sm 12 / md 14 / lg 16`. `border: 1px solid transparent` on the base so
 height is identical across variants. Label wrapped in `.label`; while `loading` the loader replaces
 the `startIcon` if present, otherwise it **trails the label at the end (right)** — so a plain button
-(no icons) shows the spinner on the right. The text stays visible.
+(no icons) shows the spinner on the right. The text stays visible. `startIcon`/`endIcon` are
+**auto-sized to the button's `size`** (the icon child is cloned to match, unless it sets its own
+`size`).
 
 ### IconButton
 
 Square (width = height = `--tz-control-height-*`). Same `variant`/`color`/`size` system as Button,
 plus `loading`, `rounded` (→ circle), `disabled`, and `nonClickable`. Pass an `<Icon />` as the
-child; while `loading` it's swapped for the `Loader`. **Requires `aria-label`** (no visible text).
+child; it's **auto-sized to the button's `size`** (cloned to match unless it sets its own `size`), and
+while `loading` it's swapped for the `Loader`. **Requires `aria-label`** (no visible text).
 
 ### Icon
 
-`name: IconName` (required) · `color?: TechzyColor` · `size` (`sm` 16 / `md` 20 / `lg` 24px).
+`name: IconName` (required) · `color?: TechzyColor` · `size` (`sm` 16 / `md` 18 / `lg` 22px).
 Renders an inline SVG from the generated registry; `fill: currentColor` so it follows text color
 unless a `color` token is set. `aria-hidden`, `focusable={false}`.
 
@@ -554,7 +557,8 @@ pattern from `color`, default `dark`) and sets `aria-current`; `clickable` makes
 
 - cursor, and when rendered as a **plain** element it also gets `role="button"` + `tabIndex` +
   Enter/Space → click (a native `a`/`button` or a router `Link` keeps its own semantics). `disabled` dims
-- inerts it. `size` is `sm/md/lg` (control-height-based; label + description each truncate to one line).
+- inerts it. `size` is `sm/md/lg` (min-height a touch under the control height; label + description
+  each truncate to one line).
   Render as a link/button/component via **`as`** (anchor `href`/`target`/`rel`/`download` are typed).
   **`List`** is a thin semantic container — a vertical stack (inline-styled like `Flex`/`Grid`) with
   `gap` (default `2px`) / `padding` and `role="list"` (override `role` to `"menu"` for a dropdown). Its
@@ -586,9 +590,10 @@ a token-sized translate). Uses `react-dom` `createPortal` (peer dep). Own CSS mo
 
 `useDisclosure(initial = false)` → `{ isOpen, open, close, toggle }`. Model new hooks on this:
 small, typed return interface, `useCallback`-stable handlers. **`useLockBodyScroll(locked)`** locks
-scrolling on `<html>` + `<body>` while `locked` (e.g. an open `Dropdown`/modal/drawer), compensating
-for the removed scrollbar with `padding-right` and restoring the prior inline styles on unlock; it's
-public from `sava-test/hooks`.
+scrolling on `<html>` + `<body>` while `locked` (e.g. an open `Dropdown`/modal/drawer) using
+**`overflow: clip`** (not `hidden`, so it doesn't establish a scroll container and `position: sticky`
+elements like the sidebar/header keep working), compensating for the removed scrollbar with
+`padding-right` and restoring the prior inline styles on unlock; it's public from `sava-test/hooks`.
 
 ### Form — `useForm` (Zod-powered)
 
@@ -646,7 +651,11 @@ pass `<Outlet/>` as `children`. Both the sidebar and the header are **sticky** (
 they stay pinned while the page scrolls. The sidebar is `height: 100vh` with the `logo`/brand row
 fixed and only the nav scrolling (a `grid-template-rows: auto minmax(0,1fr)` split, nav in an
 `overflow-y:auto` row); the brand row and the header share the same height
-(`calc(--tz-control-height-md + --tz-space-md)`) so their bottom borders form one continuous line. The **header** holds only the right-side controls driven by the
+(`calc(--tz-control-height-md + --tz-space-md)`) so their bottom borders form one continuous line. A
+header **toggle** `IconButton` (left, `filled`, `Menu` icon) collapses/hides the sidebar by animating
+its `width` to `0` (the shell's first grid column is `auto`, so it follows); the `ThemeToggle` is
+`filled` too. Nav icons match the row label
+(text) color via `--tz-list-icon-color` set on the nav. The **header** holds only the right-side controls driven by the
 `header` config — `header?: { theme?: boolean /* default true */; onLogout?: () => void }` (a
 `ThemeToggle`, on by default, plus a logout `IconButton` that appears when `onLogout` is given). The
 content area stacks **`Breadcrumbs` → the page title (the active route's `staticData.name`, via the

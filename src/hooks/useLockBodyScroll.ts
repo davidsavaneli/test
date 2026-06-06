@@ -15,9 +15,10 @@ export function useLockBodyScroll(locked: boolean): void {
     const previousPaddingRight = body.style.paddingRight
     const scrollbarWidth = window.innerWidth - html.clientWidth
 
-    // lock the root scroller (html) and body — covers both page-scroll and body-scroll layouts
-    html.style.overflow = 'hidden'
-    body.style.overflow = 'hidden'
+    // `clip` (not `hidden`) locks scroll WITHOUT establishing a scroll container, so `position: sticky`
+    // descendants (e.g. a sticky sidebar/header) keep working instead of jumping while the menu is open
+    html.style.overflow = 'clip'
+    body.style.overflow = 'clip'
     if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`
 
     return () => {

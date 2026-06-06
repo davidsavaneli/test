@@ -1,4 +1,12 @@
-import { forwardRef, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
+import {
+  cloneElement,
+  forwardRef,
+  isValidElement,
+  type ButtonHTMLAttributes,
+  type CSSProperties,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import { clsx } from 'clsx'
 import type { TechzyColor } from '../../theme'
 import { Loader } from '../Loader'
@@ -49,6 +57,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   // including a plain button with no icons, so the spinner trails the label.
   const loaderAtEnd = loading && !startIcon
 
+  // size an icon slot to match the button (an explicit icon `size` still wins)
+  const sizeIcon = (node: ReactNode): ReactNode =>
+    isValidElement(node)
+      ? cloneElement(node as ReactElement<{ size?: ButtonSize }>, {
+          size: (node.props as { size?: ButtonSize }).size ?? size,
+        })
+      : node
+
   return (
     <button
       ref={ref}
@@ -75,10 +91,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       {...props}
     >
       {/* leading slot — the loader takes the start icon's place while loading */}
-      {loading && !loaderAtEnd ? <Loader size={size} aria-hidden="true" /> : startIcon}
+      {loading && !loaderAtEnd ? <Loader size={size} aria-hidden="true" /> : sizeIcon(startIcon)}
       {children != null && children !== false && <span className={styles.label}>{children}</span>}
       {/* trailing slot — the loader takes the end icon's place when there's no start icon */}
-      {loaderAtEnd ? <Loader size={size} aria-hidden="true" /> : !loading && endIcon}
+      {loaderAtEnd ? <Loader size={size} aria-hidden="true" /> : !loading && sizeIcon(endIcon)}
     </button>
   )
 })

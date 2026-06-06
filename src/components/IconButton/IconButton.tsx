@@ -1,4 +1,12 @@
-import { forwardRef, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
+import {
+  cloneElement,
+  forwardRef,
+  isValidElement,
+  type ButtonHTMLAttributes,
+  type CSSProperties,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import { clsx } from 'clsx'
 import type { TechzyColor } from '../../theme'
 import { Loader } from '../Loader'
@@ -49,6 +57,14 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
   },
   ref,
 ) {
+  // size the icon child to match the button (an explicit icon `size` still wins)
+  const icon =
+    isValidElement(children) && !loading
+      ? cloneElement(children as ReactElement<{ size?: IconButtonSize }>, {
+          size: (children.props as { size?: IconButtonSize }).size ?? size,
+        })
+      : children
+
   return (
     <button
       ref={ref}
@@ -76,7 +92,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       }
       {...props}
     >
-      {loading ? <Loader size={size} aria-hidden="true" /> : children}
+      {loading ? <Loader size={size} aria-hidden="true" /> : icon}
     </button>
   )
 })

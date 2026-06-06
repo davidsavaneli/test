@@ -1,6 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { Icon } from '../Icon'
 import { Button } from './Button'
 
 describe('Button', () => {
@@ -27,6 +28,21 @@ describe('Button', () => {
     expect(screen.getByRole('button').style.getPropertyValue('--tz-btn-rgb')).toBe(
       'var(--tz-color-error-rgb)',
     )
+  })
+
+  it('sizes a start/end icon to match the button (explicit icon size wins)', () => {
+    const { rerender } = render(
+      <Button size="lg" startIcon={<Icon name="Add" data-testid="icon" />}>
+        Go
+      </Button>,
+    )
+    expect(screen.getByTestId('icon').getAttribute('class')).toContain('lg')
+    rerender(
+      <Button size="lg" startIcon={<Icon name="Add" size="sm" data-testid="icon" />}>
+        Go
+      </Button>,
+    )
+    expect(screen.getByTestId('icon').getAttribute('class')).toContain('sm')
   })
 
   it('is disabled when `disabled`', () => {

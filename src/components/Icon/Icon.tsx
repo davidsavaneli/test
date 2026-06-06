@@ -12,7 +12,7 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'color' | 'chil
   name: IconName
   /** Brand palette token used as the icon color. Omit to inherit the surrounding text color (`currentColor`). */
   color?: TechzyColor
-  /** Preset size: `sm` 14px · `md` 18px · `lg` 22px. Defaults to `md`. */
+  /** Preset size: `sm` 16px · `md` 18px · `lg` 22px. Defaults to `md`. */
   size?: IconSize
 }
 
