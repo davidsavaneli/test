@@ -41,13 +41,15 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
         {logo ? <div className={styles.brand}>{logo}</div> : null}
-        <Sidebar />
+        <div className={styles.navScroll}>
+          <Sidebar />
+        </div>
       </aside>
       <div className={styles.main}>
         <header className={styles.topbar}>
-          {showTheme ? <ThemeToggle /> : null}
+          {showTheme ? <ThemeToggle size="sm" /> : null}
           {onLogout ? (
-            <IconButton aria-label="Log out" variant="text" onClick={onLogout}>
+            <IconButton aria-label="Log out" variant="text" size="sm" onClick={onLogout}>
               <Icon name="Logout" />
             </IconButton>
           ) : null}

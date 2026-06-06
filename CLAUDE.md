@@ -642,14 +642,22 @@ The admin-panel shell lives under `src/components/` (`RootLayout/`, `Sidebar/`, 
 shipped as ordinary components, so it imports from `sava-test/components` like everything else. Powered
 by **`@tanstack/react-router`** (optional peer, `>=1`, `external` in the build). `RootLayout({ logo?, header?, children })` renders a left sidebar (`logo` +
 `<Sidebar/>`), a top header, and a content container; set it as the **root route's** component and
-pass `<Outlet/>` as `children`. The **header** holds only the right-side controls driven by the
+pass `<Outlet/>` as `children`. Both the sidebar and the header are **sticky** (`position: sticky`) —
+they stay pinned while the page scrolls. The sidebar is `height: 100vh` with the `logo`/brand row
+fixed and only the nav scrolling (a `grid-template-rows: auto minmax(0,1fr)` split, nav in an
+`overflow-y:auto` row); the brand row and the header share the same height
+(`calc(--tz-control-height-md + --tz-space-md)`) so their bottom borders form one continuous line. The **header** holds only the right-side controls driven by the
 `header` config — `header?: { theme?: boolean /* default true */; onLogout?: () => void }` (a
 `ThemeToggle`, on by default, plus a logout `IconButton` that appears when `onLogout` is given). The
 content area stacks **`Breadcrumbs` → the page title (the active route's `staticData.name`, via the
 internal `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**.
 **`Sidebar`** auto-builds a 3-level menu (module → group → page) by
 walking `useRouter().looseRoutesById` and reading each route's `fullPath` + `staticData` — no manual
-menu config. **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item. **`PageLayout`**
+menu config. Rows are composed from **`List` / `ListItem`** (links render via `ListItem as={Link}`,
+bridged by a small typed `NavLink` cast since `to` is router-specific); the active row uses
+`ListItem selected`, leaves use dot bullets (no icons) at `size="md"`, and an expandable group's leaf
+`List` folds with the same smooth `grid-template-rows: 1fr → 0fr` transition as `Card` (chevron
+`ArrowDown4`). The module label is a dark, `md`, uppercase heading (no icon). **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item. **`PageLayout`**
 is a plain surface-card container (`border` + `radius` + `padding`, token-only) for a page's content;
 it extends `HTMLAttributes<HTMLDivElement>` and ships named **and** default from
 `sava-test/components/PageLayout`.

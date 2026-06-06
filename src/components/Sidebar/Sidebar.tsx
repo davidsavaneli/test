@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type MouseEvent, type ReactNode } from 'react'
 import {
   Link,
   Navigate,
@@ -7,10 +7,16 @@ import {
   type LinkProps,
   type StaticDataRouteOption,
 } from '@tanstack/react-router'
+import { clsx } from 'clsx'
 import { Icon } from '../Icon'
+import { List, ListItem, type ListItemProps } from '../List'
 import type { IconName } from '../../icons/names'
 import { hasAccess, useAccessKeys } from '../../helpers/access'
 import styles from './Sidebar.module.css'
+
+// `ListItem` rendered as a TanStack `Link` — it forwards unrecognized props (like `to`) to the
+// element, so this typed alias lets us pass `to` while keeping `ListItem`'s look + behavior.
+const NavLink = ListItem as unknown as (props: ListItemProps & { to: string }) => ReactNode
 
 export type { IconName }
 
@@ -47,7 +53,6 @@ export interface NavModule {
   groups: NavGroup[]
 }
 
-const linkTo = (to: string) => to as LinkProps['to']
 const prettify = (seg: string) =>
   seg
     .split('-')
@@ -300,29 +305,29 @@ export function Sidebar() {
   return (
     <nav className={styles.nav}>
       {links.length > 0 ? (
-        <div className={styles.navModule}>
+        <List>
           {links.map((link) => (
-            <Link
+            <NavLink
               key={link.to}
-              to={linkTo(link.to)}
-              className={styles.navRow}
-              data-active={pathname === link.to ? 'true' : undefined}
+              as={Link}
+              to={link.to}
+              icon={link.icon}
+              selected={pathname === link.to}
+              clickable
             >
-              <GroupIcon icon={link.icon} />
-              <span className={styles.navRowLabel}>{link.label}</span>
-            </Link>
+              {link.label}
+            </NavLink>
           ))}
-        </div>
+        </List>
       ) : null}
       {modules.map((mod) => (
-        <div className={styles.navModule} key={mod.module}>
-          <div className={styles.navModuleLabel}>
-            {mod.icon ? <Icon name={mod.icon} size="sm" /> : null}
-            {mod.module}
-          </div>
-          {mod.groups.map((group) => (
-            <NavGroupItem key={group.label} group={group} pathname={pathname} />
-          ))}
+        <div className={styles.module} key={mod.module}>
+          <div className={styles.moduleLabel}>{mod.module}</div>
+          <List>
+            {mod.groups.map((group) => (
+              <NavGroupItem key={group.label} group={group} pathname={pathname} />
+            ))}
+          </List>
         </div>
       ))}
     </nav>
@@ -338,94 +343,89 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
   const active = groupIsActive(group, pathname)
   const hasChildren = !!group.children?.length
   const [open, setOpen] = useState(active)
-  const toggle = () => setOpen((o) => !o)
-  const toggleLabel = `${open ? 'Collapse' : 'Expand'} ${group.label}`
 
+  // a plain level-2 page (no children) — just a link row
   if (!hasChildren && group.to) {
     return (
-      <Link
-        to={linkTo(group.to)}
-        className={styles.navRow}
-        data-active={active ? 'true' : undefined}
-      >
-        <GroupIcon icon={group.icon} />
-        <span className={styles.navRowLabel}>{group.label}</span>
-      </Link>
+      <NavLink as={Link} to={group.to} icon={group.icon} selected={active} clickable>
+        {group.label}
+      </NavLink>
     )
   }
 
-  const header =
-    hasChildren && group.to ? (
-      <div className={styles.navCombo} data-active={active ? 'true' : undefined}>
-        <Link
-          to={linkTo(group.to)}
-          className={styles.navComboLink}
-          data-active={active ? 'true' : undefined}
-          onClick={() => setOpen(true)}
-        >
-          <GroupIcon icon={group.icon} />
-          <span className={styles.navRowLabel}>{group.label}</span>
-        </Link>
-        <button
-          type="button"
-          className={styles.navComboChevron}
-          onClick={toggle}
-          aria-label={toggleLabel}
-          aria-expanded={open}
-        >
-          <Icon
-            name="ArrowDown2"
-            size="sm"
-            className={styles.navChevron}
-            data-open={open ? 'true' : 'false'}
-          />
-        </button>
-      </div>
-    ) : (
-      <button
-        type="button"
-        className={styles.navRow}
-        data-active={active ? 'true' : undefined}
-        aria-expanded={open}
-        onClick={toggle}
-      >
-        <GroupIcon icon={group.icon} />
-        <span className={styles.navRowLabel}>{group.label}</span>
-        <Icon
-          name="ArrowDown2"
-          size="sm"
-          className={styles.navChevron}
-          data-open={open ? 'true' : 'false'}
-        />
-      </button>
-    )
+  const chevron = (
+    <Icon
+      name="ArrowDown4"
+      size="sm"
+      className={styles.chevron}
+      data-open={open ? 'true' : 'false'}
+    />
+  )
 
   return (
-    <div>
-      {header}
-      {hasChildren && open ? (
-        <div className={styles.navLeaves}>
-          {group.children?.map((leaf) => (
-            <Link key={leaf.to} to={linkTo(leaf.to)} className={styles.navLeaf}>
-              {leaf.icon ? (
-                <Icon name={leaf.icon} size="sm" />
-              ) : (
-                <span className={styles.navLeafDot} />
-              )}
-              {leaf.label}
-            </Link>
-          ))}
+    <>
+      {hasChildren && group.to ? (
+        // "Case B": the row navigates (and expands); a separate chevron only toggles.
+        <NavLink
+          as={Link}
+          to={group.to}
+          icon={group.icon}
+          selected={active}
+          clickable
+          onClick={() => setOpen(true)}
+          trailing={
+            <button
+              type="button"
+              className={styles.chevronButton}
+              aria-label={`${open ? 'Collapse' : 'Expand'} ${group.label}`}
+              aria-expanded={open}
+              onClick={(event: MouseEvent) => {
+                event.preventDefault()
+                event.stopPropagation()
+                setOpen((o) => !o)
+              }}
+            >
+              {chevron}
+            </button>
+          }
+        >
+          {group.label}
+        </NavLink>
+      ) : (
+        // a pure container — the whole row toggles its children
+        <ListItem
+          icon={group.icon}
+          selected={active}
+          clickable
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+          trailing={chevron}
+        >
+          {group.label}
+        </ListItem>
+      )}
+      {hasChildren ? (
+        // smooth collapse, same grid-template-rows technique as Card
+        <div className={clsx(styles.collapsible, !open && styles.collapsibleClosed)}>
+          <div className={styles.collapsibleInner}>
+            <List className={styles.leaves}>
+              {group.children?.map((leaf) => (
+                <NavLink
+                  key={leaf.to}
+                  as={Link}
+                  to={leaf.to}
+                  icon={<span className={styles.leafDot} />}
+                  selected={pathname === leaf.to}
+                  size="md"
+                  clickable
+                >
+                  {leaf.label}
+                </NavLink>
+              ))}
+            </List>
+          </div>
         </div>
       ) : null}
-    </div>
-  )
-}
-
-function GroupIcon({ icon }: { icon?: IconName }) {
-  if (!icon) return null
-  return (
-    <span className={styles.navIcon}>
-      <Icon name={icon} size="sm" />
-    </span>
+    </>
   )
 }

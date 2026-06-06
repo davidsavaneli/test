@@ -1,4 +1,5 @@
-/* Auto-generated sidebar navigation. Token-only, so it follows the active theme. */
+/* Auto-generated sidebar navigation. Rows come from `ListItem`; this only adds the module label,
+   leaf indentation, and the group chevron. Token-only, so it follows the active theme. */
 
 .nav {
   display: flex;
@@ -6,184 +7,75 @@
   gap: var(--tz-space-lg);
 }
 
-.navModule {
+.module {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--tz-space-xxs);
 }
 
-.navModuleLabel {
+.moduleLabel {
   display: flex;
   align-items: center;
-  gap: var(--tz-space-xs);
   padding: 0 var(--tz-space-sm);
-  margin-bottom: var(--tz-space-xs);
-  color: var(--tz-color-tertiary);
-  font-size: var(--tz-font-size-xs);
+  margin-bottom: var(--tz-space-xxs);
+  color: var(--tz-color-text);
+  font-size: var(--tz-font-size-md);
   font-weight: var(--tz-font-weight-bold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   user-select: none;
 }
 
-.navRow {
-  display: flex;
-  align-items: center;
-  gap: var(--tz-space-sm);
-  width: 100%;
-  padding: var(--tz-space-sm);
-  border: none;
-  background: transparent;
-  border-radius: var(--tz-radius-md);
-  color: var(--tz-color-text);
-  font: inherit;
-  font-size: var(--tz-font-size-md);
-  font-weight: var(--tz-font-weight-medium);
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    background var(--tz-duration),
-    color var(--tz-duration);
+/* level-3 pages, indented under their group */
+.leaves {
+  padding-left: var(--tz-space-md);
 }
 
-.navRow:hover {
-  background: var(--tz-color-secondary);
+/* dot bullet shown in place of an icon on level-3 leaves */
+.leafDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
 }
 
-.navRow[data-active='true'],
-.navRow[data-status='active'] {
-  color: var(--tz-color-primary);
-  background: var(--tz-color-secondary);
+/* smooth expand/collapse of the leaf list — same grid-template-rows trick as Card */
+.collapsible {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--tz-duration);
 }
-
-.navRowLabel {
-  flex: 1;
-  min-width: 0;
+.collapsibleClosed {
+  grid-template-rows: 0fr;
+}
+.collapsibleInner {
+  min-height: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.navIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--tz-radius-sm);
-  background: var(--tz-color-secondary);
-  flex: none;
-}
-
-.navRow[data-active='true'] .navIcon,
-.navRow[data-status='active'] .navIcon {
-  background: var(--tz-color-primary);
-  color: var(--tz-color-primary-contrast);
-}
-
-.navChevron {
+/* group expand/collapse chevron */
+.chevron {
   flex: none;
   color: var(--tz-color-tertiary);
   transition: transform var(--tz-duration);
 }
-
-.navChevron[data-open='true'] {
+.chevron[data-open='true'] {
   transform: rotate(180deg);
 }
 
-/* group-as-page (combo: clickable link + separate chevron) */
-.navCombo {
-  display: flex;
-  align-items: center;
-  gap: var(--tz-space-sm);
-  padding: var(--tz-space-sm);
-  border-radius: var(--tz-radius-md);
-  transition:
-    background var(--tz-duration),
-    color var(--tz-duration);
-}
-
-.navCombo:hover,
-.navCombo[data-active='true'] {
-  background: var(--tz-color-secondary);
-}
-
-.navCombo[data-active='true'] .navIcon {
-  background: var(--tz-color-primary);
-  color: var(--tz-color-primary-contrast);
-}
-
-.navComboChevron {
-  flex: none;
+/* the chevron toggle in a "Case B" group row (link navigates, chevron only toggles) */
+.chevronButton {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: var(--tz-space-xxs);
-  border: none;
+  border: 0;
   background: transparent;
-  color: var(--tz-color-tertiary);
+  border-radius: var(--tz-radius-xs);
+  color: inherit;
   cursor: pointer;
-  border-radius: var(--tz-radius-sm);
 }
-
-.navComboLink {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--tz-space-sm);
-  color: var(--tz-color-text);
-  text-decoration: none;
-  font-size: var(--tz-font-size-md);
-  font-weight: var(--tz-font-weight-medium);
-}
-
-.navCombo[data-active='true'] .navComboLink {
-  color: var(--tz-color-primary);
-}
-
-/* leaves (level-3 pages) */
-.navLeaves {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: var(--tz-space-xxs) 0;
-  padding-left: var(--tz-space-xl);
-}
-
-.navLeaf {
-  display: flex;
-  align-items: center;
-  gap: var(--tz-space-sm);
-  padding: var(--tz-space-xs) var(--tz-space-sm);
-  border-radius: var(--tz-radius-sm);
-  color: var(--tz-color-text);
-  text-decoration: none;
-  font-size: var(--tz-font-size-sm);
-  transition:
-    background var(--tz-duration),
-    color var(--tz-duration);
-}
-
-.navLeaf:hover {
-  background: var(--tz-color-secondary);
-}
-
-.navLeaf[data-status='active'] {
-  background: var(--tz-color-secondary);
-  color: var(--tz-color-primary);
-  font-weight: var(--tz-font-weight-medium);
-}
-
-.navLeafDot {
-  width: 5px;
-  height: 5px;
-  margin: 0 var(--tz-space-xxs);
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.45;
-  flex: none;
-}
-
-.navLeaf[data-status='active'] .navLeafDot {
-  opacity: 1;
+.chevronButton:hover {
+  background: rgba(var(--tz-color-primary-rgb), 0.08);
 }

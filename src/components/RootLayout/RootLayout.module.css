@@ -9,21 +9,35 @@
   font-family: var(--tz-font-family);
 }
 
+/* sticky full-height sidebar: pinned during page scroll; brand fixed, nav scrolls on its own */
 .sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--tz-space-lg);
-  padding: var(--tz-space-md);
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   background: var(--tz-color-surface);
   border-right: 1px solid var(--tz-color-border);
-  overflow-y: auto;
 }
 
+/* brand row — fixed; same height as the header so their bottom borders form one line */
 .brand {
+  grid-row: 1;
   display: flex;
   align-items: center;
   gap: var(--tz-space-sm);
-  padding: var(--tz-space-xs) var(--tz-space-sm);
+  height: calc(var(--tz-control-height-md) + var(--tz-space-md));
+  padding: 0 var(--tz-space-sm);
+  border-bottom: 1px solid var(--tz-color-border);
+}
+
+/* only the nav scrolls; the brand above stays put */
+.navScroll {
+  grid-row: 2;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--tz-space-sm);
 }
 
 .main {
@@ -32,12 +46,17 @@
   min-width: 0;
 }
 
+/* header — pinned to the top during scroll; height matches the brand row */
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--tz-z-sticky);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: var(--tz-space-xs);
-  padding: var(--tz-space-md) var(--tz-space-xl);
+  height: calc(var(--tz-control-height-md) + var(--tz-space-md));
+  padding: 0 var(--tz-space-xl);
   background: var(--tz-color-surface);
   border-bottom: 1px solid var(--tz-color-border);
 }
