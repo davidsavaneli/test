@@ -23,6 +23,7 @@ import { NumberFieldSection } from '../NumberField'
 import { TextFieldSection } from '../TextField'
 import { TooltipSection } from '../Tooltip'
 import { TypographySection } from '../Typography'
+import { UserDetailBody, UserFormBody, UsersListBody } from '../Users'
 
 /* Admin shell demo (RootLayout + auto Sidebar + auto Breadcrumbs + PageLayout).
    RootLayout/Sidebar/Breadcrumbs need a TanStack Router. We build a tiny code-based router whose routes
@@ -65,6 +66,38 @@ const iconsRoute = createRoute({
   path: 'icons',
   staticData: { name: 'Icons', icon: 'Category2', order: 1 },
   component: inPage(IconSection),
+})
+
+// `/users` — a normal top-level page (in the sidebar) that owns a DYNAMIC detail route.
+const usersRoute = createRoute({
+  getParentRoute: () => shellRoot,
+  path: 'users',
+  staticData: { name: 'Users', icon: 'People', order: 2 },
+  component: () => <Outlet />,
+})
+// `/users/` (index) — the list page shown at /users.
+const usersIndexRoute = createRoute({
+  getParentRoute: () => usersRoute,
+  path: '/',
+  component: inPage(UsersListBody),
+})
+// `/users/new` — add form (static segment wins over the `$userId` param).
+const userNewRoute = createRoute({
+  getParentRoute: () => usersRoute,
+  path: 'new',
+  component: inPage(UserFormBody),
+})
+// `/users/$userId` — DYNAMIC detail. No `staticData.name` ⇒ routed + rendered, but never in the sidebar.
+const userDetailRoute = createRoute({
+  getParentRoute: () => usersRoute,
+  path: '$userId',
+  component: inPage(UserDetailBody),
+})
+// `/users/$userId/edit` — DYNAMIC update form. Also off the sidebar.
+const userEditRoute = createRoute({
+  getParentRoute: () => usersRoute,
+  path: '$userId/edit',
+  component: inPage(UserFormBody),
 })
 
 // `/components` — a module container (renders its child pages; not a page itself).
@@ -179,6 +212,7 @@ const shellRouter = createRouter({
   routeTree: shellRoot.addChildren([
     shellIndexRoute,
     iconsRoute,
+    usersRoute.addChildren([usersIndexRoute, userNewRoute, userDetailRoute, userEditRoute]),
     componentsRoute.addChildren([
       generalRoute.addChildren([
         buttonRoute,

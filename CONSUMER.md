@@ -245,6 +245,9 @@ peer: `npm i @tanstack/react-router` (>=1).
   → not in the menu. Segments infer structure: `/dashboard` → top link; `/components/forms/button` →
   module → group → page; an index route at a group path makes the group its own page. Module/group
   label+icon come from that folder's `route.tsx` `staticData`.
+- **Dynamic / detail routes** (e.g. `/news/$newsId`) just work: leave them without a `name` (or set
+  `hidden`) and they render normally but never appear in the sidebar; the page title + breadcrumb fall
+  back to the nearest named ancestor (render your own heading in the page for a dynamic title).
 
 ### Role-based access (RBAC)
 
@@ -324,6 +327,43 @@ export const Route = createFileRoute('/dashboard/')({
 })
 // group chrome lives in the group's route.tsx:
 //   createFileRoute('/components/forms')({ staticData: { name: 'Forms', icon: 'DocumentText', order: 0 } })
+```
+
+### Dynamic / CRUD pages (list → new → detail → edit)
+
+Just add files — the list carries `staticData.name` (so it's in the menu); `new` / `$id` / `edit`
+carry **no `name`**, so they route + render but stay off the sidebar. With file-based routing
+`Link`/`navigate`/`useParams` are fully typed — no casts.
+
+```
+src/routes/users/
+  index.tsx            →  /users               (list)   ← staticData.name "Users" → in the sidebar
+  new.tsx              →  /users/new           (add)    ← no name → off the sidebar
+  $userId/
+    index.tsx          →  /users/$userId       (detail) ← no name → off the sidebar
+    edit.tsx           →  /users/$userId/edit  (edit)   ← no name → off the sidebar
+```
+
+```tsx
+// users/index.tsx — the only one with a name
+export const Route = createFileRoute('/users/')({
+  staticData: { name: 'Users', icon: 'People', order: 2 },
+  component: () => (
+    <PageLayout>
+      …list with <Link to="/users/$userId" params={{ userId }} />…
+    </PageLayout>
+  ),
+})
+
+// users/$userId/index.tsx — dynamic detail; no `name`
+export const Route = createFileRoute('/users/$userId/')({ component: UserDetail })
+function UserDetail() {
+  const { userId } = Route.useParams() // typed, no cast
+  return <PageLayout>…</PageLayout>
+}
+
+// users/new.tsx + users/$userId/edit.tsx — one form, add vs. edit by presence of the param.
+// breadcrumb + page title on these dynamic pages fall back to the nearest named ancestor ("Users").
 ```
 
 > Gotcha: never name a leaf route file `loader.tsx` (reserved by the TanStack Router plugin) — use a

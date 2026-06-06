@@ -600,7 +600,10 @@ it extends `HTMLAttributes<HTMLDivElement>` and ships named **and** default from
 Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
 `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }` — a route
 with **no `name`** never appears; `hidden` keeps it routed but off the menu; `order` sorts (asc, then
-alphabetical); `roles` gates it by access (see RBAC below).
+alphabetical); `roles` gates it by access (see RBAC below). **Dynamic/param routes** (e.g.
+`/users/$userId`) work normally — give them no `name` (or `hidden`) and they route + render via the
+`<Outlet/>` but stay off the menu; the page title and breadcrumb then fall back to the nearest named
+ancestor (the menu reads only `staticData`, so it never tries to build a `$param` link).
 Path segments infer structure: `/dashboard` (1 seg) → top-level link; `/components/theme-toggle`
 (2 seg, no children) → clickable group row; `/components/forms/button` (3 seg) → module `components` →
 group `forms` → page; an index route at a group path (`/components/forms/`) makes the group a
