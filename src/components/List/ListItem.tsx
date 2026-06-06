@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { clsx } from 'clsx'
 import { Icon } from '../Icon'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import { ICON_NAMES, type IconName } from '../../icons/names'
 import { useListSize } from './listContext'
 import styles from './List.module.css'
@@ -40,7 +40,7 @@ export interface ListItemProps
   /** Row size — height / padding / font. Defaults to `md`. */
   size?: ListItemSize
   /** Brand color for the selected tint and clickable hover. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
   /** Render a different element/component — e.g. `'a'`, `'button'`, or a router `Link`. Defaults to `div`. */
   as?: ElementType
   /** Primary label / content. */

@@ -2,7 +2,7 @@ import { forwardRef, type SVGProps } from 'react'
 import { clsx } from 'clsx'
 import { icons } from '../../icons/icons'
 import type { IconName } from '../../icons/names'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import styles from './Icon.module.css'
 
 export type IconSize = 'sm' | 'md' | 'lg'
@@ -11,7 +11,7 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'color' | 'chil
   /** Icon to render — see the `IconName` union for the full set. */
   name: IconName
   /** Brand palette token used as the icon color. Omit to inherit the surrounding text color (`currentColor`). */
-  color?: TechzyColor
+  color?: ThemeColor
   /** Preset size: `sm` 16px · `md` 18px · `lg` 22px. Defaults to `md`. */
   size?: IconSize
 }

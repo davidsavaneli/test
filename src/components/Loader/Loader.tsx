@@ -1,6 +1,6 @@
 import { forwardRef, type CSSProperties, type HTMLAttributes } from 'react'
 import { clsx } from 'clsx'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import styles from './Loader.module.css'
 
 export type LoaderSize = 'sm' | 'md' | 'lg'
@@ -9,7 +9,7 @@ export interface LoaderProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'colo
   /** Preset size — matches the Icon sizes: `sm` 14px · `md` 18px · `lg` 22px. Defaults to `md`. */
   size?: LoaderSize
   /** Brand palette token used to color the spinner. Omit to inherit the surrounding text color (`currentColor`). */
-  color?: TechzyColor
+  color?: ThemeColor
 }
 
 /**

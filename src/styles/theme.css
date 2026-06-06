@@ -165,10 +165,10 @@
   --tz-radius-xxs: 4px;
   --tz-radius-xs: 8px;
   --tz-radius-sm: 16px;
-  --tz-radius-md: 24px;
-  --tz-radius-lg: 32px;
-  --tz-radius-xl: 40px;
-  --tz-radius-xxl: 48px;
+  --tz-radius-md: 20px;
+  --tz-radius-lg: 24px;
+  --tz-radius-xl: 28px;
+  --tz-radius-xxl: 32px;
 
   /* spacing — one scale for margin, padding and gap */
   --tz-space-xxs: 4px;

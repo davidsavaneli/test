@@ -33,6 +33,26 @@
   padding-left: var(--tz-space-sm);
 }
 
+/* "New"-style pill on a menu row (from staticData.badge) */
+.navBadge {
+  flex: none;
+  padding: calc(var(--tz-space-xxs) / 2) var(--tz-space-xxs);
+  border-radius: var(--tz-radius-sm);
+  background: var(--tz-color-dark);
+  color: var(--tz-color-dark-contrast, #fff);
+  font-size: var(--tz-font-size-xxs);
+  font-weight: var(--tz-font-weight-medium);
+  line-height: var(--tz-line-height);
+}
+
+/* small dot indicator on a menu row (from staticData.dot); color comes from an inline style */
+.navDot {
+  flex: none;
+  width: calc(var(--tz-space-xxs) * 1.5);
+  height: calc(var(--tz-space-xxs) * 1.5);
+  border-radius: 50%;
+}
+
 /* dot bullet shown in place of an icon on level-3 leaves */
 .leafDot {
   width: var(--tz-space-xxs);

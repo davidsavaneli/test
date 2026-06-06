@@ -1,4 +1,4 @@
-export interface TechzyTheme {
+export interface ThemePalette {
   primary: string
   secondary: string
   tertiary: string
@@ -12,7 +12,7 @@ export interface TechzyTheme {
 }
 
 /** Names of the brand palette tokens (maps to `--tz-color-<name>`). */
-export type TechzyColor = keyof TechzyTheme
+export type ThemeColor = keyof ThemePalette
 
 function hexToRgbTriplet(hex: string): string {
   let h = hex.trim().replace(/^#/, '')
@@ -48,7 +48,7 @@ const CONTRAST_OVERRIDE: Readonly<Record<string, string>> = {
 }
 
 export function applyTheme(
-  theme: Partial<TechzyTheme>,
+  theme: Partial<ThemePalette>,
   target: HTMLElement = document.documentElement,
 ): void {
   for (const [name, value] of Object.entries(theme)) {

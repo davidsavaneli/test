@@ -2,10 +2,10 @@ import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { ThemeProvider } from '../../theme'
-import type { TechzyTheme } from '../../theme'
+import type { ThemePalette } from '../../theme'
 import { ThemeToggle } from './ThemeToggle'
 
-const LIGHT: TechzyTheme = {
+const LIGHT: ThemePalette = {
   primary: '#13404e',
   secondary: '#f4f9f8',
   tertiary: '#5c7687',

@@ -10,6 +10,7 @@ import {
 import { clsx } from 'clsx'
 import { Icon } from '../Icon'
 import { List, ListItem, type ListItemProps } from '../List'
+import type { ThemeColor } from '../../theme'
 import type { IconName } from '../../icons/names'
 import { hasAccess, useAccessKeys } from '../../helpers/access'
 import styles from './Sidebar.module.css'
@@ -33,6 +34,10 @@ declare module '@tanstack/react-router' {
     hidden?: boolean
     /** Allowed accessKeys (OR — user needs any one). Omitted/empty = public. */
     roles?: string[]
+    /** Small text label (e.g. `"New"`) shown as a pill on the menu row. */
+    badge?: string
+    /** Brand color of a small dot indicator on the menu row (e.g. `"error"`). */
+    dot?: ThemeColor
   }
 }
 
@@ -40,11 +45,15 @@ export interface NavLeaf {
   label: string
   to: string
   icon?: IconName
+  badge?: string
+  dot?: ThemeColor
 }
 export interface NavGroup {
   label: string
   icon?: IconName
   to?: string
+  badge?: string
+  dot?: ThemeColor
   children?: NavLeaf[]
 }
 export interface NavModule {
@@ -68,12 +77,16 @@ interface LeafAcc {
   label: string
   to: string
   icon?: IconName
+  badge?: string
+  dot?: ThemeColor
   order: number
 }
 interface GroupAcc {
   label: string
   icon?: IconName
   to?: string
+  badge?: string
+  dot?: ThemeColor
   order: number
   leaves: LeafAcc[]
   isContainer: boolean
@@ -115,6 +128,8 @@ export function buildNavTree(routes: NavRoute[]): { links: NavLeaf[]; modules: N
     return {
       label: e?.name ?? prettify(seg),
       icon: e?.sd.icon,
+      badge: e?.sd.badge,
+      dot: e?.sd.dot,
       order: e?.sd.order ?? Number.POSITIVE_INFINITY,
     }
   }
@@ -139,6 +154,8 @@ export function buildNavTree(routes: NavRoute[]): { links: NavLeaf[]; modules: N
         label: name,
         to: `/${path}`,
         icon: sd.icon,
+        badge: sd.badge,
+        dot: sd.dot,
         order: sd.order ?? Number.POSITIVE_INFINITY,
       })
       continue
@@ -149,6 +166,8 @@ export function buildNavTree(routes: NavRoute[]): { links: NavLeaf[]; modules: N
         label: name,
         icon: sd.icon,
         to: `/${path}`,
+        badge: sd.badge,
+        dot: sd.dot,
         order: sd.order ?? Number.POSITIVE_INFINITY,
         leaves: [],
         isContainer: false,
@@ -161,6 +180,8 @@ export function buildNavTree(routes: NavRoute[]): { links: NavLeaf[]; modules: N
         group = {
           label: c.label,
           icon: c.icon,
+          badge: c.badge,
+          dot: c.dot,
           order: c.order,
           to: groupHasOwnPage(groupKey) ? `/${groupKey}` : undefined,
           leaves: [],
@@ -172,13 +193,17 @@ export function buildNavTree(routes: NavRoute[]): { links: NavLeaf[]; modules: N
         label: name,
         to: `/${path}`,
         icon: sd.icon,
+        badge: sd.badge,
+        dot: sd.dot,
         order: sd.order ?? Number.POSITIVE_INFINITY,
       })
     }
   }
 
   return {
-    links: topLinks.sort(byOrderThenLabel).map((l) => ({ label: l.label, to: l.to, icon: l.icon })),
+    links: topLinks
+      .sort(byOrderThenLabel)
+      .map((l) => ({ label: l.label, to: l.to, icon: l.icon, badge: l.badge, dot: l.dot })),
     modules: [...modules.values()].sort(byOrderThenLabel).map(
       (mod): NavModule => ({
         module: mod.label,
@@ -188,10 +213,16 @@ export function buildNavTree(routes: NavRoute[]): { links: NavLeaf[]; modules: N
             label: g.label,
             icon: g.icon,
             to: g.to,
+            badge: g.badge,
+            dot: g.dot,
             children: g.isContainer
-              ? g.leaves
-                  .sort(byOrderThenLabel)
-                  .map((l) => ({ label: l.label, to: l.to, icon: l.icon }))
+              ? g.leaves.sort(byOrderThenLabel).map((l) => ({
+                  label: l.label,
+                  to: l.to,
+                  icon: l.icon,
+                  badge: l.badge,
+                  dot: l.dot,
+                }))
               : undefined,
           }),
         ),
@@ -314,6 +345,7 @@ export function Sidebar() {
               icon={link.icon}
               selected={pathname === link.to}
               clickable
+              trailing={navTrailing(link.badge, link.dot)}
             >
               {link.label}
             </NavLink>
@@ -339,6 +371,30 @@ function groupIsActive(group: NavGroup, pathname: string): boolean {
   return group.children?.some((leaf) => leaf.to === pathname) ?? false
 }
 
+/** A small "New"-style pill rendered on a menu row from `staticData.badge`. */
+function navBadge(text?: string) {
+  return text ? <span className={styles.navBadge}>{text}</span> : null
+}
+
+/** A small colored dot indicator on a menu row from `staticData.dot`. */
+function navDot(color?: ThemeColor) {
+  return color ? (
+    <span className={styles.navDot} style={{ background: `var(--tz-color-${color})` }} />
+  ) : null
+}
+
+/** The menu row's trailing slot: dot + badge + an optional chevron (omitted entirely when empty). */
+function navTrailing(badge?: string, dot?: ThemeColor, chevron?: ReactNode): ReactNode {
+  if (badge == null && dot == null && chevron == null) return undefined
+  return (
+    <>
+      {navBadge(badge)}
+      {navDot(dot)}
+      {chevron}
+    </>
+  )
+}
+
 function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }) {
   const active = groupIsActive(group, pathname)
   const hasChildren = !!group.children?.length
@@ -347,7 +403,14 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
   // a plain level-2 page (no children) — just a link row
   if (!hasChildren && group.to) {
     return (
-      <NavLink as={Link} to={group.to} icon={group.icon} selected={active} clickable>
+      <NavLink
+        as={Link}
+        to={group.to}
+        icon={group.icon}
+        selected={active}
+        clickable
+        trailing={navTrailing(group.badge, group.dot)}
+      >
         {group.label}
       </NavLink>
     )
@@ -373,7 +436,9 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
           selected={active}
           clickable
           onClick={() => setOpen(true)}
-          trailing={
+          trailing={navTrailing(
+            group.badge,
+            group.dot,
             <button
               type="button"
               className={styles.chevronButton}
@@ -386,8 +451,8 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
               }}
             >
               {chevron}
-            </button>
-          }
+            </button>,
+          )}
         >
           {group.label}
         </NavLink>
@@ -399,7 +464,7 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
           clickable
           aria-expanded={open}
           onClick={() => setOpen((o) => !o)}
-          trailing={chevron}
+          trailing={navTrailing(group.badge, group.dot, chevron)}
         >
           {group.label}
         </ListItem>
@@ -418,6 +483,7 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
                   selected={pathname === leaf.to}
                   size="md"
                   clickable
+                  trailing={navTrailing(leaf.badge, leaf.dot)}
                 >
                   {leaf.label}
                 </NavLink>

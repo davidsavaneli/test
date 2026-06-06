@@ -2,7 +2,7 @@ import { forwardRef, useState, type HTMLAttributes, type ReactNode } from 'react
 import { clsx } from 'clsx'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import { ICON_NAMES, type IconName } from '../../icons/names'
 import styles from './Card.module.css'
 
@@ -16,7 +16,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title' 
   /** Leading header icon — a known `IconName` or any node. */
   icon?: IconName | ReactNode
   /** Brand color that tints the leading icon box. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
   /** Header actions, placed at the end of the header row (before the collapse toggle). */
   actions?: ReactNode
   /** Footer content (e.g. actions), pinned to the **right** of the footer row. */

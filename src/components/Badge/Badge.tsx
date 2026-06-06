@@ -1,6 +1,6 @@
 import { forwardRef, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react'
 import { clsx } from 'clsx'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import styles from './Badge.module.css'
 
 export type BadgePlacement = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
@@ -13,7 +13,7 @@ export interface BadgeProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'color
   /** Render a small dot instead of `content` (a plain notification indicator). */
   dot?: boolean
   /** Brand palette token that tints the badge. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
   /** Cap for numeric `content` — anything above renders as `${max}+`. Defaults to `99`. */
   max?: number
   /** Keep the badge visible when numeric `content` is `0`. Defaults to `false` (hidden). */

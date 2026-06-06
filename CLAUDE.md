@@ -43,7 +43,7 @@ src/
     PageLayout/           # surface-card container a page's body sits in
     index.ts              # re-exports every component (UI + shell)
   theme/
-    applyTheme.ts         # TechzyTheme type, hex→rgb, contrast logic, applyTheme()
+    applyTheme.ts         # ThemePalette type, hex→rgb, contrast logic, applyTheme()
     ThemeProvider.tsx     # ThemeProvider, useTheme, ThemeConfig, dark-mode merge
     index.ts
   hooks/
@@ -159,11 +159,11 @@ Font-size scale (used by Typography variants and control sizes):
 | `--tz-font-size-sm`  | 12  | `--tz-font-size-xxl` | 26  |
 | `--tz-font-size-md`  | 14  |                      |     |
 
-### 3.4 Radius & spacing (shared 4→48 scale)
+### 3.4 Radius & spacing
 
-`--tz-radius-*` and `--tz-space-*` use the **same** numeric steps:
-`xxs 4 · xs 8 · sm 16 · md 24 · lg 32 · xl 40 · xxl 48` (px).
-Spacing is one scale for margin, padding, and gap.
+`--tz-space-*` (one scale for margin, padding, and gap): `xxs 4 · xs 8 · sm 16 · md 24 · lg 32 ·
+xl 40 · xxl 48` (px). `--tz-radius-*` shares the small steps but tops out tighter (corners shouldn't
+balloon): `xxs 4 · xs 8 · sm 16 · md 20 · lg 24 · xl 28 · xxl 32` (px).
 
 ### 3.5 Control heights
 
@@ -188,7 +188,7 @@ Inputs, selects, buttons — the `sm/md/lg` sizing baseline:
 ## 4. Color application (`applyTheme`)
 
 `src/theme/applyTheme.ts` writes per-color CSS variables onto an element (default
-`document.documentElement`) from a `TechzyTheme` (a `{ name: hex }` map of the 10 brand colors):
+`document.documentElement`) from a `ThemePalette` (a `{ name: hex }` map of the 10 brand colors):
 
 For each color it sets:
 
@@ -262,7 +262,7 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 </ThemeProvider>
 ```
 
-- **`ThemeConfig`**: `{ colors: { light: TechzyTheme; dark?: Partial<TechzyTheme> }; mode?: 'light' | 'dark' }`.
+- **`ThemeConfig`**: `{ colors: { light: ThemePalette; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`.
 - **Dark merge order**: `{ ...light, ...DEFAULT_DARK_COLORS, ...dark }` — app's light palette as
   base, then the library's built-in dark defaults (`primary #e6e8eb`, `secondary #181c21`,
   `tertiary #969ca3`), then the app's own dark overrides win.
@@ -280,7 +280,7 @@ Every component follows this shape. Deviating breaks consistency — don't.
 ```tsx
 import { forwardRef, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react'
 import { clsx } from 'clsx'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import styles from './Widget.module.css'
 
 export type WidgetVariant = 'contained' | 'filled' | 'outlined' | 'text'
@@ -290,7 +290,7 @@ export interface WidgetProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   /** JSDoc on EVERY prop — short, English, describes behavior + default. */
   variant?: WidgetVariant
   /** Brand palette token that tints the control. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
   size?: WidgetSize
 }
 
@@ -315,7 +315,7 @@ Rules baked into the pattern:
 
 1. **`forwardRef`** with a named function (shows in React DevTools). Ref points at the root DOM node.
 2. **Props extend the matching DOM attributes** and **`Omit<…, 'color'>`** — `color` is redefined as
-   a brand `TechzyColor` token, not a CSS color string.
+   a brand `ThemeColor` token, not a CSS color string.
 3. **Destructure every prop you handle** out of `props`, give defaults inline, then spread `{...props}`.
    Destructured names are removed from `props`, so your explicit attributes (`type`, `disabled`, …)
    are safe.
@@ -336,7 +336,7 @@ Rules baked into the pattern:
 | prop           | type                                        | default       | notes                                                                                                                               |
 | -------------- | ------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `variant`      | `'contained'\|'filled'\|'outlined'\|'text'` | `'contained'` | for tintable controls                                                                                                               |
-| `color`        | `TechzyColor`                               | `'dark'`      | brand token; drives `--tz-btn-rgb`. Text/`Typography` default stays `primary` (via `--tz-color-text`).                              |
+| `color`        | `ThemeColor`                                | `'dark'`      | brand token; drives `--tz-btn-rgb`. Text/`Typography` default stays `primary` (via `--tz-color-text`).                              |
 | `size`         | `'sm'\|'md'\|'lg'`                          | `'md'`        | maps to control-height / font / icon size                                                                                           |
 | `loading`      | `boolean`                                   | `false`       | shows `Loader`, sets native `disabled` + `aria-busy`                                                                                |
 | `disabled`     | `boolean`                                   | `false`       | `opacity: 0.5` + `cursor: not-allowed`                                                                                              |
@@ -376,20 +376,20 @@ while `loading` it's swapped for the `Loader`. **Requires `aria-label`** (no vis
 
 ### Icon
 
-`name: IconName` (required) · `color?: TechzyColor` · `size` (`sm` 16 / `md` 18 / `lg` 22px).
+`name: IconName` (required) · `color?: ThemeColor` · `size` (`sm` 16 / `md` 18 / `lg` 22px).
 Renders an inline SVG from the generated registry; `fill: currentColor` so it follows text color
 unless a `color` token is set. `aria-hidden`, `focusable={false}`.
 
 ### Loader
 
-`size` (matches Icon: 16/20/24px) · `color?: TechzyColor`. Circular CSS spinner; border uses
+`size` (matches Icon: 16/20/24px) · `color?: ThemeColor`. Circular CSS spinner; border uses
 `currentColor` so it inherits text color. `role="status"`, `aria-label="Loading"`. Animation
 `tz-loader-spin 0.6s linear infinite`.
 
 ### Typography
 
 `variant` (`h1 h2 h3 h4 subtitle body bodySmall caption uppercase`, default `body`) ·
-`as?: ElementType` (override the tag, keep the styling) · `color?: TechzyColor | 'text'` (omit to
+`as?: ElementType` (override the tag, keep the styling) · `color?: ThemeColor | 'text'` (omit to
 inherit) · `align` · `truncate`. Default element per variant (`h1→h1 … body→p … caption/uppercase→
 span`). Headings `h1–h4` are bold; everything else is `--tz-font-weight-regular`. No default
 margins.
@@ -672,9 +672,11 @@ it extends `HTMLAttributes<HTMLDivElement>` and ships named **and** default from
 `sava-test/components/PageLayout`.
 
 Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
-`{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }` — a route
-with **no `name`** never appears; `hidden` keeps it routed but off the menu; `order` sorts (asc, then
-alphabetical); `roles` gates it by access (see RBAC below). **Dynamic/param routes** (e.g.
+`{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[]; badge?: string }`
+— a route with **no `name`** never appears; `hidden` keeps it routed but off the menu; `order` sorts
+(asc, then alphabetical); `roles` gates it by access (see RBAC below); `badge` shows a small "New"-style
+pill on the menu row (a styled span, **not** the `Badge` component — `--tz-color-dark` fill, rendered
+in the row's trailing slot before any chevron). **Dynamic/param routes** (e.g.
 `/users/$userId`) work normally — give them no `name` (or `hidden`) and they route + render via the
 `<Outlet/>` but stay off the menu; the page title and breadcrumb then fall back to the nearest named
 ancestor (the menu reads only `staticData`, so it never tries to build a `$param` link).

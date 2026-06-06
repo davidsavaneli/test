@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import styles from './Typography.module.css'
 
 export type TypographyVariant =
@@ -23,7 +23,7 @@ export type TypographyVariant =
 export type TypographyAlign = 'left' | 'center' | 'right' | 'justify'
 
 /** Text color: a brand palette token, or the semantic `text` role. Omit to inherit the surrounding color. */
-export type TypographyColor = TechzyColor | 'text'
+export type TypographyColor = ThemeColor | 'text'
 
 /** Default HTML element rendered for each variant. Override with the `as` prop. */
 const variantElement: Record<TypographyVariant, ElementType> = {

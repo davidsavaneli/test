@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import { Loader } from '../Loader'
 import styles from './IconButton.module.css'
 
@@ -19,7 +19,7 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
   /** Visual style. `contained` solid · `filled` soft tint · `outlined` border · `text` bare. */
   variant?: IconButtonVariant
   /** Brand palette token that tints the button. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
   /** Preset size — square: width === height === `--tz-control-height-*` (matches `Button` heights). */
   size?: IconButtonSize
   /** Shows the loader in the icon's place and blocks interaction (also sets the native `disabled`). */

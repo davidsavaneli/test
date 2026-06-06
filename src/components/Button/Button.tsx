@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import { Loader } from '../Loader'
 import styles from './Button.module.css'
 
@@ -19,7 +19,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   /** Visual style. `contained` solid · `filled` soft tint · `outlined` border · `text` bare. */
   variant?: ButtonVariant
   /** Brand palette token that tints the button. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
   /** Preset size — drives height (`--tz-control-height-*`), padding and font size. */
   size?: ButtonSize
   /** Shows the loader and blocks interaction (also sets the native `disabled`). The loader replaces the `startIcon` when present, otherwise it trails the label at the end (right) — so a plain button shows the spinner on the right. The text stays visible. */

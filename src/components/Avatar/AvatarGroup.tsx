@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import { Avatar, type AvatarProps, type AvatarSize } from './Avatar'
 import styles from './Avatar.module.css'
 
@@ -21,7 +21,7 @@ export interface AvatarGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, '
   /** Size applied to every avatar in the group (incl. the `+N`). Defaults to `md`. */
   size?: AvatarSize
   /** Brand palette token for the `+N` surplus avatar. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
 }
 
 const OVERLAP: Record<AvatarSize, string> = { sm: '-6px', md: '-8px', lg: '-10px' }

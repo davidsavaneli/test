@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import { Icon } from '../Icon'
 import { ICON_NAMES, type IconName } from '../../icons/names'
 import styles from './Avatar.module.css'
@@ -28,7 +28,7 @@ export interface AvatarProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color
   /** `circle` (default) or `square` (rounded rectangle). */
   shape?: AvatarShape
   /** Brand palette token for the icon/initials background. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
 }
 
 const ICON_NAME_SET = new Set<string>(ICON_NAMES)

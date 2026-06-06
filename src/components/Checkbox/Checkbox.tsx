@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import styles from './Checkbox.module.css'
 
 export type CheckboxSize = 'sm' | 'md' | 'lg'
@@ -22,7 +22,7 @@ export interface CheckboxProps extends Omit<
   /** Text shown to the right of the box. */
   label?: ReactNode
   /** Brand palette token used for the checked fill. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
   /** Preset size — box dimensions and label font. */
   size?: CheckboxSize
   /** Marks the field invalid — reddens the box only (no helper text). */

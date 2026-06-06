@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { ThemeProvider, useTheme } from './ThemeProvider'
-import type { TechzyTheme } from './applyTheme'
+import type { ThemePalette } from './applyTheme'
 
-const LIGHT: TechzyTheme = {
+const LIGHT: ThemePalette = {
   primary: '#13404e',
   secondary: '#f4f9f8',
   tertiary: '#5c7687',

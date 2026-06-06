@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
-import type { TechzyColor } from '../../theme'
+import type { ThemeColor } from '../../theme'
 import { Icon } from '../Icon'
 import styles from './Chip.module.css'
 
@@ -18,7 +18,7 @@ export interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'>
   /** Visual style. Defaults to `filled` (a soft tinted chip). */
   variant?: ChipVariant
   /** Brand palette token that tints the chip. Defaults to `dark`. */
-  color?: TechzyColor
+  color?: ThemeColor
   /** Preset size — height + font. Defaults to `md`. */
   size?: ChipSize
   /** Makes the chip interactive (hover, pointer, keyboard, `onClick`). Off by default (a static tag). */

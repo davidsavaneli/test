@@ -82,8 +82,8 @@ createRoot(el).render(
 
 ## 3. Theming
 
-- **10 brand colors** (`TechzyColor`): `primary secondary tertiary dark medium light success error info warning`.
-- `ThemeConfig`: `{ colors: { light: TechzyTheme; dark?: Partial<TechzyTheme> }; mode?: 'light' | 'dark' }`.
+- **10 brand colors** (`ThemeColor`): `primary secondary tertiary dark medium light success error info warning`.
+- `ThemeConfig`: `{ colors: { light: ThemePalette; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`.
   Dark mode merges: app's light palette → library dark defaults → your `dark` overrides.
 - `useTheme()` → `{ mode, setMode, toggleMode }` (must be inside `ThemeProvider`).
 - `<ThemeToggle />` — a ready-made light/dark switch button.
@@ -105,7 +105,7 @@ Inherits text color unless `color` is set.
 **Loader** — circular spinner. `size` (16/20/24) · `color?`. Inherits text color.
 
 **Typography** — `variant` (`h1 h2 h3 h4 subtitle body bodySmall caption uppercase`, default `body`) ·
-`as?` (override the tag) · `color?: TechzyColor | 'text'` · `align` · `truncate`. Headings are bold.
+`as?` (override the tag) · `color?: ThemeColor | 'text'` · `align` · `truncate`. Headings are bold.
 
 **TextField** — labeled text input. `label` · `size` · `error` + `helperText` (red state) · `required` ·
 `fullWidth` (**default true**) · `disabled` · `adornment` + `adornmentPosition` (`left`/`right`) — a

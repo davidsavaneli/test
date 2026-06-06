@@ -7,13 +7,13 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { applyTheme, type TechzyTheme } from './applyTheme'
+import { applyTheme, type ThemePalette } from './applyTheme'
 
 export type ThemeMode = 'light' | 'dark'
 
 export interface ThemeColors {
-  light: TechzyTheme
-  dark?: Partial<TechzyTheme>
+  light: ThemePalette
+  dark?: Partial<ThemePalette>
 }
 
 export interface ThemeConfig {
@@ -30,7 +30,7 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 const STORAGE_KEY = 'tz-theme-mode'
 
-const DEFAULT_DARK_COLORS: Partial<TechzyTheme> = {
+const DEFAULT_DARK_COLORS: Partial<ThemePalette> = {
   primary: '#e6e8eb',
   secondary: '#181c21',
   tertiary: '#969ca3',

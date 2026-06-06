@@ -87,7 +87,7 @@ const shellIndexRoute = createRoute({
 const iconsRoute = createRoute({
   getParentRoute: () => shellRoot,
   path: 'icons',
-  staticData: { name: 'Icons', icon: 'Category2', order: 1 },
+  staticData: { name: 'Icons', icon: 'Category2', order: 1, dot: 'error' },
   component: inPage(IconSection),
 })
 
@@ -135,7 +135,7 @@ const componentsRoute = createRoute({
 const generalRoute = createRoute({
   getParentRoute: () => componentsRoute,
   path: 'general',
-  staticData: { name: 'General', icon: 'Grid2', order: 0 },
+  staticData: { name: 'General', icon: 'Grid2', order: 0, badge: 'New' },
   component: () => <Outlet />,
 })
 const buttonRoute = createRoute({
