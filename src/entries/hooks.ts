@@ -3,6 +3,7 @@
 // useBreadcrumbs) stay private to the library.
 export { useDisclosure } from '../hooks/useDisclosure'
 export type { UseDisclosureReturn } from '../hooks/useDisclosure'
+export { useLockBodyScroll } from '../hooks/useLockBodyScroll'
 export { useForm } from '../form/useForm'
 export type {
   UseFormOptions,

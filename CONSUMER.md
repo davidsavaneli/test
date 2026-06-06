@@ -22,7 +22,7 @@ one import):
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `sava-test/components`                                | every UI component — `Button`, `TextField`, …, `Form`, `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect` |
 | `sava-test/components/<Name>`                         | a single component, e.g. `import Button from 'sava-test/components/Button'` (default **or** named)                  |
-| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useAccessKeys`                                                                         |
+| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useLockBodyScroll`, `useAccessKeys`                                                    |
 | `sava-test/theme`                                     | `ThemeProvider`, `useTheme`, `applyTheme` + theme types                                                             |
 | `sava-test/icons`                                     | `Icon`, `IconName`, `ICON_NAMES`, the raw `icons` registry                                                          |
 | `sava-test/helpers`                                   | `setAccessKeys`, `getAccessKeys`, `hasAccess` (RBAC)                                                                |
@@ -155,6 +155,22 @@ a title for a labeled divider with `align` (`left` · `center` default · `right
 `size` · `clickable` (interactive; off by default) · `disabled` · `startIcon` **or** `avatar` ·
 `onDelete` (adds a delete ✕). `<Chip avatar={<Avatar name="David Savaneli" />} onDelete={remove}>David</Chip>`.
 
+**List / ListItem** — a reusable row + its container. **`ListItem`**: `icon` (`IconName`/node) · label
+(`children`) · `description` (muted second line) · `trailing` (right slot) · `selected` · `clickable`
+(hover + keyboard) · `disabled` · `size` (`sm`/`md`/`lg`) · `color` (selected tint) · `as` (`'a'`/
+`'button'`/router `Link`; anchor `href`/`target`/`rel` typed). **`List`**: a vertical stack with `gap`
+(default `2px`) / `padding` / `role` (default `list`; set `"menu"` for a dropdown) / `size` (a default
+for all its items). Standalone, in a dropdown panel, or in the sidebar.
+`<List role="menu"><ListItem icon="Setting2" clickable selected>Settings</ListItem></List>`.
+
+**Dropdown** — a floating menu anchored to a `trigger`, with `ListItem`s as children. `placement`
+(`bottom-start` default · `bottom-end` · `top-start` · `top-end`) — auto-**flips** and stays on-screen,
+and re-positions on scroll/resize (a tall menu caps its height + scrolls). Opens on click; closes on
+outside click, `Escape`, or selecting an item (`closeOnSelect`, default true); locks page scroll while
+open. `size` (`sm`/`md`/`lg`) sets the panel min-width (150 / 190 / 220) + item density. Also: `open` /
+`defaultOpen` / `onOpenChange` · `matchTriggerWidth` (select-like) · `disabled` · `offset`.
+`<Dropdown trigger={<Button>Menu</Button>}><ListItem icon="User" clickable>Profile</ListItem></Dropdown>`.
+
 **Row / Col / Flex** — flexbox layout via props (no inline `style`). `gap` · `align` · `justify` ·
 `wrap` · `padding` · `grow` · `inline`. `gap`/`padding` accept a token key (`"md"`), a px number, or any
 CSS string. `Row` = centered horizontal, `Col` = vertical, `Flex` = the general one (`direction`).
@@ -164,7 +180,8 @@ CSS string. `Row` = centered horizontal, `Col` = vertical, `Flex` = the general 
 wraps to one when narrow), plus `gap`/`align`/`padding`. Great for forms side-by-side:
 `<Grid minItemWidth={220} gap={16}><TextField …/><TextField …/></Grid>`.
 
-**Hooks** — `useDisclosure(initial?)` → `{ isOpen, open, close, toggle }`.
+**Hooks** — `useDisclosure(initial?)` → `{ isOpen, open, close, toggle }` · `useLockBodyScroll(locked)`
+(freeze page scroll while `locked` — for menus/modals/drawers).
 
 ## 5. Forms (Zod-powered) — the easy way
 

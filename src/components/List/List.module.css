@@ -1,0 +1,114 @@
+/* ListItem — a flexible, reusable row (menus, nav, settings lists). Token-only, theme-aware. */
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  border: 0;
+  border-radius: var(--tz-radius-xs);
+  background: transparent;
+  color: var(--tz-color-text);
+  font-family: var(--tz-font-family);
+  font-weight: var(--tz-font-weight-regular);
+  text-align: left;
+  text-decoration: none;
+  appearance: none;
+  transition:
+    background var(--tz-duration),
+    color var(--tz-duration);
+}
+
+/* ── sizes ──────────────────────────────────────────────────────────────── */
+.sm {
+  min-height: var(--tz-control-height-sm);
+  padding: var(--tz-space-xxs) var(--tz-space-sm);
+  gap: var(--tz-space-xs);
+  font-size: var(--tz-font-size-sm);
+}
+.md {
+  min-height: var(--tz-control-height-md);
+  padding: var(--tz-space-xxs) var(--tz-space-sm);
+  font-size: var(--tz-font-size-md);
+}
+.lg {
+  min-height: var(--tz-control-height-lg);
+  padding: var(--tz-space-xs) var(--tz-space-md);
+  font-size: var(--tz-font-size-md);
+}
+
+/* ── slots ──────────────────────────────────────────────────────────────── */
+.itemIcon {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  color: var(--tz-color-tertiary);
+}
+
+.itemText {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--tz-space-xxs) / 2);
+  flex: 1;
+  min-width: 0;
+}
+
+.itemLabel {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: var(--tz-line-height);
+}
+
+.itemDescription {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--tz-font-size-xs);
+  color: var(--tz-color-tertiary);
+  line-height: var(--tz-line-height);
+}
+
+.itemTrailing {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  margin-left: auto;
+  color: var(--tz-color-tertiary);
+}
+
+/* ── interactive ────────────────────────────────────────────────────────── */
+.clickable {
+  cursor: pointer;
+}
+.clickable:hover {
+  background: rgba(var(--tz-btn-rgb), 0.06);
+}
+.clickable:focus-visible {
+  outline: 2px solid rgba(var(--tz-btn-rgb), 0.5);
+  outline-offset: -2px;
+}
+
+/* ── selected ───────────────────────────────────────────────────────────── */
+.selected {
+  background: rgba(var(--tz-btn-rgb), 0.1);
+  color: rgb(var(--tz-btn-rgb));
+  font-weight: var(--tz-font-weight-medium);
+}
+.selected .itemIcon,
+.selected .itemTrailing {
+  color: inherit;
+}
+.selected.clickable:hover {
+  background: rgba(var(--tz-btn-rgb), 0.16);
+}
+
+/* ── disabled ───────────────────────────────────────────────────────────── */
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}

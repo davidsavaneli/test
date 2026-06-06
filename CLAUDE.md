@@ -545,10 +545,50 @@ default `CloseCircle` / `"Remove"`). Root is a `<div>` (not a `<button>`) so the
 doesn't nest. Default variant is `filled` (a deliberate, chip-appropriate deviation from the
 `contained` default in §6's vocab). Own CSS module.
 
+### List / ListItem
+
+**`ListItem`** is a flexible, reusable row: a leading `icon` (`IconName` → `<Icon>`, or any node such
+as an `Avatar`), a label (`children`) with an optional muted `description`, and a `trailing` slot
+(icon, `Badge`, shortcut text, chevron). `selected` highlights it (tinted via the `--tz-btn-rgb`
+pattern from `color`, default `dark`) and sets `aria-current`; `clickable` makes it interactive — hover
+
+- cursor, and when rendered as a **plain** element it also gets `role="button"` + `tabIndex` +
+  Enter/Space → click (a native `a`/`button` or a router `Link` keeps its own semantics). `disabled` dims
+- inerts it. `size` is `sm/md/lg` (control-height-based; label + description each truncate to one line).
+  Render as a link/button/component via **`as`** (anchor `href`/`target`/`rel`/`download` are typed).
+  **`List`** is a thin semantic container — a vertical stack (inline-styled like `Flex`/`Grid`) with
+  `gap` (default `2px`) / `padding` and `role="list"` (override `role` to `"menu"` for a dropdown). Its
+  `size` provides a default for every contained `ListItem` (via context; an explicit item `size` wins).
+  Designed to compose inside a dropdown menu, the sidebar, or a standalone styled list. Own CSS module;
+  `List` ships named **and** default, `ListItem` named.
+
+### Dropdown
+
+A floating menu anchored to a `trigger` (a `Button`/`IconButton`/anything), composing `ListItem`s as
+`children` inside a `role="menu"` `List`. The panel is **portaled to `document.body`** and positioned
+by an inline (JS) algorithm with **collision handling**: it opens at `placement` (`bottom-start`
+default · `bottom-end` · `top-start` · `top-end`), **flips** to the opposite vertical side when it
+would overflow, clamps within the viewport (8px edge padding), caps its height + scrolls when too
+tall, and **re-positions on `scroll`/`resize`** (plus a `ResizeObserver` on the panel & trigger). The
+panel is `--tz-radius-sm`, `--tz-space-xs` padding, with spaced dividers; `size` (`sm`/`md`/`lg`, default
+`md`) sets its **min-width** (150 / 190 / 220px) and the items' density (passed through to the inner
+`List size`, which `ListItem`s inherit). While open it **locks page scroll** via `useLockBodyScroll`.
+Opens on trigger click; closes on outside `pointerdown`, `Escape` (returns focus to the trigger), or
+selecting an item (`closeOnSelect`, default `true`). The trigger is cloned to wire
+`onClick` + `aria-haspopup="menu"`/`aria-expanded`/`aria-controls` and a merged `ref` (reads
+`props.ref`, React 19). Keyboard: `ArrowDown`/`ArrowUp` rove between focusable items; the first item
+is focused on open. Controlled (`open` + `onOpenChange`) or uncontrolled (`defaultOpen`);
+`matchTriggerWidth` makes the menu ≥ the trigger width (select-like); `offset` (px, default `6`) is the
+trigger gap; `disabled` blocks opening. Enter transition keyed off `data-open`/`data-side` (opacity +
+a token-sized translate). Uses `react-dom` `createPortal` (peer dep). Own CSS module.
+
 ### Hooks
 
 `useDisclosure(initial = false)` → `{ isOpen, open, close, toggle }`. Model new hooks on this:
-small, typed return interface, `useCallback`-stable handlers.
+small, typed return interface, `useCallback`-stable handlers. **`useLockBodyScroll(locked)`** locks
+scrolling on `<html>` + `<body>` while `locked` (e.g. an open `Dropdown`/modal/drawer), compensating
+for the removed scrollbar with `padding-right` and restoring the prior inline styles on unlock; it's
+public from `sava-test/hooks`.
 
 ### Form — `useForm` (Zod-powered)
 
@@ -749,16 +789,16 @@ createFileRoute('/dashboard/')({
 The package exposes **scoped subpaths**, not just the root. The aggregator files in `src/entries/`
 define each surface; the root `src/index.ts` re-exports them all. `package.json` `exports` maps:
 
-| subpath                               | source entry                          | what's in it                                  |
-| ------------------------------------- | ------------------------------------- | --------------------------------------------- |
-| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution) |
-| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`              |
-| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)       |
-| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useForm`, `useAccessKeys`   |
-| `./theme`                             | `src/entries/theme.ts`                | `ThemeProvider`, `useTheme`, `applyTheme`     |
-| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`     |
-| `./helpers`                           | `src/entries/helpers.ts`              | `setAccessKeys`, `getAccessKeys`, `hasAccess` |
-| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                           |
+| subpath                               | source entry                          | what's in it                                                     |
+| ------------------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                    |
+| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                 |
+| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                          |
+| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys` |
+| `./theme`                             | `src/entries/theme.ts`                | `ThemeProvider`, `useTheme`, `applyTheme`                        |
+| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                        |
+| `./helpers`                           | `src/entries/helpers.ts`              | `setAccessKeys`, `getAccessKeys`, `hasAccess`                    |
+| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                              |
 
 Rules when adding/moving public API: keep internal-only symbols **out** of the entry files (e.g.
 `useFormContext`, `usePageTitle`, `useBreadcrumbs`, nav-tree internals); a new top-level group gets a
