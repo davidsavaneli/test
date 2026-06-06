@@ -1,18 +1,35 @@
 import { useState, type ReactNode } from 'react'
 import { clsx } from 'clsx'
+import { Avatar } from '../Avatar'
+import { Col, Row } from '../Flex'
+import { Divider } from '../Divider'
+import { Dropdown } from '../Dropdown'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
+import { ListItem } from '../List'
 import { ThemeToggle } from '../ThemeToggle'
 import { Typography } from '../Typography'
 import { Breadcrumbs } from '../Breadcrumbs'
 import { Sidebar, usePageTitle } from '../Sidebar/Sidebar'
 import styles from './RootLayout.module.css'
 
+/** Signed-in user shown in the header avatar + its account menu. */
+export interface RootLayoutUser {
+  /** Full name — shown as the menu's name line. */
+  name?: string
+  /** Email shown under the name in the account menu. */
+  email?: string
+  /** Avatar image URL (falls back to a user icon). */
+  avatar?: string
+}
+
 export interface RootLayoutHeader {
   /** Show the built-in light/dark theme toggle on the right of the header. Defaults to `true`. */
   theme?: boolean
-  /** When provided, renders a logout button on the right of the header that calls this on click. */
+  /** When provided, an account `Avatar` appears on the right; its menu has a **Sign out** item that calls this. */
   onLogout?: () => void
+  /** Signed-in user — shown in the header avatar and as a header block atop the account menu. */
+  user?: RootLayoutUser
 }
 
 export interface RootLayoutProps {
@@ -28,7 +45,8 @@ export interface RootLayoutProps {
  * The admin-panel shell: a left sidebar (`logo` + auto-generated `Sidebar`), a top header, and a
  * content container. Set it as the root route's component and pass `<Outlet />` as `children`; the
  * `Sidebar` builds itself from the routes' `staticData`. The header holds an optional `ThemeToggle`
- * (on by default) plus a logout button when `header.onLogout` is given. The content area stacks
+ * (on by default) plus an account `Avatar` whose menu has a **Sign out** item when `header.onLogout`
+ * is given. The content area stacks
  * **`Breadcrumbs` → the page title (the active route's `staticData.name`) → `children`**; pages wrap
  * their own body in `PageLayout`. Styling is token-based, so it follows the active `ThemeProvider`
  * mode. Requires `@tanstack/react-router` (peer).
@@ -37,6 +55,7 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
   const title = usePageTitle()
   const showTheme = header?.theme ?? true
   const onLogout = header?.onLogout
+  const user = header?.user
   const [collapsed, setCollapsed] = useState(false)
 
   return (
@@ -61,9 +80,36 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
           <div className={styles.headerEnd}>
             {showTheme ? <ThemeToggle variant="filled" size="sm" /> : null}
             {onLogout ? (
-              <IconButton aria-label="Log out" variant="text" size="sm" onClick={onLogout}>
-                <Icon name="Logout" />
-              </IconButton>
+              <Dropdown
+                placement="bottom-end"
+                trigger={
+                  <button type="button" className={styles.account} aria-label="Account">
+                    <Avatar size="sm" icon="User" src={user?.avatar} />
+                  </button>
+                }
+              >
+                {user ? (
+                  <>
+                    <Row gap={8} align="center" padding="var(--tz-space-xxs) var(--tz-space-sm)">
+                      <Avatar size="sm" icon="User" src={user.avatar} />
+                      <Col gap={2}>
+                        {user.name ? (
+                          <Typography variant="bodySmall">{user.name}</Typography>
+                        ) : null}
+                        {user.email ? (
+                          <Typography variant="caption" color="tertiary">
+                            {user.email}
+                          </Typography>
+                        ) : null}
+                      </Col>
+                    </Row>
+                    <Divider />
+                  </>
+                ) : null}
+                <ListItem icon={<Icon name="Logout2" color="error" />} clickable onClick={onLogout}>
+                  Sign out
+                </ListItem>
+              </Dropdown>
             ) : null}
           </div>
         </header>

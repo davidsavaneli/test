@@ -71,11 +71,25 @@
   border-bottom: 1px solid var(--tz-color-border);
 }
 
-/* right-side header controls (theme toggle, logout) */
+/* right-side header controls (theme toggle, account avatar) */
 .headerEnd {
   display: flex;
   align-items: center;
   gap: var(--tz-space-xs);
+}
+
+/* the account avatar acts as a focusable dropdown trigger */
+.account {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.account:focus-visible {
+  outline: 2px solid rgba(var(--tz-color-primary-rgb), 0.5);
+  outline-offset: 2px;
 }
 
 .content {

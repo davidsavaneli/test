@@ -253,8 +253,9 @@ peer: `npm i @tanstack/react-router` (>=1).
 - **`RootLayout`** — `logo?`, `header?`, `children`. Set it as the **root route's** component and pass
   `<Outlet/>`. Renders sidebar + header + content. `logo` is any node shown atop the sidebar (an
   `<img>`, an `<Icon>`, …). The **header** holds only right-side controls via
-  `header?: { theme?: boolean; onLogout?: () => void }` — `theme` (default `true`) shows the
-  `ThemeToggle`; passing `onLogout` adds a logout button. The content area auto-stacks
+  `header?: { theme?: boolean; onLogout?: () => void; user?: { name?; email?; avatar? } }` — `theme`
+  (default `true`) shows the `ThemeToggle`; `onLogout` adds an account avatar whose menu has a **Sign
+  out** item (calls `onLogout`); `user` adds a name+email header in that menu (avatar = a user icon, or `user.avatar` image). The content area auto-stacks
   **`Breadcrumbs` → the page title (the active route's `staticData.name`, as an `h2`) → your page**.
 - **`PageLayout`** — the surface-card container your page body sits in (border + radius + padding).
   Wrap each route's content: `<PageLayout>…</PageLayout>`. Extends `HTMLAttributes<HTMLDivElement>`,

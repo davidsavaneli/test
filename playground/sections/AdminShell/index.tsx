@@ -70,7 +70,11 @@ const shellRoot = createRootRoute({
   component: () => (
     <RootLayout
       logo={<TechzyLogo />}
-      header={{ theme: true, onLogout: () => alert('Logout clicked') }}
+      header={{
+        theme: true,
+        onLogout: () => alert('Logout clicked'),
+        user: { name: 'David Savaneli', email: 'd.savaneli@techzy.app' },
+      }}
     >
       <Outlet />
     </RootLayout>

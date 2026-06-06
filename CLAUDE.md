@@ -656,8 +656,11 @@ header **toggle** `IconButton` (left, `filled`, `Menu` icon) collapses/hides the
 its `width` to `0` (the shell's first grid column is `auto`, so it follows); the `ThemeToggle` is
 `filled` too. Nav icons match the row label
 (text) color via `--tz-list-icon-color` set on the nav. The **header** holds only the right-side controls driven by the
-`header` config — `header?: { theme?: boolean /* default true */; onLogout?: () => void }` (a
-`ThemeToggle`, on by default, plus a logout `IconButton` that appears when `onLogout` is given). The
+`header` config — `header?: { theme?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`
+(a `ThemeToggle`, on by default, plus an account `Avatar` — a focusable button whose `Dropdown` menu
+has a single **Sign out** `ListItem` calling `onLogout` — shown when `onLogout` is given; when `user`
+is supplied the menu opens with a `User`-icon (or `user.avatar` image) + name + email header above a
+divider). The
 content area stacks **`Breadcrumbs` → the page title (the active route's `staticData.name`, via the
 internal `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**.
 **`Sidebar`** auto-builds a 3-level menu (module → group → page) by
