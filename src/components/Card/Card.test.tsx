@@ -16,6 +16,12 @@ describe('Card', () => {
     expect(document.querySelector('svg')).toBeInTheDocument() // the icon
   })
 
+  it('renders a subtitle under the title', () => {
+    render(<Card title="Settings" subtitle="Manage preferences" />)
+    expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(screen.getByText('Manage preferences')).toBeInTheDocument()
+  })
+
   it('is not collapsible by default — no toggle, body shown', () => {
     const { container } = render(<Card title="X">Body</Card>)
     expect(screen.queryByRole('button', { name: /collapse|expand/i })).toBeNull()

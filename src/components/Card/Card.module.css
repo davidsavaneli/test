@@ -35,8 +35,15 @@
   flex: none;
 }
 
-.title {
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--tz-space-xxs) / 2);
   flex: 1;
+  min-width: 0;
+}
+
+.title {
   min-width: 0;
   /* wrap to at most two lines, then truncate with an ellipsis */
   display: -webkit-box;
@@ -47,6 +54,20 @@
   font-size: var(--tz-font-size-md);
   font-weight: var(--tz-font-weight-bold);
   line-height: calc(var(--tz-line-height) / 1.07);
+}
+
+.subtitle {
+  min-width: 0;
+  /* a short description — clamp to two lines too, keeping the header tidy */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--tz-font-size-xs);
+  font-weight: var(--tz-font-weight-regular);
+  line-height: var(--tz-line-height);
+  color: var(--tz-color-tertiary);
 }
 
 .actions {

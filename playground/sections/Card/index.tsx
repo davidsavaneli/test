@@ -4,10 +4,15 @@ import { Block, Section } from '../../shared'
 export function CardSection() {
   return (
     <Section>
-      <Block label="basic — icon · title · body">
-        <Card icon="Setting2" title="Settings" style={{ maxWidth: 420 }}>
+      <Block label="basic — icon · title · subtitle · body">
+        <Card
+          icon="Setting2"
+          title="Settings"
+          subtitle="Manage your workspace preferences"
+          style={{ maxWidth: 420 }}
+        >
           <Typography color="tertiary">
-            A simple surface card with an icon, a title, and body content.
+            A simple surface card with an icon, a title, a subtitle, and body content.
           </Typography>
         </Card>
       </Block>

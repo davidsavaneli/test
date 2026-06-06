@@ -11,6 +11,8 @@ const ICON_NAME_SET = new Set<string>(ICON_NAMES)
 export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'color'> {
   /** Header title (left, next to the icon). */
   title?: ReactNode
+  /** Secondary muted line shown under the `title` (e.g. a short description). */
+  subtitle?: ReactNode
   /** Leading header icon — a known `IconName` or any node. */
   icon?: IconName | ReactNode
   /** Brand color that tints the leading icon box. Defaults to `dark`. */
@@ -41,6 +43,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title' 
 export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
   {
     title,
+    subtitle,
     icon,
     color = 'dark',
     actions,
@@ -73,7 +76,8 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
       icon
     )
 
-  const hasHeader = title != null || renderedIcon != null || actions != null || collapsible
+  const hasHeader =
+    title != null || subtitle != null || renderedIcon != null || actions != null || collapsible
   const hasBody = children != null && children !== ''
   const hasFooter = footer != null || footerStart != null
   const hasCollapsibleContent = hasBody || hasFooter
@@ -101,7 +105,12 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
                 {renderedIcon}
               </IconButton>
             )}
-            {title != null && <div className={styles.title}>{title}</div>}
+            {(title != null || subtitle != null) && (
+              <div className={styles.headerText}>
+                {title != null && <div className={styles.title}>{title}</div>}
+                {subtitle != null && <div className={styles.subtitle}>{subtitle}</div>}
+              </div>
+            )}
           </div>
           {(actions != null || collapsible) && (
             <div className={styles.actions}>

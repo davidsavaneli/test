@@ -503,7 +503,8 @@ vertical); a label is ignored for vertical. Own CSS module.
 
 ### Card
 
-A surface container with an optional header (`icon` + `title` + `actions`), a body (`children`), and a
+A surface container with an optional header (`icon` + `title` + `subtitle` + `actions`), a body
+(`children`), and a
 `footer` for actions (solid top divider, right-aligned; `footerStart` pins content to the **left** of
 the same row, so the row reads left-vs-right via `space-between`). A subtle **dashed** bottom divider
 sets the header apart from the body while expanded. `collapsible` adds an `ArrowUp3` chevron `IconButton` that folds the body
@@ -511,7 +512,8 @@ sets the header apart from the body while expanded. `collapsible` adds an `Arrow
 **actions hide** (only the chevron stays) and the header divider fades out. Controlled (`collapsed` +
 `onCollapsedChange`) or uncontrolled (`defaultCollapsed`). `icon` (an `IconName` or a node) renders in
 a leading **filled, non-clickable `IconButton`** box (decorative → `aria-hidden`), tinted by `color`
-(brand token, default `dark`). The `title` clamps to **two lines** then ellipsis (`-webkit-line-clamp`).
+(brand token, default `dark`). `subtitle` is a muted description line under the `title`; both `title`
+and `subtitle` clamp to **two lines** then ellipsis (`-webkit-line-clamp`).
 Surface + border + `--tz-radius-md` + `--tz-shadow-xs`. Header omitted entirely when there's no
 title/icon/actions/collapsible. Own CSS module.
 
