@@ -91,4 +91,15 @@ describe('Grid', () => {
       'repeat(auto-fit, minmax(220px, 1fr))',
     )
   })
+
+  it('uses auto-fill instead of auto-fit when `fill` is set', () => {
+    const { container } = render(
+      <Grid minItemWidth={128} fill>
+        x
+      </Grid>,
+    )
+    expect((container.firstElementChild as HTMLElement).style.gridTemplateColumns).toBe(
+      'repeat(auto-fill, minmax(128px, 1fr))',
+    )
+  })
 })

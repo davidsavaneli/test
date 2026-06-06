@@ -14,6 +14,11 @@ export interface GridProps extends HTMLAttributes<HTMLDivElement> {
   cols?: number | string
   /** Responsive columns: every cell at least this wide, auto-fitting to the width (overrides `cols`). */
   minItemWidth?: Spacing
+  /**
+   * With `minItemWidth`, use `auto-fill` instead of `auto-fit` — keeps empty tracks at the min width
+   * so a few items stay their natural size rather than stretching to fill the row. Defaults to `false`.
+   */
+  fill?: boolean
   /** Gap between cells (token key, px number, or CSS value). */
   gap?: Spacing
   /** `align-items` for the cells. */
@@ -31,12 +36,12 @@ export interface GridProps extends HTMLAttributes<HTMLDivElement> {
  * `style` merges last.
  */
 export const Grid = forwardRef<HTMLDivElement, GridProps>(function Grid(
-  { cols, minItemWidth, gap, align, padding, inline = false, style, ...props },
+  { cols, minItemWidth, fill = false, gap, align, padding, inline = false, style, ...props },
   ref,
 ) {
   const gridTemplateColumns =
     minItemWidth != null
-      ? `repeat(auto-fit, minmax(${space(minItemWidth)}, 1fr))`
+      ? `repeat(${fill ? 'auto-fill' : 'auto-fit'}, minmax(${space(minItemWidth)}, 1fr))`
       : typeof cols === 'number'
         ? `repeat(${cols}, minmax(0, 1fr))`
         : cols

@@ -529,7 +529,8 @@ are fully dynamic — a deliberate exception to the CSS-Modules rule for this la
 `style` merges last. All three `forwardRef` to the `<div>` and live in `src/components/Flex/`.
 **`Grid`** (same folder) is the CSS-grid sibling: `cols` (fixed count → `repeat(n, minmax(0,1fr))`, or a
 raw template string) or **`minItemWidth`** (responsive `repeat(auto-fit, minmax(<w>, 1fr))` — wraps to
-one column when narrow), plus `gap`/`align`/`padding`/`inline`.
+one column when narrow; `fill` switches it to `auto-fill` so a few items keep their min width instead
+of stretching to fill the row — e.g. a search-filtered gallery), plus `gap`/`align`/`padding`/`inline`.
 
 ### Chip
 

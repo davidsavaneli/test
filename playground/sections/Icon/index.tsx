@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { Col, Icon, TextField, Typography } from '../../../src'
+import { Col, Grid, Icon, TextField, Typography } from '../../../src'
 import { icons } from '../../../src/icons/icons'
 import type { IconName } from '../../../src/icons/names'
 import { Section } from '../../shared'
@@ -43,7 +43,7 @@ export function IconSection() {
         {filtered.length === 0 ? (
           <Typography className={styles.empty}>No icons match “{query}”.</Typography>
         ) : (
-          <div className={styles.grid}>
+          <Grid minItemWidth={128} gap="xs" fill>
             {filtered.map((name) => (
               <button
                 key={name}
@@ -60,7 +60,7 @@ export function IconSection() {
                 </span>
               </button>
             ))}
-          </div>
+          </Grid>
         )}
       </Col>
     </Section>

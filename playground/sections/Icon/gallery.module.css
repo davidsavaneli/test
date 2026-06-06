@@ -1,10 +1,5 @@
-/* Icon gallery — card grid styled with tokens (light/dark-safe). */
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-  gap: var(--tz-space-xs);
-}
+/* Icon gallery — card grid styled with tokens (light/dark-safe). The grid layout itself comes from
+   the `<Grid minItemWidth={128} gap="xs" fill>` primitive; only the cards are styled here. */
 
 .card {
   display: flex;
