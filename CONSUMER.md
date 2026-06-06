@@ -128,6 +128,14 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 `${max}+`, `max` default 99; a `0` hides unless `showZero`); `dot` → a plain indicator. `color`
 (default `dark`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
 
+**Card** — a surface card. `title` (clamps to two lines, then ellipsis) · `icon` (`IconName`/node,
+shown in a filled icon box) · `color` (tints the icon box, default `dark`) · `actions` (header, right) ·
+`footer` (bottom actions, right) · `footerStart` (bottom actions, left) · `children` (body) ·
+`collapsible` (chevron folds the body+footer smoothly;
+header actions hide while collapsed) · `collapsed`/`defaultCollapsed`/`onCollapsedChange`. A subtle
+divider separates the header from the body while expanded.
+`<Card icon="Setting2" title="Settings" color="success" collapsible footer={<Button>Save</Button>}>…</Card>`.
+
 **Tooltip** — wraps a single element and shows a floating label on hover/focus:
 `<Tooltip content="Save"><IconButton …/></Tooltip>`. `content: ReactNode`, `placement`
 (`top` default · `bottom` · `left` · `right`). Closes on `Escape`; a11y-wired via `aria-describedby`.

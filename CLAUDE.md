@@ -501,6 +501,20 @@ upright rule that stretches inside a flex row). With `children` it becomes a lab
 label `--tz-color-tertiary` / `font-size-sm` / medium. `role="separator"` (+ `aria-orientation` when
 vertical); a label is ignored for vertical. Own CSS module.
 
+### Card
+
+A surface container with an optional header (`icon` + `title` + `actions`), a body (`children`), and a
+`footer` for actions (solid top divider, right-aligned; `footerStart` pins content to the **left** of
+the same row, so the row reads left-vs-right via `space-between`). A subtle **dashed** bottom divider
+sets the header apart from the body while expanded. `collapsible` adds an `ArrowUp3` chevron `IconButton` that folds the body
+**and** footer via a smooth `grid-template-rows: 1fr → 0fr` transition; while collapsed the header
+**actions hide** (only the chevron stays) and the header divider fades out. Controlled (`collapsed` +
+`onCollapsedChange`) or uncontrolled (`defaultCollapsed`). `icon` (an `IconName` or a node) renders in
+a leading **filled, non-clickable `IconButton`** box (decorative → `aria-hidden`), tinted by `color`
+(brand token, default `dark`). The `title` clamps to **two lines** then ellipsis (`-webkit-line-clamp`).
+Surface + border + `--tz-radius-md` + `--tz-shadow-xs`. Header omitted entirely when there's no
+title/icon/actions/collapsible. Own CSS module.
+
 ### Flex / Row / Col / Grid
 
 Flexbox layout primitives — set layout via props instead of inline `style`. **`Flex`** is the engine

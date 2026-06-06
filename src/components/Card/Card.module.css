@@ -1,0 +1,102 @@
+/* Card — surface container with header / body / footer + smooth collapse. Token-only, theme-aware. */
+
+.card {
+  background: var(--tz-color-surface);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-md);
+  box-shadow: var(--tz-shadow-xs);
+  font-family: var(--tz-font-family);
+  color: var(--tz-color-text);
+}
+
+/* ── header ─────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+  padding: var(--tz-space-sm) var(--tz-space-md);
+  border-bottom: 1px dashed transparent;
+  transition: border-color var(--tz-duration);
+}
+/* a subtle rule that sets the header apart from the body — only while content shows below */
+.headerDivided {
+  border-bottom-color: var(--tz-color-border);
+}
+
+.headerMain {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+  flex: 1;
+  min-width: 0;
+}
+
+.icon {
+  flex: none;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  /* wrap to at most two lines, then truncate with an ellipsis */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--tz-font-size-md);
+  font-weight: var(--tz-font-weight-bold);
+  line-height: calc(var(--tz-line-height) / 1.07);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xxs);
+  flex: none;
+}
+
+.chevron {
+  transition: transform var(--tz-duration);
+}
+.chevron[data-collapsed='true'] {
+  transform: rotate(180deg);
+}
+
+/* ── collapsible region (body + footer), animated via grid-template-rows ──── */
+.collapsible {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--tz-duration);
+}
+.collapsed .collapsible {
+  grid-template-rows: 0fr;
+}
+.collapsibleInner {
+  min-height: 0;
+}
+/* clip only while the card can fold — otherwise it would cut off tooltips/popovers
+   escaping the body or footer (the fold animation is the only thing that needs the clip) */
+.foldable .collapsibleInner {
+  overflow: hidden;
+}
+
+.body {
+  padding: var(--tz-space-md);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tz-space-xs);
+  padding: var(--tz-space-sm) var(--tz-space-md);
+  border-top: 1px solid var(--tz-color-border);
+}
+/* left group keeps natural order; right group holds the primary actions */
+.footerStart,
+.footerEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+}

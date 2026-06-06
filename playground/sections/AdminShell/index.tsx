@@ -14,6 +14,7 @@ import { ChipSection } from '../Chip'
 import { DividerSection } from '../Divider'
 import { LayoutSection } from '../Layout'
 import { ButtonSection } from '../Button'
+import { CardSection } from '../Card'
 import { CheckboxSection } from '../Checkbox'
 import { FormSection } from '../Form'
 import { IconButtonSection } from '../IconButton'
@@ -175,6 +176,12 @@ const layoutRoute = createRoute({
   staticData: { name: 'Layout (Row/Col)', icon: 'Grid3', order: 9 },
   component: inPage(LayoutSection),
 })
+const cardRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'card',
+  staticData: { name: 'Card', icon: 'Cards', order: 10 },
+  component: inPage(CardSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -225,6 +232,7 @@ const shellRouter = createRouter({
         dividerRoute,
         chipRoute,
         layoutRoute,
+        cardRoute,
       ]),
       formsRoute.addChildren([textFieldRoute, numberFieldRoute, checkboxRoute, formRoute]),
     ]),
