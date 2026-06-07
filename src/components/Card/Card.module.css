@@ -67,7 +67,7 @@
   font-size: var(--tz-font-size-xs);
   font-weight: var(--tz-font-weight-regular);
   line-height: var(--tz-line-height);
-  color: var(--tz-color-tertiary);
+  color: var(--tz-color-primary-shade600);
 }
 
 .actions {

@@ -68,7 +68,7 @@ export function BadgeSection() {
           <Badge content={1000}>
             <Button>Max 99+</Button>
           </Badge>
-          <Badge content={0} showZero color="tertiary">
+          <Badge content={0} showZero color="info">
             <Button variant="outlined">Show Zero</Button>
           </Badge>
           <Badge content={5} placement="top-left">

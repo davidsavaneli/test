@@ -12,7 +12,6 @@ const themeConfig: ThemeConfig = {
     light: {
       primary: '#13404e',
       secondary: '#f4f9f8',
-      tertiary: '#5c7687',
       dark: '#056472',
       medium: '#039aa1',
       light: '#adc3c9',

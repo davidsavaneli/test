@@ -97,7 +97,7 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
                           <Typography variant="bodySmall">{user.name}</Typography>
                         ) : null}
                         {user.email ? (
-                          <Typography variant="caption" color="tertiary">
+                          <Typography variant="caption" color="muted">
                             {user.email}
                           </Typography>
                         ) : null}

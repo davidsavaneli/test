@@ -25,18 +25,6 @@
   --tz-color-secondary-shade700: rgba(var(--tz-color-secondary-rgb), 0.8);
   --tz-color-secondary-shade800: rgba(var(--tz-color-secondary-rgb), 0.9);
 
-  /* tertiary */
-  --tz-color-tertiary-rgb: 92, 118, 135;
-  --tz-color-tertiary: rgb(var(--tz-color-tertiary-rgb));
-  --tz-color-tertiary-shade100: rgba(var(--tz-color-tertiary-rgb), 0.06);
-  --tz-color-tertiary-shade200: rgba(var(--tz-color-tertiary-rgb), 0.1);
-  --tz-color-tertiary-shade300: rgba(var(--tz-color-tertiary-rgb), 0.14);
-  --tz-color-tertiary-shade400: rgba(var(--tz-color-tertiary-rgb), 0.3);
-  --tz-color-tertiary-shade500: rgba(var(--tz-color-tertiary-rgb), 0.5);
-  --tz-color-tertiary-shade600: rgba(var(--tz-color-tertiary-rgb), 0.7);
-  --tz-color-tertiary-shade700: rgba(var(--tz-color-tertiary-rgb), 0.8);
-  --tz-color-tertiary-shade800: rgba(var(--tz-color-tertiary-rgb), 0.9);
-
   /* dark */
   --tz-color-dark-rgb: 5, 100, 114;
   --tz-color-dark: rgb(var(--tz-color-dark-rgb));
@@ -125,7 +113,6 @@
      applyTheme() recomputes these per mode from each color's luminance. */
   --tz-color-primary-contrast: #ffffff;
   --tz-color-secondary-contrast: rgb(var(--tz-color-primary-rgb));
-  --tz-color-tertiary-contrast: #ffffff;
   --tz-color-dark-contrast: #ffffff;
   --tz-color-medium-contrast: #ffffff;
   --tz-color-light-contrast: #ffffff;

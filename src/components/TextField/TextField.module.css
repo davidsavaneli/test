@@ -109,7 +109,7 @@
   opacity: 0.7;
 }
 
-/* helper / validation text — color + size come from <Typography> (tertiary, or error while invalid) */
+/* helper / validation text — color + size come from <Typography> (muted, or error while invalid) */
 .helper {
   margin-top: var(--tz-space-xxs);
 }
@@ -122,7 +122,7 @@
   align-items: center;
   white-space: nowrap;
   padding: 0 var(--tz-space-sm);
-  color: var(--tz-color-tertiary);
+  color: var(--tz-color-primary-shade600);
   font-size: inherit;
 }
 

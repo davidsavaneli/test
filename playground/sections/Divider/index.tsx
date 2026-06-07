@@ -6,9 +6,9 @@ export function DividerSection() {
     <Section>
       <Block label="plain">
         <Col gap={12}>
-          <Typography color="tertiary">Above the line</Typography>
+          <Typography color="muted">Above the line</Typography>
           <Divider />
-          <Typography color="tertiary">Below the line</Typography>
+          <Typography color="muted">Below the line</Typography>
         </Col>
       </Block>
 

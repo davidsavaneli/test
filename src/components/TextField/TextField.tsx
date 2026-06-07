@@ -187,6 +187,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       adornmentNode = (
         <IconButton
           variant="text"
+          color="primary"
           size={size}
           disabled={disabled}
           aria-label={effAdornmentLabel}
@@ -205,6 +206,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       adornmentNode = (
         <IconButton
           variant="text"
+          color="primary"
           size={size}
           disabled={disabled}
           nonClickable
@@ -231,7 +233,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     >
       {label != null && (
         <label htmlFor={id} className={styles.label}>
-          <Typography as="span" variant="bodySmall" color="tertiary">
+          <Typography as="span" variant="bodySmall" color="muted">
             {label}
           </Typography>
           {required && (
@@ -272,7 +274,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
           as="span"
           id={helperId}
           variant="bodySmall"
-          color={resolvedError ? 'error' : 'tertiary'}
+          color={resolvedError ? 'error' : 'muted'}
           className={styles.helper}
         >
           {resolvedHelperText}

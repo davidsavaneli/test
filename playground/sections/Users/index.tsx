@@ -28,7 +28,7 @@ export function UsersListBody() {
   return (
     <Col gap={16}>
       <Row justify="between" gap={12}>
-        <Typography color="tertiary">
+        <Typography color="muted">
           The detail / add / edit routes below are dynamic — none appear in the sidebar.
         </Typography>
         <Button startIcon={<Icon name="Add" />} onClick={() => navigate(go({ to: '/users/new' }))}>
@@ -49,7 +49,7 @@ export function UsersListBody() {
               <Avatar name={u.name} size="sm" />
               <Col gap={2}>
                 <Typography>{u.name}</Typography>
-                <Typography variant="caption" color="tertiary">
+                <Typography variant="caption" color="muted">
                   /users/{u.id}
                 </Typography>
               </Col>
@@ -90,10 +90,10 @@ export function UserDetailBody() {
         <Avatar name={user?.name ?? `User ${userId}`} size="lg" />
         <Col gap={2}>
           <Typography variant="h3">{user?.name ?? `User #${userId}`}</Typography>
-          <Typography color="tertiary">{user?.email ?? `/users/${userId}`}</Typography>
+          <Typography color="muted">{user?.email ?? `/users/${userId}`}</Typography>
         </Col>
       </Row>
-      <Typography variant="bodySmall" color="tertiary">
+      <Typography variant="bodySmall" color="muted">
         This is <code>/users/{userId}</code> — a dynamic <code>$userId</code> route. It routes and
         renders normally; it’s not listed in the sidebar.
       </Typography>
@@ -147,7 +147,7 @@ export function UserFormBody() {
   return (
     <Col gap={16} style={{ maxWidth: 520 }}>
       <Typography variant="h3">{isEdit ? `Edit user #${userId}` : 'New user'}</Typography>
-      <Typography variant="bodySmall" color="tertiary">
+      <Typography variant="bodySmall" color="muted">
         One form for both add (<code>/users/new</code>) and update (<code>/users/$userId/edit</code>
         ) — dynamic routes that stay off the sidebar.
       </Typography>

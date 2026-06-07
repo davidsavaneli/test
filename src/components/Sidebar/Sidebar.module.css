@@ -37,8 +37,8 @@
   flex: none;
   padding: calc(var(--tz-space-xxs) / 2) var(--tz-space-xxs);
   border-radius: var(--tz-radius-sm);
-  background: var(--tz-color-dark);
-  color: var(--tz-color-dark-contrast, #fff);
+  background: var(--tz-color-medium);
+  color: var(--tz-color-medium-contrast, #fff);
   font-size: var(--tz-font-size-xxs);
   font-weight: var(--tz-font-weight-medium);
   line-height: var(--tz-line-height);
@@ -78,7 +78,7 @@
 /* group expand/collapse chevron */
 .chevron {
   flex: none;
-  color: var(--tz-color-tertiary);
+  color: var(--tz-color-primary-shade600);
   transition: transform var(--tz-duration);
 }
 .chevron[data-open='true'] {

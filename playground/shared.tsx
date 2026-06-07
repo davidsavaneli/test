@@ -6,7 +6,6 @@ export const VARIANTS = ['contained', 'filled', 'outlined', 'text'] as const
 export const COLORS = [
   'primary',
   'secondary',
-  'tertiary',
   'dark',
   'medium',
   'light',

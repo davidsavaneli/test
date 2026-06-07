@@ -92,13 +92,12 @@ shades with `rgba()`:
 --tz-color-primary-contrast: #ffffff; /* readable text color on a solid fill */
 ```
 
-**Brand palette (10 colors)** — light-mode defaults:
+**Brand palette (9 colors)** — light-mode defaults:
 
 | token       | hex       | role                         |
 | ----------- | --------- | ---------------------------- |
 | `primary`   | `#13404e` | primary brand / default text |
 | `secondary` | `#f4f9f8` | page background / surface    |
-| `tertiary`  | `#5c7687` | muted accent                 |
 | `dark`      | `#056472` | dark brand shade             |
 | `medium`    | `#039aa1` | mid brand shade              |
 | `light`     | `#adc3c9` | light brand shade            |
@@ -206,7 +205,7 @@ gets a dark label and stays readable.
 ### The `--tz-btn-rgb` / `--tz-btn-on` pattern
 
 `Button` and `IconButton` set **two inline CSS vars** from the `color` prop, then the CSS derives
-all 4 variants × 10 colors with `rgb()`/`rgba()` alpha math — no per-color CSS classes:
+all 4 variants × 9 colors with `rgb()`/`rgba()` alpha math — no per-color CSS classes:
 
 ```tsx
 style={{
@@ -264,8 +263,8 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 
 - **`ThemeConfig`**: `{ colors: { light: ThemePalette; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`.
 - **Dark merge order**: `{ ...light, ...DEFAULT_DARK_COLORS, ...dark }` — app's light palette as
-  base, then the library's built-in dark defaults (`primary #e6e8eb`, `secondary #181c21`,
-  `tertiary #969ca3`), then the app's own dark overrides win.
+  base, then the library's built-in dark defaults (`primary #e6e8eb`, `secondary #181c21`), then the
+  app's own dark overrides win.
 - On mode change (in `useLayoutEffect`): calls `applyTheme(palette)`, sets `data-tz-theme` attr,
   sets CSS `color-scheme`, and persists to `localStorage['tz-theme-mode']`.
 - **`useTheme()`** returns `{ mode, setMode, toggleMode }`. Throws if used outside a provider.
@@ -289,7 +288,7 @@ export type WidgetSize = 'sm' | 'md' | 'lg'
 export interface WidgetProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
   /** JSDoc on EVERY prop — short, English, describes behavior + default. */
   variant?: WidgetVariant
-  /** Brand palette token that tints the control. Defaults to `dark`. */
+  /** Brand palette token that tints the control. Defaults to `medium`. */
   color?: ThemeColor
   size?: WidgetSize
 }
@@ -336,7 +335,7 @@ Rules baked into the pattern:
 | prop           | type                                        | default       | notes                                                                                                                               |
 | -------------- | ------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `variant`      | `'contained'\|'filled'\|'outlined'\|'text'` | `'contained'` | for tintable controls                                                                                                               |
-| `color`        | `ThemeColor`                                | `'dark'`      | brand token; drives `--tz-btn-rgb`. Text/`Typography` default stays `primary` (via `--tz-color-text`).                              |
+| `color`        | `ThemeColor`                                | `'medium'`    | brand token; drives `--tz-btn-rgb`. Text/`Typography` default stays `primary` (via `--tz-color-text`).                              |
 | `size`         | `'sm'\|'md'\|'lg'`                          | `'md'`        | maps to control-height / font / icon size                                                                                           |
 | `loading`      | `boolean`                                   | `false`       | shows `Loader`, sets native `disabled` + `aria-busy`                                                                                |
 | `disabled`     | `boolean`                                   | `false`       | `opacity: 0.5` + `cursor: not-allowed`                                                                                              |
@@ -389,8 +388,9 @@ unless a `color` token is set. `aria-hidden`, `focusable={false}`.
 ### Typography
 
 `variant` (`h1 h2 h3 h4 subtitle body bodySmall caption uppercase`, default `body`) ·
-`as?: ElementType` (override the tag, keep the styling) · `color?: ThemeColor | 'text'` (omit to
-inherit) · `align` · `truncate`. Default element per variant (`h1→h1 … body→p … caption/uppercase→
+`as?: ElementType` (override the tag, keep the styling) · `color?: ThemeColor | 'text' | 'muted'`
+(`muted` = `--tz-color-primary-shade600`, the soft secondary-text color; omit to inherit) · `align` ·
+`truncate`. Default element per variant (`h1→h1 … body→p … caption/uppercase→
 span`). Headings `h1–h4` are bold; everything else is `--tz-font-weight-regular`. No default
 margins.
 
@@ -447,7 +447,7 @@ negative `margin-right` to tighten the gap). NumberField has no CSS of its own; 
 
 A labeled checkbox. The native `<input type="checkbox">` is **visually hidden** (sr-only) but stays
 focusable + announced; a styled `.box` shows the state, and the tick is a **CSS checkmark** (rotated
-corner — no icon dependency). `label` · `color` (checked fill, default `dark`) · `size` (box +
+corner — no icon dependency). `label` · `color` (checked fill, default `medium`) · `size` (box +
 label) · `error` · `required` · `disabled` · `checked`/`defaultChecked` ·
 `onChange(checked)` (emits a `boolean`). Uses the `--tz-btn-rgb`/`--tz-btn-on` pattern: checked →
 `background: rgb(var(--tz-btn-rgb))` with a contrast-colored tick; `:focus-visible` ring; `error`
@@ -469,7 +469,7 @@ A **wrapper** that pins a small count/dot to a child's corner — wrap a `Button
 node): `<Badge content={2}><IconButton…/></Badge>`. `content` (`number | string`) renders a count;
 a `number` is capped to `${max}+` (`max` default `99`) and a numeric `0` is hidden unless `showZero`.
 `dot` renders a plain indicator instead (decorative → `aria-hidden`); `content` wins over `dot`.
-`color` (default `dark`) tints via the **`--tz-btn-rgb` / `--tz-btn-on`** pattern; `placement`
+`color` (default `medium`) tints via the **`--tz-btn-rgb` / `--tz-btn-on`** pattern; `placement`
 (`top-right` default · `top-left` · `bottom-right` · `bottom-left`) picks the corner. The badge has a
 `box-shadow` ring in `--tz-color-background` so it reads as cut-out over the control. Own CSS module.
 
@@ -488,7 +488,7 @@ fade over `--tz-duration`. Takes a single `ReactElement` child (cloned for a11y)
 **Avatar** shows, in priority order: an image (`src` — falls back automatically on load error), an
 `icon` (`IconName` or node), explicit `children` (e.g. initials `"D.S."`), initials derived from
 `name` (`"David Savaneli"` → `"DS"`), else a default `User` icon. `size` (`sm` 32 · `md` 40 · `lg` 48),
-`shape` (`circle` default · `square`), `color` (default `dark`, via `--tz-btn-rgb` / `--tz-btn-on`).
+`shape` (`circle` default · `square`), `color` (default `medium`, via `--tz-btn-rgb` / `--tz-btn-on`).
 a11y: an image renders `<img alt>` (alt ← `alt`/`name`); a non-image avatar with a name gets
 `role="img"` + `aria-label`. **AvatarGroup** overlaps `Avatar` children (negative margin + a
 `--tz-color-background` ring) and collapses the overflow past `max` into a trailing `+N` avatar;
@@ -501,7 +501,7 @@ A separator. Plain: `<Divider />` (full-width 1px line) or `<Divider orientation
 upright rule that stretches inside a flex row). With `children` it becomes a labeled divider
 (`line — title — line`) positioned by `align` (`left` · `center` default · `right`), built with flex +
 `::before`/`::after` lines (the short side uses `--tz-space-md`). Line color `--tz-color-border`,
-label `--tz-color-tertiary` / `font-size-sm` / medium. `role="separator"` (+ `aria-orientation` when
+label `--tz-color-primary-shade600` / `font-size-sm` / medium. `role="separator"` (+ `aria-orientation` when
 vertical); a label is ignored for vertical. Own CSS module.
 
 ### Card
@@ -515,7 +515,7 @@ sets the header apart from the body while expanded. `collapsible` adds an `Arrow
 **actions hide** (only the chevron stays) and the header divider fades out. Controlled (`collapsed` +
 `onCollapsedChange`) or uncontrolled (`defaultCollapsed`). `icon` (an `IconName` or a node) renders in
 a leading **filled, non-clickable `IconButton`** box (decorative → `aria-hidden`), tinted by `color`
-(brand token, default `dark`). `subtitle` is a muted description line under the `title`; both `title`
+(brand token, default `medium`). `subtitle` is a muted description line under the `title`; both `title`
 and `subtitle` clamp to **two lines** then ellipsis (`-webkit-line-clamp`).
 Surface + border + `--tz-radius-md` + `--tz-shadow-xs`. Header omitted entirely when there's no
 title/icon/actions/collapsible. Own CSS module.
@@ -538,7 +538,7 @@ of stretching to fill the row — e.g. a search-filtered gallery), plus `gap`/`a
 ### Chip
 
 A compact pill tag/token. `variant` (`contained` · `filled` **default** · `outlined` · `text`),
-`color` (default `dark`), `size` (`sm`/`md`/`lg`) — tinted via the shared `--tz-btn-rgb` /
+`color` (default `medium`), `size` (`sm`/`md`/`lg`) — tinted via the shared `--tz-btn-rgb` /
 `--tz-btn-on` pattern across the four variants. **Static by default**; `clickable` makes it interactive
 (`role="button"`, pointer + hover, Enter/Space → click), `disabled` dims + inerts it. A leading
 `startIcon` **or** `avatar` (the avatar is sized to the chip and flush-left via a scoped
@@ -553,7 +553,7 @@ doesn't nest. Default variant is `filled` (a deliberate, chip-appropriate deviat
 **`ListItem`** is a flexible, reusable row: a leading `icon` (`IconName` → `<Icon>`, or any node such
 as an `Avatar`), a label (`children`) with an optional muted `description`, and a `trailing` slot
 (icon, `Badge`, shortcut text, chevron). `selected` highlights it (tinted via the `--tz-btn-rgb`
-pattern from `color`, default `dark`) and sets `aria-current`; `clickable` makes it interactive — hover
+pattern from `color`, default `medium`) and sets `aria-current`; `clickable` makes it interactive — hover
 
 - cursor, and when rendered as a **plain** element it also gets `role="button"` + `tabIndex` +
   Enter/Space → click (a native `a`/`button` or a router `Link` keeps its own semantics). `disabled` dims
@@ -711,7 +711,7 @@ forbidden/non-page ancestors render as plain text); the current page is always p
 component is also exported from `sava-test/components` if an app wants the trail elsewhere (the
 `useBreadcrumbs` hook stays internal). **`separator?: IconName | ReactNode`** (default `"ArrowRight4"`):
 a known `IconName` renders as an `<Icon>`, any other string as text, or pass a node.
-Every crumb shares one color (`--tz-color-tertiary`); links darken to `--tz-color-text` and underline
+Every crumb shares one color (`--tz-color-primary-shade600`); links darken to `--tz-color-text` and underline
 on hover.
 
 **RBAC — role-based menu filtering (`src/helpers/access.ts`).** A page declares allowed `accessKeys`

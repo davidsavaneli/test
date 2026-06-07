@@ -60,7 +60,6 @@ const theme = {
     light: {
       primary: '#13404e',
       secondary: '#f4f9f8',
-      tertiary: '#5c7687',
       dark: '#056472',
       medium: '#039aa1',
       light: '#adc3c9',
@@ -82,7 +81,7 @@ createRoot(el).render(
 
 ## 3. Theming
 
-- **10 brand colors** (`ThemeColor`): `primary secondary tertiary dark medium light success error info warning`.
+- **9 brand colors** (`ThemeColor`): `primary secondary dark medium light success error info warning`.
 - `ThemeConfig`: `{ colors: { light: ThemePalette; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`.
   Dark mode merges: app's light palette → library dark defaults → your `dark` overrides.
 - `useTheme()` → `{ mode, setMode, toggleMode }` (must be inside `ThemeProvider`).
@@ -105,7 +104,7 @@ Inherits text color unless `color` is set.
 **Loader** — circular spinner. `size` (16/20/24) · `color?`. Inherits text color.
 
 **Typography** — `variant` (`h1 h2 h3 h4 subtitle body bodySmall caption uppercase`, default `body`) ·
-`as?` (override the tag) · `color?: ThemeColor | 'text'` · `align` · `truncate`. Headings are bold.
+`as?` (override the tag) · `color?: ThemeColor | 'text' | 'muted'` · `align` · `truncate`. Headings are bold.
 
 **TextField** — labeled text input. `label` · `size` · `error` + `helperText` (red state) · `required` ·
 `fullWidth` (**default true**) · `disabled` · `adornment` + `adornmentPosition` (`left`/`right`) — a
@@ -126,11 +125,11 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 **Badge** — wraps a child (e.g. a `Button`/`IconButton`) and pins a count or dot to its corner:
 `<Badge content={2}><IconButton …/></Badge>`. `content` (`number | string`) → a count (numbers cap to
 `${max}+`, `max` default 99; a `0` hides unless `showZero`); `dot` → a plain indicator. `color`
-(default `dark`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
+(default `medium`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
 
 **Card** — a surface card. `title` (clamps to two lines, then ellipsis) · `subtitle` (muted line under
 the title) · `icon` (`IconName`/node, shown in a filled icon box) · `color` (tints the icon box,
-default `dark`) · `actions` (header, right) ·
+default `medium`) · `actions` (header, right) ·
 `footer` (bottom actions, right) · `footerStart` (bottom actions, left) · `children` (body) ·
 `collapsible` (chevron folds the body+footer smoothly;
 header actions hide while collapsed) · `collapsed`/`defaultCollapsed`/`onCollapsedChange`. A subtle

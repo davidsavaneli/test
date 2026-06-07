@@ -21,7 +21,7 @@ export interface CheckboxProps extends Omit<
 > {
   /** Text shown to the right of the box. */
   label?: ReactNode
-  /** Brand palette token used for the checked fill. Defaults to `dark`. */
+  /** Brand palette token used for the checked fill. Defaults to `medium`. */
   color?: ThemeColor
   /** Preset size — box dimensions and label font. */
   size?: CheckboxSize
@@ -47,7 +47,7 @@ export interface CheckboxProps extends Omit<
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
   {
     label,
-    color = 'dark',
+    color = 'medium',
     size = 'md',
     error,
     required = false,

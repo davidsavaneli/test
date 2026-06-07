@@ -1,5 +1,5 @@
 /* Auto-generated breadcrumb trail. Token-only, so it follows the active theme.
-   One uniform color (slightly light = tertiary); links darken + underline on hover. */
+   One uniform color (slightly light = muted); links darken + underline on hover. */
 
 .breadcrumbs {
   margin-bottom: var(--tz-space-sm);
@@ -20,7 +20,7 @@
   align-items: center;
   gap: var(--tz-space-xs);
   min-width: 0;
-  color: var(--tz-color-tertiary);
+  color: var(--tz-color-primary-shade600);
   font-size: var(--tz-font-size-sm);
 }
 

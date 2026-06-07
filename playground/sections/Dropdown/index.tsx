@@ -79,7 +79,7 @@ export function DropdownSection() {
               <Avatar size="sm" name="David Savaneli" />
               <Col gap={2}>
                 <Typography variant="bodySmall">David Savaneli</Typography>
-                <Typography variant="caption" color="tertiary">
+                <Typography variant="caption" color="muted">
                   david@techzy.app
                 </Typography>
               </Col>
@@ -184,7 +184,7 @@ export function DropdownSection() {
       </Block>
 
       <Block label="edge case — trigger near the bottom flips upward automatically">
-        <Typography variant="bodySmall" color="tertiary">
+        <Typography variant="bodySmall" color="muted">
           The button below sits low on the page; opening it positions the menu above when there
           isn’t room beneath.
         </Typography>

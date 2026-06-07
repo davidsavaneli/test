@@ -20,7 +20,7 @@ export interface AvatarGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, '
   max?: number
   /** Size applied to every avatar in the group (incl. the `+N`). Defaults to `md`. */
   size?: AvatarSize
-  /** Brand palette token for the `+N` surplus avatar. Defaults to `dark`. */
+  /** Brand palette token for the `+N` surplus avatar. Defaults to `medium`. */
   color?: ThemeColor
 }
 
@@ -32,7 +32,7 @@ const OVERLAP: Record<AvatarSize, string> = { sm: '-6px', md: '-8px', lg: '-10px
  * Token-only styling.
  */
 export const AvatarGroup = forwardRef<HTMLDivElement, AvatarGroupProps>(function AvatarGroup(
-  { children, max, size = 'md', color = 'dark', className, style, ...props },
+  { children, max, size = 'md', color = 'medium', className, style, ...props },
   ref,
 ) {
   const items = Children.toArray(children).filter(isValidElement) as ReactElement<AvatarProps>[]

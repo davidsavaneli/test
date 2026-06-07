@@ -33,7 +33,6 @@ const STORAGE_KEY = 'tz-theme-mode'
 const DEFAULT_DARK_COLORS: Partial<ThemePalette> = {
   primary: '#e6e8eb',
   secondary: '#181c21',
-  tertiary: '#969ca3',
 }
 
 function getInitialMode(fallback: ThemeMode): ThemeMode {

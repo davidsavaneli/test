@@ -11,7 +11,7 @@ export function CardSection() {
           subtitle="Manage your workspace preferences"
           style={{ maxWidth: 420 }}
         >
-          <Typography color="tertiary">
+          <Typography color="muted">
             A simple surface card with an icon, a title, a subtitle, and body content.
           </Typography>
         </Card>
@@ -20,7 +20,7 @@ export function CardSection() {
       <Block label="icon color + long title (clamps to two lines)">
         <Grid minItemWidth={260} gap={16} align="start">
           <Card icon="Wallet3" color="success" title="Revenue">
-            <Typography color="tertiary" variant="bodySmall">
+            <Typography color="muted" variant="bodySmall">
               Pass a color to tint the leading icon box.
             </Typography>
           </Card>
@@ -29,7 +29,7 @@ export function CardSection() {
             color="warning"
             title="A Long Card Title That Keeps Going And Wraps To At Most Two Lines Before It Truncates"
           >
-            <Typography color="tertiary" variant="bodySmall">
+            <Typography color="muted" variant="bodySmall">
               The title clamps to two lines, then an ellipsis.
             </Typography>
           </Card>
@@ -73,7 +73,7 @@ export function CardSection() {
         >
           <Col gap={4}>
             <Typography>David Savaneli</Typography>
-            <Typography variant="bodySmall" color="tertiary">
+            <Typography variant="bodySmall" color="muted">
               david@techzy.app · Admin
             </Typography>
           </Col>
@@ -97,7 +97,7 @@ export function CardSection() {
         >
           <Col gap={8}>
             <Typography>You have 3 new messages.</Typography>
-            <Typography variant="bodySmall" color="tertiary">
+            <Typography variant="bodySmall" color="muted">
               The body and footer fold away smoothly when collapsed.
             </Typography>
           </Col>

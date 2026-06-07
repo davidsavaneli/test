@@ -56,7 +56,7 @@ export function FormSection() {
     <Section>
       <Block label="validation — submit empty to scroll to the first red field">
         <Col gap={16} style={{ maxWidth: 560 }}>
-          <Typography variant="bodySmall" color="tertiary">
+          <Typography variant="bodySmall" color="muted">
             Press “Sign Up” with fields empty — the page smooth-scrolls to (and focuses) the topmost
             invalid field. Fill the top ones and submit again to watch it jump to the next.
           </Typography>

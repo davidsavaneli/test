@@ -15,7 +15,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title' 
   subtitle?: ReactNode
   /** Leading header icon — a known `IconName` or any node. */
   icon?: IconName | ReactNode
-  /** Brand color that tints the leading icon box. Defaults to `dark`. */
+  /** Brand color that tints the leading icon box. Defaults to `medium`. */
   color?: ThemeColor
   /** Header actions, placed at the end of the header row (before the collapse toggle). */
   actions?: ReactNode
@@ -45,7 +45,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
     title,
     subtitle,
     icon,
-    color = 'dark',
+    color = 'medium',
     actions,
     footer,
     footerStart,

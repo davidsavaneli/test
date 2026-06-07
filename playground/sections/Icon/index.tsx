@@ -36,7 +36,7 @@ export function IconSection() {
           placeholder="Search icons…"
           aria-label="Search icons"
         />
-        <Typography variant="bodySmall" color="tertiary">
+        <Typography variant="bodySmall" color="muted">
           {filtered.length} of {ALL_ICONS.length} icons · click any icon to copy its name
         </Typography>
 

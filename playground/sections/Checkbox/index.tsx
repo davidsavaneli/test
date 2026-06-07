@@ -18,14 +18,14 @@ export function CheckboxSection() {
       <Block label="group (vertical / horizontal)">
         <Row gap={48} wrap align="start">
           <Col gap={12}>
-            <Typography variant="bodySmall" color="tertiary">
+            <Typography variant="bodySmall" color="muted">
               Form Label
             </Typography>
             <Checkbox label="Checkbox 1" />
             <Checkbox label="Checkbox 2" />
           </Col>
           <Col gap={12}>
-            <Typography variant="bodySmall" color="tertiary">
+            <Typography variant="bodySmall" color="muted">
               Form Label
             </Typography>
             <Row gap={24} wrap>

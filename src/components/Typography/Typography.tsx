@@ -22,8 +22,11 @@ export type TypographyVariant =
 
 export type TypographyAlign = 'left' | 'center' | 'right' | 'justify'
 
-/** Text color: a brand palette token, or the semantic `text` role. Omit to inherit the surrounding color. */
-export type TypographyColor = ThemeColor | 'text'
+/**
+ * Text color: a brand palette token, the semantic `text` role, or `muted` (a soft primary shade for
+ * secondary text). Omit to inherit the surrounding color.
+ */
+export type TypographyColor = ThemeColor | 'text' | 'muted'
 
 /** Default HTML element rendered for each variant. Override with the `as` prop. */
 const variantElement: Record<TypographyVariant, ElementType> = {
@@ -41,6 +44,7 @@ const variantElement: Record<TypographyVariant, ElementType> = {
 function resolveColor(color?: TypographyColor): string | undefined {
   if (!color) return undefined
   if (color === 'text') return 'var(--tz-color-text)'
+  if (color === 'muted') return 'var(--tz-color-primary-shade600)'
   return `var(--tz-color-${color})`
 }
 

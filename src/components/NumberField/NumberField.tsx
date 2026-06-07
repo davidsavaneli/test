@@ -259,7 +259,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
     >
       {label != null && (
         <label htmlFor={id} className={fieldStyles.label}>
-          <Typography as="span" variant="bodySmall" color="tertiary">
+          <Typography as="span" variant="bodySmall" color="muted">
             {label}
           </Typography>
           {required && (
@@ -292,6 +292,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
                 stretched to the control height, scaled). The minus glyph is nudged for optical centering. */}
             <IconButton
               variant="filled"
+              color="primary"
               className={fieldStyles.iconButton}
               style={{ marginRight: -2 }}
               disabled={disabled || atMin}
@@ -303,6 +304,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
             </IconButton>
             <IconButton
               variant="filled"
+              color="primary"
               className={fieldStyles.iconButton}
               disabled={disabled || atMax}
               aria-label="Increase"
@@ -320,7 +322,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
           as="span"
           id={helperId}
           variant="bodySmall"
-          color={resolvedError ? 'error' : 'tertiary'}
+          color={resolvedError ? 'error' : 'muted'}
           className={fieldStyles.helper}
         >
           {resolvedHelperText}

@@ -1,7 +1,6 @@
 export interface ThemePalette {
   primary: string
   secondary: string
-  tertiary: string
   dark: string
   medium: string
   light: string

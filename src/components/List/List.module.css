@@ -45,7 +45,7 @@
   align-items: center;
   flex: none;
   /* muted by default; a container can override (e.g. the sidebar sets this to the text color) */
-  color: var(--tz-list-icon-color, var(--tz-color-tertiary));
+  color: var(--tz-list-icon-color, var(--tz-color-primary-shade600));
 }
 
 .itemText {
@@ -70,7 +70,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-size: var(--tz-font-size-xs);
-  color: var(--tz-color-tertiary);
+  color: var(--tz-color-primary-shade600);
   line-height: var(--tz-line-height);
 }
 
@@ -80,7 +80,7 @@
   gap: var(--tz-space-xs);
   flex: none;
   margin-left: auto;
-  color: var(--tz-color-tertiary);
+  color: var(--tz-color-primary-shade600);
 }
 
 /* ── interactive ────────────────────────────────────────────────────────── */

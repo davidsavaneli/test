@@ -33,7 +33,7 @@
   max-width: 100%;
   overflow: hidden;
   font-size: var(--tz-font-size-sm);
-  color: var(--tz-color-tertiary);
+  color: var(--tz-color-primary-shade600);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -45,5 +45,5 @@
 
 .empty {
   padding: var(--tz-space-lg);
-  color: var(--tz-color-tertiary);
+  color: var(--tz-color-primary-shade600);
 }
