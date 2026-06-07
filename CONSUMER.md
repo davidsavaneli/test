@@ -59,7 +59,7 @@ import { ThemeProvider } from 'sava-test/theme'
 const theme = {
   mode: 'light' as const,
   colors: {
-    light: { primary: '#13404e', secondary: '#f4f9f8' }, // only what differs from the defaults
+    light: { primary: '#13404e', secondary: '#f4f9f8' }, // override any subset; the rest use defaults
     dark: { secondary: '#04202b' }, // partial dark overrides; the lib fills the rest
   },
 }
@@ -84,7 +84,7 @@ createRoot(el).render(
   — pass only the colors you want to change.
 - Merge order: light = `defaults → your light`; dark = `merged light → library dark defaults → your dark`.
 - `useTheme()` → `{ mode, setMode, toggleMode }` (must be inside `ThemeProvider`).
-- `<ThemeToggle />` — a ready-made light/dark switch button.
+- `<ThemeToggle />` / `<FullscreenToggle />` — ready-made light/dark and browser-fullscreen switch buttons.
 - **Always pass a color by token name** via the `color` prop (`color="error"`); never hardcode hex.
 - Sizes everywhere are `sm | md | lg` (default `md`).
 

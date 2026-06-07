@@ -99,7 +99,7 @@ references it:
 | token        | hex       | role                                |
 | ------------ | --------- | ----------------------------------- |
 | `primary`    | `#13404e` | primary brand / default text        |
-| `secondary`  | `#f4f9f8` | surface (cards, inputs, dropdowns)  |
+| `secondary`  | `#ffffff` | surface (cards, inputs, dropdowns)  |
 | `background` | `#ffffff` | page canvas — separate from surface |
 | `dark`       | `#033b44` | dark brand shade                    |
 | `medium`     | `#056472` | mid brand shade                     |
