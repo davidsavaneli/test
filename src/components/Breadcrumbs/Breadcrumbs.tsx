@@ -10,8 +10,8 @@ const ICON_NAME_SET = new Set<string>(ICON_NAMES)
 
 export interface BreadcrumbsProps {
   /**
-   * Separator between crumbs. A known `IconName` (e.g. `"ArrowRight4"`) renders as an icon; any other
-   * string renders as plain text; or pass a node. Defaults to `"/"`.
+   * Separator between crumbs. A known `IconName` (the default `"ArrowRight4"`) renders as an icon; any
+   * other string renders as plain text; or pass a node.
    */
   separator?: IconName | ReactNode
 }
@@ -34,7 +34,7 @@ function Separator({ separator }: { separator: IconName | ReactNode }) {
  * `staticData.name`. Intermediate crumbs link to their page when navigable; the current page is
  * plain text. Renders nothing when the current route has no named matches. Token-only styling.
  */
-export function Breadcrumbs({ separator = '/' }: BreadcrumbsProps = {}) {
+export function Breadcrumbs({ separator = 'ArrowRight4' }: BreadcrumbsProps = {}) {
   const { homeTo, items } = useBreadcrumbs()
   if (items.length === 0) return null
 

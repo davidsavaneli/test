@@ -23,7 +23,6 @@
   color: var(--tz-color-text);
   font-size: var(--tz-font-size-md);
   font-weight: var(--tz-font-weight-bold);
-  letter-spacing: 0.06em;
   text-transform: uppercase;
   user-select: none;
 }

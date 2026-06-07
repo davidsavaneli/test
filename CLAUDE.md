@@ -709,8 +709,8 @@ link only when they map to a real navigable menu page (reusing the access-filter
 forbidden/non-page ancestors render as plain text); the current page is always plain text
 (`aria-current="page"`). Renders nothing when the route has no named matches. The `Breadcrumbs`
 component is also exported from `sava-test/components` if an app wants the trail elsewhere (the
-`useBreadcrumbs` hook stays internal). **`separator?: IconName | ReactNode`** (default `"/"`): a known
-`IconName` (e.g. `"ArrowRight4"`) renders as an `<Icon>`, any other string as text, or pass a node.
+`useBreadcrumbs` hook stays internal). **`separator?: IconName | ReactNode`** (default `"ArrowRight4"`):
+a known `IconName` renders as an `<Icon>`, any other string as text, or pass a node.
 Every crumb shares one color (`--tz-color-tertiary`); links darken to `--tz-color-text` and underline
 on hover.
 

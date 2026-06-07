@@ -264,8 +264,8 @@ peer: `npm i @tanstack/react-router` (>=1).
   you don't place it yourself).
 - **`Breadcrumbs`** — auto-rendered above the page title. Starts with a home icon (links to the first
   allowed page) + a crumb per matched route with a `staticData.name`; the current page is plain text.
-  `separator?: IconName | ReactNode` (default `"/"`) — an `IconName` like `"ArrowRight4"` renders as an
-  icon. Also exported from `sava-test/components` if you want to place it yourself.
+  `separator?: IconName | ReactNode` (default `"ArrowRight4"`) — an `IconName` renders as an icon, any
+  other string as text. Also exported from `sava-test/components` if you want to place it yourself.
 - **`FirstRouteRedirect`** — use as the `/` route's component; forwards to the first menu item.
 - Each route self-registers via **`staticData`** (typed once you import from the package):
   `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }`. No `name`

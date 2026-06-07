@@ -41,6 +41,12 @@
   color: inherit;
 }
 
+/* a smaller icon separator (overrides the Icon size preset; text separators ignore width/height) */
+.separator.separator {
+  width: 12px;
+  height: 12px;
+}
+
 .link {
   color: inherit;
   text-decoration: none;

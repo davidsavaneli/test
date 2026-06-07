@@ -94,9 +94,9 @@
 
 .content {
   flex: 1;
-  padding: var(--tz-space-xl);
+  padding: var(--tz-space-lg) var(--tz-space-xl) var(--tz-space-xl);
 }
 
 .pageTitle {
-  margin: 0 0 var(--tz-space-lg);
+  margin: 0 0 var(--tz-space-md);
 }
