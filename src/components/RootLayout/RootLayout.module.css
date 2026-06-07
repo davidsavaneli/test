@@ -25,7 +25,7 @@
   height: 100vh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  background: var(--tz-color-surface);
+  background: var(--tz-color-background);
   border-right: 1px solid var(--tz-color-border);
   overflow: hidden;
   transition: width var(--tz-duration);
@@ -67,7 +67,7 @@
   gap: var(--tz-space-xs);
   height: calc(var(--tz-control-height-md) + var(--tz-space-md));
   padding: 0 var(--tz-space-xl);
-  background: var(--tz-color-surface);
+  background: var(--tz-color-background);
   border-bottom: 1px solid var(--tz-color-border);
 }
 

@@ -1,8 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 :root {
+  /* Brand color VALUES (the `-rgb` triplets) are NOT declared here — ThemeProvider injects them onto
+     <html> at runtime from DEFAULT_LIGHT_COLORS (+ the app's overrides, + the dark deltas), via
+     applyTheme. This file defines only the *structure* that references them: each solid
+     `--tz-color-<name>`, its shade scale, and the contrast fallbacks. */
+
   /* primary */
-  --tz-color-primary-rgb: 19, 64, 78;
   --tz-color-primary: rgb(var(--tz-color-primary-rgb));
   --tz-color-primary-shade100: rgba(var(--tz-color-primary-rgb), 0.06);
   --tz-color-primary-shade200: rgba(var(--tz-color-primary-rgb), 0.1);
@@ -14,7 +18,6 @@
   --tz-color-primary-shade800: rgba(var(--tz-color-primary-rgb), 0.9);
 
   /* secondary */
-  --tz-color-secondary-rgb: 244, 249, 248;
   --tz-color-secondary: rgb(var(--tz-color-secondary-rgb));
   --tz-color-secondary-shade100: rgba(var(--tz-color-secondary-rgb), 0.06);
   --tz-color-secondary-shade200: rgba(var(--tz-color-secondary-rgb), 0.1);
@@ -25,8 +28,19 @@
   --tz-color-secondary-shade700: rgba(var(--tz-color-secondary-rgb), 0.8);
   --tz-color-secondary-shade800: rgba(var(--tz-color-secondary-rgb), 0.9);
 
+  /* background — page canvas (body / shell). Separate from `secondary` (surface): white in light
+     mode, a deep dark in dark mode. Overridable per mode via ThemeProvider like any brand color. */
+  --tz-color-background: rgb(var(--tz-color-background-rgb));
+  --tz-color-background-shade100: rgba(var(--tz-color-background-rgb), 0.06);
+  --tz-color-background-shade200: rgba(var(--tz-color-background-rgb), 0.1);
+  --tz-color-background-shade300: rgba(var(--tz-color-background-rgb), 0.14);
+  --tz-color-background-shade400: rgba(var(--tz-color-background-rgb), 0.3);
+  --tz-color-background-shade500: rgba(var(--tz-color-background-rgb), 0.5);
+  --tz-color-background-shade600: rgba(var(--tz-color-background-rgb), 0.7);
+  --tz-color-background-shade700: rgba(var(--tz-color-background-rgb), 0.8);
+  --tz-color-background-shade800: rgba(var(--tz-color-background-rgb), 0.9);
+
   /* dark */
-  --tz-color-dark-rgb: 3, 59, 68;
   --tz-color-dark: rgb(var(--tz-color-dark-rgb));
   --tz-color-dark-shade100: rgba(var(--tz-color-dark-rgb), 0.06);
   --tz-color-dark-shade200: rgba(var(--tz-color-dark-rgb), 0.1);
@@ -38,7 +52,6 @@
   --tz-color-dark-shade800: rgba(var(--tz-color-dark-rgb), 0.9);
 
   /* medium */
-  --tz-color-medium-rgb: 5, 100, 114;
   --tz-color-medium: rgb(var(--tz-color-medium-rgb));
   --tz-color-medium-shade100: rgba(var(--tz-color-medium-rgb), 0.06);
   --tz-color-medium-shade200: rgba(var(--tz-color-medium-rgb), 0.1);
@@ -50,7 +63,6 @@
   --tz-color-medium-shade800: rgba(var(--tz-color-medium-rgb), 0.9);
 
   /* light */
-  --tz-color-light-rgb: 3, 154, 161;
   --tz-color-light: rgb(var(--tz-color-light-rgb));
   --tz-color-light-shade100: rgba(var(--tz-color-light-rgb), 0.06);
   --tz-color-light-shade200: rgba(var(--tz-color-light-rgb), 0.1);
@@ -62,7 +74,6 @@
   --tz-color-light-shade800: rgba(var(--tz-color-light-rgb), 0.9);
 
   /* success */
-  --tz-color-success-rgb: 0, 168, 84;
   --tz-color-success: rgb(var(--tz-color-success-rgb));
   --tz-color-success-shade100: rgba(var(--tz-color-success-rgb), 0.06);
   --tz-color-success-shade200: rgba(var(--tz-color-success-rgb), 0.1);
@@ -74,7 +85,6 @@
   --tz-color-success-shade800: rgba(var(--tz-color-success-rgb), 0.9);
 
   /* error */
-  --tz-color-error-rgb: 240, 65, 52;
   --tz-color-error: rgb(var(--tz-color-error-rgb));
   --tz-color-error-shade100: rgba(var(--tz-color-error-rgb), 0.06);
   --tz-color-error-shade200: rgba(var(--tz-color-error-rgb), 0.1);
@@ -86,7 +96,6 @@
   --tz-color-error-shade800: rgba(var(--tz-color-error-rgb), 0.9);
 
   /* info */
-  --tz-color-info-rgb: 3, 154, 161;
   --tz-color-info: rgb(var(--tz-color-info-rgb));
   --tz-color-info-shade100: rgba(var(--tz-color-info-rgb), 0.06);
   --tz-color-info-shade200: rgba(var(--tz-color-info-rgb), 0.1);
@@ -98,7 +107,6 @@
   --tz-color-info-shade800: rgba(var(--tz-color-info-rgb), 0.9);
 
   /* warning */
-  --tz-color-warning-rgb: 255, 191, 0;
   --tz-color-warning: rgb(var(--tz-color-warning-rgb));
   --tz-color-warning-shade100: rgba(var(--tz-color-warning-rgb), 0.06);
   --tz-color-warning-shade200: rgba(var(--tz-color-warning-rgb), 0.1);
@@ -113,6 +121,7 @@
      applyTheme() recomputes these per mode from each color's luminance. */
   --tz-color-primary-contrast: #ffffff;
   --tz-color-secondary-contrast: rgb(var(--tz-color-primary-rgb));
+  --tz-color-background-contrast: #04202b;
   --tz-color-dark-contrast: #ffffff;
   --tz-color-medium-contrast: #ffffff;
   --tz-color-light-contrast: #ffffff;
@@ -121,10 +130,10 @@
   --tz-color-info-contrast: #ffffff;
   --tz-color-warning-contrast: #ffffff;
 
-  /* semantic — derived from brand; flip automatically when the palette is swapped per mode */
+  /* semantic — derived from brand; flip automatically when the palette is swapped per mode.
+     (Surfaces use `--tz-color-secondary` directly; the page canvas is its own `--tz-color-background`
+     brand color above.) */
   --tz-color-text: rgb(var(--tz-color-primary-rgb));
-  --tz-color-background: rgb(var(--tz-color-secondary-rgb));
-  --tz-color-surface: rgb(var(--tz-color-secondary-rgb));
   --tz-color-border: rgba(var(--tz-color-primary-rgb), 0.12);
 
   /* typography */

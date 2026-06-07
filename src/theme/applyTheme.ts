@@ -1,6 +1,11 @@
 export interface ThemePalette {
   primary: string
   secondary: string
+  /**
+   * Page canvas color (the body / shell background) — separate from `secondary` (surface). Built-in
+   * defaults: white in light mode, a deep dark (darker than `dark`) in dark mode.
+   */
+  background: string
   dark: string
   medium: string
   light: string

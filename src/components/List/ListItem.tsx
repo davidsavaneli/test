@@ -39,7 +39,7 @@ export interface ListItemProps
   disabled?: boolean
   /** Row size — height / padding / font. Defaults to `md`. */
   size?: ListItemSize
-  /** Brand color for the selected tint and clickable hover. Defaults to `medium`. */
+  /** Brand color for the selected tint and clickable hover. Defaults to `primary`. */
   color?: ThemeColor
   /** Render a different element/component — e.g. `'a'`, `'button'`, or a router `Link`. Defaults to `div`. */
   as?: ElementType
@@ -62,7 +62,7 @@ export const ListItem = forwardRef<HTMLElement, ListItemProps>(function ListItem
     clickable = false,
     disabled = false,
     size: sizeProp,
-    color = 'medium',
+    color = 'primary',
     as,
     className,
     style,

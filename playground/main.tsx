@@ -11,7 +11,8 @@ const themeConfig: ThemeConfig = {
   colors: {
     light: {
       primary: '#13404e',
-      secondary: '#f4f9f8',
+      secondary: '#ffffff',
+      background: '#ffffff',
       dark: '#033b44',
       medium: '#056472',
       light: '#039aa1',
@@ -21,7 +22,17 @@ const themeConfig: ThemeConfig = {
       warning: '#ffbf00',
     },
     dark: {
-      secondary: '#04202b',
+      primary: '#e6e8eb',
+      secondary: '#1F1F1E',
+      background: '#1F1F1E',
+      // background: '#04191d',
+      dark: '#033b44',
+      medium: '#056472',
+      light: '#039aa1',
+      success: '#00a854',
+      error: '#f04134',
+      info: '#039aa1',
+      warning: '#ffbf00',
     },
   },
 }

@@ -54,25 +54,18 @@ import 'sava-test/css/reset.css' // global reset
 import 'sava-test/css/styles.css' // design tokens + base styles
 import { ThemeProvider } from 'sava-test/theme'
 
+// The library ships a complete Techzy theme (light + dark). Override any subset — or omit `config`
+// entirely to use the defaults.
 const theme = {
   mode: 'light' as const,
   colors: {
-    light: {
-      primary: '#13404e',
-      secondary: '#f4f9f8',
-      dark: '#033b44',
-      medium: '#056472',
-      light: '#039aa1',
-      success: '#00a854',
-      error: '#f04134',
-      info: '#039aa1',
-      warning: '#ffbf00',
-    },
-    dark: { secondary: '#04202b' }, // partial dark overrides; the lib fills sensible dark defaults
+    light: { primary: '#13404e', secondary: '#f4f9f8' }, // only what differs from the defaults
+    dark: { secondary: '#04202b' }, // partial dark overrides; the lib fills the rest
   },
 }
 
 createRoot(el).render(
+  // …or simply <ThemeProvider><App /></ThemeProvider> for the built-in theme
   <ThemeProvider config={theme}>
     <App />
   </ThemeProvider>,
@@ -81,9 +74,15 @@ createRoot(el).render(
 
 ## 3. Theming
 
-- **9 brand colors** (`ThemeColor`): `primary secondary dark medium light success error info warning`.
-- `ThemeConfig`: `{ colors: { light: ThemePalette; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`.
-  Dark mode merges: app's light palette → library dark defaults → your `dark` overrides.
+- **10 brand colors** (`ThemeColor`): `primary secondary background dark medium light success error info warning`.
+- `background` is the **page canvas** (body, shell, sidebar, header, `PageLayout`); the elevated
+  surfaces on top of it (cards, inputs, dropdowns) use `secondary`. Defaults to white in light mode
+  and a deep dark in dark mode; override it per mode like any color.
+- **Built-in defaults live in the library** (`DEFAULT_LIGHT_COLORS` + `DEFAULT_DARK_COLORS`), so the
+  theme works with **no config**. `ThemeConfig` is all-optional:
+  `{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`
+  — pass only the colors you want to change.
+- Merge order: light = `defaults → your light`; dark = `merged light → library dark defaults → your dark`.
 - `useTheme()` → `{ mode, setMode, toggleMode }` (must be inside `ThemeProvider`).
 - `<ThemeToggle />` — a ready-made light/dark switch button.
 - **Always pass a color by token name** via the `color` prop (`color="error"`); never hardcode hex.
@@ -256,7 +255,7 @@ peer: `npm i @tanstack/react-router` (>=1).
   (default `true`) shows the `ThemeToggle`; `onLogout` adds an account avatar whose menu has a **Sign
   out** item (calls `onLogout`); `user` adds a name+email header in that menu (avatar = a user icon, or `user.avatar` image). The content area auto-stacks
   **`Breadcrumbs` → the page title (the active route's `staticData.name`, as an `h2`) → your page**.
-- **`PageLayout`** — the surface-card container your page body sits in (border + radius + padding).
+- **`PageLayout`** — the container your page body sits in (border + radius + padding); uses the page `background`, so cards/inputs inside read as elevated.
   Wrap each route's content: `<PageLayout>…</PageLayout>`. Extends `HTMLAttributes<HTMLDivElement>`,
   exported named **and** default from `sava-test/components` (and `sava-test/components/PageLayout`).
 - **`Sidebar`** — auto-builds the menu from the routes' `staticData` (rendered inside `RootLayout`;

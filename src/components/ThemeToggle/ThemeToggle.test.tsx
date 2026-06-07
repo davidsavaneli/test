@@ -8,6 +8,7 @@ import { ThemeToggle } from './ThemeToggle'
 const LIGHT: ThemePalette = {
   primary: '#13404e',
   secondary: '#f4f9f8',
+  background: '#ffffff',
   dark: '#056472',
   medium: '#039aa1',
   light: '#adc3c9',

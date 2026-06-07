@@ -6,6 +6,7 @@ import type { ThemePalette } from './applyTheme'
 const LIGHT: ThemePalette = {
   primary: '#13404e',
   secondary: '#f4f9f8',
+  background: '#ffffff',
   dark: '#056472',
   medium: '#039aa1',
   light: '#adc3c9',
@@ -39,6 +40,8 @@ describe('ThemeProvider', () => {
     )
     expect(root().getAttribute('data-tz-theme')).toBe('light')
     expect(cssVar('--tz-color-primary-rgb')).toBe('19, 64, 78')
+    // the dedicated page-canvas color defaults to white in light mode
+    expect(cssVar('--tz-color-background-rgb')).toBe('255, 255, 255')
     expect(localStorage.getItem('tz-theme-mode')).toBe('light')
   })
 
@@ -62,6 +65,8 @@ describe('ThemeProvider', () => {
     )
     // DEFAULT_DARK_COLORS.primary = #e6e8eb -> 230, 232, 235
     expect(cssVar('--tz-color-primary-rgb')).toBe('230, 232, 235')
+    // DEFAULT_DARK_COLORS.background = #1F1F1E -> 31, 31, 30 (dark page canvas)
+    expect(cssVar('--tz-color-background-rgb')).toBe('31, 31, 30')
   })
 
   it('lets the app dark override win over the library default', () => {
@@ -84,6 +89,30 @@ describe('ThemeProvider', () => {
       </ThemeProvider>,
     )
     expect(root().getAttribute('data-tz-theme')).toBe('dark')
+  })
+
+  it('uses the built-in default palette when no config is given', () => {
+    render(
+      <ThemeProvider>
+        <Toggle />
+      </ThemeProvider>,
+    )
+    expect(root().getAttribute('data-tz-theme')).toBe('light')
+    // DEFAULT_LIGHT_COLORS.primary = #13404e -> 19, 64, 78
+    expect(cssVar('--tz-color-primary-rgb')).toBe('19, 64, 78')
+    // DEFAULT_LIGHT_COLORS.background = #ffffff -> 255, 255, 255
+    expect(cssVar('--tz-color-background-rgb')).toBe('255, 255, 255')
+  })
+
+  it('merges a partial light override onto the built-in defaults', () => {
+    render(
+      <ThemeProvider config={{ colors: { light: { primary: '#000000' } } }}>
+        <Toggle />
+      </ThemeProvider>,
+    )
+    expect(cssVar('--tz-color-primary-rgb')).toBe('0, 0, 0') // overridden
+    // a color not in the override is filled from DEFAULT_LIGHT_COLORS (medium = #056472)
+    expect(cssVar('--tz-color-medium-rgb')).toBe('5, 100, 114')
   })
 
   it('throws when useTheme is called outside a provider', () => {

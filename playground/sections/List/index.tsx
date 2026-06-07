@@ -7,7 +7,7 @@ const panel = {
   width: 260,
   border: '1px solid var(--tz-color-border)',
   borderRadius: 'var(--tz-radius-md)',
-  background: 'var(--tz-color-surface)',
+  background: 'var(--tz-color-secondary)',
   boxShadow: 'var(--tz-shadow-md)',
 } as const
 

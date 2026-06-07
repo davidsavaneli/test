@@ -40,11 +40,11 @@ src/
     RootLayout/           # admin shell (sidebar + header + content)
     Sidebar/              # auto-generated nav (Sidebar + FirstRouteRedirect + buildNavTree + nav hooks)
     Breadcrumbs/          # auto-generated breadcrumb trail (home → module → group → page)
-    PageLayout/           # surface-card container a page's body sits in
+    PageLayout/           # page-canvas container a page's body sits in
     index.ts              # re-exports every component (UI + shell)
   theme/
     applyTheme.ts         # ThemePalette type, hex→rgb, contrast logic, applyTheme()
-    ThemeProvider.tsx     # ThemeProvider, useTheme, ThemeConfig, dark-mode merge
+    ThemeProvider.tsx     # ThemeProvider, useTheme, ThemeConfig, DEFAULT_LIGHT/DARK_COLORS, mode merge
     index.ts
   hooks/
     useDisclosure.ts      # example hook (open/close/toggle)
@@ -63,7 +63,7 @@ src/
     components.ts hooks.ts theme.ts icons.ts helpers.ts
   styles/
     reset.css             # global reset (consumer imports once)
-    theme.css             # all --tz-* design tokens (consumer imports once)
+    theme.css             # --tz-* token structure (solids/shades/contrast); color values come from TS
     general.css           # base body styles (consumer imports once)
   css-modules.d.ts        # ambient decls for *.module.css and *.css
   index.ts                # root entry: re-exports every subpath (see §10 for the exports map)
@@ -81,32 +81,36 @@ literal** color, size, radius, spacing, shadow, z-index, or duration in a compon
 
 ### 3.1 Color model — RGB triplets
 
-Each brand color is stored as a **comma-separated RGB triplet** (not hex) so we can derive alpha
-shades with `rgba()`:
+Each brand color resolves to a **comma-separated RGB triplet** (not hex) so we can derive alpha shades
+with `rgba()`. The triplet itself is **injected at runtime** by `ThemeProvider` (from
+`DEFAULT_LIGHT_COLORS` + the app's overrides — see §5); `theme.css` declares only the structure that
+references it:
 
 ```css
---tz-color-primary-rgb: 19, 64, 78; /* the triplet */
---tz-color-primary: rgb(var(--tz-color-primary-rgb)); /* solid convenience */
---tz-color-primary-shade100: rgba(var(--tz-color-primary-rgb), 0.06);
+--tz-color-primary-rgb: 19, 64, 78; /* the triplet — injected by ThemeProvider, NOT in theme.css */
+--tz-color-primary: rgb(var(--tz-color-primary-rgb)); /* solid convenience (in theme.css) */
+--tz-color-primary-shade100: rgba(var(--tz-color-primary-rgb), 0.06); /* shades (in theme.css) */
 /* ...shade200..shade800 */
---tz-color-primary-contrast: #ffffff; /* readable text color on a solid fill */
+--tz-color-primary-contrast: #ffffff; /* readable text color on a solid fill (theme.css fallback) */
 ```
 
-**Brand palette (9 colors)** — light-mode defaults:
+**Brand palette (10 colors)** — light-mode defaults:
 
-| token       | hex       | role                         |
-| ----------- | --------- | ---------------------------- |
-| `primary`   | `#13404e` | primary brand / default text |
-| `secondary` | `#f4f9f8` | page background / surface    |
-| `dark`      | `#033b44` | dark brand shade             |
-| `medium`    | `#056472` | mid brand shade              |
-| `light`     | `#039aa1` | light brand shade            |
-| `success`   | `#00a854` | semantic — success           |
-| `error`     | `#f04134` | semantic — error/danger      |
-| `info`      | `#039aa1` | semantic — info              |
-| `warning`   | `#ffbf00` | semantic — warning           |
+| token        | hex       | role                                |
+| ------------ | --------- | ----------------------------------- |
+| `primary`    | `#13404e` | primary brand / default text        |
+| `secondary`  | `#f4f9f8` | surface (cards, inputs, dropdowns)  |
+| `background` | `#ffffff` | page canvas — separate from surface |
+| `dark`       | `#033b44` | dark brand shade                    |
+| `medium`     | `#056472` | mid brand shade                     |
+| `light`      | `#039aa1` | light brand shade                   |
+| `success`    | `#00a854` | semantic — success                  |
+| `error`      | `#f04134` | semantic — error/danger             |
+| `info`       | `#039aa1` | semantic — info                     |
+| `warning`    | `#ffbf00` | semantic — warning                  |
 
-> The hex values above are the library's built-in defaults. Consuming apps override them through
+> These hex values are the library's built-in light defaults — they live in `DEFAULT_LIGHT_COLORS`
+> (`ThemeProvider.tsx`), the single source of truth. Consuming apps override any subset through
 > `ThemeProvider` (see §5). Components must reference colors by **token name**, never by hex.
 
 **Shade scale** (alpha applied to the color's triplet) — same steps for every color:
@@ -120,18 +124,20 @@ shades with `rgba()`:
 
 **Contrast tokens** (`--tz-color-<name>-contrast`): the text color that stays legible on top of
 that color used as a solid fill. Used by `contained` controls. Defaults are mostly `#ffffff`;
-`secondary-contrast` is `rgb(var(--tz-color-primary-rgb))`. These are **recomputed per mode** by
-`applyTheme()` — see §4.
+`secondary-contrast` is `rgb(var(--tz-color-primary-rgb))` and `background-contrast` is `#04202b`
+(dark text on the white canvas). These are **recomputed per mode** by `applyTheme()` — see §4.
 
 ### 3.2 Semantic colors
 
-Derived from brand tokens so they flip automatically when the palette is swapped per mode:
+Just two thin aliases derived from brand tokens, so they flip automatically when the palette is
+swapped per mode. There's **no** `--tz-color-surface` — surfaces (cards, inputs, dropdowns) use
+`--tz-color-secondary` directly; and the page canvas is its own `--tz-color-background` brand color
+(see §3.1). The whole shell (sidebar, header, content) and `PageLayout` use `--tz-color-background`,
+so only cards/inputs/dropdowns (`--tz-color-secondary`) read as elevated:
 
 ```css
---tz-color-text: rgb(var(--tz-color-primary-rgb));
---tz-color-background: rgb(var(--tz-color-secondary-rgb));
---tz-color-surface: rgb(var(--tz-color-secondary-rgb));
---tz-color-border: rgba(var(--tz-color-primary-rgb), 0.12);
+--tz-color-text: rgb(var(--tz-color-primary-rgb)); /* = primary, the default text color */
+--tz-color-border: rgba(var(--tz-color-primary-rgb), 0.12); /* hairline rules / control borders */
 ```
 
 ### 3.3 Typography tokens
@@ -205,7 +211,7 @@ gets a dark label and stays readable.
 ### The `--tz-btn-rgb` / `--tz-btn-on` pattern
 
 `Button` and `IconButton` set **two inline CSS vars** from the `color` prop, then the CSS derives
-all 4 variants × 9 colors with `rgb()`/`rgba()` alpha math — no per-color CSS classes:
+all 4 variants × 10 colors with `rgb()`/`rgba()` alpha math — no per-color CSS classes:
 
 ```tsx
 style={{
@@ -256,19 +262,31 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 ## 5. Theming (`ThemeProvider` / `useTheme`)
 
 ```tsx
-<ThemeProvider config={{ mode: 'light', colors: { light: {...}, dark: {...} } }}>
+// fully themed — or just <ThemeProvider><App/></ThemeProvider> to use the built-in Techzy theme
+<ThemeProvider config={{ mode: 'light', colors: { light: { primary: '#...' }, dark: {...} } }}>
   <App />
 </ThemeProvider>
 ```
 
-- **`ThemeConfig`**: `{ colors: { light: ThemePalette; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`.
-- **Dark merge order**: `{ ...light, ...DEFAULT_DARK_COLORS, ...dark }` — app's light palette as
-  base, then the library's built-in dark defaults (`primary #e6e8eb`, `secondary #181c21`), then the
-  app's own dark overrides win.
-- On mode change (in `useLayoutEffect`): calls `applyTheme(palette)`, sets `data-tz-theme` attr,
-  sets CSS `color-scheme`, and persists to `localStorage['tz-theme-mode']`.
+- **Default palettes live in TS, in `ThemeProvider.tsx`** — `DEFAULT_LIGHT_COLORS` (the full built-in
+  light palette = the single source of truth for every brand color's default value) and
+  `DEFAULT_DARK_COLORS` (only the colors that differ in dark: `primary #e6e8eb`, `secondary #181c21`,
+  `background #1F1F1E`). `theme.css` holds **no** color values — only the structure (solids, shades,
+  contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
+- **`ThemeConfig`**: `{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`
+  — everything optional. Omit `config` entirely (or `colors`) to ship the built-in theme; override any
+  **subset** of either palette.
+- **Light merge**: `{ ...DEFAULT_LIGHT_COLORS, ...config.colors.light }` — built-in defaults as base,
+  the app's light overrides win.
+- **Dark merge**: `{ ...light, ...DEFAULT_DARK_COLORS, ...config.colors.dark }` — the merged light
+  palette as base, then the library's dark deltas, then the app's own dark overrides win.
+- On mode change (in `useLayoutEffect`, before paint): calls `applyTheme(palette)`, sets
+  `data-tz-theme` attr, sets CSS `color-scheme`, and persists to `localStorage['tz-theme-mode']`.
 - **`useTheme()`** returns `{ mode, setMode, toggleMode }`. Throws if used outside a provider.
 - Initial mode = stored value if present, else `config.mode`, else `'light'`.
+- **No-JS note:** because the triplet values are injected by `applyTheme` (not declared in `theme.css`),
+  colors require `ThemeProvider` to have mounted. It runs in `useLayoutEffect` (before first paint), so
+  there's no flash in a normal CSR app; importing the CSS alone (no provider) yields no brand colors.
 
 ---
 
@@ -553,7 +571,7 @@ doesn't nest. Default variant is `filled` (a deliberate, chip-appropriate deviat
 **`ListItem`** is a flexible, reusable row: a leading `icon` (`IconName` → `<Icon>`, or any node such
 as an `Avatar`), a label (`children`) with an optional muted `description`, and a `trailing` slot
 (icon, `Badge`, shortcut text, chevron). `selected` highlights it (tinted via the `--tz-btn-rgb`
-pattern from `color`, default `medium`) and sets `aria-current`; `clickable` makes it interactive — hover
+pattern from `color`, default `primary`) and sets `aria-current`; `clickable` makes it interactive — hover
 
 - cursor, and when rendered as a **plain** element it also gets `role="button"` + `tabIndex` +
   Enter/Space → click (a native `a`/`button` or a router `Link` keeps its own semantics). `disabled` dims
@@ -670,7 +688,9 @@ bridged by a small typed `NavLink` cast since `to` is router-specific); the acti
 `ListItem selected`, leaves use dot bullets (no icons) at `size="md"`, and an expandable group's leaf
 `List` folds with the same smooth `grid-template-rows: 1fr → 0fr` transition as `Card` (chevron
 `ArrowDown4`). The module label is a dark, `md`, uppercase heading (no icon). **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item. **`PageLayout`**
-is a plain surface-card container (`border` + `radius` + `padding`, token-only) for a page's content;
+is a plain container on the page `background` (`border` + `radius` + `padding`, token-only) for a
+page's content — the whole shell (sidebar, header, content) and `PageLayout` share
+`--tz-color-background`, so only cards/inputs/dropdowns (`--tz-color-secondary`) read as elevated;
 it extends `HTMLAttributes<HTMLDivElement>` and ships named **and** default from
 `sava-test/components/PageLayout`.
 
