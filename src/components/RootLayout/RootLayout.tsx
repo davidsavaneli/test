@@ -27,7 +27,10 @@ export interface RootLayoutUser {
 export interface RootLayoutHeader {
   /** Show the built-in light/dark theme toggle on the right of the header. Defaults to `true`. */
   theme?: boolean
-  /** Show the built-in browser-fullscreen toggle next to the theme toggle. Defaults to `true`. */
+  /**
+   * Show the built-in browser-fullscreen toggle next to the theme toggle. Defaults to `true`. The
+   * toggle auto-hides where the Fullscreen API is unavailable (e.g. iOS Safari on iPhone).
+   */
   fullscreen?: boolean
   /** When provided, an account `Avatar` appears on the right; its menu has a **Sign out** item that calls this. */
   onLogout?: () => void

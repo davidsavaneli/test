@@ -486,7 +486,9 @@ in dark; flips `mode` via `useTheme().toggleMode` on click. `role="switch"`, `ar
 Wraps `IconButton` (default `variant="outlined"`), mirroring `ThemeToggle`. Toggles the browser
 **Fullscreen API** on click — `document.documentElement.requestFullscreen()` to maximize,
 `document.exitFullscreen()` to restore — and flips its `Maximize3` icon 180° while fullscreen (so it
-reads as "minimize"), keeping state in sync via the `fullscreenchange` event. Both calls are `?.`-guarded (no-op where the
+reads as "minimize"), keeping state in sync via the `fullscreenchange` event. **Renders nothing where
+the Fullscreen API is unavailable** (e.g. iOS Safari on iPhone), so it auto-hides on devices that
+can't go fullscreen. Both calls are `?.`-guarded (no-op where the
 API is unavailable) and `.catch`-swallowed (a blocked request is ignored). `role="switch"`,
 `aria-checked`, `aria-label="Toggle fullscreen"`. Props = `Omit<IconButtonProps, 'children'>`.
 

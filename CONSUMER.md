@@ -122,7 +122,8 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 **ThemeToggle** — wraps `IconButton`; flips the theme mode. Pass-through `variant`/`color`/`size`.
 
 **FullscreenToggle** — wraps `IconButton`; toggles the browser **Fullscreen API** (maximize / exit)
-and flips its icon 180° to match. Same pass-through props as `ThemeToggle`.
+and flips its icon 180° to match. Auto-hides where the API is unavailable (e.g. iPhone). Same
+pass-through props as `ThemeToggle`.
 
 **Badge** — wraps a child (e.g. a `Button`/`IconButton`) and pins a count or dot to its corner:
 `<Badge content={2}><IconButton …/></Badge>`. `content` (`number | string`) → a count (numbers cap to

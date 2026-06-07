@@ -50,4 +50,13 @@ describe('FullscreenToggle', () => {
     fireEvent.click(toggle)
     expect(exitFs).toHaveBeenCalledTimes(1)
   })
+
+  it('renders nothing where the Fullscreen API is unavailable (e.g. iOS Safari)', () => {
+    Object.defineProperty(document.documentElement, 'requestFullscreen', {
+      configurable: true,
+      value: undefined,
+    })
+    const { container } = render(<FullscreenToggle />)
+    expect(container).toBeEmptyDOMElement()
+  })
 })
