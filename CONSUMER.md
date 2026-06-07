@@ -121,6 +121,9 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 
 **ThemeToggle** — wraps `IconButton`; flips the theme mode. Pass-through `variant`/`color`/`size`.
 
+**FullscreenToggle** — wraps `IconButton`; toggles the browser **Fullscreen API** (maximize / exit)
+and flips its icon 180° to match. Same pass-through props as `ThemeToggle`.
+
 **Badge** — wraps a child (e.g. a `Button`/`IconButton`) and pins a count or dot to its corner:
 `<Badge content={2}><IconButton …/></Badge>`. `content` (`number | string`) → a count (numbers cap to
 `${max}+`, `max` default 99; a `0` hides unless `showZero`); `dot` → a plain indicator. `color`
@@ -251,8 +254,9 @@ peer: `npm i @tanstack/react-router` (>=1).
 - **`RootLayout`** — `logo?`, `header?`, `children`. Set it as the **root route's** component and pass
   `<Outlet/>`. Renders sidebar + header + content. `logo` is any node shown atop the sidebar (an
   `<img>`, an `<Icon>`, …). The **header** holds only right-side controls via
-  `header?: { theme?: boolean; onLogout?: () => void; user?: { name?; email?; avatar? } }` — `theme`
-  (default `true`) shows the `ThemeToggle`; `onLogout` adds an account avatar whose menu has a **Sign
+  `header?: { theme?: boolean; fullscreen?: boolean; onLogout?: () => void; user?: { name?; email?; avatar? } }`
+  — `theme` and `fullscreen` (both default `true`) show the `ThemeToggle` and `FullscreenToggle`;
+  `onLogout` adds an account avatar whose menu has a **Sign
   out** item (calls `onLogout`); `user` adds a name+email header in that menu (avatar = a user icon, or `user.avatar` image). The content area auto-stacks
   **`Breadcrumbs` → the page title (the active route's `staticData.name`, as an `h2`) → your page**.
 - **`PageLayout`** — the container your page body sits in (border + radius + padding); uses the page `background`, so cards/inputs inside read as elevated.

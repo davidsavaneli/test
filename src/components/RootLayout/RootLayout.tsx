@@ -7,6 +7,7 @@ import { Dropdown } from '../Dropdown'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
 import { ListItem } from '../List'
+import { FullscreenToggle } from '../FullscreenToggle'
 import { ThemeToggle } from '../ThemeToggle'
 import { Typography } from '../Typography'
 import { Breadcrumbs } from '../Breadcrumbs'
@@ -26,6 +27,8 @@ export interface RootLayoutUser {
 export interface RootLayoutHeader {
   /** Show the built-in light/dark theme toggle on the right of the header. Defaults to `true`. */
   theme?: boolean
+  /** Show the built-in browser-fullscreen toggle next to the theme toggle. Defaults to `true`. */
+  fullscreen?: boolean
   /** When provided, an account `Avatar` appears on the right; its menu has a **Sign out** item that calls this. */
   onLogout?: () => void
   /** Signed-in user — shown in the header avatar and as a header block atop the account menu. */
@@ -54,6 +57,7 @@ export interface RootLayoutProps {
 export function RootLayout({ logo, header, children }: RootLayoutProps) {
   const title = usePageTitle()
   const showTheme = header?.theme ?? true
+  const showFullscreen = header?.fullscreen ?? true
   const onLogout = header?.onLogout
   const user = header?.user
   const [collapsed, setCollapsed] = useState(false)
@@ -78,6 +82,7 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
             <Icon name="Menu" />
           </IconButton>
           <div className={styles.headerEnd}>
+            {showFullscreen ? <FullscreenToggle variant="filled" size="sm" /> : null}
             {showTheme ? <ThemeToggle variant="filled" size="sm" /> : null}
             {onLogout ? (
               <Dropdown

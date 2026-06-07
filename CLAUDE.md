@@ -481,6 +481,15 @@ in dark; flips `mode` via `useTheme().toggleMode` on click. `role="switch"`, `ar
 `aria-label="Toggle color theme"`. Props = `Omit<IconButtonProps, 'children'>`, so `variant`,
 `color`, `size` pass through.
 
+### FullscreenToggle
+
+Wraps `IconButton` (default `variant="outlined"`), mirroring `ThemeToggle`. Toggles the browser
+**Fullscreen API** on click — `document.documentElement.requestFullscreen()` to maximize,
+`document.exitFullscreen()` to restore — and flips its `Maximize3` icon 180° while fullscreen (so it
+reads as "minimize"), keeping state in sync via the `fullscreenchange` event. Both calls are `?.`-guarded (no-op where the
+API is unavailable) and `.catch`-swallowed (a blocked request is ignored). `role="switch"`,
+`aria-checked`, `aria-label="Toggle fullscreen"`. Props = `Omit<IconButtonProps, 'children'>`.
+
 ### Badge
 
 A **wrapper** that pins a small count/dot to a child's corner — wrap a `Button`/`IconButton` (or any
@@ -674,8 +683,9 @@ header **toggle** `IconButton` (left, `filled`, `Menu` icon) collapses/hides the
 its `width` to `0` (the shell's first grid column is `auto`, so it follows); the `ThemeToggle` is
 `filled` too. Nav icons match the row label
 (text) color via `--tz-list-icon-color` set on the nav. The **header** holds only the right-side controls driven by the
-`header` config — `header?: { theme?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`
-(a `ThemeToggle`, on by default, plus an account `Avatar` — a focusable button whose `Dropdown` menu
+`header` config — `header?: { theme?: boolean /* default true */; fullscreen?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`
+(a `FullscreenToggle` + `ThemeToggle`, both on by default and `filled`, plus an account `Avatar` — a
+focusable button whose `Dropdown` menu
 has a single **Sign out** `ListItem` calling `onLogout` — shown when `onLogout` is given; when `user`
 is supplied the menu opens with a `User`-icon (or `user.avatar` image) + name + email header above a
 divider). The
