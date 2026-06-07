@@ -270,8 +270,8 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 
 - **Default palettes live in TS, in `ThemeProvider.tsx`** — `DEFAULT_LIGHT_COLORS` (the full built-in
   light palette = the single source of truth for every brand color's default value) and
-  `DEFAULT_DARK_COLORS` (only the colors that differ in dark: `primary #e6e8eb`, `secondary #181c21`,
-  `background #1F1F1E`). `theme.css` holds **no** color values — only the structure (solids, shades,
+  `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `background
+#1F1F1E`, plus a brighter `dark`/`medium`/`light` teal ramp). `theme.css` holds **no** color values — only the structure (solids, shades,
   contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
 - **`ThemeConfig`**: `{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`
   — everything optional. Omit `config` entirely (or `colors`) to ship the built-in theme; override any

@@ -60,7 +60,7 @@ const DEFAULT_DARK_COLORS: Partial<ThemePalette> = {
   secondary: '#1F1F1E',
   background: '#1F1F1E',
   // background: '#04191d',
-  // brighter cyan-teal ramp for dark mode — the light-mode teals are too dark on #1F1F1E
+  // brighter teal accent ramp for dark mode (the light-mode teals are too dark on #1F1F1E)
   dark: '#0e8896',
   medium: '#16a6b4',
   light: '#25bac8',

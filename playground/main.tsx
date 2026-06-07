@@ -25,7 +25,6 @@ const themeConfig: ThemeConfig = {
       primary: '#e6e8eb',
       secondary: '#1F1F1E',
       background: '#1F1F1E',
-      // background: '#04191d',
       dark: '#0e8896',
       medium: '#16a6b4',
       light: '#25bac8',
