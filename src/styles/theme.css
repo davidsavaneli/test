@@ -26,7 +26,7 @@
   --tz-color-secondary-shade800: rgba(var(--tz-color-secondary-rgb), 0.9);
 
   /* dark */
-  --tz-color-dark-rgb: 5, 100, 114;
+  --tz-color-dark-rgb: 3, 59, 68;
   --tz-color-dark: rgb(var(--tz-color-dark-rgb));
   --tz-color-dark-shade100: rgba(var(--tz-color-dark-rgb), 0.06);
   --tz-color-dark-shade200: rgba(var(--tz-color-dark-rgb), 0.1);
@@ -38,7 +38,7 @@
   --tz-color-dark-shade800: rgba(var(--tz-color-dark-rgb), 0.9);
 
   /* medium */
-  --tz-color-medium-rgb: 3, 154, 161;
+  --tz-color-medium-rgb: 5, 100, 114;
   --tz-color-medium: rgb(var(--tz-color-medium-rgb));
   --tz-color-medium-shade100: rgba(var(--tz-color-medium-rgb), 0.06);
   --tz-color-medium-shade200: rgba(var(--tz-color-medium-rgb), 0.1);
@@ -50,7 +50,7 @@
   --tz-color-medium-shade800: rgba(var(--tz-color-medium-rgb), 0.9);
 
   /* light */
-  --tz-color-light-rgb: 173, 195, 201;
+  --tz-color-light-rgb: 3, 154, 161;
   --tz-color-light: rgb(var(--tz-color-light-rgb));
   --tz-color-light-shade100: rgba(var(--tz-color-light-rgb), 0.06);
   --tz-color-light-shade200: rgba(var(--tz-color-light-rgb), 0.1);

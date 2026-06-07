@@ -98,9 +98,9 @@ shades with `rgba()`:
 | ----------- | --------- | ---------------------------- |
 | `primary`   | `#13404e` | primary brand / default text |
 | `secondary` | `#f4f9f8` | page background / surface    |
-| `dark`      | `#056472` | dark brand shade             |
-| `medium`    | `#039aa1` | mid brand shade              |
-| `light`     | `#adc3c9` | light brand shade            |
+| `dark`      | `#033b44` | dark brand shade             |
+| `medium`    | `#056472` | mid brand shade              |
+| `light`     | `#039aa1` | light brand shade            |
 | `success`   | `#00a854` | semantic — success           |
 | `error`     | `#f04134` | semantic — error/danger      |
 | `info`      | `#039aa1` | semantic — info              |

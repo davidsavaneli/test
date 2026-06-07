@@ -60,9 +60,9 @@ const theme = {
     light: {
       primary: '#13404e',
       secondary: '#f4f9f8',
-      dark: '#056472',
-      medium: '#039aa1',
-      light: '#adc3c9',
+      dark: '#033b44',
+      medium: '#056472',
+      light: '#039aa1',
       success: '#00a854',
       error: '#f04134',
       info: '#039aa1',
