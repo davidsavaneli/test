@@ -38,7 +38,7 @@
   align-items: center;
   gap: var(--tz-space-sm);
   height: calc(var(--tz-control-height-md) + var(--tz-space-md));
-  padding: 0 var(--tz-space-sm);
+  padding: 0 var(--tz-space-lg);
   border-bottom: 1px solid var(--tz-color-border);
 }
 
@@ -82,6 +82,8 @@
 .account {
   display: inline-flex;
   padding: 0;
+  /* nudge the avatar a touch further from the theme toggle / other header icons */
+  margin-left: var(--tz-space-md);
   border: 0;
   background: transparent;
   border-radius: 50%;

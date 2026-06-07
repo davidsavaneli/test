@@ -19,9 +19,9 @@
   display: flex;
   align-items: center;
   padding: 0 var(--tz-space-sm);
-  margin-bottom: var(--tz-space-xxs);
+  margin-bottom: var(--tz-space-xs);
   color: var(--tz-color-text);
-  font-size: var(--tz-font-size-md);
+  font-size: var(--tz-font-size-sm);
   font-weight: var(--tz-font-weight-bold);
   text-transform: uppercase;
   user-select: none;
@@ -29,7 +29,7 @@
 
 /* level-3 pages, indented under their group */
 .leaves {
-  padding-left: var(--tz-space-sm);
+  padding-left: calc(var(--tz-space-sm) - 2px);
 }
 
 /* "New"-style pill on a menu row (from staticData.badge) */

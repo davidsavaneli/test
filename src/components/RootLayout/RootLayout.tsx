@@ -84,7 +84,7 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
                 placement="bottom-end"
                 trigger={
                   <button type="button" className={styles.account} aria-label="Account">
-                    <Avatar size="sm" icon="User" src={user?.avatar} />
+                    <Avatar size="md" icon="User" src={user?.avatar} />
                   </button>
                 }
               >
