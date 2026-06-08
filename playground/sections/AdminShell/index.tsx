@@ -20,6 +20,7 @@ import { CardSection } from '../Card'
 import { CheckboxSection } from '../Checkbox'
 import { RadioSection } from '../Radio'
 import { SwitchSection } from '../Switch'
+import { ColorPickerSection } from '../ColorPicker'
 import { FormSection } from '../Form'
 import { IconButtonSection } from '../IconButton'
 import { IconSection } from '../Icon'
@@ -260,10 +261,16 @@ const switchRoute = createRoute({
   staticData: { name: 'Switch', icon: 'ToggleOnCircle', order: 4 },
   component: inPage(SwitchSection),
 })
+const colorPickerRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'color-picker',
+  staticData: { name: 'Color Picker', icon: 'ColorSwatch', order: 5 },
+  component: inPage(ColorPickerSection),
+})
 const formRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form',
-  staticData: { name: 'Form', icon: 'Edit', order: 5 },
+  staticData: { name: 'Form', icon: 'Edit', order: 6 },
   component: inPage(FormSection),
 })
 
@@ -294,6 +301,7 @@ const shellRouter = createRouter({
         checkboxRoute,
         radioRoute,
         switchRoute,
+        colorPickerRoute,
         formRoute,
       ]),
     ]),

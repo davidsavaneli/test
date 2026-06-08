@@ -3,6 +3,7 @@ import {
   Button,
   Checkbox,
   Col,
+  ColorPicker,
   Form,
   Grid,
   NumberField,
@@ -30,6 +31,7 @@ const schema = z.object({
     .max(10, 'Max 10')
     .nullable()
     .refine((v): boolean => v !== null, 'Required'),
+  brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Pick a color'),
   plan: z.string().min(1, 'Select a plan'),
   notifications: z.boolean().refine((v) => v, 'Enable notifications to continue'),
   acceptTerms: z.boolean().refine((v) => v, 'You must accept the terms'),
@@ -48,6 +50,7 @@ export function FormSection() {
       city: '',
       password: '',
       quantity: null,
+      brandColor: '',
       plan: '',
       notifications: false,
       acceptTerms: false,
@@ -69,7 +72,7 @@ export function FormSection() {
           <Form form={form}>
             <Col gap={16}>
               <Grid minItemWidth={220} gap={16}>
-                <TextField name="firstName" required label="First Name" placeholder="David" />
+                <TextField name="firstName" required label="First Name" />
                 <TextField name="lastName" required label="Last Name" placeholder="Savaneli" />
                 <TextField name="email" required label="Email" placeholder="you@example.com" />
                 <TextField name="phone" required label="Phone" placeholder="(555) 123-4567" />
@@ -84,6 +87,7 @@ export function FormSection() {
                   placeholder="••••••"
                 />
                 <NumberField name="quantity" required label="Quantity" min={0} max={10} />
+                <ColorPicker name="brandColor" required label="Brand color" />
               </Grid>
               <RadioGroup
                 name="plan"

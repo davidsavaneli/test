@@ -116,6 +116,14 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 `value`/`defaultValue` (`number | null`) · `onChange(number|null)` · `hideStepper` · `thousandSeparator`
 (live grouping, e.g. `"."` → `32.345.345`). `fullWidth` defaults true.
 
+**ColorPicker** — a color field with a popover picker (saturation/value square + hue slider + **alpha
+(opacity) slider** + color input + quick-pick `swatches`), with **`rgb()`/`rgba()`** support.
+`label` · `size` · `error` + `helperText` · `required` · `disabled` · `value`/`defaultValue` ·
+`onChange(color)` · `swatches` · `placeholder`. The input accepts hex (`#rgb`/`#rrggbb`/`#rrggbbaa`) or
+`rgb()`/`rgba()`; the **value is `#rrggbb` when opaque, `rgba(r, g, b, a)` when translucent**. Binds to
+`<Form>` by `name` (validate with `z.string().regex(/^#[0-9a-f]{6}$/i, '…')`, or a looser pattern if
+you allow `rgba()`). `<ColorPicker label="Brand color" name="brandColor" />`.
+
 **Checkbox** — `label` · `color` (checked fill) · `size` · `checked`/`defaultChecked` ·
 `onChange(boolean)` · `error` (reddens the box only, no helper text) · `required` · `disabled`.
 

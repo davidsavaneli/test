@@ -1,0 +1,311 @@
+.field {
+  display: inline-flex;
+  flex-direction: column;
+  font-family: var(--tz-font-family);
+}
+.fullWidth {
+  display: flex;
+  width: 100%;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: var(--tz-space-xxs);
+}
+.required {
+  color: rgb(var(--tz-color-error-rgb));
+  font-size: var(--tz-font-size-sm);
+}
+
+/* ── trigger (the whole control opens the popover) ─────────────────────────── */
+.control {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 0 0 var(--tz-space-sm);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-xs);
+  background-color: var(--tz-color-secondary);
+  color: var(--tz-color-text);
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  transition:
+    border-color var(--tz-duration),
+    box-shadow var(--tz-duration);
+}
+/* no hover effect; the ring shows on keyboard focus AND while the popover is open (like TextField's
+   focus-within), with the same border + shadow as TextField/NumberField */
+.control:focus-visible,
+.control.open {
+  outline: none;
+  border-color: var(--tz-color-primary-shade500);
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-primary-rgb), 0.08);
+}
+.error .control {
+  border-color: rgb(var(--tz-color-error-rgb));
+}
+.error .control:focus-visible,
+.error .control.open {
+  border-color: rgb(var(--tz-color-error-rgb));
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-error-rgb), 0.12);
+}
+.disabled {
+  opacity: 0.5;
+}
+.disabled .control {
+  cursor: not-allowed;
+}
+
+.value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  letter-spacing: 0.02em;
+}
+.placeholder {
+  color: var(--tz-color-primary-shade500);
+  letter-spacing: normal;
+}
+
+/* the color swatch on the right (decorative — the whole control is the trigger) */
+/* the swatch on the right — a flush square with equal inset top/bottom/right
+   (`align-self: stretch` + `aspect-ratio: 1`, like a TextField adornment box). */
+.preview {
+  flex: none;
+  align-self: stretch;
+  aspect-ratio: 1;
+  margin: 5px;
+  margin-left: 0;
+  border-radius: calc(var(--tz-radius-xs) / 1.4);
+  box-shadow: inset 0 0 0 1px var(--tz-color-border);
+  /* the fill (`--cp-fill`, set inline) sits over a literal grey/white checkerboard (an unavoidable
+     exception to tokens-only) so a translucent color reads as translucent */
+  --cp-fill: transparent;
+  background-color: #fff;
+  background-image:
+    linear-gradient(var(--cp-fill), var(--cp-fill)),
+    conic-gradient(#c9c9c9 25%, transparent 0 50%, #c9c9c9 0 75%, transparent 0);
+  background-size:
+    100% 100%,
+    12px 12px;
+}
+/* "no color set" — a subtle diagonal stripe */
+.previewEmpty {
+  background:
+    linear-gradient(
+      135deg,
+      transparent 44%,
+      rgb(var(--tz-color-error-rgb)) 45%,
+      rgb(var(--tz-color-error-rgb)) 55%,
+      transparent 56%
+    ),
+    var(--tz-color-background);
+}
+
+.helper {
+  margin-top: var(--tz-space-xxs);
+}
+
+/* ── popover (portaled to <body>; position is set inline, fixed) ───────────── */
+.popover {
+  z-index: var(--tz-z-dropdown);
+  box-sizing: border-box;
+  padding: var(--tz-space-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-xs);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-sm);
+  background: var(--tz-color-secondary);
+  box-shadow: var(--tz-shadow-md);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transition:
+    opacity var(--tz-duration),
+    transform var(--tz-duration);
+}
+/* enter from a hair toward the trigger, by side (mirrors Dropdown) */
+.popover[data-side='bottom'] {
+  transform: translateY(calc(var(--tz-space-xxs) * -1));
+}
+.popover[data-side='top'] {
+  transform: translateY(var(--tz-space-xxs));
+}
+.popover[data-open='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* saturation × value square. The spectrum gradients use literal colors by necessity (not theme
+   tokens) — the hue base is the only dynamic part, fed by the inline --cp-hue var. */
+.sv {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  border-radius: var(--tz-radius-xs);
+  cursor: crosshair;
+  touch-action: none;
+  background:
+    linear-gradient(to top, #000, rgba(0, 0, 0, 0)),
+    linear-gradient(to right, #fff, rgba(255, 255, 255, 0)), hsl(var(--cp-hue, 0) 100% 50%);
+}
+.svThumb {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: var(--tz-shadow-sm);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hue {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: none;
+  background: linear-gradient(
+    to right,
+    #f00 0%,
+    #ff0 17%,
+    #0f0 33%,
+    #0ff 50%,
+    #00f 67%,
+    #f0f 83%,
+    #f00 100%
+  );
+}
+.hueThumb,
+.alphaThumb {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: transparent;
+  box-shadow: var(--tz-shadow-sm);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* opacity slider — a transparent→opaque ramp of the current color over the checkerboard. The base
+   rgb is fed by the inline --cp-rgb var; the checkerboard greys are a literal exception like above. */
+.alpha {
+  position: relative;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  touch-action: none;
+  --cp-rgb: 0, 0, 0;
+  background-color: #fff;
+  background-image:
+    linear-gradient(to right, rgba(var(--cp-rgb), 0), rgba(var(--cp-rgb), 1)),
+    conic-gradient(#c9c9c9 25%, transparent 0 50%, #c9c9c9 0 75%, transparent 0);
+  background-size:
+    100% 100%,
+    12px 12px;
+}
+
+/* current swatch + hex input + clear */
+.hexRow {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+}
+.currentSwatch {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--tz-radius-xs);
+  box-shadow: inset 0 0 0 1px var(--tz-color-border);
+  /* same checkerboard-under-fill as the trigger preview, so alpha reads here too */
+  --cp-fill: transparent;
+  background-color: #fff;
+  background-image:
+    linear-gradient(var(--cp-fill), var(--cp-fill)),
+    conic-gradient(#c9c9c9 25%, transparent 0 50%, #c9c9c9 0 75%, transparent 0);
+  background-size:
+    100% 100%,
+    12px 12px;
+}
+.hexField {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  height: 32px;
+  padding: 0 var(--tz-space-xs);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-xs);
+}
+.hexField:focus-within {
+  border-color: var(--tz-color-primary-shade500);
+}
+.hexInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  color: var(--tz-color-text);
+  font-family: inherit;
+  font-size: var(--tz-font-size-sm);
+  letter-spacing: 0.02em;
+}
+/* preset swatches */
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--tz-space-xxs);
+}
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--tz-radius-xs);
+  box-shadow: inset 0 0 0 1px var(--tz-color-border);
+  cursor: pointer;
+}
+/* "no color" — clears the field; the diagonal red stripe reads as "none" */
+.swatchClear {
+  color: var(--tz-color-text);
+  background:
+    linear-gradient(
+      135deg,
+      transparent 43%,
+      rgb(var(--tz-color-error-rgb)) 44%,
+      rgb(var(--tz-color-error-rgb)) 56%,
+      transparent 57%
+    ),
+    var(--tz-color-background);
+}
+
+/* ── sizes ───────────────────────────────────────────────────────────────── */
+.sm .control {
+  height: var(--tz-control-height-sm);
+  font-size: var(--tz-font-size-sm);
+}
+.md .control {
+  height: var(--tz-control-height-md);
+  font-size: var(--tz-font-size-md);
+}
+.lg .control {
+  height: var(--tz-control-height-lg);
+  font-size: var(--tz-font-size-lg);
+}
