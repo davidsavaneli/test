@@ -7,6 +7,7 @@ import {
   Grid,
   NumberField,
   RadioGroup,
+  Switch,
   TextField,
   Typography,
   useForm,
@@ -30,6 +31,7 @@ const schema = z.object({
     .nullable()
     .refine((v): boolean => v !== null, 'Required'),
   plan: z.string().min(1, 'Select a plan'),
+  notifications: z.boolean().refine((v) => v, 'Enable notifications to continue'),
   acceptTerms: z.boolean().refine((v) => v, 'You must accept the terms'),
 })
 
@@ -47,6 +49,7 @@ export function FormSection() {
       password: '',
       quantity: null,
       plan: '',
+      notifications: false,
       acceptTerms: false,
     },
     onSubmit: (values, { reset }) => {
@@ -93,6 +96,7 @@ export function FormSection() {
                   { value: 'team', label: 'Team' },
                 ]}
               />
+              <Switch name="notifications" required label="Enable notifications" />
               <Checkbox name="acceptTerms" required label="I accept the terms" />
               <Button type="submit" loading={form.isSubmitting}>
                 Sign Up

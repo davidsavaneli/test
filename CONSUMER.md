@@ -126,6 +126,10 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 also works standalone.
 `<RadioGroup name="plan" options={[{ value: 'pro', label: 'Pro' }]} />`.
 
+**Switch** — a toggle (on/off), the sibling of `Checkbox`. `label` · `color` (on fill) · `size` ·
+`checked`/`defaultChecked` · `onChange(boolean)` · `error` (reddens the track, no text) · `required` ·
+`disabled`. Binds to `<Form>` by `name` (value = `boolean`).
+
 **ThemeToggle** — wraps `IconButton`; flips the theme mode. Pass-through `variant`/`color`/`size`.
 
 **FullscreenToggle** — wraps `IconButton`; toggles the browser **Fullscreen API** (maximize / exit)

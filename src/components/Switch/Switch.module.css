@@ -1,0 +1,127 @@
+.field {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--tz-space-xxs);
+  font-family: var(--tz-font-family);
+}
+
+/* the clickable row — hidden input + visual track + label */
+.row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  cursor: pointer;
+  user-select: none;
+}
+
+.disabled .row {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* the real checkbox/switch — visually hidden but still focusable & announced */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* the track (pill); hue comes from --tz-btn-rgb (set inline from the `color` prop) */
+.track {
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--tz-color-primary-shade300);
+  transition:
+    background-color var(--tz-duration),
+    box-shadow var(--tz-duration);
+}
+
+.input:checked ~ .track {
+  background: rgb(var(--tz-btn-rgb));
+}
+
+.input:focus-visible ~ .track {
+  box-shadow: 0 0 0 2px rgba(var(--tz-btn-rgb), 0.3);
+}
+
+/* the sliding thumb — centered vertically, inset 3px, contrast-colored with a soft shadow */
+.thumb {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  border-radius: 50%;
+  background: var(--tz-btn-on, #fff);
+  box-shadow: var(--tz-shadow-xs);
+  transform: translateY(-50%);
+  transition: transform var(--tz-duration);
+}
+
+/* error (validation) — red ring around the track */
+.error .track {
+  box-shadow: 0 0 0 1px rgb(var(--tz-color-error-rgb));
+}
+
+.label {
+  color: var(--tz-color-text);
+  line-height: var(--tz-line-height);
+}
+
+.required {
+  margin-left: 2px;
+  color: rgb(var(--tz-color-error-rgb));
+}
+
+/* sizes — track + thumb dimensions, the checked slide, and label font (3px inset all round) */
+.sm .track {
+  width: 28px;
+  height: 16px;
+}
+.sm .thumb {
+  width: 10px;
+  height: 10px;
+}
+.sm .input:checked ~ .track .thumb {
+  transform: translate(12px, -50%);
+}
+
+.md .track {
+  width: 36px;
+  height: 20px;
+}
+.md .thumb {
+  width: 14px;
+  height: 14px;
+}
+.md .input:checked ~ .track .thumb {
+  transform: translate(16px, -50%);
+}
+
+.lg .track {
+  width: 44px;
+  height: 24px;
+}
+.lg .thumb {
+  width: 18px;
+  height: 18px;
+}
+.lg .input:checked ~ .track .thumb {
+  transform: translate(20px, -50%);
+}
+
+.sm .label {
+  font-size: var(--tz-font-size-sm);
+}
+.md .label {
+  font-size: var(--tz-font-size-md);
+}
+.lg .label {
+  font-size: var(--tz-font-size-lg);
+}

@@ -492,6 +492,17 @@ surrounding `<Form>` by **`name`** — its form value is a **`string`** (validat
 `z.string().min(1)`), read/written via `values`/`setValue`. Uses the `--tz-btn-rgb` pattern; own CSS
 module. `Radio` ships named **and** default, `RadioGroup` named.
 
+### Switch
+
+A toggle switch — the on/off sibling of `Checkbox`. The native `<input type="checkbox" role="switch">`
+is **visually hidden** (sr-only) but focusable + announced; a styled `.track` + sliding `.thumb` show
+the state — the track fills from `--tz-btn-rgb` when on and the thumb slides across (token-sized per
+`size`). `label` · `color` (on fill, default `medium`) · `size` (`sm`/`md`/`lg` — track/thumb + label)
+· `error` · `required` · `disabled` · `checked`/`defaultChecked` · `onChange(checked)` (emits a
+`boolean`). `:focus-visible` ring; `error` **reddens the track ring only (no helper text)**, like
+`Checkbox`. Binds to a surrounding `<Form>` by **`name`** — its form value is a **`boolean`**. Own CSS
+module.
+
 ### ThemeToggle
 
 Wraps `IconButton` (default `variant="outlined"`). Shows `Icon name="Sun"` in light mode, `"Moon"`
@@ -942,7 +953,10 @@ new `src/entries/<group>.ts` + an `exports` block. Every component folder's `ind
 6. Export via the component `index.ts` — `export { <Name>, <Name> as default } from './<Name>'`
    (the `as default` keeps `sava-test/components/<Name>` working) — and add `export * from './<Name>'`
    to `src/components/index.ts`. No `src/entries/` change needed (it re-exports the whole barrel).
-7. Add a section to `playground/main.tsx` exercising variants × colors × sizes × states.
+7. Add a section to `playground/main.tsx` exercising variants × colors × sizes × states. **If the
+   component binds to a `<Form>` by `name`** (a form control like `TextField`/`Checkbox`/`Switch`/
+   `RadioGroup`), also add a bound field for it to the playground **Form** section (`sections/Form/`)
+   so the validation page exercises every form-capable control.
 8. Add a co-located `<Name>.test.tsx` covering behavior + a11y contracts (see §11).
 9. `npm run typecheck`, `npm test`, **and** `npm run lint:pkg` must pass. Verify visually in the
    playground (light **and** dark mode).
