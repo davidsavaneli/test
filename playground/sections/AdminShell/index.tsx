@@ -18,6 +18,7 @@ import { DropdownSection } from '../Dropdown'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
 import { CheckboxSection } from '../Checkbox'
+import { RadioSection } from '../Radio'
 import { FormSection } from '../Form'
 import { IconButtonSection } from '../IconButton'
 import { IconSection } from '../Icon'
@@ -246,10 +247,16 @@ const checkboxRoute = createRoute({
   staticData: { name: 'Checkbox', icon: 'TickSquare', order: 2 },
   component: inPage(CheckboxSection),
 })
+const radioRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'radio',
+  staticData: { name: 'Radio', icon: 'RecordCircle', order: 3 },
+  component: inPage(RadioSection),
+})
 const formRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form',
-  staticData: { name: 'Form', icon: 'Edit', order: 3 },
+  staticData: { name: 'Form', icon: 'Edit', order: 4 },
   component: inPage(FormSection),
 })
 
@@ -274,7 +281,13 @@ const shellRouter = createRouter({
         listRoute,
         dropdownRoute,
       ]),
-      formsRoute.addChildren([textFieldRoute, numberFieldRoute, checkboxRoute, formRoute]),
+      formsRoute.addChildren([
+        textFieldRoute,
+        numberFieldRoute,
+        checkboxRoute,
+        radioRoute,
+        formRoute,
+      ]),
     ]),
   ]),
   // Open on the icon gallery so it's visible right away.

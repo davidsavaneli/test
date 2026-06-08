@@ -6,6 +6,7 @@ import {
   Form,
   Grid,
   NumberField,
+  RadioGroup,
   TextField,
   Typography,
   useForm,
@@ -28,6 +29,7 @@ const schema = z.object({
     .max(10, 'Max 10')
     .nullable()
     .refine((v): boolean => v !== null, 'Required'),
+  plan: z.string().min(1, 'Select a plan'),
   acceptTerms: z.boolean().refine((v) => v, 'You must accept the terms'),
 })
 
@@ -44,6 +46,7 @@ export function FormSection() {
       city: '',
       password: '',
       quantity: null,
+      plan: '',
       acceptTerms: false,
     },
     onSubmit: (values, { reset }) => {
@@ -79,6 +82,17 @@ export function FormSection() {
                 />
                 <NumberField name="quantity" required label="Quantity" min={0} max={10} />
               </Grid>
+              <RadioGroup
+                name="plan"
+                required
+                label="Plan"
+                orientation="horizontal"
+                options={[
+                  { value: 'free', label: 'Free' },
+                  { value: 'pro', label: 'Pro' },
+                  { value: 'team', label: 'Team' },
+                ]}
+              />
               <Checkbox name="acceptTerms" required label="I accept the terms" />
               <Button type="submit" loading={form.isSubmitting}>
                 Sign Up

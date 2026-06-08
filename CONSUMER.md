@@ -119,6 +119,13 @@ auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`
 **Checkbox** — `label` · `color` (checked fill) · `size` · `checked`/`defaultChecked` ·
 `onChange(boolean)` · `error` (reddens the box only, no helper text) · `required` · `disabled`.
 
+**Radio / RadioGroup** — single-select radios. Use **`RadioGroup`**: `value`/`defaultValue` (`string`)
+· `onChange(value)` · `name` · `options` (`{ value, label?, disabled? }[]`) **or** `<Radio>` children ·
+`orientation` (`vertical` / `horizontal`) · `label` · `error` (reddens rings, no message) · `required` ·
+`size` · `color` · `disabled`. Binds to `<Form>` by `name` (value = `string`). `<Radio value label color size />`
+also works standalone.
+`<RadioGroup name="plan" options={[{ value: 'pro', label: 'Pro' }]} />`.
+
 **ThemeToggle** — wraps `IconButton`; flips the theme mode. Pass-through `variant`/`color`/`size`.
 
 **FullscreenToggle** — wraps `IconButton`; toggles the browser **Fullscreen API** (maximize / exit)
