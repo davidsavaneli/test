@@ -101,6 +101,15 @@ describe('Select', () => {
     expect(screen.queryAllByRole('option')).toHaveLength(0)
   })
 
+  it('clears the mouse highlight when the pointer leaves the list (no lingering hover)', () => {
+    render(<Select label="Fruit" options={OPTIONS} />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
+    // on open the first enabled option is highlighted
+    expect(screen.getByRole('option', { name: 'Apple' })).toHaveClass('active')
+    fireEvent.mouseLeave(screen.getByRole('listbox'))
+    expect(screen.getByRole('option', { name: 'Apple' })).not.toHaveClass('active')
+  })
+
   it('does not open when disabled', () => {
     render(<Select label="Fruit" options={OPTIONS} disabled />)
     fireEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))

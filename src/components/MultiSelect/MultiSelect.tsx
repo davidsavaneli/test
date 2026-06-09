@@ -479,6 +479,8 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
               aria-multiselectable="true"
               size={size}
               className={styles.listbox}
+              // clear the mouse highlight when the pointer leaves the list (no lingering hover)
+              onMouseLeave={() => setHighlightedIndex(-1)}
             >
               {filteredOptions.length === 0 ? (
                 <div className={styles.noOptions}>

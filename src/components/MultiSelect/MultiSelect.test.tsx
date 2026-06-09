@@ -111,6 +111,14 @@ describe('MultiSelect', () => {
     expect(onChange).toHaveBeenCalledWith(['apple'])
   })
 
+  it('clears the mouse highlight when the pointer leaves the list (no lingering hover)', () => {
+    render(<MultiSelect label="Fruits" options={OPTIONS} />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Fruits' }))
+    expect(screen.getByRole('option', { name: 'Apple' })).toHaveClass('active')
+    fireEvent.mouseLeave(screen.getByRole('listbox'))
+    expect(screen.getByRole('option', { name: 'Apple' })).not.toHaveClass('active')
+  })
+
   it('filters options when searchable', () => {
     render(<MultiSelect label="Fruits" options={OPTIONS} searchable />)
     fireEvent.click(screen.getByRole('combobox', { name: 'Fruits' }))

@@ -486,6 +486,8 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
               aria-labelledby={label != null ? labelId : undefined}
               size={size}
               className={styles.listbox}
+              // clear the mouse highlight when the pointer leaves the list (no lingering hover)
+              onMouseLeave={() => setHighlightedIndex(-1)}
             >
               {filteredOptions.length === 0 ? (
                 <div className={styles.noOptions}>
