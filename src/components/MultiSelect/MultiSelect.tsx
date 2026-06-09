@@ -91,7 +91,7 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
     defaultValue,
     onChange,
     placeholder = 'Select…',
-    color = 'medium',
+    color = 'primary',
     clearable = false,
     searchable = false,
     searchPlaceholder = 'Search…',

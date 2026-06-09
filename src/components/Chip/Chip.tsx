@@ -50,7 +50,7 @@ export interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'>
 export const Chip = forwardRef<HTMLDivElement, ChipProps>(function Chip(
   {
     variant = 'filled',
-    color = 'medium',
+    color = 'primary',
     size = 'md',
     clickable = false,
     disabled = false,

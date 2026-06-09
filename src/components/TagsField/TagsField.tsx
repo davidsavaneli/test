@@ -94,7 +94,7 @@ export const TagsField = forwardRef<HTMLInputElement, TagsFieldProps>(function T
     defaultValue,
     onChange,
     separator = ',',
-    color = 'medium',
+    color = 'primary',
     allowDuplicates = false,
     placeholder,
     addIcon,
