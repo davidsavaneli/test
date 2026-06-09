@@ -138,6 +138,21 @@ a chip's delete button (or **Backspace** on the empty input) removes one. `label
 `<Form>` by `name` (validate with `z.string().regex(/^#[0-9a-f]{6}$/i, '…')`, or a looser pattern if
 you allow `rgba()`). `<ColorPicker label="Brand color" name="brandColor" />`.
 
+**Select** — a single-select dropdown. Data-driven `options: { value, label, disabled?, icon? }[]`.
+`label` · `size` · `error` + `helperText` · `required` · `fullWidth` (**default true**) · `disabled` ·
+`value`/`defaultValue` · `onChange(value)` · `placeholder` (default `"Select…"`) · `searchable` (filter
+box) · `clearable` (× to reset) · `searchPlaceholder` · `noOptionsText`. Full keyboard + ARIA
+(`listbox`/`option`, type-ahead); popover behaves like `Dropdown` (portal, flip, scroll-lock, matches
+trigger width). Binds to `<Form>` by `name` (value = the option's `value`; validate with
+`z.string().min(1, '…')`). `<Select label="Country" name="country" searchable options={countries} />`.
+
+**MultiSelect** — the multi-value sibling of `Select` (**value is a `string[]`**). Same `options` shape +
+`label` · `size` · `error` + `helperText` · `required` · `fullWidth` · `disabled` · `searchable` ·
+`clearable` (clears all) · `placeholder` · `color` (chip tint). Selecting **toggles** an option and keeps
+the menu open; chosen options show as deletable chips in the trigger; **Backspace** pops the last.
+`value`/`defaultValue: string[]` · `onChange(values)`. Binds to `<Form>` by `name` (validate with
+`z.array(z.string()).min(1, '…')`). `<MultiSelect label="Skills" name="skills" searchable options={skills} />`.
+
 **Checkbox** — `label` · `color` (checked fill) · `size` · `checked`/`defaultChecked` ·
 `onChange(boolean)` · `error` (reddens the box only, no helper text) · `required` · `disabled`.
 

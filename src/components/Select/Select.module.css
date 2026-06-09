@@ -1,0 +1,213 @@
+.field {
+  display: inline-flex;
+  flex-direction: column;
+  font-family: var(--tz-font-family);
+}
+
+.fullWidth {
+  display: flex;
+  width: 100%;
+}
+
+/* label — sits above the control; text styling comes from <Typography> */
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: var(--tz-space-xxs);
+  width: fit-content;
+  cursor: default;
+}
+
+.required {
+  color: rgb(var(--tz-color-error-rgb));
+  font-size: var(--tz-font-size-sm);
+}
+
+/* ── trigger (the whole control opens the popover) ─────────────────────────── */
+.control {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  width: 100%;
+  box-sizing: border-box;
+  /* left inset matches TextField/NumberField; the chevron keeps a smaller right inset */
+  padding: 0 var(--tz-space-xs) 0 var(--tz-space-sm);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-xs);
+  background-color: var(--tz-color-secondary);
+  color: var(--tz-color-text);
+  cursor: pointer;
+  transition:
+    border-color var(--tz-duration),
+    box-shadow var(--tz-duration);
+}
+/* ring on keyboard focus AND while open (like TextField's focus-within), matching the field family */
+.control:focus-visible,
+.control.open {
+  outline: none;
+  border-color: var(--tz-color-primary-shade500);
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-primary-rgb), 0.08);
+}
+.error .control {
+  border-color: rgb(var(--tz-color-error-rgb));
+}
+.error .control:focus-visible,
+.error .control.open {
+  border-color: rgb(var(--tz-color-error-rgb));
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-error-rgb), 0.12);
+}
+.disabled .control {
+  background-color: var(--tz-color-primary-shade100);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.disabled .label {
+  opacity: 0.7;
+}
+
+/* selected value / placeholder */
+.value {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  text-align: left;
+}
+.valueIcon {
+  display: inline-flex;
+  flex: none;
+}
+.valueLabel {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.placeholder {
+  color: var(--tz-color-primary-shade500);
+}
+
+/* clear (×) button */
+.clear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  /* same icon color as a TextField adornment */
+  color: var(--tz-color-text);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--tz-duration);
+}
+.clear:hover {
+  opacity: 1;
+}
+
+/* chevron — rotates while the popover is open (icon color matches TextField adornments) */
+.chevron {
+  flex: none;
+  color: var(--tz-color-text);
+  transition: transform var(--tz-duration);
+}
+.control.open .chevron {
+  transform: rotate(180deg);
+}
+
+/* sizes — height + font from the shared scale */
+.sm .control {
+  height: var(--tz-control-height-sm);
+  font-size: var(--tz-font-size-sm);
+}
+.md .control {
+  height: var(--tz-control-height-md);
+  font-size: var(--tz-font-size-md);
+}
+.lg .control {
+  height: var(--tz-control-height-lg);
+  font-size: var(--tz-font-size-lg);
+}
+
+.helper {
+  margin-top: var(--tz-space-xxs);
+}
+
+/* ── popover (portaled to <body>; position set inline, fixed) ──────────────── */
+.popover {
+  z-index: var(--tz-z-dropdown);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-sm);
+  background: var(--tz-color-secondary);
+  box-shadow: var(--tz-shadow-md);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transition:
+    opacity var(--tz-duration),
+    transform var(--tz-duration);
+}
+/* enter from a hair toward the trigger, by side (mirrors Dropdown) */
+.popover[data-side='bottom'] {
+  transform: translateY(calc(var(--tz-space-xxs) * -1));
+}
+.popover[data-side='top'] {
+  transform: translateY(var(--tz-space-xxs));
+}
+.popover[data-open='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* search box — sticky at the top; only the list scrolls */
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  flex: none;
+  min-height: var(--tz-control-height-md);
+  padding: var(--tz-space-xs) var(--tz-space-sm);
+  border-bottom: 1px solid var(--tz-color-border);
+}
+.searchIcon {
+  flex: none;
+  color: var(--tz-color-primary-shade600);
+}
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--tz-color-text);
+  font-family: inherit;
+  font-size: var(--tz-font-size-md);
+}
+.searchInput::placeholder {
+  color: var(--tz-color-primary-shade500);
+  opacity: 1;
+}
+
+/* the listbox scrolls within the popover's max height; padding matches Dropdown's panel inset */
+.listbox {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--tz-space-xs);
+}
+
+/* keyboard highlight — the same light hover tint, for selected and unselected rows alike */
+.listbox .active {
+  background-color: rgba(var(--tz-color-primary-rgb), 0.06);
+}
+
+.noOptions {
+  padding: var(--tz-space-sm);
+  text-align: center;
+}

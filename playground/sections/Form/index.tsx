@@ -7,8 +7,10 @@ import {
   Form,
   Grid,
   MultilineTextField,
+  MultiSelect,
   NumberField,
   RadioGroup,
+  Select,
   Switch,
   TagsField,
   TextField,
@@ -36,6 +38,8 @@ const schema = z.object({
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Pick a color'),
   bio: z.string().min(10, 'At least 10 characters'),
   skills: z.array(z.string()).min(1, 'Add at least one skill'),
+  country: z.string().min(1, 'Select a country'),
+  interests: z.array(z.string()).min(1, 'Pick at least one'),
   plan: z.string().min(1, 'Select a plan'),
   notifications: z.boolean().refine((v) => v, 'Enable notifications to continue'),
   acceptTerms: z.boolean().refine((v) => v, 'You must accept the terms'),
@@ -57,6 +61,8 @@ export function FormSection() {
       brandColor: '',
       bio: '',
       skills: [] as string[],
+      country: '',
+      interests: [] as string[],
       plan: '',
       notifications: false,
       acceptTerms: false,
@@ -94,6 +100,34 @@ export function FormSection() {
                 />
                 <NumberField name="quantity" required label="Quantity" min={0} max={10} />
                 <ColorPicker name="brandColor" required label="Brand color" />
+                <Select
+                  name="country"
+                  required
+                  label="Country"
+                  searchable
+                  placeholder="Select a country…"
+                  options={[
+                    { value: 'ge', label: 'Georgia' },
+                    { value: 'de', label: 'Germany' },
+                    { value: 'fr', label: 'France' },
+                    { value: 'us', label: 'United States' },
+                    { value: 'jp', label: 'Japan' },
+                  ]}
+                />
+                <MultiSelect
+                  name="interests"
+                  required
+                  label="Interests"
+                  clearable
+                  placeholder="Pick a few…"
+                  options={[
+                    { value: 'design', label: 'Design' },
+                    { value: 'eng', label: 'Engineering' },
+                    { value: 'product', label: 'Product' },
+                    { value: 'data', label: 'Data' },
+                    { value: 'ops', label: 'Operations' },
+                  ]}
+                />
               </Grid>
               <MultilineTextField
                 name="bio"

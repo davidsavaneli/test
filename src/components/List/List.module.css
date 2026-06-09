@@ -58,9 +58,8 @@
 
 .itemLabel {
   min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  /* wrap long labels onto the next line instead of truncating; break overly long unbreakable tokens */
+  overflow-wrap: break-word;
   line-height: var(--tz-line-height);
 }
 
@@ -96,17 +95,15 @@
 }
 
 /* ── selected ───────────────────────────────────────────────────────────── */
+/* same light tint as :hover (no darker fill) and the same font-weight as a normal row — only the
+   color + the consumer's own marker (e.g. a tick / aria-current) distinguish a selected row */
 .selected {
-  background: rgba(var(--tz-btn-rgb), 0.1);
+  background: rgba(var(--tz-btn-rgb), 0.06);
   color: rgb(var(--tz-btn-rgb));
-  font-weight: var(--tz-font-weight-medium);
 }
 .selected .itemIcon,
 .selected .itemTrailing {
   color: inherit;
-}
-.selected.clickable:hover {
-  background: rgba(var(--tz-btn-rgb), 0.16);
 }
 
 /* ── disabled ───────────────────────────────────────────────────────────── */

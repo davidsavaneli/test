@@ -26,7 +26,9 @@ import { IconButtonSection } from '../IconButton'
 import { IconSection } from '../Icon'
 import { LoaderSection } from '../Loader'
 import { MultilineTextFieldSection } from '../MultilineTextField'
+import { MultiSelectSection } from '../MultiSelect'
 import { NumberFieldSection } from '../NumberField'
+import { SelectSection } from '../Select'
 import { TagsFieldSection } from '../TagsField'
 import { TextFieldSection } from '../TextField'
 import { TooltipSection } from '../Tooltip'
@@ -281,10 +283,22 @@ const colorPickerRoute = createRoute({
   staticData: { name: 'Color Picker', icon: 'ColorSwatch', order: 7 },
   component: inPage(ColorPickerSection),
 })
+const selectRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'select',
+  staticData: { name: 'Select', icon: 'ArrowDown4', order: 8 },
+  component: inPage(SelectSection),
+})
+const multiSelectRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'multi-select',
+  staticData: { name: 'Multi Select', icon: 'TaskSquare', order: 9 },
+  component: inPage(MultiSelectSection),
+})
 const formRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form',
-  staticData: { name: 'Form', icon: 'Edit', order: 8 },
+  staticData: { name: 'Form', icon: 'Edit', order: 10 },
   component: inPage(FormSection),
 })
 
@@ -318,6 +332,8 @@ const shellRouter = createRouter({
         radioRoute,
         switchRoute,
         colorPickerRoute,
+        selectRoute,
+        multiSelectRoute,
         formRoute,
       ]),
     ]),

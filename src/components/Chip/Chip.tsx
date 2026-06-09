@@ -35,6 +35,8 @@ export interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'>
   deleteIcon?: ReactNode
   /** Accessible label for the delete button. Defaults to `"Remove"`. */
   deleteLabel?: string
+  /** Tab index for the delete button — pass `-1` when the chip lives inside a composite widget (e.g. a multi-select) that owns keyboard focus. */
+  deleteTabIndex?: number
   /** Chip label. */
   children?: ReactNode
 }
@@ -57,6 +59,7 @@ export const Chip = forwardRef<HTMLDivElement, ChipProps>(function Chip(
     onDelete,
     deleteIcon,
     deleteLabel = 'Remove',
+    deleteTabIndex,
     className,
     style,
     children,
@@ -119,6 +122,7 @@ export const Chip = forwardRef<HTMLDivElement, ChipProps>(function Chip(
           onClick={handleDelete}
           onMouseDown={(event) => event.preventDefault()}
           aria-label={deleteLabel}
+          tabIndex={deleteTabIndex}
           disabled={disabled}
         >
           {deleteIcon ?? <Icon name="CloseCircle" size={size} />}

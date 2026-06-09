@@ -526,6 +526,50 @@ Token-styled except the **spectrum gradients** (the SV square + hue rail) and th
 checkerboard** — both use literal colors (an unavoidable exception); the dynamic hue is fed via an
 inline `--cp-hue` var, the alpha fill via `--cp-fill` / `--cp-rgb`. Own CSS module.
 
+### Select
+
+A single-select dropdown field. The trigger reuses TextField chrome (`label` · `size` · `error` +
+`helperText` · `required` · `fullWidth` default `true` · `disabled`) and is a `role="combobox"` `<div>`
+(so it can hold the clear button + chevron) showing the selected option's label/icon (or
+`placeholder`, default `"Select…"`) + an `ArrowDown4` chevron that rotates while open. Clicking it opens
+a popover that **behaves exactly like `Dropdown`** — portaled to `<body>`, opens below (flips above
+only on overflow), **matches the trigger width**, locks page scroll, re-positions on scroll/resize,
+closes on outside-pointerdown/`Escape`/select, and enters with the shared opacity + translate animation
+(`data-open`/`data-side` + rAF `visible`) — **all via the shared internal `useFloatingPanel` hook**
+(`src/hooks/`, reused by `MultiSelect`; not part of the public hooks surface). The listbox padding
+(`--tz-space-xs`) matches Dropdown's panel inset. Options are
+data-driven (**`options: { value, label, disabled?, icon? }[]`**) rendered as **`ListItem`s** (with
+`role="option"`, `tabIndex={-1}`) inside a `role="listbox"` **`List`**; the chosen option shows a
+`selected` tint + a trailing `TickCircle`, disabled options are inert. **Keyboard:** Arrow up/down
+(skipping disabled), Home/End, Enter/Space to select, Escape to close, and **type-ahead** (buffer with
+a 500ms reset) when not searchable; the focused element carries `aria-activedescendant` →
+the highlighted option (a `.active` row gets the same light hover tint as a selected row).
+**`searchable`** adds a
+sticky filter `<input>` (substring match on `label`) that the list scrolls under, with
+`searchPlaceholder` + `noOptionsText` (default `"No options"`); **`clearable`** adds a × (`CloseCircle`)
+in the trigger that resets to `''`. Controlled (`value` + `onChange(value)`) or uncontrolled
+(`defaultValue`); binds to a surrounding `<Form>` by **`name`** (value = the option's `value`; validate
+with e.g. `z.string().min(1, 'Required')`). The trigger carries `name` so the form's
+**scroll-to-error** focuses it, and marks the field touched on blur **only when focus leaves the whole
+widget** (not when it moves into the portaled popover). Own CSS module.
+
+### MultiSelect
+
+The **`string[]` sibling of `Select`** (a separate component — kept separate so each has clean,
+non-union value types; chosen over a `multiple` prop). Shares all of Select's popover plumbing via the
+same **`useFloatingPanel`** hook and the `SelectOption` type. The trigger shows the chosen options as
+deletable **`Chip`s** (wrapping + growing like `TagsField`; `color` tints them, chip `size` tracks the
+field) or the `placeholder`; clicking it opens the same listbox. Selecting an option **toggles** it and
+**keeps the popover open**; the list is `role="listbox"` **`aria-multiselectable`**, selected options
+show a `selected` tint + trailing `TickCircle`. **Keyboard:** Arrow/Home/End, Enter/Space **toggle**
+(no close), **Backspace** pops the last chip, Escape closes, type-ahead. `searchable` + `clearable`
+(clears all) + `noOptionsText` like Select. The left inset tightens (`--tz-space-xs`) once chips show
+(like `TagsField`). **Value is always a `string[]`**; controlled (`value` + `onChange(values)`) or
+uncontrolled (`defaultValue`); binds to a `<Form>` by **`name`** reading the **raw** `form.values[name]`
+(not `field().value`, which would String-coerce the array) and writing a real array — validate with
+e.g. `z.array(z.string()).min(1, 'Pick at least one')`. Own CSS module (mirrors Select's popover +
+TagsField's chip-trigger).
+
 ### Checkbox
 
 A labeled checkbox. The native `<input type="checkbox">` is **visually hidden** (sr-only) but stays
@@ -667,8 +711,9 @@ A compact pill tag/token. `variant` (`contained` · `filled` **default** · `out
 `startIcon` **or** `avatar` (the avatar is sized to the chip and flush-left via a scoped
 `.<size> .avatar > *` rule), and a trailing delete button when `onDelete` is given (its click
 `stopPropagation`s so it never fires the chip's `onClick`; `deleteIcon`/`deleteLabel` customize it,
-default `CloseCircle` / `"Remove"`). Root is a `<div>` (not a `<button>`) so the delete `<button>`
-doesn't nest. Default variant is `filled` (a deliberate, chip-appropriate deviation from the
+default `CloseCircle` / `"Remove"`; **`deleteTabIndex`** takes the delete button out of the tab order
+(pass `-1` when the chip lives inside a composite widget that owns focus, e.g. `MultiSelect`)). Root is
+a `<div>` (not a `<button>`) so the delete `<button>` doesn't nest. Default variant is `filled` (a deliberate, chip-appropriate deviation from the
 `contained` default in §6's vocab). Own CSS module.
 
 ### List / ListItem
@@ -680,8 +725,8 @@ pattern from `color`, default `primary`) and sets `aria-current`; `clickable` ma
 
 - cursor, and when rendered as a **plain** element it also gets `role="button"` + `tabIndex` +
   Enter/Space → click (a native `a`/`button` or a router `Link` keeps its own semantics). `disabled` dims
-- inerts it. `size` is `sm/md/lg` (min-height a touch under the control height; label + description
-  each truncate to one line).
+- inerts it. `size` is `sm/md/lg` (min-height a touch under the control height; the label **wraps**
+  onto multiple lines — `overflow-wrap: break-word` — while the description truncates to one line).
   Render as a link/button/component via **`as`** (anchor `href`/`target`/`rel`/`download` are typed).
   **`List`** is a thin semantic container — a vertical stack (inline-styled like `Flex`/`Grid`) with
   `gap` (default `2px`) / `padding` and `role="list"` (override `role` to `"menu"` for a dropdown). Its
