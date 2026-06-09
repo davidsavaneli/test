@@ -58,7 +58,7 @@ export const MultilineTextField = forwardRef<HTMLTextAreaElement, MultilineTextF
       required = false,
       fullWidth = true,
       minRows = 3,
-      maxRows,
+      maxRows = 6,
       name,
       value,
       defaultValue,
