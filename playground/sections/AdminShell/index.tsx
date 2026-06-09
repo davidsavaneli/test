@@ -25,6 +25,7 @@ import { FormSection } from '../Form'
 import { IconButtonSection } from '../IconButton'
 import { IconSection } from '../Icon'
 import { LoaderSection } from '../Loader'
+import { MultilineTextFieldSection } from '../MultilineTextField'
 import { NumberFieldSection } from '../NumberField'
 import { TextFieldSection } from '../TextField'
 import { TooltipSection } from '../Tooltip'
@@ -237,40 +238,46 @@ const textFieldRoute = createRoute({
   staticData: { name: 'Text Field', icon: 'Edit2', order: 0 },
   component: inPage(TextFieldSection),
 })
+const multilineTextFieldRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'multiline-text-field',
+  staticData: { name: 'Multiline Text Field', icon: 'TextalignLeft', order: 1 },
+  component: inPage(MultilineTextFieldSection),
+})
 const numberFieldRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'number-field',
-  staticData: { name: 'Number Field', icon: 'Keyboard', order: 1 },
+  staticData: { name: 'Number Field', icon: 'Keyboard', order: 2 },
   component: inPage(NumberFieldSection),
 })
 const checkboxRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'checkbox',
-  staticData: { name: 'Checkbox', icon: 'TickSquare', order: 2 },
+  staticData: { name: 'Checkbox', icon: 'TickSquare', order: 3 },
   component: inPage(CheckboxSection),
 })
 const radioRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'radio',
-  staticData: { name: 'Radio', icon: 'RecordCircle', order: 3 },
+  staticData: { name: 'Radio', icon: 'RecordCircle', order: 4 },
   component: inPage(RadioSection),
 })
 const switchRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'switch',
-  staticData: { name: 'Switch', icon: 'ToggleOnCircle', order: 4 },
+  staticData: { name: 'Switch', icon: 'ToggleOnCircle', order: 5 },
   component: inPage(SwitchSection),
 })
 const colorPickerRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'color-picker',
-  staticData: { name: 'Color Picker', icon: 'ColorSwatch', order: 5 },
+  staticData: { name: 'Color Picker', icon: 'ColorSwatch', order: 6 },
   component: inPage(ColorPickerSection),
 })
 const formRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form',
-  staticData: { name: 'Form', icon: 'Edit', order: 6 },
+  staticData: { name: 'Form', icon: 'Edit', order: 7 },
   component: inPage(FormSection),
 })
 
@@ -297,6 +304,7 @@ const shellRouter = createRouter({
       ]),
       formsRoute.addChildren([
         textFieldRoute,
+        multilineTextFieldRoute,
         numberFieldRoute,
         checkboxRoute,
         radioRoute,

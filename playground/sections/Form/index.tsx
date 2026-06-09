@@ -6,6 +6,7 @@ import {
   ColorPicker,
   Form,
   Grid,
+  MultilineTextField,
   NumberField,
   RadioGroup,
   Switch,
@@ -32,6 +33,7 @@ const schema = z.object({
     .nullable()
     .refine((v): boolean => v !== null, 'Required'),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Pick a color'),
+  bio: z.string().min(10, 'At least 10 characters'),
   plan: z.string().min(1, 'Select a plan'),
   notifications: z.boolean().refine((v) => v, 'Enable notifications to continue'),
   acceptTerms: z.boolean().refine((v) => v, 'You must accept the terms'),
@@ -51,6 +53,7 @@ export function FormSection() {
       password: '',
       quantity: null,
       brandColor: '',
+      bio: '',
       plan: '',
       notifications: false,
       acceptTerms: false,
@@ -89,6 +92,13 @@ export function FormSection() {
                 <NumberField name="quantity" required label="Quantity" min={0} max={10} />
                 <ColorPicker name="brandColor" required label="Brand color" />
               </Grid>
+              <MultilineTextField
+                name="bio"
+                required
+                label="Bio"
+                minRows={3}
+                placeholder="At least 10 characters…"
+              />
               <RadioGroup
                 name="plan"
                 required

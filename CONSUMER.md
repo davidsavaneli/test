@@ -112,6 +112,12 @@ Inherits text color unless `color` is set.
 (`9` digit · `a` letter · `*` alphanumeric · others literal, e.g. `"(999) 999-9999"`). `type="password"`
 auto-adds a show/hide toggle. Controlled (`value`+`onChange`) or uncontrolled (`defaultValue`).
 
+**MultilineTextField** — the `<textarea>` sibling of `TextField` with a **dynamic, auto-growing
+height**. Same `label` · `size` · `error` + `helperText` · `required` · `fullWidth` (**default true**) ·
+`disabled` · `value`/`defaultValue` · `onChange` + `<Form>` binding by `name` (string value). Grows from
+`minRows` (**default 3**) up to optional `maxRows` (then scrolls). No adornment/mask/password (those are
+input-only). `<MultilineTextField label="Bio" minRows={3} maxRows={8} name="bio" />`.
+
 **NumberField** — numeric input with `+`/`−` steppers. `min` (**default 0**) · `max` · `step` (default 1) ·
 `value`/`defaultValue` (`number | null`) · `onChange(number|null)` · `hideStepper` · `thousandSeparator`
 (live grouping, e.g. `"."` → `32.345.345`). `fullWidth` defaults true.
