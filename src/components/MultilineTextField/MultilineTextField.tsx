@@ -37,15 +37,15 @@ export interface MultilineTextFieldProps extends Omit<
   fullWidth?: boolean
   /** Minimum visible rows — the field's starting (and smallest) height. Defaults to `3`. */
   minRows?: number
-  /** Maximum rows before the field stops growing and scrolls instead. Omit for unbounded growth. */
+  /** Maximum rows before the field stops growing and scrolls instead. Defaults to `6` (pass `Infinity` for unbounded growth). */
   maxRows?: number
 }
 
 /**
  * A labeled multiline text input — the textarea sibling of `TextField`. It shares TextField's chrome
  * (label, helper/validation text, error state, sizes, `<Form>` binding by `name`), but renders a
- * `<textarea>` whose **height is dynamic**: it auto-grows with the content from `minRows` up to an
- * optional `maxRows` (then scrolls). Works controlled (`value` + `onChange`) or uncontrolled
+ * `<textarea>` whose **height is dynamic**: it auto-grows with the content from `minRows` up to
+ * `maxRows` (then scrolls). Works controlled (`value` + `onChange`) or uncontrolled
  * (`defaultValue`). Styling comes entirely from `--tz-*` tokens.
  */
 export const MultilineTextField = forwardRef<HTMLTextAreaElement, MultilineTextFieldProps>(
