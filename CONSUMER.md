@@ -120,7 +120,7 @@ adornment/mask/password (those are input-only). `<MultilineTextField label="Bio"
 
 **TagsField** — a tags/token input. Type + **Enter** / the **+ button** / the `separator` key adds a tag;
 a chip's delete button (or **Backspace** on the empty input) removes one. `label` · `size` · `error` +
-`helperText` · `required` · `fullWidth` (**default true**) · `disabled` · `color` (chip tint) ·
+`helperText` · `required` · `fullWidth` (**default true**) · `disabled` · `color` (chip tint, default `primary`) ·
 `separator` (**default `,`** — also splits pasted text & joins a string value) · `allowDuplicates` ·
 `placeholder`. **`value`/`defaultValue` accept a `string[]` or a `separator`-joined `string`** (e.g.
 `"react;typescript"`) and `onChange` **mirrors that shape**; binds to `<Form>` by `name` (validate with
@@ -148,7 +148,7 @@ trigger width). Binds to `<Form>` by `name` (value = the option's `value`; valid
 
 **MultiSelect** — the multi-value sibling of `Select` (**value is a `string[]`**). Same `options` shape +
 `label` · `size` · `error` + `helperText` · `required` · `fullWidth` · `disabled` · `searchable` ·
-`clearable` (clears all) · `placeholder` · `color` (chip tint). Selecting **toggles** an option and keeps
+`clearable` (clears all) · `placeholder` · `color` (chip tint, default `primary`). Selecting **toggles** an option and keeps
 the menu open; chosen options show as deletable chips in the trigger; **Backspace** pops the last.
 `value`/`defaultValue: string[]` · `onChange(values)`. Binds to `<Form>` by `name` (validate with
 `z.array(z.string()).min(1, '…')`). `<MultiSelect label="Skills" name="skills" searchable options={skills} />`.
@@ -201,8 +201,8 @@ to the whole group.
 a title for a labeled divider with `align` (`left` · `center` default · `right`):
 `<Divider align="left">Section</Divider>`.
 
-**Chip** — a compact tag. `variant` (`contained` · `filled` default · `outlined` · `text`) · `color` ·
-`size` · `clickable` (interactive; off by default) · `disabled` · `startIcon` **or** `avatar` ·
+**Chip** — a compact tag. `variant` (`contained` · `filled` default · `outlined` · `text`) · `color`
+(default `primary`) · `size` · `clickable` (interactive; off by default) · `disabled` · `startIcon` **or** `avatar` ·
 `onDelete` (adds a delete ✕). `<Chip avatar={<Avatar name="David Savaneli" />} onDelete={remove}>David</Chip>`.
 
 **List / ListItem** — a reusable row + its container. **`ListItem`**: `icon` (`IconName`/node) · label

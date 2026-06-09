@@ -468,8 +468,8 @@ input pops the last; a typed-but-uncommitted value is also committed on **blur**
 **Dual value shape:** `value`/`defaultValue` accept **either a `string[]` or a `separator`-joined
 `string`**, and `onChange` **mirrors the input's shape** (emits a `string` when the value is a string,
 else a `string[]`) — so it binds to a `<Form>` whose schema is `z.array(z.string())` **or** `z.string()`.
-Duplicates are ignored unless `allowDuplicates`; `color` tints the chips (chip `size` tracks the field
-`size` 1:1). The input carries `name` so the form's **scroll-to-error** focuses it. The add
+Duplicates are ignored unless `allowDuplicates`; `color` (default `primary`) tints the chips (chip
+`size` tracks the field `size` 1:1). The input carries `name` so the form's **scroll-to-error** focuses it. The add
 button uses `onMouseDown`-preventDefault (clicking it doesn't blur → no double-add), disables when the
 input is empty, and is the same flush-square icon treatment as a TextField adornment (`align-self:
 stretch` + `height: auto` so it conforms to the control instead of imposing its native height). A
@@ -558,8 +558,8 @@ widget** (not when it moves into the portaled popover). Own CSS module.
 The **`string[]` sibling of `Select`** (a separate component — kept separate so each has clean,
 non-union value types; chosen over a `multiple` prop). Shares all of Select's popover plumbing via the
 same **`useFloatingPanel`** hook and the `SelectOption` type. The trigger shows the chosen options as
-deletable **`Chip`s** (wrapping + growing like `TagsField`; `color` tints them, chip `size` tracks the
-field) or the `placeholder`; clicking it opens the same listbox. Selecting an option **toggles** it and
+deletable **`Chip`s** (wrapping + growing like `TagsField`; `color` (default `primary`) tints them, chip
+`size` tracks the field) or the `placeholder`; clicking it opens the same listbox. Selecting an option **toggles** it and
 **keeps the popover open**; the list is `role="listbox"` **`aria-multiselectable`**, selected options
 show a `selected` tint + trailing `TickCircle`. **Keyboard:** Arrow/Home/End, Enter/Space **toggle**
 (no close), **Backspace** pops the last chip, Escape closes, type-ahead. `searchable` + `clearable`
@@ -705,7 +705,7 @@ of stretching to fill the row — e.g. a search-filtered gallery), plus `gap`/`a
 ### Chip
 
 A compact pill tag/token. `variant` (`contained` · `filled` **default** · `outlined` · `text`),
-`color` (default `medium`), `size` (`sm`/`md`/`lg`) — tinted via the shared `--tz-btn-rgb` /
+`color` (default `primary`), `size` (`sm`/`md`/`lg`) — tinted via the shared `--tz-btn-rgb` /
 `--tz-btn-on` pattern across the four variants. **Static by default**; `clickable` makes it interactive
 (`role="button"`, pointer + hover, Enter/Space → click), `disabled` dims + inerts it. A leading
 `startIcon` **or** `avatar` (the avatar is sized to the chip and flush-left via a scoped

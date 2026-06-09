@@ -17,7 +17,7 @@ export type ChipSize = 'sm' | 'md' | 'lg'
 export interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'color'> {
   /** Visual style. Defaults to `filled` (a soft tinted chip). */
   variant?: ChipVariant
-  /** Brand palette token that tints the chip. Defaults to `medium`. */
+  /** Brand palette token that tints the chip. Defaults to `primary`. */
   color?: ThemeColor
   /** Preset size — height + font. Defaults to `md`. */
   size?: ChipSize

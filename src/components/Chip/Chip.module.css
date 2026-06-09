@@ -9,7 +9,7 @@
   border: 1px solid transparent; /* keeps height equal across variants (like Button) */
   border-radius: 999px;
   font-family: var(--tz-font-family);
-  font-weight: var(--tz-font-weight-medium);
+  font-weight: var(--tz-font-weight-regular);
   line-height: 1;
   white-space: nowrap;
   vertical-align: middle;
