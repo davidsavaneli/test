@@ -118,6 +118,14 @@ height**. Same `label` · `size` · `error` + `helperText` · `required` · `ful
 `minRows` (**default 3**) up to `maxRows` (**default 6**; `Infinity` for unbounded), then scrolls. No
 adornment/mask/password (those are input-only). `<MultilineTextField label="Bio" minRows={3} maxRows={8} name="bio" />`.
 
+**TagsField** — a tags/token input. Type + **Enter** / the **+ button** / the `separator` key adds a tag;
+a chip's delete button (or **Backspace** on the empty input) removes one. `label` · `size` · `error` +
+`helperText` · `required` · `fullWidth` (**default true**) · `disabled` · `color` (chip tint) ·
+`separator` (**default `,`** — also splits pasted text & joins a string value) · `allowDuplicates` ·
+`placeholder`. **`value`/`defaultValue` accept a `string[]` or a `separator`-joined `string`** (e.g.
+`"react;typescript"`) and `onChange` **mirrors that shape**; binds to `<Form>` by `name` (validate with
+`z.array(z.string()).min(1)` or `z.string()`). `<TagsField label="Skills" separator=";" name="skills" />`.
+
 **NumberField** — numeric input with `+`/`−` steppers. `min` (**default 0**) · `max` · `step` (default 1) ·
 `value`/`defaultValue` (`number | null`) · `onChange(number|null)` · `hideStepper` · `thousandSeparator`
 (live grouping, e.g. `"."` → `32.345.345`). `fullWidth` defaults true.

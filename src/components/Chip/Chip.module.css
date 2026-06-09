@@ -3,7 +3,7 @@
 .chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--tz-space-xxs);
+  gap: calc(var(--tz-space-xs) / 1.4);
   box-sizing: border-box;
   max-width: 100%;
   border: 1px solid transparent; /* keeps height equal across variants (like Button) */
@@ -23,12 +23,12 @@
   font-size: var(--tz-font-size-xs);
 }
 .md {
-  height: 28px;
-  padding: 0 var(--tz-space-sm);
+  height: 26px;
+  padding: 0 calc(var(--tz-space-sm) / 1.4);
   font-size: var(--tz-font-size-sm);
 }
 .lg {
-  height: 34px;
+  height: 32px;
   padding: 0 var(--tz-space-sm);
   font-size: var(--tz-font-size-md);
 }
@@ -114,13 +114,13 @@
   font-size: var(--tz-font-size-xxs);
 }
 .md .avatar > * {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   font-size: var(--tz-font-size-xxs);
 }
 .lg .avatar > * {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   font-size: var(--tz-font-size-xs);
 }
 

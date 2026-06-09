@@ -10,6 +10,7 @@ import {
   NumberField,
   RadioGroup,
   Switch,
+  TagsField,
   TextField,
   Typography,
   useForm,
@@ -34,6 +35,7 @@ const schema = z.object({
     .refine((v): boolean => v !== null, 'Required'),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Pick a color'),
   bio: z.string().min(10, 'At least 10 characters'),
+  skills: z.array(z.string()).min(1, 'Add at least one skill'),
   plan: z.string().min(1, 'Select a plan'),
   notifications: z.boolean().refine((v) => v, 'Enable notifications to continue'),
   acceptTerms: z.boolean().refine((v) => v, 'You must accept the terms'),
@@ -54,6 +56,7 @@ export function FormSection() {
       quantity: null,
       brandColor: '',
       bio: '',
+      skills: [] as string[],
       plan: '',
       notifications: false,
       acceptTerms: false,
@@ -98,6 +101,12 @@ export function FormSection() {
                 label="Bio"
                 minRows={3}
                 placeholder="At least 10 characters…"
+              />
+              <TagsField
+                name="skills"
+                required
+                label="Skills"
+                placeholder="Add a skill, press Enter…"
               />
               <RadioGroup
                 name="plan"
