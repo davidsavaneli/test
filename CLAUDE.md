@@ -546,8 +546,13 @@ a 500ms reset) when not searchable; the focused element carries `aria-activedesc
 the highlighted option (a `.active` row gets the same light hover tint as a selected row).
 **`searchable`** adds a
 sticky filter `<input>` (substring match on `label`) that the list scrolls under, with
-`searchPlaceholder` + `noOptionsText` (default `"No options"`); **`clearable`** adds a × (`CloseCircle`)
-in the trigger that resets to `''`. Controlled (`value` + `onChange(value)`) or uncontrolled
+`searchPlaceholder` + `noOptionsText` (default `"No options"`; pass a **`(query) => node`** to vary the
+empty message by the search text — e.g. a "Type to search" hint vs a "No results" message). For
+**server-side search**, pass
+**`onSearchChange(query)`** — it fires on each keystroke and **disables the built-in local filter** (the
+consumer owns `options` for the current query), and **`loading`** shows a centered `Loader` +
+`loadingText` (default `"Loading…"`) in the popover. **`clearable`** (on by default) adds a ×
+(`CloseCircle`) in the trigger that resets to `''` (`MultiSelect` clears the whole array). Controlled (`value` + `onChange(value)`) or uncontrolled
 (`defaultValue`); binds to a surrounding `<Form>` by **`name`** (value = the option's `value`; validate
 with e.g. `z.string().min(1, 'Required')`). The trigger carries `name` so the form's
 **scroll-to-error** focuses it, and marks the field touched on blur **only when focus leaves the whole
@@ -563,7 +568,8 @@ deletable **`Chip`s** (wrapping + growing like `TagsField`; `color` (default `pr
 **keeps the popover open**; the list is `role="listbox"` **`aria-multiselectable`**, selected options
 show a `selected` tint + trailing `TickCircle`. **Keyboard:** Arrow/Home/End, Enter/Space **toggle**
 (no close), **Backspace** pops the last chip, Escape closes, type-ahead. `searchable` + `clearable`
-(clears all) + `noOptionsText` like Select. The left inset tightens (`--tz-space-xs`) once chips show
+(clears all) + `noOptionsText` + **`onSearchChange`/`loading`** (server-side search) — all like Select.
+The left inset tightens (`--tz-space-xs`) once chips show
 (like `TagsField`). **Value is always a `string[]`**; controlled (`value` + `onChange(values)`) or
 uncontrolled (`defaultValue`); binds to a `<Form>` by **`name`** reading the **raw** `form.values[name]`
 (not `field().value`, which would String-coerce the array) and writing a real array — validate with

@@ -1,6 +1,31 @@
 import { useState } from 'react'
 import { Col, Select, type SelectOption } from '../../../src'
-import { Block, Section, SIZES } from '../../shared'
+import { Block, Section, SIZES, useCountrySearch } from '../../shared'
+
+/** Server-side search: the search box queries the REST Countries API and shows the results. */
+function ServerSearchSelect() {
+  const { options, loading, onSearch } = useCountrySearch()
+  // keep the chosen option visible even when it's not in the current server results
+  const [selected, setSelected] = useState<SelectOption | null>(null)
+  const merged =
+    selected && !options.some((o) => o.value === selected.value) ? [selected, ...options] : options
+
+  return (
+    <Select
+      label="Country (server search)"
+      options={merged}
+      value={selected?.value ?? ''}
+      onChange={(v) => setSelected(merged.find((o) => o.value === v) ?? null)}
+      searchable
+      clearable
+      onSearchChange={onSearch}
+      loading={loading}
+      placeholder="Select a country…"
+      searchPlaceholder="Search countries…"
+      noOptionsText={(q) => (q ? 'No countries found' : 'Type to search')}
+    />
+  )
+}
 
 const FRUITS: SelectOption[] = [
   { value: 'apple', label: 'Apple' },
@@ -46,6 +71,12 @@ export function SelectSection() {
       <Block label="with icons">
         <Col gap={16} style={{ maxWidth: 320 }}>
           <Select label="Status" options={STATUSES} defaultValue="active" />
+        </Col>
+      </Block>
+
+      <Block label="server-side search (REST Countries API)">
+        <Col gap={16} style={{ maxWidth: 320 }}>
+          <ServerSearchSelect />
         </Col>
       </Block>
 

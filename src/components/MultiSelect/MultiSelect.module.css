@@ -212,3 +212,12 @@
   padding: var(--tz-space-sm);
   text-align: center;
 }
+
+/* loading row (server-side search) — centered loader + text */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tz-space-xs);
+  padding: var(--tz-space-sm);
+}

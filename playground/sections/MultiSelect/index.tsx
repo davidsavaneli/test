@@ -1,6 +1,34 @@
 import { useState } from 'react'
 import { Col, MultiSelect, type SelectOption } from '../../../src'
-import { Block, Section, SIZES } from '../../shared'
+import { Block, Section, SIZES, useCountrySearch } from '../../shared'
+
+/** Server-side search: the search box queries the REST Countries API and shows the results. */
+function ServerSearchMultiSelect() {
+  const { options, loading, onSearch } = useCountrySearch()
+  // keep the chosen options visible even when they're not in the current server results
+  const [selected, setSelected] = useState<SelectOption[]>([])
+  const merged = [...selected, ...options.filter((o) => !selected.some((s) => s.value === o.value))]
+
+  return (
+    <MultiSelect
+      label="Countries (server search)"
+      options={merged}
+      value={selected.map((s) => s.value)}
+      onChange={(vals) =>
+        setSelected(
+          vals.map((v) => merged.find((o) => o.value === v)).filter(Boolean) as SelectOption[],
+        )
+      }
+      searchable
+      clearable
+      onSearchChange={onSearch}
+      loading={loading}
+      placeholder="Select countries…"
+      searchPlaceholder="Search countries…"
+      noOptionsText={(q) => (q ? 'No countries found' : 'Type to search')}
+    />
+  )
+}
 
 const SKILLS: SelectOption[] = [
   { value: 'react', label: 'React' },
@@ -32,6 +60,12 @@ export function MultiSelectSection() {
       <Block label="basic · controlled (toggles, stays open)">
         <Col gap={16} style={{ maxWidth: 360 }}>
           <MultiSelect label="Skills" options={SKILLS} value={skills} onChange={setSkills} />
+        </Col>
+      </Block>
+
+      <Block label="server-side search (REST Countries API)">
+        <Col gap={16} style={{ maxWidth: 360 }}>
+          <ServerSearchMultiSelect />
         </Col>
       </Block>
 

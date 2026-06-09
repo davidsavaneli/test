@@ -126,6 +126,26 @@ describe('MultiSelect', () => {
     expect(screen.getAllByRole('option')).toHaveLength(1)
   })
 
+  it('fires onSearchChange and skips local filtering (server-side search)', () => {
+    const onSearchChange = vi.fn()
+    render(
+      <MultiSelect label="Fruits" options={OPTIONS} searchable onSearchChange={onSearchChange} />,
+    )
+    fireEvent.click(screen.getByRole('combobox', { name: 'Fruits' }))
+    fireEvent.change(screen.getByLabelText('Search…'), { target: { value: 'zzz' } })
+    expect(onSearchChange).toHaveBeenCalledWith('zzz')
+    expect(screen.getAllByRole('option')).toHaveLength(4)
+  })
+
+  it('shows a loading indicator in the popover', () => {
+    render(
+      <MultiSelect label="Fruits" options={OPTIONS} searchable loading loadingText="Fetching…" />,
+    )
+    fireEvent.click(screen.getByRole('combobox', { name: 'Fruits' }))
+    expect(screen.getByText('Fetching…')).toBeInTheDocument()
+    expect(screen.queryAllByRole('option')).toHaveLength(0)
+  })
+
   it('marks the field invalid and links the helper text', () => {
     render(<MultiSelect label="Fruits" options={OPTIONS} error helperText="Pick at least one" />)
     const trigger = screen.getByRole('combobox', { name: 'Fruits' })

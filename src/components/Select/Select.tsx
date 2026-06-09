@@ -19,6 +19,7 @@ import { useFloatingPanel } from '../../hooks/useFloatingPanel'
 import { ICON_NAMES, type IconName } from '../../icons/names'
 import { Icon } from '../Icon'
 import { List, ListItem } from '../List'
+import { Loader } from '../Loader'
 import { Typography } from '../Typography'
 import styles from './Select.module.css'
 
@@ -71,14 +72,27 @@ export interface SelectProps {
   onChange?: (value: string) => void
   /** Text shown in the trigger when nothing is selected. Defaults to `"Select…"`. */
   placeholder?: string
-  /** Shows a clear (×) button in the trigger when a value is set. */
+  /** Shows a clear (×) button in the trigger when a value is set. Defaults to `true`. */
   clearable?: boolean
   /** Adds a search box inside the popover that filters options by label. */
   searchable?: boolean
   /** Placeholder for the search box. Defaults to `"Search…"`. */
   searchPlaceholder?: string
-  /** Shown in the popover when no option matches. Defaults to `"No options"`. */
-  noOptionsText?: ReactNode
+  /**
+   * Fires with the search query as the user types. **Providing this switches off the built-in
+   * local filtering** — you own `options` (e.g. fetch them from a server for the current query).
+   */
+  onSearchChange?: (query: string) => void
+  /** Shows a loading indicator in the popover (e.g. while fetching server-side search results). */
+  loading?: boolean
+  /** Text shown next to the loader while `loading`. Defaults to `"Loading…"`. */
+  loadingText?: ReactNode
+  /**
+   * Shown in the popover when no option matches. Defaults to `"No options"`. Pass a function
+   * `(query) => node` to vary the message by the current search text — e.g. a "Type to search" hint
+   * while it's empty vs a "No results" message after typing.
+   */
+  noOptionsText?: ReactNode | ((query: string) => ReactNode)
   /** Form field name — auto-binds to a surrounding `<Form>` (value is the option's `value`). */
   name?: string
   /** Id for the trigger (label association). */
@@ -96,7 +110,9 @@ export interface SelectProps {
  * option is highlighted with a tick, disabled options are inert. Full keyboard support
  * (Arrow/Home/End to move, Enter/Space to select, Escape to close, type-ahead) and ARIA
  * (`listbox`/`option`, `aria-activedescendant`, `aria-expanded`). Optionally `searchable` (a filter
- * box) and `clearable` (a × to reset). Controlled (`value` + `onChange`) or uncontrolled
+ * box) and `clearable` (a × to reset); pass `onSearchChange` to drive the search **server-side** (the
+ * consumer owns `options` for the current query — local filtering is skipped) with a `loading`
+ * indicator. Controlled (`value` + `onChange`) or uncontrolled
  * (`defaultValue`), and binds to a surrounding `<Form>` by `name` (value = the option's `value`;
  * validate with e.g. `z.string().min(1, 'Required')`). Token-only styling.
  */
@@ -114,9 +130,12 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
     defaultValue,
     onChange,
     placeholder = 'Select…',
-    clearable = false,
+    clearable = true,
     searchable = false,
     searchPlaceholder = 'Search…',
+    onSearchChange,
+    loading = false,
+    loadingText = 'Loading…',
     noOptionsText = 'No options',
     name,
     id: idProp,
@@ -178,12 +197,13 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
     [ref],
   )
 
-  // options shown right now (filtered by the search box, if any)
+  // options shown right now. When `onSearchChange` is set the consumer owns `options` (server-side
+  // search) — skip the built-in local filter; otherwise filter the given options by label.
   const filteredOptions = useMemo(() => {
-    if (!searchable || !searchQuery.trim()) return options
+    if (!searchable || onSearchChange || !searchQuery.trim()) return options
     const q = searchQuery.trim().toLowerCase()
     return options.filter((o) => o.label.toLowerCase().includes(q))
-  }, [searchable, searchQuery, options])
+  }, [searchable, onSearchChange, searchQuery, options])
 
   const findEnabled = useCallback(
     (start: number, delta: number) => {
@@ -473,7 +493,10 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
                   placeholder={searchPlaceholder}
                   value={searchQuery}
                   spellCheck={false}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    onSearchChange?.(e.target.value)
+                  }}
                   onKeyDown={handleKeyDown}
                 />
               </div>
@@ -489,10 +512,19 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
               // clear the mouse highlight when the pointer leaves the list (no lingering hover)
               onMouseLeave={() => setHighlightedIndex(-1)}
             >
-              {filteredOptions.length === 0 ? (
+              {loading ? (
+                <div className={styles.loading}>
+                  <Loader size="sm" />
+                  <Typography as="span" variant="bodySmall" color="muted">
+                    {loadingText}
+                  </Typography>
+                </div>
+              ) : filteredOptions.length === 0 ? (
                 <div className={styles.noOptions}>
                   <Typography as="span" variant="bodySmall" color="muted">
-                    {noOptionsText}
+                    {typeof noOptionsText === 'function'
+                      ? noOptionsText(searchQuery)
+                      : noOptionsText}
                   </Typography>
                 </div>
               ) : (

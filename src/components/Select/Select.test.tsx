@@ -93,6 +93,39 @@ describe('Select', () => {
     expect(opts[0]).toHaveTextContent('Banana')
   })
 
+  it('fires onSearchChange and skips local filtering (server-side search)', () => {
+    const onSearchChange = vi.fn()
+    render(<Select label="Fruit" options={OPTIONS} searchable onSearchChange={onSearchChange} />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
+    fireEvent.change(screen.getByLabelText('Search…'), { target: { value: 'zzz' } })
+    expect(onSearchChange).toHaveBeenCalledWith('zzz')
+    // the consumer owns `options` → no local filter, all options stay
+    expect(screen.getAllByRole('option')).toHaveLength(4)
+  })
+
+  it('shows a loading indicator in the popover', () => {
+    render(<Select label="Fruit" options={OPTIONS} searchable loading loadingText="Fetching…" />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
+    expect(screen.getByText('Fetching…')).toBeInTheDocument()
+    expect(screen.queryAllByRole('option')).toHaveLength(0)
+  })
+
+  it('supports a function noOptionsText that varies by the search query', () => {
+    render(
+      <Select
+        label="Fruit"
+        options={[]}
+        searchable
+        onSearchChange={() => {}}
+        noOptionsText={(q) => (q ? `No match for "${q}"` : 'Type to search')}
+      />,
+    )
+    fireEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
+    expect(screen.getByText('Type to search')).toBeInTheDocument() // empty query → hint
+    fireEvent.change(screen.getByLabelText('Search…'), { target: { value: 'xyz' } })
+    expect(screen.getByText('No match for "xyz"')).toBeInTheDocument() // typed → other text
+  })
+
   it('shows the empty message when no option matches', () => {
     render(<Select label="Fruit" options={OPTIONS} searchable noOptionsText="Nothing here" />)
     fireEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
