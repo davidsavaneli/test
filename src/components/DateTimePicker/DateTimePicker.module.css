@@ -1,0 +1,97 @@
+/* DateTimePicker popover: the calendar (from DatePicker.module.css) sits beside the time columns.
+   Field chrome (control / input / clear / sizes / helper) + the calendar itself are reused from
+   ../DatePicker/DatePicker.module.css; this module only adds the datetime popover layout. */
+
+.popover {
+  /* size to the calendar + time content rather than the calendar's fixed width */
+  width: auto;
+}
+
+.body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tz-space-xs);
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  align-self: stretch;
+  background: var(--tz-color-border);
+}
+
+/* ── time columns ─────────────────────────────────────────────────────────────────────────────── */
+.timeCols {
+  display: flex;
+  flex: none;
+  gap: var(--tz-space-xxs);
+}
+
+.timeCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.timeColLabel {
+  flex: none;
+  margin-bottom: var(--tz-space-xxs);
+  color: var(--tz-color-primary-shade600);
+  font-size: var(--tz-font-size-xs);
+  font-weight: var(--tz-font-weight-medium);
+  text-align: center;
+}
+
+.timeScroll {
+  /* a compact, dropdown-height scrollable column (independent of the calendar's height) */
+  max-height: 256px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 46px;
+  padding-right: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.timeCell {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 var(--tz-space-xxs);
+  border: 0;
+  border-radius: var(--tz-radius-xs);
+  background: transparent;
+  color: var(--tz-color-text);
+  font-family: inherit;
+  font-size: var(--tz-font-size-sm);
+  cursor: pointer;
+  transition:
+    background var(--tz-duration),
+    color var(--tz-duration);
+}
+.timeCell:hover {
+  background: rgba(var(--tz-color-primary-rgb), 0.06);
+}
+.timeCell:focus-visible {
+  outline: 2px solid rgba(var(--tz-color-primary-rgb), 0.5);
+  outline-offset: -2px;
+}
+.timeCellSelected {
+  background: rgb(var(--tz-color-primary-rgb));
+  color: var(--tz-color-primary-contrast, #fff);
+}
+.timeCellSelected:hover {
+  background: rgb(var(--tz-color-primary-rgb));
+  filter: brightness(0.94);
+}
+
+/* ── footer ───────────────────────────────────────────────────────────────────────────────────── */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--tz-space-xs);
+  padding-top: var(--tz-space-xs);
+  border-top: 1px solid var(--tz-color-border);
+}

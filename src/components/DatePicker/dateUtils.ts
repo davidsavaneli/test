@@ -55,12 +55,37 @@ export const formatValue = (d: Dayjs, valueFormat: string): string =>
 /** The viewer's local calendar date, anchored to UTC midnight for stable, drift-free math. */
 export const today = (): Dayjs => dayjs.utc(dayjs().format(ISO), ISO)
 
-/** Build a TextField-style numeric mask from a date format (`'DD/MM/YYYY'` → `'99/99/9999'`). */
-export const maskFromFormat = (format: string): string => format.replace(/[DMYHhms]/g, '9')
+/** Inclusive numeric range `[start, end]` stepped by `step` — for the time-picker columns. A
+ *  non-positive `step` returns `[]` rather than looping forever. */
+export function range(start: number, end: number, step = 1): number[] {
+  if (step <= 0) return []
+  const out: number[] = []
+  for (let v = start; v <= end; v += step) out.push(v)
+  return out
+}
+
+/** Zero-pads a number to two digits (`9` → `'09'`) for time-column display. */
+export const pad2 = (n: number): string => String(n).padStart(2, '0')
+
+/**
+ * Build an input mask from a date/time format: numeric tokens (`D M Y H h m s`) → `9` (digit slots),
+ * the **uppercase** meridiem token `A` → `AA` and the **lowercase** `a` → `aa` (two letter slots for
+ * `AM`/`PM`, matching dayjs's case-sensitive strict parse), everything else literal.
+ * `'DD/MM/YYYY'` → `'99/99/9999'`; `'DD/MM/YYYY hh:mm A'` → `'99/99/9999 99:99 AA'`.
+ */
+export const maskFromFormat = (format: string): string =>
+  format
+    .replace(/[DMYHhms]/g, '9')
+    .replace(/A/g, 'AA')
+    .replace(/a/g, 'aa')
 
 const DIGIT = /[0-9]/
+const ALPHA = /[A-Za-z]/
 
-/** Applies a numeric mask (`9` = digit, everything else a literal) to raw input. */
+/**
+ * Applies a mask to raw input: `9` = digit, `A` = letter forced upper-case, `a` = letter forced
+ * lower-case (so a typed meridiem matches the format's case for dayjs), everything else a literal.
+ */
 export function applyMask(raw: string, mask: string): string {
   let out = ''
   let i = 0
@@ -69,6 +94,10 @@ export function applyMask(raw: string, mask: string): string {
       while (i < raw.length && !DIGIT.test(raw[i])) i++
       if (i >= raw.length) break
       out += raw[i++]
+    } else if (m === 'A' || m === 'a') {
+      while (i < raw.length && !ALPHA.test(raw[i])) i++
+      if (i >= raw.length) break
+      out += m === 'A' ? raw[i++].toUpperCase() : raw[i++].toLowerCase()
     } else {
       if (i >= raw.length) break
       if (raw[i] === m) i++

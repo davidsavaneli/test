@@ -171,8 +171,18 @@ parsed **leniently** (so a backend datetime like `'2026-06-10T09:35:49.6134342'`
 plain date). A .NET `DateTime` field just works out of the box (the default already emits
 `'2026-06-10T00:00:00'`); pass `valueFormat="YYYY-MM-DD"` when you only want a date.
 Binds to `<Form>` by `name` (validate with `z.string().min(1, '…')`).
-`<DatePicker label="Birth date" name="birthDate" max="2010-01-01" />`. _(`DateTimePicker` /
-`DateRangePicker` / `DateTimeRangePicker` coming next.)_
+`<DatePicker label="Birth date" name="birthDate" max="2010-01-01" />`.
+
+**DateTimePicker** — the **date + time sibling** of `DatePicker` (needs the `dayjs` peer). Same field API
+(`label` · `size` · `error` + `helperText` · `required` · `fullWidth` · `disabled` · `min`/`max` ·
+`disabledDate` · `weekStartsOn` · `clearable` · `<Form>` binding by `name`) and the same `valueFormat`
+contract (default ISO datetime `'YYYY-MM-DDTHH:mm:ss'`, lenient input, **UTC**) — but the time is
+meaningful, so `onChange` emits the **chosen instant** (not start-of-day). The popover pairs the calendar
+with scrollable time columns. Time props: `hour12` (1–12 + AM/PM vs 24-hour) · `minuteStep` (default `1`)
+· `withSeconds`. Display `format` defaults to `'DD/MM/YYYY HH:mm'` (→ `hh:mm A` for `hour12`). Picking a
+day keeps the time and vice-versa; the popover stays open until you click away, press Escape, or hit Done.
+`<DateTimePicker label="Starts at" name="startsAt" minuteStep={15} />`. _(`DateRangePicker` /
+`DateTimeRangePicker` coming next.)_
 
 **Checkbox** — `label` · `color` (checked fill) · `size` · `checked`/`defaultChecked` ·
 `onChange(boolean)` · `error` (reddens the box only, no helper text) · `required` · `disabled`.

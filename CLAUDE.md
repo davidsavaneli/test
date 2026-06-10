@@ -612,8 +612,31 @@ aren't selectable. Controlled (`value` + `onChange`) or uncontrolled (`defaultVa
 `<Form>` by **`name`** (value = the `valueFormat` string; the input carries `name` for
 **scroll-to-error**; touched fires on blur outside the widget). Own CSS module (TextField chrome +
 calendar). The masked typed input assumes a **numeric** `format` (month-name formats display fine but
-type freeform). _The other date components — `DateTimePicker`, `DateRangePicker`,
-`DateTimeRangePicker` — will follow, reusing `Calendar` + `dateUtils`._
+type freeform; the `A`/`a` meridiem token is handled — see `DateTimePicker`). _The remaining date
+components — `DateRangePicker`, `DateTimeRangePicker` — will follow, reusing `Calendar` + `dateUtils`._
+
+### DateTimePicker
+
+The **date + time sibling of `DatePicker`** — a typed masked input plus a popover that pairs the
+reused **`Calendar`** (date) with scrollable **time columns** (`TimeColumns`: hour / minute / optional
+second, + an AM/PM toggle in 12-hour mode). It reuses DatePicker's field chrome (`DatePicker.module.css`
+imported for control/input/clear/sizes/helper + the calendar) and adds its own module for the
+side-by-side popover layout (calendar │ time columns) and a **Done** footer button. Shares the field
+API (`label` · `size` · `error` + `helperText` · `required` · `fullWidth` default `true` · `disabled` ·
+`min`/`max` · `disabledDate` · `weekStartsOn` · `clearable` · `<Form>` binding by **`name`**) and the
+**`valueFormat`** value contract (default ISO datetime `'YYYY-MM-DDTHH:mm:ss'`, lenient input parse, all
+**UTC**) — but unlike `DatePicker` the time is **meaningful**, so `onChange` emits the **chosen instant**
+(not start-of-day). Time props: **`hour12`** (1–12 + AM/PM vs 24-hour, default `false`; drives the
+default `format`), **`minuteStep`** (minutes-column increment, default `1`), **`withSeconds`** (adds a
+seconds column + `:ss`). The display `format` defaults to `'DD/MM/YYYY HH:mm'` (→ `hh:mm A` for
+`hour12`, `+:ss` for `withSeconds`); the masked typed input supports the meridiem via `maskFromFormat`'s
+`A`→`aa` letter slots. **Picking a day keeps the current time and picking a time keeps the day** (each
+column pick preserves the other parts), and — unlike DatePicker — selecting a day **does not close** the
+popover; it closes on outside-pointerdown / `Escape` / the **Done** button. Typed-input commits are
+gated on a change at the input's precision (minute, or second with `withSeconds`) so a no-op focus/blur
+never zeroes finer time. `min`/`max` bound the calendar at **day** level (time-of-day isn't range-gated
+in v1). The time columns are roving `role="listbox"`s (Up/Down/Home/End/Enter, auto-scroll the selected
+into view). `TimeColumns` is internal (not exported). Own CSS module (`DateTimePicker.module.css`).
 
 ### Checkbox
 

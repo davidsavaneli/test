@@ -27,7 +27,9 @@
 .control {
   display: flex;
   align-items: center;
-  gap: var(--tz-space-xxs);
+  /* gap between the chips block, clear (×) and chevron — matches Select; chips keep their own
+     tighter `.chips` gap */
+  gap: var(--tz-space-xs);
   width: 100%;
   box-sizing: border-box;
   /* empty/placeholder: left inset matches the field family (--tz-space-sm); chevron keeps a small right inset */
