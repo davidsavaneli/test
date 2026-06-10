@@ -14,12 +14,12 @@ describe('DateTimePicker', () => {
 
   it('formats the controlled datetime value (date + time) in the input', () => {
     render(<DateTimePicker label="When" value="2026-06-10T09:35:00" />)
-    expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35')
+    expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35:00') // seconds shown by default
   })
 
   it('leniently accepts a full backend datetime (sub-second) and shows date + time', () => {
     render(<DateTimePicker label="When" value="2026-06-10T09:35:49.6134342" />)
-    expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35')
+    expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35:49')
   })
 
   it('opens a dialog with a calendar grid and time listboxes', () => {
@@ -29,14 +29,15 @@ describe('DateTimePicker', () => {
     expect(screen.getByRole('grid')).toBeInTheDocument()
     expect(screen.getByRole('listbox', { name: 'Hour' })).toBeInTheDocument()
     expect(screen.getByRole('listbox', { name: 'Minute' })).toBeInTheDocument()
+    expect(screen.getByRole('listbox', { name: 'Second' })).toBeInTheDocument()
   })
 
   it('commits a typed datetime as an ISO datetime string', () => {
     const onChange = vi.fn()
     render(<DateTimePicker label="When" onChange={onChange} />)
     const input = screen.getByLabelText('When') as HTMLInputElement
-    fireEvent.change(input, { target: { value: '100620260935' } })
-    expect(input.value).toBe('10/06/2026 09:35')
+    fireEvent.change(input, { target: { value: '10062026093500' } }) // HH:mm:ss by default
+    expect(input.value).toBe('10/06/2026 09:35:00')
     expect(onChange).toHaveBeenCalledWith('2026-06-10T09:35:00')
   })
 
@@ -70,7 +71,7 @@ describe('DateTimePicker', () => {
 
   it('shows AM/PM and 1–12 hours in 12-hour mode', () => {
     render(<DateTimePicker label="When" value="2026-06-10T21:05:00" hour12 />)
-    expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:05 PM')
+    expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:05:00 PM')
     fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
     const hours = screen.getByRole('listbox', { name: 'Hour' })
     expect(within(hours).getByRole('option', { name: '12' })).toBeInTheDocument()
@@ -78,11 +79,11 @@ describe('DateTimePicker', () => {
     expect(screen.getByRole('option', { name: 'PM' })).toHaveAttribute('aria-selected', 'true')
   })
 
-  it('shows a seconds column when withSeconds is set', () => {
-    render(<DateTimePicker label="When" value="2026-06-10T09:35:49" withSeconds />)
-    expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35:49')
+  it('hides the seconds column when showSeconds is false', () => {
+    render(<DateTimePicker label="When" value="2026-06-10T09:35:49" showSeconds={false} />)
+    expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35')
     fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
-    expect(screen.getByRole('listbox', { name: 'Second' })).toBeInTheDocument()
+    expect(screen.queryByRole('listbox', { name: 'Second' })).toBeNull()
   })
 
   it('clamps minuteStep to ≥ 1 (a 0 step neither hangs nor empties the column)', () => {
@@ -170,7 +171,7 @@ describe('DateTimePicker', () => {
     }
     render(<Harness />)
     const input = screen.getByLabelText('When') as HTMLInputElement
-    fireEvent.change(input, { target: { value: '100620260935' } })
-    expect(input.value).toBe('10/06/2026 09:35')
+    fireEvent.change(input, { target: { value: '10062026093500' } })
+    expect(input.value).toBe('10/06/2026 09:35:00')
   })
 })

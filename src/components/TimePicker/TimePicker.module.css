@@ -1,0 +1,17 @@
+/* TimePicker popover: the time columns (from DateTimePicker.module.css, via TimeColumns) + a Done
+   footer. Field chrome (control / input / clear / sizes / helper / popover) is reused from
+   ../DatePicker/DatePicker.module.css. */
+
+.popover {
+  /* the time columns are narrow; keep enough width for the Done button to sit comfortably */
+  width: auto;
+  min-width: 168px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--tz-space-xs);
+  padding-top: var(--tz-space-xs);
+  border-top: 1px solid var(--tz-color-border);
+}

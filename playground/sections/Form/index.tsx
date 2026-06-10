@@ -16,6 +16,7 @@ import {
   Switch,
   TagsField,
   TextField,
+  TimePicker,
   Typography,
   useForm,
 } from '../../../src'
@@ -41,6 +42,7 @@ const schema = z.object({
   bio: z.string().min(10, 'At least 10 characters'),
   birthDate: z.string().min(1, 'Pick a date'),
   startsAt: z.string().min(1, 'Pick a date & time'),
+  startTime: z.string().min(1, 'Pick a time'),
   skills: z.array(z.string()).min(1, 'Add at least one skill'),
   country: z.string().min(1, 'Select a country'),
   interests: z.array(z.string()).min(1, 'Pick at least one'),
@@ -66,6 +68,7 @@ export function FormSection() {
       bio: '',
       birthDate: '',
       startsAt: '',
+      startTime: '',
       skills: [] as string[],
       country: '',
       interests: [] as string[],
@@ -108,6 +111,7 @@ export function FormSection() {
                 <ColorPicker name="brandColor" required label="Brand color" />
                 <DatePicker name="birthDate" required label="Birth date" />
                 <DateTimePicker name="startsAt" required label="Starts at" minuteStep={5} />
+                <TimePicker name="startTime" required label="Start time" minuteStep={5} />
                 <Select
                   name="country"
                   required

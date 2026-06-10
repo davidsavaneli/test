@@ -178,10 +178,20 @@ Binds to `<Form>` by `name` (validate with `z.string().min(1, '…')`).
 `disabledDate` · `weekStartsOn` · `clearable` · `<Form>` binding by `name`) and the same `valueFormat`
 contract (default ISO datetime `'YYYY-MM-DDTHH:mm:ss'`, lenient input, **UTC**) — but the time is
 meaningful, so `onChange` emits the **chosen instant** (not start-of-day). The popover pairs the calendar
-with scrollable time columns. Time props: `hour12` (1–12 + AM/PM vs 24-hour) · `minuteStep` (default `1`)
-· `withSeconds`. Display `format` defaults to `'DD/MM/YYYY HH:mm'` (→ `hh:mm A` for `hour12`). Picking a
+with scrollable time columns (hours/minutes/seconds). Time props: `hour12` (1–12 + AM/PM vs 24-hour) ·
+`minuteStep` (default `1`) · `showSeconds` (**default `true`** — pass `false` to hide seconds). Display
+`format` defaults to `'DD/MM/YYYY HH:mm:ss'` (→ `hh:mm:ss A` for `hour12`). Picking a
 day keeps the time and vice-versa; the popover stays open until you click away, press Escape, or hit Done.
-`<DateTimePicker label="Starts at" name="startsAt" minuteStep={15} />`. _(`DateRangePicker` /
+`<DateTimePicker label="Starts at" name="startsAt" minuteStep={15} />`.
+
+**TimePicker** — the **time-only sibling** (needs the `dayjs` peer): a typed masked time input + a popover
+of scrollable time columns (hours/minutes/seconds; no calendar; `Clock` icon). Same field API + the time
+props `hour12` · `minuteStep` · `showSeconds` (**default `true`** — pass `false` to hide seconds) ·
+`clearable` · `<Form>` binding by `name`. **Value contract —
+`valueFormat`** (default the time-of-day `'HH:mm:ss'`): incoming values are parsed leniently (a backend
+time like `'09:35:49.6134342'` is accepted) and `onChange` emits the chosen time in that format — only
+the time-of-day matters (the date is ignored). Display `format` defaults to `'HH:mm:ss'` (→ `hh:mm:ss A`
+for `hour12`). `<TimePicker label="Start time" name="startTime" minuteStep={5} />`. _(`DateRangePicker` /
 `DateTimeRangePicker` coming next.)_
 
 **Checkbox** — `label` · `color` (checked fill) · `size` · `checked`/`defaultChecked` ·

@@ -627,16 +627,38 @@ API (`label` · `size` · `error` + `helperText` · `required` · `fullWidth` de
 **`valueFormat`** value contract (default ISO datetime `'YYYY-MM-DDTHH:mm:ss'`, lenient input parse, all
 **UTC**) — but unlike `DatePicker` the time is **meaningful**, so `onChange` emits the **chosen instant**
 (not start-of-day). Time props: **`hour12`** (1–12 + AM/PM vs 24-hour, default `false`; drives the
-default `format`), **`minuteStep`** (minutes-column increment, default `1`), **`withSeconds`** (adds a
-seconds column + `:ss`). The display `format` defaults to `'DD/MM/YYYY HH:mm'` (→ `hh:mm A` for
-`hour12`, `+:ss` for `withSeconds`); the masked typed input supports the meridiem via `maskFromFormat`'s
-`A`→`aa` letter slots. **Picking a day keeps the current time and picking a time keeps the day** (each
+default `format`), **`minuteStep`** (minutes-column increment, default `1`), **`showSeconds`** (the
+seconds column + `:ss`; **default `true`** — pass `false` to drop seconds). The display `format` defaults
+to `'DD/MM/YYYY HH:mm:ss'` (→ `hh:mm:ss A` for `hour12`, `:ss` dropped when `showSeconds` is `false`);
+the masked typed input supports the meridiem via `maskFromFormat`'s
+`A`→`AA`/`a`→`aa` letter slots. **Picking a day keeps the current time and picking a time keeps the day** (each
 column pick preserves the other parts), and — unlike DatePicker — selecting a day **does not close** the
 popover; it closes on outside-pointerdown / `Escape` / the **Done** button. Typed-input commits are
-gated on a change at the input's precision (minute, or second with `withSeconds`) so a no-op focus/blur
+gated on a change at the input's precision (driven by the `format` — second when it has `:ss`, else minute) so a no-op focus/blur
 never zeroes finer time. `min`/`max` bound the calendar at **day** level (time-of-day isn't range-gated
 in v1). The time columns are roving `role="listbox"`s (Up/Down/Home/End/Enter, auto-scroll the selected
 into view). `TimeColumns` is internal (not exported). Own CSS module (`DateTimePicker.module.css`).
+
+### TimePicker
+
+The **time-only sibling** — `DateTimePicker` minus the calendar. A typed masked time input + a popover
+holding just the reused **`TimeColumns`** (hour / minute / optional second + AM/PM in 12-hour mode) and a
+**Done** footer. Reuses DatePicker's field chrome (`DatePicker.module.css`: control/input/clear/sizes/
+helper/popover) and has a tiny own module (`TimePicker.module.css`: popover `min-width` so Done fits +
+the footer). The trigger icon is **`Clock`** (vs DatePicker/DateTimePicker's `Calendar3`). Shares the
+field API (`label` · `size` · `error` + `helperText` · `required` · `fullWidth` default `true` ·
+`disabled` · `clearable` · `<Form>` binding by **`name`**) and the time props **`hour12`** /
+**`minuteStep`** / **`showSeconds`** (default `true`). **Value contract — `valueFormat`** (dayjs tokens, default the
+time-of-day `'HH:mm:ss'`): incoming values are parsed leniently by **`parseTime`** (the `valueFormat`
+first, then a numeric time anchored to a fixed date so `'09:35:49.6134342'` is accepted ms-capped, then
+any ISO-8601 datetime whose time is used), and `onChange` emits the chosen time in that format. **Only
+the time-of-day matters — the date part is ignored** (all comparisons are time-component only via a
+`sameTime` helper, so a no-op focus/blur or re-pick never rewrites finer time, and there's no date
+drift). The display `format` defaults to `'HH:mm:ss'` (→ `hh:mm:ss A` for `hour12`, `:ss` dropped when
+`showSeconds` is `false`).
+Picking keeps the popover open (closes on outside-pointerdown / `Escape` / **Done**); the hours column
+**autoFocuses** on open (there's no calendar to take focus). No `min`/`max` in v1. All math is **UTC**.
+Controlled or uncontrolled; binds to a `<Form>` by **`name`** (value = the time string).
 
 ### Checkbox
 

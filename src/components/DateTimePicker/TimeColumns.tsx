@@ -13,7 +13,9 @@ export interface TimeColumnsProps {
   /** Minute increment for the minutes column. */
   minuteStep: number
   /** Show a seconds column. */
-  withSeconds: boolean
+  showSeconds: boolean
+  /** Focus the hours column on mount (when there's no calendar to take focus, e.g. `TimePicker`). */
+  autoFocus?: boolean
 }
 
 interface Option<V> {
@@ -27,14 +29,16 @@ function TimeList<V>({
   selected,
   onSelect,
   label,
+  autoFocus,
 }: {
   options: Option<V>[]
   selected: V | null
   onSelect: (value: V) => void
   label: string
+  autoFocus?: boolean
 }) {
   const listRef = useRef<HTMLDivElement | null>(null)
-  const focusOnRender = useRef(false)
+  const focusOnRender = useRef(Boolean(autoFocus))
   const selectedIndex = options.findIndex((o) => o.value === selected)
   const [focusedIndex, setFocusedIndex] = useState(selectedIndex >= 0 ? selectedIndex : 0)
 
@@ -138,7 +142,8 @@ export function TimeColumns({
   onChange,
   hour12,
   minuteStep,
-  withSeconds,
+  showSeconds,
+  autoFocus,
 }: TimeColumnsProps) {
   const base = value ?? today()
   const h24 = base.hour()
@@ -157,14 +162,20 @@ export function TimeColumns({
 
   return (
     <div className={styles.timeCols}>
-      <TimeList options={hourOptions} selected={selectedHour} onSelect={pickHour} label="Hour" />
+      <TimeList
+        options={hourOptions}
+        selected={selectedHour}
+        onSelect={pickHour}
+        label="Hour"
+        autoFocus={autoFocus}
+      />
       <TimeList
         options={numberOptions(range(0, 59, step))}
         selected={value ? base.minute() : null}
         onSelect={pickMinute}
         label="Minute"
       />
-      {withSeconds && (
+      {showSeconds && (
         <TimeList
           options={numberOptions(range(0, 59))}
           selected={value ? base.second() : null}

@@ -55,6 +55,22 @@ export const formatValue = (d: Dayjs, valueFormat: string): string =>
 /** The viewer's local calendar date, anchored to UTC midnight for stable, drift-free math. */
 export const today = (): Dayjs => dayjs.utc(dayjs().format(ISO), ISO)
 
+/**
+ * Parse an incoming **time-of-day** value leniently (UTC): the declared `valueFormat` first (strict),
+ * then a numeric time anchored to a fixed date (so `'09:35:49.6134342'` is accepted, ms-capped), then
+ * any ISO-8601 datetime (its time is used). Only the time-of-day matters; the date part is ignored by
+ * `TimePicker`. Returns `null` when empty/unparseable.
+ */
+export function parseTime(value: string | null | undefined, valueFormat: string): Dayjs | null {
+  if (!value) return null
+  const strict = dayjs.utc(value, valueFormat, true)
+  if (strict.isValid()) return strict
+  const numeric = dayjs.utc(`1970-01-01T${value}`)
+  if (numeric.isValid()) return numeric
+  const lenient = dayjs.utc(value)
+  return lenient.isValid() ? lenient : null
+}
+
 /** Inclusive numeric range `[start, end]` stepped by `step` — for the time-picker columns. A
  *  non-positive `step` returns `[]` rather than looping forever. */
 export function range(start: number, end: number, step = 1): number[] {

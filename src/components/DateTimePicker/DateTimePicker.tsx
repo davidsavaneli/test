@@ -57,8 +57,8 @@ export interface DateTimePickerProps {
   /** Fires with the next datetime in `valueFormat` (`''` when cleared). */
   onChange?: (value: string) => void
   /**
-   * Display + typed-input format (dayjs tokens). Defaults to `'DD/MM/YYYY HH:mm'` (or `hh:mm A` when
-   * `hour12`, with `:ss` appended when `withSeconds`).
+   * Display + typed-input format (dayjs tokens). Defaults to `'DD/MM/YYYY HH:mm:ss'` (or `hh:mm:ss A`
+   * when `hour12`; the `:ss` is dropped when `showSeconds` is `false`).
    */
   format?: string
   /**
@@ -73,8 +73,8 @@ export interface DateTimePickerProps {
   hour12?: boolean
   /** Minute increment for the minutes column. Defaults to `1`. */
   minuteStep?: number
-  /** Show a seconds column + second in the default format. Defaults to `false`. */
-  withSeconds?: boolean
+  /** Show the seconds column + `:ss` in the default format. Defaults to `true`; pass `false` to hide seconds. */
+  showSeconds?: boolean
   /** Placeholder shown when empty. Defaults to the lowercased `format`. */
   placeholder?: string
   /** Earliest selectable date (ISO date or datetime; day-level bound on the calendar). */
@@ -95,12 +95,12 @@ export interface DateTimePickerProps {
   style?: CSSProperties
 }
 
-function defaultFormatFor(hour12: boolean, withSeconds: boolean): string {
+function defaultFormatFor(hour12: boolean, showSeconds: boolean): string {
   const time = hour12
-    ? withSeconds
+    ? showSeconds
       ? 'hh:mm:ss A'
       : 'hh:mm A'
-    : withSeconds
+    : showSeconds
       ? 'HH:mm:ss'
       : 'HH:mm'
   return `DD/MM/YYYY ${time}`
@@ -113,7 +113,7 @@ function defaultFormatFor(hour12: boolean, withSeconds: boolean): string {
  * string in `valueFormat` (default ISO datetime `'YYYY-MM-DDTHH:mm:ss'`) — incoming values are parsed
  * leniently (a richer backend datetime is accepted) and the chosen instant is emitted in that format.
  * Picking a date keeps the time and vice-versa, and the popover stays open until you click away,
- * press Escape, or hit Done. Supports `hour12`, `minuteStep`, `withSeconds`, `min`/`max`,
+ * press Escape, or hit Done. Supports `hour12`, `minuteStep`, `showSeconds`, `min`/`max`,
  * `disabledDate`, `weekStartsOn`, and `clearable`. Controlled (`value` + `onChange`) or uncontrolled
  * (`defaultValue`), and binds to a surrounding `<Form>` by `name`. Requires the `dayjs` peer dependency.
  */
@@ -134,7 +134,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
       valueFormat = 'YYYY-MM-DDTHH:mm:ss',
       hour12 = false,
       minuteStep = 1,
-      withSeconds = false,
+      showSeconds = true,
       placeholder,
       min,
       max,
@@ -152,7 +152,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
     const id = idProp ?? reactId
     const helperId = `${id}-helper`
     const labelId = `${id}-label`
-    const format = formatProp ?? defaultFormatFor(hour12, withSeconds)
+    const format = formatProp ?? defaultFormatFor(hour12, showSeconds)
 
     // ── value (controlled / form-bound / uncontrolled) — a `valueFormat` datetime string ────────────
     const form = useFormContext()
@@ -175,7 +175,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
     const minDate = parseValue(min, valueFormat)
     const maxDate = parseValue(max, valueFormat)
     const mask = maskFromFormat(format)
-    // precision the user can actually type — driven by the display `format`, not just `withSeconds`
+    // precision the user can actually type — driven by the display `format`, not just `showSeconds`
     const timeUnit = /s/.test(format) ? 'second' : 'minute'
 
     const commit = (next: string) => {
@@ -421,7 +421,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
                   onChange={handleTimeChange}
                   hour12={hour12}
                   minuteStep={minuteStep}
-                  withSeconds={withSeconds}
+                  showSeconds={showSeconds}
                 />
               </div>
               <div className={dt.footer}>

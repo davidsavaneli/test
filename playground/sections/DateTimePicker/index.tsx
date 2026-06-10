@@ -58,8 +58,8 @@ export function DateTimePickerSection() {
       </Block>
 
       <Block
-        label="minuteStep · withSeconds"
-        description="minuteStep buckets the minutes column; withSeconds adds a seconds column + :ss in the format."
+        label="minuteStep · showSeconds"
+        description="Seconds show by default (hours/minutes/seconds); minuteStep buckets the minutes, and showSeconds={false} drops the seconds column + :ss."
       >
         <Col gap={16} style={{ maxWidth: 340 }}>
           <DateTimePicker
@@ -67,7 +67,11 @@ export function DateTimePickerSection() {
             minuteStep={15}
             defaultValue="2026-06-10T09:30:00"
           />
-          <DateTimePicker label="With seconds" withSeconds defaultValue="2026-06-10T09:35:49" />
+          <DateTimePicker
+            label="No seconds"
+            showSeconds={false}
+            defaultValue="2026-06-10T09:35:49"
+          />
         </Col>
       </Block>
 
