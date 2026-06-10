@@ -21,12 +21,14 @@ import { Typography } from '../Typography'
 import { Calendar } from '../DatePicker/Calendar'
 import {
   applyMask,
+  localWallToUtc,
   maskFromFormat,
   parseISO,
   parseInput,
   parseValue,
   today,
   toISO,
+  utcToLocalWall,
   type Dayjs,
 } from '../DatePicker/dateUtils'
 import styles from '../DatePicker/DatePicker.module.css'
@@ -63,12 +65,18 @@ export interface DateTimePickerProps {
   format?: string
   /**
    * Wire format of `value`/`defaultValue`/`onChange` (dayjs tokens), decoupled from the displayed
-   * `format`. Defaults to the ISO datetime `'YYYY-MM-DDTHH:mm:ss'`. Incoming values are parsed
-   * **leniently** (this format, then any ISO-8601 string — so a backend datetime like
-   * `'2026-06-10T09:35:49.6134342'` is accepted), and `onChange` emits the chosen instant in exactly
-   * this format. All math is UTC.
+   * `format`. Defaults to the ISO datetime `'YYYY-MM-DDTHH:mm:ss[Z]'` when `utc` (the `Z` marks the
+   * value as UTC, e.g. `'2026-06-10T09:35:00Z'`), or `'YYYY-MM-DDTHH:mm:ss'` (no `Z`) when `utc={false}`.
+   * Incoming values are parsed **leniently** (this format, then any ISO-8601 string — so a backend
+   * datetime like `'2026-06-10T09:35:49.6134342'` with or without `Z` is accepted).
    */
   valueFormat?: string
+  /**
+   * Treat the value as **UTC** and display/edit in the viewer's **local** timezone (default `true`).
+   * Set `false` to disable timezone conversion entirely — the field shows and emits the value's exact
+   * wall-clock (what you pick is what's sent, no UTC shift).
+   */
+  utc?: boolean
   /** 12-hour clock (1–12 + AM/PM) instead of 24-hour (0–23). Defaults to `false`. */
   hour12?: boolean
   /** Minute increment for the minutes column. Defaults to `1`. */
@@ -110,7 +118,7 @@ function defaultFormatFor(hour12: boolean, showSeconds: boolean): string {
  * A datetime field with a typed, masked input **and** a popover combining the keyboard-navigable
  * `Calendar` (date) with scrollable time columns (hour / minute / optional second + AM/PM in 12-hour
  * mode). All math runs in **UTC** so the instant never drifts with the viewer's timezone; the value is a
- * string in `valueFormat` (default ISO datetime `'YYYY-MM-DDTHH:mm:ss'`) — incoming values are parsed
+ * string in `valueFormat` (UTC ISO datetime with a `Z` by default, or no `Z` when `utc={false}`) — incoming values are parsed
  * leniently (a richer backend datetime is accepted) and the chosen instant is emitted in that format.
  * Picking a date keeps the time and vice-versa, and the popover stays open until you click away,
  * press Escape, or hit Done. Supports `hour12`, `minuteStep`, `showSeconds`, `min`/`max`,
@@ -131,7 +139,8 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
       defaultValue,
       onChange,
       format: formatProp,
-      valueFormat = 'YYYY-MM-DDTHH:mm:ss',
+      valueFormat: valueFormatProp,
+      utc = true,
       hour12 = false,
       minuteStep = 1,
       showSeconds = true,
@@ -153,6 +162,9 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
     const helperId = `${id}-helper`
     const labelId = `${id}-label`
     const format = formatProp ?? defaultFormatFor(hour12, showSeconds)
+    // when the value is UTC, the wire string carries a `Z` ("…09:35:00Z"); `utc={false}` emits the
+    // bare wall-clock (no zone designator). Override either via `valueFormat`.
+    const valueFormat = valueFormatProp ?? (utc ? 'YYYY-MM-DDTHH:mm:ss[Z]' : 'YYYY-MM-DDTHH:mm:ss')
 
     // ── value (controlled / form-bound / uncontrolled) — a `valueFormat` datetime string ────────────
     const form = useFormContext()
@@ -167,13 +179,16 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
     const isControlled = value !== undefined || isFormBound
     const [internal, setInternal] = useState<string>(defaultValue ?? '')
     const currentValue = isControlled ? externalValue! : internal
-    const selected = parseValue(currentValue, valueFormat)
+    // when `utc`, parse the UTC value and show it in the viewer's LOCAL time (value stays UTC, emit
+    // converts back); when `utc={false}`, show/emit the value's exact wall-clock (no tz conversion)
+    const toDisplay = (instant: Dayjs | null) => (utc ? utcToLocalWall(instant) : instant)
+    const selected = toDisplay(parseValue(currentValue, valueFormat))
 
     const resolvedError = error ?? bound?.error ?? false
     const resolvedHelperText = helperText ?? bound?.helperText
 
-    const minDate = parseValue(min, valueFormat)
-    const maxDate = parseValue(max, valueFormat)
+    const minDate = toDisplay(parseValue(min, valueFormat))
+    const maxDate = toDisplay(parseValue(max, valueFormat))
     const mask = maskFromFormat(format)
     // precision the user can actually type — driven by the display `format`, not just `showSeconds`
     const timeUnit = /s/.test(format) ? 'second' : 'minute'
@@ -189,7 +204,8 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
     // instant is a no-op (string equality alone would leak a spurious emit for sub-second source values)
     const commitDateTime = (d: Dayjs | null) => {
       if (d && selected && d.isSame(selected, 'second')) return
-      commit(d ? d.format(valueFormat) : '')
+      // local-wall → UTC for the wire value (or emit the wall-clock as-is when `utc={false}`)
+      commit(d ? (utc ? localWallToUtc(d) : d).format(valueFormat) : '')
     }
 
     // true when `d` differs from the current value at the input's precision — gates typed-input commits

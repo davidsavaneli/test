@@ -21,9 +21,11 @@ import { Typography } from '../Typography'
 import { TimeColumns } from '../DateTimePicker/TimeColumns'
 import {
   applyMask,
+  localWallToUtc,
   maskFromFormat,
   parseInput,
   parseTime,
+  utcToLocalWall,
   type Dayjs,
 } from '../DatePicker/dateUtils'
 import styles from '../DatePicker/DatePicker.module.css'
@@ -46,7 +48,7 @@ export interface TimePickerProps {
   fullWidth?: boolean
   /** Disables the field. */
   disabled?: boolean
-  /** Controlled value — a time string in `valueFormat` (default `'HH:mm:ss'`; `''` = empty). */
+  /** Controlled value — a time string in `valueFormat` (`''` = empty). */
   value?: string
   /** Initial value for uncontrolled use (in `valueFormat`). */
   defaultValue?: string
@@ -59,11 +61,17 @@ export interface TimePickerProps {
   format?: string
   /**
    * Wire format of `value`/`defaultValue`/`onChange` (dayjs tokens), decoupled from the displayed
-   * `format`. Defaults to `'HH:mm:ss'`. Incoming values are parsed **leniently** (this format, then a
-   * numeric time — so a backend time like `'09:35:49.6134342'` is accepted, ms-capped — then any
-   * ISO-8601 datetime, whose time is used). Only the time-of-day is used; the date is ignored.
+   * `format`. Defaults to `'HH:mm:ss[Z]'` when `utc` (the `Z` marks UTC), or `'HH:mm:ss'` when
+   * `utc={false}`. Incoming values are parsed **leniently** (this format, then a numeric time — so a
+   * backend time like `'09:35:49.6134342'` is accepted, ms-capped — then any ISO-8601 datetime, whose
+   * time is used). Only the time-of-day is used; the date is ignored.
    */
   valueFormat?: string
+  /**
+   * Treat the value as **UTC** and display/edit in the viewer's **local** timezone (default `true`).
+   * Set `false` to disable timezone conversion — the field shows and emits the value's exact wall-clock.
+   */
+  utc?: boolean
   /** 12-hour clock (1–12 + AM/PM) instead of 24-hour (0–23). Defaults to `false`. */
   hour12?: boolean
   /** Minute increment for the minutes column. Defaults to `1`. */
@@ -96,7 +104,7 @@ function sameTime(a: Dayjs, b: Dayjs, unit: 'minute' | 'second'): boolean {
 /**
  * A time-of-day field with a typed, masked input **and** a popover of scrollable time columns
  * (hour / minute / optional second + AM/PM in 12-hour mode) — the time sibling of `DateTimePicker`,
- * with no calendar. All math is UTC; the value is a string in `valueFormat` (default `'HH:mm:ss'`) —
+ * with no calendar. The value is a string in `valueFormat` (UTC, with a `Z`, unless `utc={false}`) —
  * incoming values are parsed leniently (a richer backend time is accepted) and the chosen time emitted
  * in that format. Picking keeps the popover open until you click away, press Escape, or hit Done.
  * Supports `hour12`, `minuteStep`, `showSeconds`, and `clearable`. Controlled (`value` + `onChange`) or
@@ -115,7 +123,8 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(function
     defaultValue,
     onChange,
     format: formatProp,
-    valueFormat = 'HH:mm:ss',
+    valueFormat: valueFormatProp,
+    utc = true,
     hour12 = false,
     minuteStep = 1,
     showSeconds = true,
@@ -132,6 +141,8 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(function
   const id = idProp ?? reactId
   const helperId = `${id}-helper`
   const format = formatProp ?? defaultFormatFor(hour12, showSeconds)
+  // UTC time-of-day carries a `Z` ("09:35:00Z"); `utc={false}` emits the bare wall-clock. Override via `valueFormat`.
+  const valueFormat = valueFormatProp ?? (utc ? 'HH:mm:ss[Z]' : 'HH:mm:ss')
 
   // ── value (controlled / form-bound / uncontrolled) — a `valueFormat` time string ────────────────
   const form = useFormContext()
@@ -146,7 +157,11 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(function
   const isControlled = value !== undefined || isFormBound
   const [internal, setInternal] = useState<string>(defaultValue ?? '')
   const currentValue = isControlled ? externalValue! : internal
-  const selected = parseTime(currentValue, valueFormat)
+  // when `utc`, parse the UTC time and show it in the viewer's LOCAL time (value stays UTC, emit
+  // converts back); when `utc={false}`, show/emit the value's exact wall-clock (no tz conversion)
+  const selected = utc
+    ? utcToLocalWall(parseTime(currentValue, valueFormat))
+    : parseTime(currentValue, valueFormat)
 
   const resolvedError = error ?? bound?.error ?? false
   const resolvedHelperText = helperText ?? bound?.helperText
@@ -164,7 +179,8 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(function
   // emit a time in the wire `valueFormat`, or '' to clear. Re-picking the same time-of-day is a no-op
   const commitTime = (d: Dayjs | null) => {
     if (d && selected && sameTime(d, selected, 'second')) return
-    commit(d ? d.format(valueFormat) : '')
+    // local-wall → UTC for the wire value (or emit the wall-clock as-is when `utc={false}`)
+    commit(d ? (utc ? localWallToUtc(d) : d).format(valueFormat) : '')
   }
 
   // true when `d` differs from the current value at the input's precision — gates typed-input commits

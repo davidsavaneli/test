@@ -55,6 +55,22 @@ export const formatValue = (d: Dayjs, valueFormat: string): string =>
 /** The viewer's local calendar date, anchored to UTC midnight for stable, drift-free math. */
 export const today = (): Dayjs => dayjs.utc(dayjs().format(ISO), ISO)
 
+const ISO_MS = 'YYYY-MM-DDTHH:mm:ss.SSS'
+
+/**
+ * Convert a real UTC instant into a UTC-mode dayjs that **holds the viewer's local wall-clock** — so the
+ * UTC-internal calendar/time machinery renders the viewer's local time while the stored value stays UTC
+ * (the "store UTC, show local" pattern, used by `DateTimePicker`/`TimePicker`). Returns `null` for null.
+ */
+export function utcToLocalWall(instant: Dayjs | null): Dayjs | null {
+  return instant ? dayjs.utc(instant.local().format(ISO_MS)) : null
+}
+
+/** Inverse of {@link utcToLocalWall}: a local-wall dayjs → the real UTC instant (for emitting). */
+export function localWallToUtc(localWall: Dayjs): Dayjs {
+  return dayjs(localWall.format(ISO_MS)).utc()
+}
+
 /**
  * Parse an incoming **time-of-day** value leniently (UTC): the declared `valueFormat` first (strict),
  * then a numeric time anchored to a fixed date (so `'09:35:49.6134342'` is accepted, ms-capped), then
@@ -65,7 +81,8 @@ export function parseTime(value: string | null | undefined, valueFormat: string)
   if (!value) return null
   const strict = dayjs.utc(value, valueFormat, true)
   if (strict.isValid()) return strict
-  const numeric = dayjs.utc(`1970-01-01T${value}`)
+  // anchor a bare time to today's date so any local-tz conversion uses the current offset
+  const numeric = dayjs.utc(`${today().format(ISO)}T${value}`)
   if (numeric.isValid()) return numeric
   const lenient = dayjs.utc(value)
   return lenient.isValid() ? lenient : null

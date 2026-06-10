@@ -624,9 +624,18 @@ imported for control/input/clear/sizes/helper + the calendar) and adds its own m
 side-by-side popover layout (calendar │ time columns) and a **Done** footer button. Shares the field
 API (`label` · `size` · `error` + `helperText` · `required` · `fullWidth` default `true` · `disabled` ·
 `min`/`max` · `disabledDate` · `weekStartsOn` · `clearable` · `<Form>` binding by **`name`**) and the
-**`valueFormat`** value contract (default ISO datetime `'YYYY-MM-DDTHH:mm:ss'`, lenient input parse, all
-**UTC**) — but unlike `DatePicker` the time is **meaningful**, so `onChange` emits the **chosen instant**
-(not start-of-day). Time props: **`hour12`** (1–12 + AM/PM vs 24-hour, default `false`; drives the
+**`valueFormat`** value contract (default UTC ISO datetime `'YYYY-MM-DDTHH:mm:ss[Z]'` — the `Z` marks
+the value as UTC — or no-`Z` `'YYYY-MM-DDTHH:mm:ss'` when `utc={false}`; lenient input parse) —
+but unlike `DatePicker` the time is **meaningful**, so `onChange` emits the **chosen instant**
+(not start-of-day). **Timezone — "store UTC, show local":** the `value`/`onChange` string is always
+**UTC**, but the field **displays & edits in the viewer's local timezone** (e.g. a backend
+`'2026-06-10T09:35:00'` shows as `13:35` in UTC+4, and editing back emits UTC). This is done by a thin
+boundary conversion (`utcToLocalWall` on parse, `localWallToUtc` on emit) — the calendar/time machinery
+still runs on a UTC-mode dayjs holding the local wall-clock, so nothing downstream changed. Opt out with
+**`utc={false}`** — then there's **no timezone conversion** at all: the field shows and emits the value's
+exact wall-clock (what you pick is what's sent). (`DatePicker`
+stays UTC/tz-agnostic — a calendar date has no time to localize; for a plain `'2026-06-10'` value use
+`valueFormat='YYYY-MM-DD'`.) Time props: **`hour12`** (1–12 + AM/PM vs 24-hour, default `false`; drives the
 default `format`), **`minuteStep`** (minutes-column increment, default `1`), **`showSeconds`** (the
 seconds column + `:ss`; **default `true`** — pass `false` to drop seconds). The display `format` defaults
 to `'DD/MM/YYYY HH:mm:ss'` (→ `hh:mm:ss A` for `hour12`, `:ss` dropped when `showSeconds` is `false`);
@@ -648,14 +657,17 @@ helper/popover) and has a tiny own module (`TimePicker.module.css`: popover `min
 the footer). The trigger icon is **`Clock`** (vs DatePicker/DateTimePicker's `Calendar3`). Shares the
 field API (`label` · `size` · `error` + `helperText` · `required` · `fullWidth` default `true` ·
 `disabled` · `clearable` · `<Form>` binding by **`name`**) and the time props **`hour12`** /
-**`minuteStep`** / **`showSeconds`** (default `true`). **Value contract — `valueFormat`** (dayjs tokens, default the
-time-of-day `'HH:mm:ss'`): incoming values are parsed leniently by **`parseTime`** (the `valueFormat`
+**`minuteStep`** / **`showSeconds`** (default `true`). **Value contract — `valueFormat`** (dayjs tokens,
+default the UTC time-of-day `'HH:mm:ss[Z]'`, or `'HH:mm:ss'` when `utc={false}`): incoming values are parsed leniently by **`parseTime`** (the `valueFormat`
 first, then a numeric time anchored to a fixed date so `'09:35:49.6134342'` is accepted ms-capped, then
-any ISO-8601 datetime whose time is used), and `onChange` emits the chosen time in that format. **Only
-the time-of-day matters — the date part is ignored** (all comparisons are time-component only via a
-`sameTime` helper, so a no-op focus/blur or re-pick never rewrites finer time, and there's no date
-drift). The display `format` defaults to `'HH:mm:ss'` (→ `hh:mm:ss A` for `hour12`, `:ss` dropped when
-`showSeconds` is `false`).
+any ISO-8601 datetime whose time is used), and `onChange` emits the chosen time in that format. Like
+`DateTimePicker` it follows **"store UTC, show local"** (value UTC, displayed/edited local;
+`utcToLocalWall`/`localWallToUtc` at the boundary; the bare-time parse anchors to _today_ so the offset
+is current) — and the same **`utc={false}`** opt-out disables the conversion (emit the picked wall-clock
+as-is). **Only the time-of-day matters — the date part is
+ignored** (all comparisons are time-component only via a `sameTime` helper, so a no-op focus/blur or
+re-pick never rewrites finer time). The display `format` defaults to `'HH:mm:ss'` (→ `hh:mm:ss A` for
+`hour12`, `:ss` dropped when `showSeconds` is `false`).
 Picking keeps the popover open (closes on outside-pointerdown / `Escape` / **Done**); the hours column
 **autoFocuses** on open (there's no calendar to take focus). No `min`/`max` in v1. All math is **UTC**.
 Controlled or uncontrolled; binds to a `<Form>` by **`name`** (value = the time string).

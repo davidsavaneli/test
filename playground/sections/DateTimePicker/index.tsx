@@ -11,6 +11,7 @@ const isWeekend = (iso: string) => {
 export function DateTimePickerSection() {
   const [at, setAt] = useState('2026-06-10T09:35:00')
   const [created, setCreated] = useState('2026-06-10T09:35:49.6134342')
+  const [localOnly, setLocalOnly] = useState('2026-06-10T09:35:00')
 
   return (
     <Section>
@@ -34,6 +35,27 @@ export function DateTimePickerSection() {
             value={created}
             onChange={setCreated}
             helperText={`Sends: "${created}"`}
+          />
+        </Col>
+      </Block>
+
+      <Block
+        label="timezone — default (store UTC, show local) vs utc={false}"
+        description="By default the value is UTC and the field shows your local time. utc={false} disables conversion — what you pick is exactly what's sent."
+      >
+        <Col gap={16} style={{ maxWidth: 340 }}>
+          <DateTimePicker
+            label="Local display (default)"
+            value={at}
+            onChange={setAt}
+            helperText={`UTC value: "${at}"`}
+          />
+          <DateTimePicker
+            label="No conversion (utc={false})"
+            utc={false}
+            value={localOnly}
+            onChange={setLocalOnly}
+            helperText={`Sends exactly: "${localOnly}"`}
           />
         </Col>
       </Block>

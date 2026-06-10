@@ -38,7 +38,7 @@ describe('DateTimePicker', () => {
     const input = screen.getByLabelText('When') as HTMLInputElement
     fireEvent.change(input, { target: { value: '10062026093500' } }) // HH:mm:ss by default
     expect(input.value).toBe('10/06/2026 09:35:00')
-    expect(onChange).toHaveBeenCalledWith('2026-06-10T09:35:00')
+    expect(onChange).toHaveBeenCalledWith('2026-06-10T09:35:00Z') // default UTC valueFormat → Z
   })
 
   it('keeps the time when a new day is picked and leaves the popover open', () => {
@@ -48,7 +48,7 @@ describe('DateTimePicker', () => {
     const grid = screen.getByRole('grid')
     fireEvent.keyDown(grid, { key: 'ArrowRight' }) // June 10 → 11
     fireEvent.keyDown(grid, { key: 'Enter' })
-    expect(onChange).toHaveBeenCalledWith('2026-06-11T09:35:00') // time preserved
+    expect(onChange).toHaveBeenCalledWith('2026-06-11T09:35:00Z') // time preserved
     expect(screen.getByRole('dialog')).toBeInTheDocument() // stays open for time editing
   })
 
@@ -58,7 +58,7 @@ describe('DateTimePicker', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
     const hours = screen.getByRole('listbox', { name: 'Hour' })
     fireEvent.click(within(hours).getByRole('option', { name: '14' }))
-    expect(onChange).toHaveBeenCalledWith('2026-06-10T14:35:49')
+    expect(onChange).toHaveBeenCalledWith('2026-06-10T14:35:49Z')
   })
 
   it('honors minuteStep in the minutes column', () => {
@@ -77,6 +77,18 @@ describe('DateTimePicker', () => {
     expect(within(hours).getByRole('option', { name: '12' })).toBeInTheDocument()
     expect(within(hours).queryByRole('option', { name: '13' })).toBeNull()
     expect(screen.getByRole('option', { name: 'PM' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('does not convert timezones when utc is false (shows + emits the exact wall-clock)', () => {
+    const onChange = vi.fn()
+    render(
+      <DateTimePicker label="When" utc={false} value="2026-06-10T09:35:00" onChange={onChange} />,
+    )
+    expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35:00')
+    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    const hours = screen.getByRole('listbox', { name: 'Hour' })
+    fireEvent.click(within(hours).getByRole('option', { name: '14' }))
+    expect(onChange).toHaveBeenCalledWith('2026-06-10T14:35:00') // picked wall-clock, no UTC shift
   })
 
   it('hides the seconds column when showSeconds is false', () => {
@@ -104,7 +116,7 @@ describe('DateTimePicker', () => {
       />,
     )
     fireEvent.change(screen.getByLabelText('When'), { target: { value: '10062026093542' } })
-    expect(onChange).toHaveBeenCalledWith('2026-06-10T09:35:42')
+    expect(onChange).toHaveBeenCalledWith('2026-06-10T09:35:42Z')
   })
 
   it('does not re-emit when re-picking the already-selected time (sub-second source value)', () => {
@@ -120,7 +132,7 @@ describe('DateTimePicker', () => {
     const onChange = vi.fn()
     render(<DateTimePicker label="When" hour12 format="DD/MM/YYYY hh:mm a" onChange={onChange} />)
     fireEvent.change(screen.getByLabelText('When'), { target: { value: '100620260905pm' } })
-    expect(onChange).toHaveBeenCalledWith('2026-06-10T21:05:00')
+    expect(onChange).toHaveBeenCalledWith('2026-06-10T21:05:00Z')
   })
 
   it('gives the AM/PM listbox a single roving tab stop', () => {

@@ -176,8 +176,11 @@ Binds to `<Form>` by `name` (validate with `z.string().min(1, '…')`).
 **DateTimePicker** — the **date + time sibling** of `DatePicker` (needs the `dayjs` peer). Same field API
 (`label` · `size` · `error` + `helperText` · `required` · `fullWidth` · `disabled` · `min`/`max` ·
 `disabledDate` · `weekStartsOn` · `clearable` · `<Form>` binding by `name`) and the same `valueFormat`
-contract (default ISO datetime `'YYYY-MM-DDTHH:mm:ss'`, lenient input, **UTC**) — but the time is
-meaningful, so `onChange` emits the **chosen instant** (not start-of-day). The popover pairs the calendar
+contract (default UTC ISO datetime `'YYYY-MM-DDTHH:mm:ss[Z]'` — the `Z` marks UTC — or no-`Z` when `utc={false}`; lenient input) — but the time is
+meaningful, so `onChange` emits the **chosen instant** (not start-of-day). **"Store UTC, show local":** the
+value is always **UTC**, but the field **displays & edits in the viewer's local timezone** (a backend
+`'2026-06-10T09:35:00'` shows as `13:35` in UTC+4; editing emits UTC). Pass **`utc={false}`** to disable
+this — no conversion, the field shows and emits the exact wall-clock you pick. The popover pairs the calendar
 with scrollable time columns (hours/minutes/seconds). Time props: `hour12` (1–12 + AM/PM vs 24-hour) ·
 `minuteStep` (default `1`) · `showSeconds` (**default `true`** — pass `false` to hide seconds). Display
 `format` defaults to `'DD/MM/YYYY HH:mm:ss'` (→ `hh:mm:ss A` for `hour12`). Picking a
@@ -188,9 +191,10 @@ day keeps the time and vice-versa; the popover stays open until you click away, 
 of scrollable time columns (hours/minutes/seconds; no calendar; `Clock` icon). Same field API + the time
 props `hour12` · `minuteStep` · `showSeconds` (**default `true`** — pass `false` to hide seconds) ·
 `clearable` · `<Form>` binding by `name`. **Value contract —
-`valueFormat`** (default the time-of-day `'HH:mm:ss'`): incoming values are parsed leniently (a backend
+`valueFormat`** (default the UTC time-of-day `'HH:mm:ss[Z]'`, or `'HH:mm:ss'` when `utc={false}`): incoming values are parsed leniently (a backend
 time like `'09:35:49.6134342'` is accepted) and `onChange` emits the chosen time in that format — only
-the time-of-day matters (the date is ignored). Display `format` defaults to `'HH:mm:ss'` (→ `hh:mm:ss A`
+the time-of-day matters. Like `DateTimePicker` it's **"store UTC, show local"** (value UTC, displayed/edited
+in the viewer's local timezone) with the same **`utc={false}`** opt-out. Display `format` defaults to `'HH:mm:ss'` (→ `hh:mm:ss A`
 for `hour12`). `<TimePicker label="Start time" name="startTime" minuteStep={5} />`. _(`DateRangePicker` /
 `DateTimeRangePicker` coming next.)_
 

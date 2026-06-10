@@ -38,7 +38,7 @@ describe('TimePicker', () => {
     const input = screen.getByLabelText('Time') as HTMLInputElement
     fireEvent.change(input, { target: { value: '093500' } }) // HH:mm:ss by default
     expect(input.value).toBe('09:35:00')
-    expect(onChange).toHaveBeenCalledWith('09:35:00')
+    expect(onChange).toHaveBeenCalledWith('09:35:00Z') // default UTC valueFormat → Z
   })
 
   it('updates the hour from the column, preserving minutes/seconds, and stays open', () => {
@@ -47,7 +47,7 @@ describe('TimePicker', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open time picker' }))
     const hours = screen.getByRole('listbox', { name: 'Hour' })
     fireEvent.click(within(hours).getByRole('option', { name: '14' }))
-    expect(onChange).toHaveBeenCalledWith('14:35:49')
+    expect(onChange).toHaveBeenCalledWith('14:35:49Z')
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
@@ -74,6 +74,16 @@ describe('TimePicker', () => {
     expect(within(hours).getByRole('option', { name: '12' })).toBeInTheDocument()
     expect(within(hours).queryByRole('option', { name: '13' })).toBeNull()
     expect(screen.getByRole('option', { name: 'PM' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('does not convert timezones when utc is false (shows + emits the exact wall-clock)', () => {
+    const onChange = vi.fn()
+    render(<TimePicker label="Time" utc={false} value="09:35:00" onChange={onChange} />)
+    expect(screen.getByLabelText('Time')).toHaveValue('09:35:00')
+    fireEvent.click(screen.getByRole('button', { name: 'Open time picker' }))
+    const hours = screen.getByRole('listbox', { name: 'Hour' })
+    fireEvent.click(within(hours).getByRole('option', { name: '14' }))
+    expect(onChange).toHaveBeenCalledWith('14:35:00') // picked wall-clock, no UTC shift
   })
 
   it('hides the seconds column and the :ss when showSeconds is false', () => {

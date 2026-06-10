@@ -5,6 +5,7 @@ import { Block, Section, SIZES } from '../../shared'
 export function TimePickerSection() {
   const [at, setAt] = useState('09:35:00')
   const [openedAt, setOpenedAt] = useState('09:35:49.6134342')
+  const [localOnly, setLocalOnly] = useState('09:35:00')
 
   return (
     <Section>
@@ -27,6 +28,27 @@ export function TimePickerSection() {
             value={openedAt}
             onChange={setOpenedAt}
             helperText={`Sends: "${openedAt}"`}
+          />
+        </Col>
+      </Block>
+
+      <Block
+        label="timezone — default (store UTC, show local) vs utc={false}"
+        description="By default the value is UTC and the field shows your local time. utc={false} disables conversion — what you pick is exactly what's sent."
+      >
+        <Col gap={16} style={{ maxWidth: 300 }}>
+          <TimePicker
+            label="Local display (default)"
+            value={at}
+            onChange={setAt}
+            helperText={`UTC value: "${at}"`}
+          />
+          <TimePicker
+            label="No conversion (utc={false})"
+            utc={false}
+            value={localOnly}
+            onChange={setLocalOnly}
+            helperText={`Sends exactly: "${localOnly}"`}
           />
         </Col>
       </Block>
