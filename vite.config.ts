@@ -43,6 +43,7 @@ export default defineConfig({
         /^react($|\/)/,
         /^react-dom($|\/)/,
         /^zod($|\/)/,
+        /^dayjs($|\/)/,
         /^@tanstack\/react-router($|\/)/,
       ],
       output: {

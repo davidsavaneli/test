@@ -74,14 +74,27 @@ export function useCountrySearch() {
 }
 
 /** Labeled sub-group inside a Section. */
-export function Block({ label, children }: { label: string; children: ReactNode }) {
+export function Block({
+  label,
+  description,
+  children,
+}: {
+  label: string
+  description?: string
+  children: ReactNode
+}) {
   return (
     <Col gap={12}>
-      <span
-        style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}
-      >
-        {label}
-      </span>
+      <Col gap={2}>
+        <span
+          style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase' }}
+        >
+          {label}
+        </span>
+        {description && (
+          <span style={{ fontSize: 12, opacity: 0.65, fontWeight: 400 }}>{description}</span>
+        )}
+      </Col>
       {children}
     </Col>
   )

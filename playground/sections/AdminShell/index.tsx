@@ -18,6 +18,7 @@ import { DropdownSection } from '../Dropdown'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
 import { CheckboxSection } from '../Checkbox'
+import { DatePickerSection } from '../DatePicker'
 import { RadioSection } from '../Radio'
 import { SwitchSection } from '../Switch'
 import { ColorPickerSection } from '../ColorPicker'
@@ -295,10 +296,16 @@ const multiSelectRoute = createRoute({
   staticData: { name: 'Multi Select', icon: 'TaskSquare', order: 9 },
   component: inPage(MultiSelectSection),
 })
+const datePickerRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'date-picker',
+  staticData: { name: 'Date Picker', icon: 'Calendar', order: 10 },
+  component: inPage(DatePickerSection),
+})
 const formRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form',
-  staticData: { name: 'Form', icon: 'Edit', order: 10 },
+  staticData: { name: 'Form', icon: 'Edit', order: 11 },
   component: inPage(FormSection),
 })
 
@@ -334,6 +341,7 @@ const shellRouter = createRouter({
         colorPickerRoute,
         selectRoute,
         multiSelectRoute,
+        datePickerRoute,
         formRoute,
       ]),
     ]),

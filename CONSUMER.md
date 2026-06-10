@@ -43,6 +43,8 @@ npm i sava-test
 #   react >=18, react-dom >=18
 # zod is an OPTIONAL peer — only needed if you use the form layer (useForm / <Form>):
 npm i zod
+# dayjs is an OPTIONAL peer — only needed if you use the date components (DatePicker, …):
+npm i dayjs
 ```
 
 ## 2. One-time setup (app entry, e.g. main.tsx)
@@ -156,6 +158,21 @@ the menu open; chosen options show as deletable chips in the trigger; **Backspac
 `value`/`defaultValue: string[]` · `onChange(values)`. Also supports server-side search via
 `onSearchChange` + `loading` (like Select). Binds to `<Form>` by `name` (validate with
 `z.array(z.string()).min(1, '…')`). `<MultiSelect label="Skills" name="skills" searchable options={skills} />`.
+
+**DatePicker** — a date field with a **typed masked input + calendar popover** (needs the `dayjs` peer).
+`label` · `size` · `error` + `helperText` · `required` · `fullWidth` · `disabled` · `value`/`defaultValue`
+· `onChange` · `format` (default `'DD/MM/YYYY'`, drives the mask) · `valueFormat` · `placeholder` · `min` · `max` ·
+`disabledDate` (`(iso) => boolean`) · `weekStartsOn` (0–6, default `1`) · `clearable` (**on by default**).
+Calendar math is **UTC** (no timezone drift); full keyboard nav, **circular day cells**, separate
+**month** + **year** pickers (the year list scrolls), and a focus-trapped popover. **Value contract —
+`valueFormat`** (dayjs tokens, default the ISO datetime `'YYYY-MM-DDTHH:mm:ss'`): incoming values are
+parsed **leniently** (so a backend datetime like `'2026-06-10T09:35:49.6134342'` is accepted) and
+`onChange` emits in exactly `valueFormat` at the **start of the UTC day** (pass `'YYYY-MM-DD'` for a
+plain date). A .NET `DateTime` field just works out of the box (the default already emits
+`'2026-06-10T00:00:00'`); pass `valueFormat="YYYY-MM-DD"` when you only want a date.
+Binds to `<Form>` by `name` (validate with `z.string().min(1, '…')`).
+`<DatePicker label="Birth date" name="birthDate" max="2010-01-01" />`. _(`DateTimePicker` /
+`DateRangePicker` / `DateTimeRangePicker` coming next.)_
 
 **Checkbox** — `label` · `color` (checked fill) · `size` · `checked`/`defaultChecked` ·
 `onChange(boolean)` · `error` (reddens the box only, no helper text) · `required` · `disabled`.

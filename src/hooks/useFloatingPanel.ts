@@ -77,12 +77,14 @@ export function useFloatingPanel({
       Math.max(top, VIEWPORT_PADDING),
       Math.max(VIEWPORT_PADDING, vh - VIEWPORT_PADDING - usedH),
     )
-    const width = rect.width
+    // clamp using the panel's actual width (a panel can be wider than its trigger, e.g. a calendar);
+    // `width` returns the trigger width for consumers that match it (Select/MultiSelect).
+    const panelW = panel.offsetWidth
     const left = Math.min(
       Math.max(rect.left, VIEWPORT_PADDING),
-      Math.max(VIEWPORT_PADDING, vw - VIEWPORT_PADDING - width),
+      Math.max(VIEWPORT_PADDING, vw - VIEWPORT_PADDING - panelW),
     )
-    setPosition({ top, left, width, side, maxHeight })
+    setPosition({ top, left, width: rect.width, side, maxHeight })
   }, [triggerRef])
 
   useLayoutEffect(() => {

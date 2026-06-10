@@ -4,6 +4,7 @@ import {
   Checkbox,
   Col,
   ColorPicker,
+  DatePicker,
   Form,
   Grid,
   MultilineTextField,
@@ -37,6 +38,7 @@ const schema = z.object({
     .refine((v): boolean => v !== null, 'Required'),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Pick a color'),
   bio: z.string().min(10, 'At least 10 characters'),
+  birthDate: z.string().min(1, 'Pick a date'),
   skills: z.array(z.string()).min(1, 'Add at least one skill'),
   country: z.string().min(1, 'Select a country'),
   interests: z.array(z.string()).min(1, 'Pick at least one'),
@@ -60,6 +62,7 @@ export function FormSection() {
       quantity: null,
       brandColor: '',
       bio: '',
+      birthDate: '',
       skills: [] as string[],
       country: '',
       interests: [] as string[],
@@ -100,6 +103,7 @@ export function FormSection() {
                 />
                 <NumberField name="quantity" required label="Quantity" min={0} max={10} />
                 <ColorPicker name="brandColor" required label="Brand color" />
+                <DatePicker name="birthDate" required label="Birth date" />
                 <Select
                   name="country"
                   required

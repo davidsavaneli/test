@@ -1,0 +1,309 @@
+.field {
+  display: inline-flex;
+  flex-direction: column;
+  font-family: var(--tz-font-family);
+}
+
+.fullWidth {
+  display: flex;
+  width: 100%;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: var(--tz-space-xxs);
+}
+
+.required {
+  color: rgb(var(--tz-color-error-rgb));
+  font-size: var(--tz-font-size-sm);
+}
+
+/* ── control (input + clear + calendar button), same chrome as TextField ───── */
+.control {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-xs);
+  background-color: var(--tz-color-secondary);
+  transition:
+    border-color var(--tz-duration),
+    box-shadow var(--tz-duration),
+    opacity var(--tz-duration);
+}
+.control:focus-within,
+.control.open {
+  border-color: var(--tz-color-primary-shade500);
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-primary-rgb), 0.08);
+}
+.error .control {
+  border-color: rgb(var(--tz-color-error-rgb));
+}
+.error .control:focus-within,
+.error .control.open {
+  border-color: rgb(var(--tz-color-error-rgb));
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-error-rgb), 0.12);
+}
+.disabled .control {
+  background-color: var(--tz-color-primary-shade100);
+  opacity: 0.7;
+}
+.disabled .label {
+  opacity: 0.7;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 0 0 var(--tz-space-sm);
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--tz-color-text);
+  font-family: inherit;
+  font-size: inherit;
+}
+.input::placeholder {
+  color: var(--tz-color-primary-shade500);
+  opacity: 1;
+}
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.clear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tz-color-text);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--tz-duration);
+}
+.clear:hover {
+  opacity: 1;
+}
+
+/* calendar button — flush square filling the control height (TextField-adornment treatment) */
+.control .calendarButton {
+  flex: none;
+  align-self: stretch;
+  width: auto;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  transform: scale(0.84);
+  color: var(--tz-color-text);
+}
+
+/* sizes — height + font from the shared scale */
+.sm .control {
+  height: var(--tz-control-height-sm);
+  font-size: var(--tz-font-size-sm);
+}
+.md .control {
+  height: var(--tz-control-height-md);
+  font-size: var(--tz-font-size-md);
+}
+.lg .control {
+  height: var(--tz-control-height-lg);
+  font-size: var(--tz-font-size-lg);
+}
+
+.helper {
+  margin-top: var(--tz-space-xxs);
+}
+
+/* ── popover (portaled; enters like Dropdown/Select) ───────────────────────── */
+.popover {
+  z-index: var(--tz-z-dropdown);
+  box-sizing: border-box;
+  padding: var(--tz-space-xs);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-sm);
+  background: var(--tz-color-secondary);
+  box-shadow: var(--tz-shadow-md);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  transition:
+    opacity var(--tz-duration),
+    transform var(--tz-duration);
+}
+.popover[data-side='bottom'] {
+  transform: translateY(calc(var(--tz-space-xxs) * -1));
+}
+.popover[data-side='top'] {
+  transform: translateY(var(--tz-space-xxs));
+}
+.popover[data-open='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── calendar ──────────────────────────────────────────────────────────────── */
+.calendar {
+  width: 252px;
+}
+
+.calHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tz-space-xxs);
+  margin-bottom: var(--tz-space-xxs);
+}
+/* centered region holding the (separately clickable) month + year labels */
+.calTitleGroup {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tz-space-xxs);
+  min-width: 0;
+}
+.calTitle {
+  padding: var(--tz-space-xxs) var(--tz-space-xs);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tz-color-text);
+  font-family: inherit;
+  font-size: var(--tz-font-size-md);
+  font-weight: var(--tz-font-weight-medium);
+  text-align: center;
+  cursor: pointer;
+  transition: background var(--tz-duration);
+}
+.calTitle:hover {
+  background: rgba(var(--tz-color-primary-rgb), 0.06);
+}
+.calTitle:focus-visible {
+  outline: 2px solid rgba(var(--tz-color-primary-rgb), 0.5);
+  outline-offset: -2px;
+}
+/* non-interactive header label (year view) */
+.calTitleStatic {
+  padding: var(--tz-space-xxs) var(--tz-space-xs);
+  color: var(--tz-color-text);
+  font-size: var(--tz-font-size-md);
+  font-weight: var(--tz-font-weight-medium);
+}
+
+.weekdays,
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.weekday {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  color: var(--tz-color-primary-shade600);
+  font-size: var(--tz-font-size-xs);
+  font-weight: var(--tz-font-weight-medium);
+}
+
+.day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tz-color-text);
+  font-family: inherit;
+  font-size: var(--tz-font-size-sm);
+  cursor: pointer;
+  transition:
+    background var(--tz-duration),
+    color var(--tz-duration);
+}
+.day:hover {
+  background: rgba(var(--tz-color-primary-rgb), 0.06);
+}
+.day:focus-visible {
+  outline: 2px solid rgba(var(--tz-color-primary-rgb), 0.5);
+  outline-offset: -2px;
+}
+.dayOutside {
+  color: var(--tz-color-primary-shade500);
+}
+/* today — a subtle ring until selected */
+.dayToday:not(.daySelected) {
+  box-shadow: inset 0 0 0 1px var(--tz-color-primary-shade400);
+}
+.daySelected {
+  background: rgb(var(--tz-color-primary-rgb));
+  color: var(--tz-color-primary-contrast, #fff);
+}
+.daySelected:hover {
+  background: rgb(var(--tz-color-primary-rgb));
+  filter: brightness(0.94);
+}
+.dayDisabled {
+  color: var(--tz-color-primary-shade400);
+  cursor: not-allowed;
+}
+.dayDisabled:hover {
+  background: transparent;
+}
+
+/* month + year picker views (shared cells; the year grid scrolls) */
+.pickGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tz-space-xxs);
+}
+.pickScroll {
+  max-height: 232px;
+  padding-right: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.pickCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tz-color-text);
+  font-family: inherit;
+  font-size: var(--tz-font-size-sm);
+  cursor: pointer;
+  transition:
+    background var(--tz-duration),
+    color var(--tz-duration);
+}
+.pickCell:hover {
+  background: rgba(var(--tz-color-primary-rgb), 0.06);
+}
+.pickCell:focus-visible {
+  outline: 2px solid rgba(var(--tz-color-primary-rgb), 0.5);
+  outline-offset: -2px;
+}
+.pickToday {
+  box-shadow: inset 0 0 0 1px var(--tz-color-primary-shade400);
+}
+.pickSelected {
+  background: rgb(var(--tz-color-primary-rgb));
+  color: var(--tz-color-primary-contrast, #fff);
+}
+.pickSelected:hover {
+  background: rgb(var(--tz-color-primary-rgb));
+  filter: brightness(0.94);
+}
