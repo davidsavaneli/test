@@ -8,9 +8,11 @@
   width: calc(252px + var(--tz-space-xs) * 2);
 }
 
-/* the tabbed body fills the popover; the date/time panels stack under the strip */
+/* the tabbed body fills the popover; the date/time panels stack under the strip. Pull the strip up by
+   the popover's top padding so the tabs sit flush at the top (the top read heavier than the sides). */
 .tabs {
   width: 100%;
+  margin-top: calc(var(--tz-space-xs) * -1);
 }
 
 /* Pin the panel to the calendar's height (272px + a little slack) so the Time tab is exactly as tall
