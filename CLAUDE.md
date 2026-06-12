@@ -617,11 +617,15 @@ components — `DateRangePicker`, `DateTimeRangePicker` — will follow, reusing
 
 ### DateTimePicker
 
-The **date + time sibling of `DatePicker`** — a typed masked input plus a popover that pairs the
-reused **`Calendar`** (date) with scrollable **time columns** (`TimeColumns`: hour / minute / optional
-second, + an AM/PM toggle in 12-hour mode). It reuses DatePicker's field chrome (`DatePicker.module.css`
-imported for control/input/clear/sizes/helper + the calendar) and adds its own module for the
-side-by-side popover layout (calendar │ time columns) and a **Done** footer button. Shares the field
+The **date + time sibling of `DatePicker`** — a typed masked input plus a popover that splits date and
+time into **two tabs** (built with the library's own **`Tabs`**, no `queryKey`): a **Date** tab holding
+the reused **`Calendar`** and a **Time** tab holding scrollable **time columns** (`TimeColumns`: hour /
+minute / optional second, + an AM/PM toggle in 12-hour mode). It reuses DatePicker's field chrome
+(`DatePicker.module.css` imported for control/input/clear/sizes/helper + the calendar) and adds its own
+module for the tabbed popover layout (a fixed calendar-width popover so it never resizes when switching
+to the narrower Time tab) and a **Done** footer button. The popover opens on the **Date** tab and the
+`Tabs` is given **`autoFocus`** so the active tab takes focus on open (the `Calendar`'s own `autoFocus`
+is **not** used here — a tab switch must not steal focus into the content). Shares the field
 API (`label` · `size` · `error` + `helperText` · `required` · `fullWidth` default `true` · `disabled` ·
 `min`/`max` · `disabledDate` · `weekStartsOn` · `clearable` · `<Form>` binding by **`name`**) and the
 **`valueFormat`** value contract (default UTC ISO datetime `'YYYY-MM-DDTHH:mm:ss[Z]'` — the `Z` marks
@@ -875,7 +879,8 @@ to the inner content). When the tabs don't fit, the strip **scrolls horizontally
 scrollbar hidden; tabs keep their natural width) and the active tab is kept in view (`scrollIntoView`).
 For an **icon-only** tab pass `ariaLabel` (falls back to `value`). `variant` (`underline` default · `pill`), `size` (`sm/md/lg`), `color` (brand
 token, default `primary`, via the `--tz-btn-rgb` pattern), `orientation` (`horizontal` default ·
-`vertical`), `fullWidth`. a11y: `role="tablist"`/`tab`/`tabpanel`, `aria-selected`, roving tabindex with
+`vertical`), `fullWidth`, and **`autoFocus`** (focus the active tab on mount — e.g. when the strip lives
+inside a popover that just opened, as `DateTimePicker` does). a11y: `role="tablist"`/`tab`/`tabpanel`, `aria-selected`, roving tabindex with
 Arrow/Home/End keyboard nav (automatic activation), `aria-controls`/`aria-labelledby` linking the active
 panel, and an **`aria-label`** prop naming the tablist; the resolved active value is always clamped to a
 present, enabled tab (no keyboard trap). Items with `content` render an active `role="tabpanel"`. Own CSS module.

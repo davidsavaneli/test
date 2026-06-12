@@ -1,23 +1,33 @@
-/* DateTimePicker popover: the calendar (from DatePicker.module.css) sits beside the time columns.
+/* DateTimePicker popover: the calendar (date) and the time columns each live in their own tab.
    Field chrome (control / input / clear / sizes / helper) + the calendar itself are reused from
    ../DatePicker/DatePicker.module.css; this module only adds the datetime popover layout. */
 
 .popover {
-  /* size to the calendar + time content rather than the calendar's fixed width */
-  width: auto;
+  /* fixed to the calendar's width (252px) + the popover's xs padding, so the panel never resizes
+     when switching to the narrower Time tab */
+  width: calc(252px + var(--tz-space-xs) * 2);
 }
 
-.body {
+/* the tabbed body fills the popover; the date/time panels stack under the strip */
+.tabs {
+  width: 100%;
+}
+
+/* Pin the panel to the calendar's height (272px + a little slack) so the Time tab is exactly as tall
+   as the Date tab (no resize on switch), and tighten the gap between the strip and the content
+   (the strip's default panel padding-top is `md` — too roomy here). `[role='tabpanel']` targets the
+   Tabs panel without depending on its hashed class name. */
+.tabs [role='tabpanel'] {
+  box-sizing: border-box;
+  flex: none; /* don't let the strip's `flex: 1` collapse the explicit height to content size */
+  height: 284px;
+  padding-top: var(--tz-space-xs);
+}
+
+/* the time columns fill the (calendar-height) panel and stretch edge-to-edge across its full width */
+.timePane {
   display: flex;
-  align-items: flex-start;
-  gap: var(--tz-space-xs);
-}
-
-.divider {
-  flex: none;
-  width: 1px;
-  align-self: stretch;
-  background: var(--tz-color-border);
+  height: 100%;
 }
 
 /* ── time columns ─────────────────────────────────────────────────────────────────────────────── */
@@ -42,15 +52,31 @@
 }
 
 .timeScroll {
-  /* a compact, dropdown-height scrollable column (independent of the calendar's height) */
+  /* a compact, dropdown-height scrollable column (independent of the calendar's height) — the
+     standalone default (used by TimePicker, which has no calendar to match) */
   max-height: 256px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   width: 46px;
-  padding-right: 2px;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+/* inside the DateTimePicker Time tab: three equal full-width columns, each filling the fixed
+   (calendar-height) panel and scrolling internally — so the Time tab matches the Date tab's height */
+.timePane .timeCols {
+  flex: 1;
+  height: 100%;
+}
+.timePane .timeCol {
+  flex: 1;
+  min-width: 0;
+}
+.timePane .timeScroll {
+  flex: 1;
+  width: 100%;
+  max-height: none;
 }
 
 .timeCell {

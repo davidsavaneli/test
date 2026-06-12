@@ -6,6 +6,12 @@ import { Form } from '../../form/Form'
 import { useForm } from '../../form/useForm'
 import { DateTimePicker } from './DateTimePicker'
 
+// the popover opens on the Date tab; the time columns live behind the Time tab
+function openTimeTab() {
+  fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+  fireEvent.click(screen.getByRole('tab', { name: 'Time' }))
+}
+
 describe('DateTimePicker', () => {
   it('renders a label associated with the input', () => {
     render(<DateTimePicker label="When" />)
@@ -22,11 +28,12 @@ describe('DateTimePicker', () => {
     expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35:49')
   })
 
-  it('opens a dialog with a calendar grid and time listboxes', () => {
+  it('opens a dialog with a Date tab (calendar grid) and a Time tab (time listboxes)', () => {
     render(<DateTimePicker label="When" value="2026-06-10T09:35:00" />)
     fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
     expect(screen.getByRole('dialog', { name: 'Choose date and time' })).toBeInTheDocument()
-    expect(screen.getByRole('grid')).toBeInTheDocument()
+    expect(screen.getByRole('grid')).toBeInTheDocument() // Date tab (active by default)
+    fireEvent.click(screen.getByRole('tab', { name: 'Time' }))
     expect(screen.getByRole('listbox', { name: 'Hour' })).toBeInTheDocument()
     expect(screen.getByRole('listbox', { name: 'Minute' })).toBeInTheDocument()
     expect(screen.getByRole('listbox', { name: 'Second' })).toBeInTheDocument()
@@ -52,10 +59,20 @@ describe('DateTimePicker', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument() // stays open for time editing
   })
 
+  it('advances to the Time tab once a day is picked', () => {
+    render(<DateTimePicker label="When" value="2026-06-10T09:35:00" />)
+    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    expect(screen.getByRole('tab', { name: 'Date' })).toHaveAttribute('aria-selected', 'true')
+    const grid = screen.getByRole('grid')
+    fireEvent.keyDown(grid, { key: 'ArrowRight' })
+    fireEvent.keyDown(grid, { key: 'Enter' }) // pick a day
+    expect(screen.getByRole('tab', { name: 'Time' })).toHaveAttribute('aria-selected', 'true')
+  })
+
   it('updates the hour from the time column, preserving minutes/seconds', () => {
     const onChange = vi.fn()
     render(<DateTimePicker label="When" value="2026-06-10T09:35:49" onChange={onChange} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    openTimeTab()
     const hours = screen.getByRole('listbox', { name: 'Hour' })
     fireEvent.click(within(hours).getByRole('option', { name: '14' }))
     expect(onChange).toHaveBeenCalledWith('2026-06-10T14:35:49Z')
@@ -63,7 +80,7 @@ describe('DateTimePicker', () => {
 
   it('honors minuteStep in the minutes column', () => {
     render(<DateTimePicker label="When" value="2026-06-10T09:00:00" minuteStep={15} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    openTimeTab()
     const minutes = screen.getByRole('listbox', { name: 'Minute' })
     expect(within(minutes).getByRole('option', { name: '30' })).toBeInTheDocument()
     expect(within(minutes).queryByRole('option', { name: '05' })).toBeNull()
@@ -72,7 +89,7 @@ describe('DateTimePicker', () => {
   it('shows AM/PM and 1–12 hours in 12-hour mode', () => {
     render(<DateTimePicker label="When" value="2026-06-10T21:05:00" hour12 />)
     expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:05:00 PM')
-    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    openTimeTab()
     const hours = screen.getByRole('listbox', { name: 'Hour' })
     expect(within(hours).getByRole('option', { name: '12' })).toBeInTheDocument()
     expect(within(hours).queryByRole('option', { name: '13' })).toBeNull()
@@ -85,7 +102,7 @@ describe('DateTimePicker', () => {
       <DateTimePicker label="When" utc={false} value="2026-06-10T09:35:00" onChange={onChange} />,
     )
     expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35:00')
-    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    openTimeTab()
     const hours = screen.getByRole('listbox', { name: 'Hour' })
     fireEvent.click(within(hours).getByRole('option', { name: '14' }))
     expect(onChange).toHaveBeenCalledWith('2026-06-10T14:35:00') // picked wall-clock, no UTC shift
@@ -94,13 +111,13 @@ describe('DateTimePicker', () => {
   it('hides the seconds column when showSeconds is false', () => {
     render(<DateTimePicker label="When" value="2026-06-10T09:35:49" showSeconds={false} />)
     expect(screen.getByLabelText('When')).toHaveValue('10/06/2026 09:35')
-    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    openTimeTab()
     expect(screen.queryByRole('listbox', { name: 'Second' })).toBeNull()
   })
 
   it('clamps minuteStep to ≥ 1 (a 0 step neither hangs nor empties the column)', () => {
     render(<DateTimePicker label="When" value="2026-06-10T09:00:00" minuteStep={0} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    openTimeTab()
     const minutes = screen.getByRole('listbox', { name: 'Minute' })
     expect(within(minutes).getByRole('option', { name: '01' })).toBeInTheDocument() // fell back to step 1
   })
@@ -122,7 +139,7 @@ describe('DateTimePicker', () => {
   it('does not re-emit when re-picking the already-selected time (sub-second source value)', () => {
     const onChange = vi.fn()
     render(<DateTimePicker label="When" value="2026-06-10T09:35:49.6134342" onChange={onChange} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    openTimeTab()
     const hours = screen.getByRole('listbox', { name: 'Hour' })
     fireEvent.click(within(hours).getByRole('option', { name: '09' })) // already selected → no-op
     expect(onChange).not.toHaveBeenCalled()
@@ -137,7 +154,7 @@ describe('DateTimePicker', () => {
 
   it('gives the AM/PM listbox a single roving tab stop', () => {
     render(<DateTimePicker label="When" value="2026-06-10T21:05:00" hour12 />)
-    fireEvent.click(screen.getByRole('button', { name: 'Open date and time picker' }))
+    openTimeTab()
     const meridiem = screen.getByRole('listbox', { name: 'AM/PM' })
     expect(meridiem.querySelectorAll('[tabindex="0"]')).toHaveLength(1)
   })

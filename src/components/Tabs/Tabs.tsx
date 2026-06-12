@@ -75,6 +75,8 @@ export interface TabsProps {
   orientation?: TabsOrientation
   /** Stretch the tabs to fill the strip equally (horizontal only). */
   fullWidth?: boolean
+  /** Focus the active tab on mount (e.g. when the strip lives inside a popover that just opened). */
+  autoFocus?: boolean
   /** Accessible label for the tablist. */
   'aria-label'?: string
   className?: string
@@ -102,6 +104,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     color = 'primary',
     orientation = 'horizontal',
     fullWidth = false,
+    autoFocus = false,
     className,
     style,
     'aria-label': ariaLabel,
@@ -191,6 +194,12 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
   const focusTab = (v: string) => {
     tablistRef.current?.querySelector<HTMLElement>(tabSelector(v))?.focus()
   }
+
+  // optionally move focus onto the active tab once, on mount (e.g. inside a popover that just opened)
+  useEffect(() => {
+    if (autoFocus && activeRef.current != null) focusTab(activeRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // keep the active tab in view when the strip scrolls horizontally (overflow)
   useEffect(() => {

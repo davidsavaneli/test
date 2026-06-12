@@ -180,8 +180,9 @@ contract (default UTC ISO datetime `'YYYY-MM-DDTHH:mm:ss[Z]'` — the `Z` marks 
 meaningful, so `onChange` emits the **chosen instant** (not start-of-day). **"Store UTC, show local":** the
 value is always **UTC**, but the field **displays & edits in the viewer's local timezone** (a backend
 `'2026-06-10T09:35:00'` shows as `13:35` in UTC+4; editing emits UTC). Pass **`utc={false}`** to disable
-this — no conversion, the field shows and emits the exact wall-clock you pick. The popover pairs the calendar
-with scrollable time columns (hours/minutes/seconds). Time props: `hour12` (1–12 + AM/PM vs 24-hour) ·
+this — no conversion, the field shows and emits the exact wall-clock you pick. The popover splits date and
+time into **two tabs** — a **Date** tab (calendar) and a **Time** tab (scrollable hours/minutes/seconds
+columns) — and opens on the Date tab. Time props: `hour12` (1–12 + AM/PM vs 24-hour) ·
 `minuteStep` (default `1`) · `showSeconds` (**default `true`** — pass `false` to hide seconds). Display
 `format` defaults to `'DD/MM/YYYY HH:mm:ss'` (→ `hh:mm:ss A` for `hour12`). Picking a
 day keeps the time and vice-versa; the popover stays open until you click away, press Escape, or hit Done.
@@ -273,7 +274,8 @@ syncs the active tab to the URL query (`?<queryKey>=…`, your param name) via t
 changes **replace** the URL (Back doesn't step through tabs); pass **`pushHistory`** to make Back navigate
 tabs. Per-tab `icon` / `disabled` / `error` (red tint) / `badge` (a trailing count pill, caps at `99+`) /
 `dot` (a corner dot) / `ariaLabel` (for icon-only tabs). `variant` (`underline` default · `pill`) · `size`
-· `color` · `orientation` (`horizontal` · `vertical`) · `fullWidth`. The strip **scrolls horizontally**
+· `color` · `orientation` (`horizontal` · `vertical`) · `fullWidth` · `autoFocus` (focus the active tab on
+mount — handy inside a popover). The strip **scrolls horizontally**
 (scrollbar hidden) when the tabs overflow, keeping the active tab in view. Full keyboard nav (Arrows /
 Home / End) + `role="tablist"`/`tab`/`tabpanel` a11y (name the tablist with `aria-label`); items with
 `content` render the active panel.

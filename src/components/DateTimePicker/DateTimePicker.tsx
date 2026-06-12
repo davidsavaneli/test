@@ -17,6 +17,7 @@ import { useFloatingPanel } from '../../hooks/useFloatingPanel'
 import { Button } from '../Button'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
+import { Tabs } from '../Tabs'
 import { Typography } from '../Typography'
 import { Calendar } from '../DatePicker/Calendar'
 import {
@@ -226,6 +227,9 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
     const inputRef = useRef<HTMLInputElement | null>(null)
     const [open, setOpen] = useState(false)
     const [viewMonth, setViewMonth] = useState<Dayjs>(() => selected ?? today())
+    // which popover tab is active — controlled so picking a day can auto-advance to Time
+    const [tab, setTab] = useState<'date' | 'time'>('date')
+    const advanceRef = useRef(false) // set when a day-pick advances to Time → move focus there
 
     const setInputRef = useCallback(
       (node: HTMLInputElement | null) => {
@@ -254,9 +258,23 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
     } = useFloatingPanel({ open, triggerRef, onClose: closePopover })
 
     useEffect(() => {
-      if (open) setViewMonth(selected ?? today())
+      if (open) {
+        setViewMonth(selected ?? today())
+        setTab('date') // always open on the Date tab
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open])
+
+    // after a day-pick auto-advances to the Time tab, move focus onto it so the focus trap holds
+    // (the just-picked calendar cell has unmounted); a manual tab switch never triggers this
+    useEffect(() => {
+      if (tab === 'time' && advanceRef.current) {
+        advanceRef.current = false
+        popoverRef.current
+          ?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')
+          ?.focus()
+      }
+    }, [tab, popoverRef])
 
     const isOutOfRange = (d: Dayjs): boolean => {
       if (minDate && d.isBefore(minDate, 'day')) return true
@@ -297,6 +315,8 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
       if (!date) return
       const base = selected ?? today()
       commitDateTime(date.hour(base.hour()).minute(base.minute()).second(base.second()))
+      advanceRef.current = true
+      setTab('time') // picking a day advances to the Time tab
     }
     const handleTimeChange = (next: Dayjs) => commitDateTime(next)
 
@@ -418,28 +438,50 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
                 } as CSSProperties
               }
             >
-              <div className={dt.body}>
-                <Calendar
-                  value={selected}
-                  month={viewMonth}
-                  onMonthChange={setViewMonth}
-                  onSelect={handleSelectDate}
-                  min={minDate}
-                  max={maxDate}
-                  disabledDate={disabledDate}
-                  weekStartsOn={weekStartsOn}
-                  autoFocus
-                  labelId={labelId}
-                />
-                <div className={dt.divider} aria-hidden="true" />
-                <TimeColumns
-                  value={selected}
-                  onChange={handleTimeChange}
-                  hour12={hour12}
-                  minuteStep={minuteStep}
-                  showSeconds={showSeconds}
-                />
-              </div>
+              <Tabs
+                className={dt.tabs}
+                aria-label="Date and time"
+                fullWidth
+                autoFocus
+                value={tab}
+                onChange={(v) => setTab(v as 'date' | 'time')}
+                items={[
+                  {
+                    value: 'date',
+                    label: 'Date',
+                    icon: 'Calendar3',
+                    content: (
+                      <Calendar
+                        value={selected}
+                        month={viewMonth}
+                        onMonthChange={setViewMonth}
+                        onSelect={handleSelectDate}
+                        min={minDate}
+                        max={maxDate}
+                        disabledDate={disabledDate}
+                        weekStartsOn={weekStartsOn}
+                        labelId={labelId}
+                      />
+                    ),
+                  },
+                  {
+                    value: 'time',
+                    label: 'Time',
+                    icon: 'Clock',
+                    content: (
+                      <div className={dt.timePane}>
+                        <TimeColumns
+                          value={selected}
+                          onChange={handleTimeChange}
+                          hour12={hour12}
+                          minuteStep={minuteStep}
+                          showSeconds={showSeconds}
+                        />
+                      </div>
+                    ),
+                  },
+                ]}
+              />
               <div className={dt.footer}>
                 <Button
                   size="sm"
