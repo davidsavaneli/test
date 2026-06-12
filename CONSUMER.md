@@ -263,7 +263,8 @@ for all its items). Standalone, in a dropdown panel, or in the sidebar.
 (`bottom-start` default · `bottom-end` · `top-start` · `top-end`) — auto-**flips** and stays on-screen,
 and re-positions on scroll/resize (a tall menu caps its height + scrolls). Opens on click; closes on
 outside click, `Escape`, or selecting an item (`closeOnSelect`, default true); locks page scroll while
-open. `size` (`sm`/`md`/`lg`) sets the panel min-width (150 / 190 / 220) + item density. Also: `open` /
+open. `size` (`sm`/`md`/`lg`) sets the panel min-width (150 / 190 / 220) + item density;
+**`minWidth={false}`** drops that min-width so the menu hugs its content. Also: `open` /
 `defaultOpen` / `onOpenChange` · `matchTriggerWidth` (select-like) · `disabled` · `offset`.
 `<Dropdown trigger={<Button>Menu</Button>}><ListItem icon="User" clickable>Profile</ListItem></Dropdown>`.
 

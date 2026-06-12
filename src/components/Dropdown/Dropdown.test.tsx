@@ -88,4 +88,16 @@ describe('Dropdown', () => {
     rerender(<Menu open onOpenChange={onOpenChange} />)
     expect(screen.getByRole('menu')).toBeInTheDocument()
   })
+
+  it('applies the size min-width class by default', () => {
+    render(<Menu size="lg" defaultOpen />)
+    expect(screen.getByRole('menu').parentElement).toHaveClass('lg')
+  })
+
+  it('drops the size min-width class when minWidth is false (sizes to content)', () => {
+    render(<Menu size="lg" minWidth={false} defaultOpen />)
+    const panel = screen.getByRole('menu').parentElement as HTMLElement
+    expect(panel).toHaveClass('panel') // still the panel…
+    expect(panel).not.toHaveClass('lg') // …but no size min-width
+  })
 })

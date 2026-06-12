@@ -44,7 +44,8 @@
 
 .timeColLabel {
   flex: none;
-  margin-bottom: var(--tz-space-xxs);
+  margin-top: var(--tz-space-xs);
+  margin-bottom: var(--tz-space-sm);
   color: var(--tz-color-primary-shade600);
   font-size: var(--tz-font-size-xs);
   font-weight: var(--tz-font-weight-medium);

@@ -141,33 +141,12 @@
   margin-top: var(--tz-space-xxs);
 }
 
-/* ── popover (portaled; identical chrome to Select) ────────────────────────── */
+/* ── popover (chrome + enter animation come from FloatingPanel; this adds only the layout) ──── */
 .popover {
-  z-index: var(--tz-z-dropdown);
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  border: 1px solid var(--tz-color-border);
-  border-radius: var(--tz-radius-sm);
-  background: var(--tz-color-secondary);
-  box-shadow: var(--tz-shadow-md);
   overflow: hidden;
-  overscroll-behavior: contain;
-  opacity: 0;
-  transition:
-    opacity var(--tz-duration),
-    transform var(--tz-duration);
-}
-.popover[data-side='bottom'] {
-  transform: translateY(calc(var(--tz-space-xxs) * -1));
-}
-.popover[data-side='top'] {
-  transform: translateY(var(--tz-space-xxs));
-}
-.popover[data-open='true'] {
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .search {

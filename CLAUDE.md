@@ -536,8 +536,8 @@ A single-select dropdown field. The trigger reuses TextField chrome (`label` · 
 a popover that **behaves exactly like `Dropdown`** — portaled to `<body>`, opens below (flips above
 only on overflow), **matches the trigger width**, locks page scroll, re-positions on scroll/resize,
 closes on outside-pointerdown/`Escape`/select, and enters with the shared opacity + translate animation
-(`data-open`/`data-side` + rAF `visible`) — **all via the shared internal `useFloatingPanel` hook**
-(`src/hooks/`, reused by `MultiSelect`; not part of the public hooks surface). The listbox padding
+(`data-open`/`data-side` + rAF `visible`) — **all via the shared internal `<FloatingPanel>` component**
+(see below). The listbox padding
 (`--tz-space-xs`) matches Dropdown's panel inset. Options are
 data-driven (**`options: { value, label, disabled?, icon? }[]`**) rendered as **`ListItem`s** (with
 `role="option"`, `tabIndex={-1}`) inside a `role="listbox"` **`List`**; the chosen option shows a
@@ -657,8 +657,9 @@ into view). `TimeColumns` is internal (not exported). Own CSS module (`DateTimeP
 The **time-only sibling** — `DateTimePicker` minus the calendar. A typed masked time input + a popover
 holding just the reused **`TimeColumns`** (hour / minute / optional second + AM/PM in 12-hour mode) and a
 **Done** footer. Reuses DatePicker's field chrome (`DatePicker.module.css`: control/input/clear/sizes/
-helper/popover) and has a tiny own module (`TimePicker.module.css`: popover `min-width` so Done fits +
-the footer). The trigger icon is **`Clock`** (vs DatePicker/DateTimePicker's `Calendar3`). Shares the
+helper/popover) and has a tiny own module (`TimePicker.module.css`: just the footer — the popover hugs
+its time columns, no width constraint). The trigger icon is **`Clock`** (vs DatePicker/DateTimePicker's
+`Calendar3`). Shares the
 field API (`label` · `size` · `error` + `helperText` · `required` · `fullWidth` default `true` ·
 `disabled` · `clearable` · `<Form>` binding by **`name`**) and the time props **`hour12`** /
 **`minuteStep`** / **`showSeconds`** (default `true`). **Value contract — `valueFormat`** (dayjs tokens,
@@ -850,7 +851,9 @@ would overflow, clamps within the viewport (8px edge padding), caps its height +
 tall, and **re-positions on `scroll`/`resize`** (plus a `ResizeObserver` on the panel & trigger). The
 panel is `--tz-radius-sm`, `--tz-space-xs` padding, with spaced dividers; `size` (`sm`/`md`/`lg`, default
 `md`) sets its **min-width** (150 / 190 / 220px) and the items' density (passed through to the inner
-`List size`, which `ListItem`s inherit). While open it **locks page scroll** via `useLockBodyScroll`.
+`List size`, which `ListItem`s inherit). **`minWidth`** (default `true`) toggles that size-based
+min-width — pass `false` to let the menu size to its content (the items' density still tracks `size`).
+While open it **locks page scroll** via `useLockBodyScroll`.
 Opens on trigger click; closes on outside `pointerdown`, `Escape` (returns focus to the trigger), or
 selecting an item (`closeOnSelect`, default `true`). The trigger is cloned to wire
 `onClick` + `aria-haspopup="menu"`/`aria-expanded`/`aria-controls` and a merged `ref` (reads
@@ -893,6 +896,30 @@ scrolling on `<html>` + `<body>` while `locked` (e.g. an open `Dropdown`/modal/d
 **`overflow: clip`** (not `hidden`, so it doesn't establish a scroll container and `position: sticky`
 elements like the sidebar/header keep working), compensating for the removed scrollbar with
 `padding-right` and restoring the prior inline styles on unlock; it's public from `sava-test/hooks`.
+
+**`useFloatingPanel({ open, triggerRef, onClose })`** (internal hook, `src/hooks/`) → `{ popoverRef,
+position, visible, reposition }`: the floating-panel plumbing — a `<body>`-portaled panel that opens
+below its trigger (flips above only on overflow), exposes the trigger width, clamps to the viewport,
+re-positions on scroll/resize (+ `ResizeObserver`), locks page scroll, and dismisses on
+outside-pointerdown / `Escape`. Not in the public hooks surface.
+
+### FloatingPanel (internal)
+
+The single shared popover, wrapping `useFloatingPanel` — **every floating popover in the library**
+(`Select` / `MultiSelect`, `DatePicker` / `DateTimePicker` / `TimePicker`, `ColorPicker`) renders it, so
+the portal + positioned div + `data-open`/`data-side` + enter animation + (optional) focus-trap aren't
+written per component. Props: `open` · `triggerRef` · `onClose(refocus)` · `role?` (`'dialog'`) ·
+`ariaLabel?` · `trapFocus?` (traps Tab **and** sets `aria-modal` — for the modal date/time dialogs) ·
+`matchTriggerWidth?` (select-like, used by Select/MultiSelect) · `width?` (fixed, e.g. ColorPicker's
+`232`) · `className` (merged after the shared chrome) · `style` (e.g. ColorPicker's `--cp-hue`). It
+**forwards its ref** to the panel element so a consumer can still read it (blur bookkeeping, focus
+moves). The base chrome (z-index, border, radius, surface, shadow, `overscroll-behavior`) **and** the
+opacity/translate enter animation live once in `FloatingPanel.module.css` `.panel`; each consumer's
+own `.popover` class keeps only its layout (padding / `display` / `overflow` / width). **Internal** —
+no `index.ts`, so the build glob never exposes it as a `sava-test/components/*` subpath; consumers
+import it via `../FloatingPanel/FloatingPanel`. **`Dropdown` is deliberately NOT built on it** — it
+keeps its own placement variants + collision-flip + roving-menu keyboard nav + `closeOnSelect` +
+cloned-trigger logic.
 
 ### Form — `useForm` (Zod-powered)
 

@@ -37,12 +37,13 @@ export interface UseFloatingPanelResult {
 }
 
 /**
- * Shared floating-panel plumbing for the select family (`Select` / `MultiSelect`) — a `<body>`-portaled
- * panel that opens below its trigger (flips above only when it would overflow), **matches the trigger
- * width**, clamps to the viewport, re-positions on scroll/resize (+ `ResizeObserver`), locks page
- * scroll while open, and dismisses on outside-pointerdown / `Escape`. The consumer owns the trigger
- * ref, the `open` state, and the `onClose` cleanup; this hook owns the panel ref, geometry, the
- * enter-animation flag, and the listeners. Internal (not part of the public hooks surface).
+ * Shared floating-panel plumbing — a `<body>`-portaled panel that opens below its trigger (flips above
+ * only when it would overflow), exposes the trigger width (for select-like matching), clamps to the
+ * viewport, re-positions on scroll/resize (+ `ResizeObserver`), locks page scroll while open, and
+ * dismisses on outside-pointerdown / `Escape`. The consumer owns the trigger ref, the `open` state, and
+ * the `onClose` cleanup; this hook owns the panel ref, geometry, the enter-animation flag, and the
+ * listeners. Wrapped by the internal `FloatingPanel` component, which every popover in the library
+ * (`Select` / `MultiSelect`, the date/time pickers, `ColorPicker`) renders. Internal (not public).
  */
 export function useFloatingPanel({
   open,

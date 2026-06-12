@@ -3,17 +3,15 @@ import {
   useCallback,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
-import { createPortal } from 'react-dom'
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
-import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
+import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import { Icon } from '../Icon'
 import { Typography } from '../Typography'
 import {
@@ -50,17 +48,8 @@ const DEFAULT_SWATCHES = [
 
 const FALLBACK_HSV: HSV = hexToHsv('#13404e')
 
-/** Popover width (px) + the gaps the floating positioner keeps. */
+/** Popover width (px). */
 const POPOVER_WIDTH = 232
-const VIEWPORT_PADDING = 8
-const OFFSET = 6
-
-interface Position {
-  top: number
-  left: number
-  side: 'top' | 'bottom'
-  maxHeight: number
-}
 
 export interface ColorPickerProps {
   /** Label rendered above the field. */
@@ -194,15 +183,10 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
     commit(formatColor({ ...hsvToRgb(hsvRef.current), a: next }))
   }
 
-  // ── popover: portaled + positioned like Dropdown (open below, flip up only on overflow) ────────
+  // ── popover (positioning / scroll-lock / dismiss come from FloatingPanel) ──────────────────────
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const popoverRef = useRef<HTMLDivElement | null>(null)
   const [open, setOpen] = useState(false)
-  const [visible, setVisible] = useState(false)
-  const [pos, setPos] = useState<Position | null>(null)
-
-  // lock page scroll while open (no scrollbar shift) — same as Dropdown
-  useLockBodyScroll(open)
 
   const setTriggerRef = useCallback(
     (node: HTMLButtonElement | null) => {
@@ -213,87 +197,10 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
     [ref],
   )
 
-  const update = useCallback(() => {
-    const triggerEl = triggerRef.current
-    const panel = popoverRef.current
-    if (!triggerEl || !panel) return
-
-    const rect = triggerEl.getBoundingClientRect()
-    const panelW = panel.offsetWidth
-    const panelH = panel.offsetHeight
-    const vw = window.innerWidth
-    const vh = window.innerHeight
-
-    const spaceBelow = vh - rect.bottom - OFFSET - VIEWPORT_PADDING
-    const spaceAbove = rect.top - OFFSET - VIEWPORT_PADDING
-    // prefer below; flip up only when below can't fit AND above has more room
-    let side: 'top' | 'bottom' = 'bottom'
-    if (panelH > spaceBelow && spaceAbove > spaceBelow) side = 'top'
-
-    const maxHeight = Math.max(0, side === 'bottom' ? spaceBelow : spaceAbove)
-    const usedH = Math.min(panelH, maxHeight)
-
-    let top = side === 'bottom' ? rect.bottom + OFFSET : rect.top - OFFSET - usedH
-    top = Math.min(
-      Math.max(top, VIEWPORT_PADDING),
-      Math.max(VIEWPORT_PADDING, vh - VIEWPORT_PADDING - usedH),
-    )
-    let left = Math.min(
-      Math.max(rect.left, VIEWPORT_PADDING),
-      Math.max(VIEWPORT_PADDING, vw - VIEWPORT_PADDING - panelW),
-    )
-
-    setPos({ top, left, side, maxHeight })
+  const closePopover = useCallback((refocus: boolean) => {
+    setOpen(false)
+    if (refocus) triggerRef.current?.focus()
   }, [])
-
-  useLayoutEffect(() => {
-    if (!open) {
-      setVisible(false)
-      return
-    }
-    update()
-  }, [open, update])
-
-  useEffect(() => {
-    if (!open) return
-    const raf = requestAnimationFrame(() => setVisible(true))
-    const onReposition = () => update()
-    window.addEventListener('resize', onReposition)
-    window.addEventListener('scroll', onReposition, true)
-    let ro: ResizeObserver | undefined
-    if (typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver(onReposition)
-      if (popoverRef.current) ro.observe(popoverRef.current)
-      if (triggerRef.current) ro.observe(triggerRef.current)
-    }
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('resize', onReposition)
-      window.removeEventListener('scroll', onReposition, true)
-      ro?.disconnect()
-    }
-  }, [open, update])
-
-  useEffect(() => {
-    if (!open) return
-    const onPointerDown = (e: PointerEvent) => {
-      const t = e.target as Node
-      if (triggerRef.current?.contains(t) || popoverRef.current?.contains(t)) return
-      setOpen(false)
-    }
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setOpen(false)
-        triggerRef.current?.focus()
-      }
-    }
-    document.addEventListener('pointerdown', onPointerDown, true)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown, true)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
 
   // ── drag (SV square + hue slider) ─────────────────────────────────────────────────────────────
   const drag =
@@ -405,104 +312,92 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
         />
       </button>
 
-      {open &&
-        createPortal(
-          <div
-            ref={popoverRef}
-            className={styles.popover}
-            role="dialog"
-            aria-label="Color picker"
-            data-open={visible ? 'true' : 'false'}
-            data-side={pos?.side ?? 'bottom'}
-            style={
-              {
-                position: 'fixed',
-                top: pos?.top ?? 0,
-                left: pos?.left ?? 0,
-                width: POPOVER_WIDTH,
-                maxHeight: pos?.maxHeight,
-                visibility: pos ? 'visible' : 'hidden',
-                '--cp-hue': hsv.h,
-              } as CSSProperties
-            }
+      <FloatingPanel
+        ref={popoverRef}
+        open={open}
+        triggerRef={triggerRef}
+        onClose={closePopover}
+        role="dialog"
+        ariaLabel="Color picker"
+        width={POPOVER_WIDTH}
+        className={styles.popover}
+        style={{ '--cp-hue': hsv.h } as CSSProperties}
+      >
+        <div className={styles.sv} onPointerDown={onSvDown}>
+          <span
+            className={styles.svThumb}
+            style={{
+              left: `${hsv.s * 100}%`,
+              top: `${(1 - hsv.v) * 100}%`,
+              background: solidHex,
+            }}
+          />
+        </div>
+
+        <div className={styles.hue} onPointerDown={onHueDown}>
+          <span className={styles.hueThumb} style={{ left: `${(hsv.h / 360) * 100}%` }} />
+        </div>
+
+        <div
+          className={styles.alpha}
+          onPointerDown={onAlphaDown}
+          style={{ '--cp-rgb': cpRgb } as CSSProperties}
+        >
+          <span className={styles.alphaThumb} style={{ left: `${alpha * 100}%` }} />
+        </div>
+
+        <div className={styles.hexRow}>
+          <span
+            className={styles.currentSwatch}
+            style={{ '--cp-fill': workingColor } as CSSProperties}
+          />
+          <span className={styles.hexField}>
+            <input
+              className={styles.hexInput}
+              value={colorDraft}
+              spellCheck={false}
+              maxLength={28}
+              aria-label="Color value"
+              onChange={(e) => onColorInput(e.target.value)}
+            />
+          </span>
+        </div>
+
+        <div className={styles.swatches}>
+          {/* "no color" — clears the field (the diagonal-stripe swatch) */}
+          <button
+            type="button"
+            className={clsx(styles.swatch, styles.swatchClear)}
+            aria-label="No color"
+            aria-pressed={!parsed}
+            onClick={handleClear}
           >
-            <div className={styles.sv} onPointerDown={onSvDown}>
-              <span
-                className={styles.svThumb}
-                style={{
-                  left: `${hsv.s * 100}%`,
-                  top: `${(1 - hsv.v) * 100}%`,
-                  background: solidHex,
-                }}
-              />
-            </div>
-
-            <div className={styles.hue} onPointerDown={onHueDown}>
-              <span className={styles.hueThumb} style={{ left: `${(hsv.h / 360) * 100}%` }} />
-            </div>
-
-            <div
-              className={styles.alpha}
-              onPointerDown={onAlphaDown}
-              style={{ '--cp-rgb': cpRgb } as CSSProperties}
-            >
-              <span className={styles.alphaThumb} style={{ left: `${alpha * 100}%` }} />
-            </div>
-
-            <div className={styles.hexRow}>
-              <span
-                className={styles.currentSwatch}
-                style={{ '--cp-fill': workingColor } as CSSProperties}
-              />
-              <span className={styles.hexField}>
-                <input
-                  className={styles.hexInput}
-                  value={colorDraft}
-                  spellCheck={false}
-                  maxLength={28}
-                  aria-label="Color value"
-                  onChange={(e) => onColorInput(e.target.value)}
-                />
-              </span>
-            </div>
-
-            <div className={styles.swatches}>
-              {/* "no color" — clears the field (the diagonal-stripe swatch) */}
+            {!parsed && <Icon name="TickCircle" size="sm" />}
+          </button>
+          {swatches.map((sw) => {
+            const p = parseColor(sw)
+            if (!p) return null
+            const swHex = formatColor({ r: p.r, g: p.g, b: p.b, a: 1 })
+            const selected = displayValue === swHex
+            return (
               <button
+                key={sw}
                 type="button"
-                className={clsx(styles.swatch, styles.swatchClear)}
-                aria-label="No color"
-                aria-pressed={!parsed}
-                onClick={handleClear}
+                className={styles.swatch}
+                style={{ background: swHex, color: contrastOn(swHex) }}
+                aria-label={swHex}
+                aria-pressed={selected}
+                onClick={() => {
+                  setHsv(rgbToHsv(p))
+                  commit(formatColor({ r: p.r, g: p.g, b: p.b, a: alphaRef.current }))
+                }}
               >
-                {!parsed && <Icon name="TickCircle" size="sm" />}
+                {selected && <Icon name="TickCircle" size="sm" />}
               </button>
-              {swatches.map((sw) => {
-                const p = parseColor(sw)
-                if (!p) return null
-                const swHex = formatColor({ r: p.r, g: p.g, b: p.b, a: 1 })
-                const selected = displayValue === swHex
-                return (
-                  <button
-                    key={sw}
-                    type="button"
-                    className={styles.swatch}
-                    style={{ background: swHex, color: contrastOn(swHex) }}
-                    aria-label={swHex}
-                    aria-pressed={selected}
-                    onClick={() => {
-                      setHsv(rgbToHsv(p))
-                      commit(formatColor({ r: p.r, g: p.g, b: p.b, a: alphaRef.current }))
-                    }}
-                  >
-                    {selected && <Icon name="TickCircle" size="sm" />}
-                  </button>
-                )
-              })}
-            </div>
-          </div>,
-          document.body,
-        )}
+            )
+          })}
+        </div>
+      </FloatingPanel>
 
       {resolvedHelperText != null && (
         <Typography

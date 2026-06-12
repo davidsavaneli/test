@@ -171,6 +171,27 @@ export function DropdownSection() {
         </Row>
       </Block>
 
+      <Block label="minWidth={false} — sizes to content (no size min-width)">
+        <Row gap={12} wrap>
+          <Dropdown trigger={<Button variant="outlined">Default (md min-width)</Button>}>
+            <ListItem icon="Eye" clickable>
+              View
+            </ListItem>
+            <ListItem icon="Edit2" clickable>
+              Edit
+            </ListItem>
+          </Dropdown>
+          <Dropdown minWidth={false} trigger={<Button variant="outlined">minWidth false</Button>}>
+            <ListItem icon="Eye" clickable>
+              View
+            </ListItem>
+            <ListItem icon="Edit2" clickable>
+              Edit
+            </ListItem>
+          </Dropdown>
+        </Row>
+      </Block>
+
       <Block label="tall menu — caps height + scrolls, never leaves the screen">
         <Row>
           <Dropdown trigger={<Button variant="outlined">Pick a country</Button>}>

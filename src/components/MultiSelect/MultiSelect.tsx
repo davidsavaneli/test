@@ -11,10 +11,9 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from 'react'
-import { createPortal } from 'react-dom'
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
-import { useFloatingPanel } from '../../hooks/useFloatingPanel'
+import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import type { ThemeColor } from '../../theme'
 import { Chip } from '../Chip'
 import { Icon } from '../Icon'
@@ -191,6 +190,9 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
     [filteredOptions],
   )
 
+  // the floating panel forwards its node here, for the focus-leaves-the-widget check on blur
+  const popoverRef = useRef<HTMLDivElement | null>(null)
+
   const closeMenu = useCallback((refocus: boolean) => {
     setOpen(false)
     setSearchQuery('')
@@ -199,16 +201,6 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
     fieldBlur.current?.()
     if (refocus) triggerRef.current?.focus()
   }, [])
-
-  const {
-    popoverRef,
-    position: pos,
-    visible,
-  } = useFloatingPanel({
-    open,
-    triggerRef,
-    onClose: closeMenu,
-  })
 
   // on open: highlight the first enabled option, focus the search box if searchable
   useEffect(() => {
@@ -447,108 +439,89 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
         />
       </div>
 
-      {open &&
-        createPortal(
-          <div
-            ref={popoverRef}
-            className={styles.popover}
-            data-open={visible ? 'true' : 'false'}
-            data-side={pos?.side ?? 'bottom'}
-            style={
-              {
-                position: 'fixed',
-                top: pos?.top ?? 0,
-                left: pos?.left ?? 0,
-                width: pos?.width,
-                maxHeight: pos?.maxHeight,
-                visibility: pos ? 'visible' : 'hidden',
-              } as CSSProperties
-            }
-          >
-            {searchable && (
-              <div className={styles.search}>
-                <Icon
-                  name="SearchNormal"
-                  size="sm"
-                  className={styles.searchIcon}
-                  aria-hidden="true"
-                />
-                <input
-                  ref={searchInputRef}
-                  className={styles.searchInput}
-                  type="text"
-                  role="combobox"
-                  aria-expanded="true"
-                  aria-controls={listboxId}
-                  aria-activedescendant={activeId}
-                  aria-autocomplete="list"
-                  aria-label={searchPlaceholder}
-                  placeholder={searchPlaceholder}
-                  value={searchQuery}
-                  spellCheck={false}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value)
-                    onSearchChange?.(e.target.value)
-                  }}
-                  onKeyDown={handleKeyDown}
-                />
-              </div>
-            )}
-
-            <List
-              role="listbox"
-              id={listboxId}
-              aria-labelledby={label != null ? labelId : undefined}
-              aria-multiselectable="true"
-              size={size}
-              className={styles.listbox}
-              // clear the mouse highlight when the pointer leaves the list (no lingering hover)
-              onMouseLeave={() => setHighlightedIndex(-1)}
-            >
-              {loading ? (
-                <div className={styles.loading}>
-                  <Loader size="sm" />
-                  <Typography as="span" variant="bodySmall" color="muted">
-                    {loadingText}
-                  </Typography>
-                </div>
-              ) : filteredOptions.length === 0 ? (
-                <div className={styles.noOptions}>
-                  <Typography as="span" variant="bodySmall" color="muted">
-                    {typeof noOptionsText === 'function'
-                      ? noOptionsText(searchQuery)
-                      : noOptionsText}
-                  </Typography>
-                </div>
-              ) : (
-                filteredOptions.map((opt, index) => {
-                  const isSelected = selectedValues.includes(opt.value)
-                  return (
-                    <ListItem
-                      key={opt.value}
-                      id={optionId(index)}
-                      role="option"
-                      tabIndex={-1}
-                      aria-selected={isSelected}
-                      aria-current={undefined}
-                      clickable
-                      selected={isSelected}
-                      disabled={opt.disabled}
-                      icon={opt.icon}
-                      className={clsx(index === highlightedIndex && styles.active)}
-                      trailing={isSelected ? <Icon name="TickCircle" size="sm" /> : undefined}
-                      onMouseEnter={() => !opt.disabled && setHighlightedIndex(index)}
-                      onClick={() => toggleOption(opt)}
-                    >
-                      {opt.label}
-                    </ListItem>
-                  )
-                })
-              )}
-            </List>
-          </div>,
-          document.body,
+      <FloatingPanel
+        ref={popoverRef}
+        open={open}
+        triggerRef={triggerRef}
+        onClose={closeMenu}
+        matchTriggerWidth
+        className={styles.popover}
+      >
+        {searchable && (
+          <div className={styles.search}>
+            <Icon name="SearchNormal" size="sm" className={styles.searchIcon} aria-hidden="true" />
+            <input
+              ref={searchInputRef}
+              className={styles.searchInput}
+              type="text"
+              role="combobox"
+              aria-expanded="true"
+              aria-controls={listboxId}
+              aria-activedescendant={activeId}
+              aria-autocomplete="list"
+              aria-label={searchPlaceholder}
+              placeholder={searchPlaceholder}
+              value={searchQuery}
+              spellCheck={false}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                onSearchChange?.(e.target.value)
+              }}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
         )}
+
+        <List
+          role="listbox"
+          id={listboxId}
+          aria-labelledby={label != null ? labelId : undefined}
+          aria-multiselectable="true"
+          size={size}
+          className={styles.listbox}
+          // clear the mouse highlight when the pointer leaves the list (no lingering hover)
+          onMouseLeave={() => setHighlightedIndex(-1)}
+        >
+          {loading ? (
+            <div className={styles.loading}>
+              <Loader size="sm" />
+              <Typography as="span" variant="bodySmall" color="muted">
+                {loadingText}
+              </Typography>
+            </div>
+          ) : filteredOptions.length === 0 ? (
+            <div className={styles.noOptions}>
+              <Typography as="span" variant="bodySmall" color="muted">
+                {typeof noOptionsText === 'function' ? noOptionsText(searchQuery) : noOptionsText}
+              </Typography>
+            </div>
+          ) : (
+            filteredOptions.map((opt, index) => {
+              const isSelected = selectedValues.includes(opt.value)
+              return (
+                <ListItem
+                  key={opt.value}
+                  id={optionId(index)}
+                  role="option"
+                  tabIndex={-1}
+                  aria-selected={isSelected}
+                  aria-current={undefined}
+                  clickable
+                  selected={isSelected}
+                  disabled={opt.disabled}
+                  icon={opt.icon}
+                  className={clsx(index === highlightedIndex && styles.active)}
+                  trailing={isSelected ? <Icon name="TickCircle" size="sm" /> : undefined}
+                  onMouseEnter={() => !opt.disabled && setHighlightedIndex(index)}
+                  onClick={() => toggleOption(opt)}
+                >
+                  {opt.label}
+                </ListItem>
+              )
+            })
+          )}
+        </List>
+      </FloatingPanel>
 
       {resolvedHelperText != null && (
         <Typography

@@ -7,13 +7,11 @@ import {
   useState,
   type CSSProperties,
   type FocusEvent,
-  type KeyboardEvent,
   type ReactNode,
 } from 'react'
-import { createPortal } from 'react-dom'
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
-import { useFloatingPanel } from '../../hooks/useFloatingPanel'
+import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import { Button } from '../Button'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
@@ -245,17 +243,14 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
       ? () => bound.onBlur({} as FocusEvent<HTMLInputElement>)
       : undefined
 
+    // the floating panel forwards its node here, for the blur check + the auto-advance focus move
+    const popoverRef = useRef<HTMLDivElement | null>(null)
+
     const closePopover = useCallback((refocus: boolean) => {
       setOpen(false)
       fieldBlurRef.current?.()
       if (refocus) inputRef.current?.focus()
     }, [])
-
-    const {
-      popoverRef,
-      position: pos,
-      visible,
-    } = useFloatingPanel({ open, triggerRef, onClose: closePopover })
 
     useEffect(() => {
       if (open) {
@@ -319,26 +314,6 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
       setTab('time') // picking a day advances to the Time tab
     }
     const handleTimeChange = (next: Dayjs) => commitDateTime(next)
-
-    // trap Tab within the dialog popover so focus can't strand on the scroll-locked page behind it
-    const handlePopoverKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-      if (event.key !== 'Tab') return
-      const panel = popoverRef.current
-      if (!panel) return
-      const focusables = panel.querySelectorAll<HTMLElement>(
-        'button:not([tabindex="-1"]):not(:disabled), [tabindex="0"]',
-      )
-      if (focusables.length === 0) return
-      const first = focusables[0]
-      const last = focusables[focusables.length - 1]
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
-      }
-    }
 
     const iconSize: 'sm' | 'md' = size === 'sm' ? 'sm' : 'md'
 
@@ -417,84 +392,66 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
           </IconButton>
         </div>
 
-        {open &&
-          createPortal(
-            <div
-              ref={popoverRef}
-              className={clsx(styles.popover, dt.popover)}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Choose date and time"
-              data-open={visible ? 'true' : 'false'}
-              data-side={pos?.side ?? 'bottom'}
-              onKeyDown={handlePopoverKeyDown}
-              style={
-                {
-                  position: 'fixed',
-                  top: pos?.top ?? 0,
-                  left: pos?.left ?? 0,
-                  maxHeight: pos?.maxHeight,
-                  visibility: pos ? 'visible' : 'hidden',
-                } as CSSProperties
-              }
-            >
-              <Tabs
-                className={dt.tabs}
-                aria-label="Date and time"
-                fullWidth
-                autoFocus
-                value={tab}
-                onChange={(v) => setTab(v as 'date' | 'time')}
-                items={[
-                  {
-                    value: 'date',
-                    label: 'Date',
-                    icon: 'Calendar3',
-                    content: (
-                      <Calendar
-                        value={selected}
-                        month={viewMonth}
-                        onMonthChange={setViewMonth}
-                        onSelect={handleSelectDate}
-                        min={minDate}
-                        max={maxDate}
-                        disabledDate={disabledDate}
-                        weekStartsOn={weekStartsOn}
-                        labelId={labelId}
-                      />
-                    ),
-                  },
-                  {
-                    value: 'time',
-                    label: 'Time',
-                    icon: 'Clock',
-                    content: (
-                      <div className={dt.timePane}>
-                        <TimeColumns
-                          value={selected}
-                          onChange={handleTimeChange}
-                          hour12={hour12}
-                          minuteStep={minuteStep}
-                          showSeconds={showSeconds}
-                        />
-                      </div>
-                    ),
-                  },
-                ]}
-              />
-              <div className={dt.footer}>
-                <Button
-                  size="sm"
-                  variant="filled"
-                  color="primary"
-                  onClick={() => closePopover(true)}
-                >
-                  Done
-                </Button>
-              </div>
-            </div>,
-            document.body,
-          )}
+        <FloatingPanel
+          ref={popoverRef}
+          open={open}
+          triggerRef={triggerRef}
+          onClose={closePopover}
+          role="dialog"
+          ariaLabel="Choose date and time"
+          trapFocus
+          className={clsx(styles.popover, dt.popover)}
+        >
+          <Tabs
+            className={dt.tabs}
+            aria-label="Date and time"
+            fullWidth
+            autoFocus
+            value={tab}
+            onChange={(v) => setTab(v as 'date' | 'time')}
+            items={[
+              {
+                value: 'date',
+                label: 'Date',
+                icon: 'Calendar3',
+                content: (
+                  <Calendar
+                    value={selected}
+                    month={viewMonth}
+                    onMonthChange={setViewMonth}
+                    onSelect={handleSelectDate}
+                    min={minDate}
+                    max={maxDate}
+                    disabledDate={disabledDate}
+                    weekStartsOn={weekStartsOn}
+                    labelId={labelId}
+                  />
+                ),
+              },
+              {
+                value: 'time',
+                label: 'Time',
+                icon: 'Clock',
+                content: (
+                  <div className={dt.timePane}>
+                    <TimeColumns
+                      value={selected}
+                      onChange={handleTimeChange}
+                      hour12={hour12}
+                      minuteStep={minuteStep}
+                      showSeconds={showSeconds}
+                    />
+                  </div>
+                ),
+              },
+            ]}
+          />
+          <div className={dt.footer}>
+            <Button size="sm" variant="filled" color="primary" onClick={() => closePopover(true)}>
+              Done
+            </Button>
+          </div>
+        </FloatingPanel>
 
         {resolvedHelperText != null && (
           <Typography

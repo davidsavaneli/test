@@ -37,6 +37,11 @@ export interface DropdownProps {
   placement?: DropdownPlacement
   /** Menu size — sets the panel min-width (`sm` 150 · `md` 190 · `lg` 220) and the items' density. Default `md`. */
   size?: ListItemSize
+  /**
+   * Apply the size-based min-width (`sm` 150 · `md` 190 · `lg` 220px). Defaults to `true`; set `false`
+   * to let the menu size to its content instead (the items' density still tracks `size`).
+   */
+  minWidth?: boolean
   /** Controlled open state. */
   open?: boolean
   /** Initial open state for uncontrolled use. Defaults to `false`. */
@@ -82,6 +87,7 @@ export function Dropdown({
   children,
   placement = 'bottom-start',
   size = 'md',
+  minWidth = true,
   open,
   defaultOpen = false,
   onOpenChange,
@@ -255,7 +261,7 @@ export function Dropdown({
           <div
             ref={panelRef}
             id={menuId}
-            className={clsx(styles.panel, styles[size], className)}
+            className={clsx(styles.panel, minWidth && styles[size], className)}
             data-open={visible ? 'true' : 'false'}
             data-side={pos?.side ?? 'bottom'}
             style={{
