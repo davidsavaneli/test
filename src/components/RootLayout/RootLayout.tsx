@@ -54,7 +54,7 @@ export interface RootLayoutProps {
  * (on by default) plus an account `Avatar` whose menu has a **Sign out** item when `header.onLogout`
  * is given. The content area stacks
  * **`Breadcrumbs` → the page title (the active route's `staticData.name`) → `children`**; pages wrap
- * their own body in `PageLayout`. Styling is token-based, so it follows the active `ThemeProvider`
+ * their own body in `PageLayout`. Styling is token-based, so it follows the active `ConfigProvider`
  * mode. Requires `@tanstack/react-router` (peer).
  */
 export function RootLayout({ logo, header, children }: RootLayoutProps) {

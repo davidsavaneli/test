@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 :root {
-  /* Brand color VALUES (the `-rgb` triplets) are NOT declared here — ThemeProvider injects them onto
+  /* Brand color VALUES (the `-rgb` triplets) are NOT declared here — ConfigProvider injects them onto
      <html> at runtime from DEFAULT_LIGHT_COLORS (+ the app's overrides, + the dark deltas), via
      applyTheme. This file defines only the *structure* that references them: each solid
      `--tz-color-<name>`, its shade scale, and the contrast fallbacks. */
@@ -29,7 +29,7 @@
   --tz-color-secondary-shade800: rgba(var(--tz-color-secondary-rgb), 0.9);
 
   /* background — page canvas (body / shell). Separate from `secondary` (surface): white in light
-     mode, a deep dark in dark mode. Overridable per mode via ThemeProvider like any brand color. */
+     mode, a deep dark in dark mode. Overridable per mode via ConfigProvider like any brand color. */
   --tz-color-background: rgb(var(--tz-color-background-rgb));
   --tz-color-background-shade100: rgba(var(--tz-color-background-rgb), 0.06);
   --tz-color-background-shade200: rgba(var(--tz-color-background-rgb), 0.1);

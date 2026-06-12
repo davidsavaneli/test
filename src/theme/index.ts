@@ -1,4 +1,12 @@
 export { applyTheme } from './applyTheme'
 export type { ThemePalette, ThemeColor } from './applyTheme'
-export { ThemeProvider, useTheme } from './ThemeProvider'
-export type { ThemeConfig, ThemeColors, ThemeMode, ThemeProviderProps } from './ThemeProvider'
+export { ConfigProvider, useTheme, useLocales, useTranslationsNamespace } from './ConfigProvider'
+export type {
+  Config,
+  ThemeConfig,
+  ThemeColors,
+  ThemeMode,
+  ConfigProviderProps,
+  LocaleConfig,
+  TranslationsConfig,
+} from './ConfigProvider'

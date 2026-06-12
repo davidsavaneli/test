@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { ThemeProvider } from '../../theme'
+import { ConfigProvider } from '../../theme'
 import type { ThemePalette } from '../../theme'
 import { ThemeToggle } from './ThemeToggle'
 
@@ -19,7 +19,9 @@ const LIGHT: ThemePalette = {
 }
 
 const withTheme = (ui: ReactNode) => (
-  <ThemeProvider config={{ mode: 'light', colors: { light: LIGHT } }}>{ui}</ThemeProvider>
+  <ConfigProvider config={{ theme: { mode: 'light', colors: { light: LIGHT } } }}>
+    {ui}
+  </ConfigProvider>
 )
 
 describe('ThemeToggle', () => {

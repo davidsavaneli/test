@@ -45,7 +45,7 @@ src/
     index.ts              # re-exports every component (UI + shell)
   theme/
     applyTheme.ts         # ThemePalette type, hex→rgb, contrast logic, applyTheme()
-    ThemeProvider.tsx     # ThemeProvider, useTheme, ThemeConfig, DEFAULT_LIGHT/DARK_COLORS, mode merge
+    ConfigProvider.tsx     # ConfigProvider, useTheme, useLocales, Config (theme+locales+…), DEFAULT_LIGHT/DARK_COLORS
     index.ts
   hooks/
     useDisclosure.ts      # example hook (open/close/toggle)
@@ -57,6 +57,7 @@ src/
     index.ts
   helpers/
     access.ts             # RBAC access store (setAccessKeys/getAccessKeys/hasAccess/useAccessKeys)
+    translations.ts       # translation form helpers (buildTranslations/nest/flatten/toFormData)
   icons/
     icons.ts              # generated inline-SVG registry (committed source of truth)
     names.ts              # generated IconName union + ICON_NAMES / ICON_COUNT (~1195 names)
@@ -83,12 +84,12 @@ literal** color, size, radius, spacing, shadow, z-index, or duration in a compon
 ### 3.1 Color model — RGB triplets
 
 Each brand color resolves to a **comma-separated RGB triplet** (not hex) so we can derive alpha shades
-with `rgba()`. The triplet itself is **injected at runtime** by `ThemeProvider` (from
+with `rgba()`. The triplet itself is **injected at runtime** by `ConfigProvider` (from
 `DEFAULT_LIGHT_COLORS` + the app's overrides — see §5); `theme.css` declares only the structure that
 references it:
 
 ```css
---tz-color-primary-rgb: 19, 64, 78; /* the triplet — injected by ThemeProvider, NOT in theme.css */
+--tz-color-primary-rgb: 19, 64, 78; /* the triplet — injected by ConfigProvider, NOT in theme.css */
 --tz-color-primary: rgb(var(--tz-color-primary-rgb)); /* solid convenience (in theme.css) */
 --tz-color-primary-shade100: rgba(var(--tz-color-primary-rgb), 0.06); /* shades (in theme.css) */
 /* ...shade200..shade800 */
@@ -111,8 +112,8 @@ references it:
 | `warning`    | `#ffbf00` | semantic — warning                  |
 
 > These hex values are the library's built-in light defaults — they live in `DEFAULT_LIGHT_COLORS`
-> (`ThemeProvider.tsx`), the single source of truth. Consuming apps override any subset through
-> `ThemeProvider` (see §5). Components must reference colors by **token name**, never by hex.
+> (`ConfigProvider.tsx`), the single source of truth. Consuming apps override any subset through
+> `ConfigProvider` (see §5). Components must reference colors by **token name**, never by hex.
 
 **Shade scale** (alpha applied to the color's triplet) — same steps for every color:
 
@@ -260,23 +261,33 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 
 ---
 
-## 5. Theming (`ThemeProvider` / `useTheme`)
+## 5. Theming (`ConfigProvider` / `useTheme`)
 
 ```tsx
-// fully themed — or just <ThemeProvider><App/></ThemeProvider> to use the built-in Techzy theme
-<ThemeProvider config={{ mode: 'light', colors: { light: { primary: '#...' }, dark: {...} } }}>
+// fully themed — or just <ConfigProvider><App/></ConfigProvider> to use the built-in Techzy theme
+<ConfigProvider config={{ locales, theme: { mode: 'light', colors: { light: { primary: '#...' }, dark: {...} } } }}>
   <App />
-</ThemeProvider>
+</ConfigProvider>
 ```
 
-- **Default palettes live in TS, in `ThemeProvider.tsx`** — `DEFAULT_LIGHT_COLORS` (the full built-in
+- **Default palettes live in TS, in `ConfigProvider.tsx`** — `DEFAULT_LIGHT_COLORS` (the full built-in
   light palette = the single source of truth for every brand color's default value) and
   `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `background
 #1F1F1E`, plus a brighter `dark`/`medium`/`light` teal ramp). `theme.css` holds **no** color values — only the structure (solids, shades,
   contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
-- **`ThemeConfig`**: `{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`
-  — everything optional. Omit `config` entirely (or `colors`) to ship the built-in theme; override any
-  **subset** of either palette.
+- **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; translations?: TranslationsConfig }`
+  — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),
+  non-theme app config (`locales`, `translations`, …) at the top. Everything optional — omit `config` (or `theme`) to
+  ship the built-in theme; override any **subset** of either palette. (Grows over time.)
+- **`locales`** (`LocaleConfig[]` = `{ code: string; label?: string }[]`): the app's content locales —
+  the single source the **`<TranslatedFields>`** tabs read (one tab per locale). Exposed via
+  **`useLocales()`** (lenient — returns `[]` outside a provider, since a `<TranslatedFields locales>`
+  prop can override). It's not theming per se, but it's the app-level config the provider already owns.
+- **`translations`** (`TranslationsConfig` = `{ namespace?: string }`): the translation namespace word —
+  `<TranslatedFields>`' field names resolve **`namespace` prop → `config.translations.namespace` →
+  `DEFAULT_TRANSLATIONS_NAMESPACE` (`'translations'`)**. Exposed via **`useTranslationsNamespace()`**
+  (returns the resolved string; lenient outside a provider) — pass it to the helpers to match, e.g.
+  `buildTranslations(codes, fields, useTranslationsNamespace())`.
 - **Light merge**: `{ ...DEFAULT_LIGHT_COLORS, ...config.colors.light }` — built-in defaults as base,
   the app's light overrides win.
 - **Dark merge**: `{ ...light, ...DEFAULT_DARK_COLORS, ...config.colors.dark }` — the merged light
@@ -286,7 +297,7 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 - **`useTheme()`** returns `{ mode, setMode, toggleMode }`. Throws if used outside a provider.
 - Initial mode = stored value if present, else `config.mode`, else `'light'`.
 - **No-JS note:** because the triplet values are injected by `applyTheme` (not declared in `theme.css`),
-  colors require `ThemeProvider` to have mounted. It runs in `useLayoutEffect` (before first paint), so
+  colors require `ConfigProvider` to have mounted. It runs in `useLayoutEffect` (before first paint), so
   there's no flash in a normal CSR app; importing the CSS alone (no provider) yields no brand colors.
 
 ---
@@ -888,6 +899,44 @@ Arrow/Home/End keyboard nav (automatic activation), `aria-controls`/`aria-labell
 panel, and an **`aria-label`** prop naming the tablist; the resolved active value is always clamped to a
 present, enabled tab (no keyboard trap). Items with `content` render an active `role="tabpanel"`. Own CSS module.
 
+### TranslatedFields
+
+A tabbed group of **per-locale** form fields (built on **`Tabs`**) — one tab per content locale, each
+rendering the **same** fields with locale-namespaced `name`s, so a `<Form>` submits e.g.
+`translations[en-US].title` / `translations[ka-GE].title`. **Fields are supplied via a render
+function** (children): `children: (name, locale) => ReactNode`, where **`name(field)`** returns the
+namespaced form name for the active locale and `locale` is its code — you bring the field components
+(`TextField`, `MultilineTextField`, a rich-text editor, anything). The render runs **once per locale**
+to build each tab's content; only the active tab mounts, and switching tabs **remounts** the fields
+(keyed by locale — no value/state bleed). **Locales** come from `<ConfigProvider config={{ locales }}>`
+(via `useLocales()`), overridable with the **`locales`** prop (`{ code, label? }[]`; tab label =
+`label ?? code`; globe **`icon`** default `'Global'`). The top-level word is the **`namespace`** —
+field names are `<namespace>[<locale>].<field>` (the exported **`buildTranslationName(locale, field, namespace?)`**,
+the flat bracket key that maps to `FormData`); it resolves **`namespace` prop →
+`<ConfigProvider config={{ translations: { namespace } }}>` → `'translations'`** (via
+`useTranslationsNamespace()`). Inside a `<Form>`, a locale's tab shows a **`dot`** (the `Tabs` `dot`
+indicator — not an error tint) when any of its fields is invalid **and** shown (submitted/touched). On
+submit, if the active locale is complete but **another locale holds the only remaining errors**, the
+strip **auto-advances to that locale and focuses its first invalid field** — the form's own
+scroll-to-error can't reach an unmounted tab, so `TranslatedFields` watches the form's **`submitCount`**
+and does it (only when every remaining error is a translation key, so a plain-field error still scrolls
+above the tabs first). Controlled
+(`value`+`onChange`) or uncontrolled (`defaultValue`) active locale; `variant`/`size` pass through to
+`Tabs`. The form values stay **flat** (`translations[en-US].title` — the `FormData` shape).
+**Helpers** (all take an optional `namespace`): **`buildTranslations(locales, fields, namespace?)`**
+expands a per-field map into the flat record — for the `<Form>`'s `defaultValues` **and** (with Zod
+field schemas as the values) the schema shape: `z.object(buildTranslations(codes, { title: z.string().min(1), … }))`;
+**`nestTranslations(flat, namespace?)`** folds the flat values into the **nested** JSON shape
+(`{ translations: { 'en-US': { title } } }`, others stay top-level) for a JSON POST; and
+**`flattenTranslations(nested, namespace?)`** is the inverse (a backend response → flat `defaultValues`);
+and **`toFormData(flatValues)`** serializes the flat values into a `FormData` (translation keys pass
+through, arrays → `tags[0]`, `Blob`/`File` as-is, `null` skipped) for a `multipart/form-data` POST.
+`TranslatedFields` ships named **and** default from `sava-test/components`. The **helpers are
+framework-agnostic** and live in `src/helpers/translations.ts`, exported from **`sava-test/helpers`**
+(not `/components`): `buildTranslationName` / `buildTranslations` / `nestTranslations` /
+`flattenTranslations` / `toFormData` / `DEFAULT_TRANSLATIONS_NAMESPACE`. Own CSS module (just the
+per-locale field stack; the strip/panel chrome is `Tabs`).
+
 ### Hooks
 
 `useDisclosure(initial = false)` → `{ isOpen, open, close, toggle }`. Model new hooks on this:
@@ -936,8 +985,9 @@ with `<Form>` and any `<form onSubmit={form.handleSubmit}>`. Opt out with `scrol
 (default `true`). Uses `name` attributes (not `aria-invalid`), so it's immune to React's re-render
 timing; `scrollIntoView({ behavior: 'smooth', block: 'center' })` + `focus({ preventScroll: true })`.
 
-Returns `{ values, errors, touched, isValid, isSubmitted, isSubmitting, field, setValue, setValues, reset, handleSubmit }`
-(the `FormApi` type). `handleSubmit` validates the whole form and calls `onSubmit` with the
+Returns `{ values, errors, touched, isValid, isSubmitted, submitCount, isSubmitting, field, setValue, setValues, reset, handleSubmit }`
+(the `FormApi` type). **`submitCount`** increments on every `handleSubmit` (watch it to react to each
+submit attempt — e.g. `TranslatedFields` uses it to jump to an erroring tab). `handleSubmit` validates the whole form and calls `onSubmit` with the
 **parsed** values only when valid (awaiting an async `onSubmit` toggles `isSubmitting`). `onSubmit`
 gets a second **helpers** arg — `(values, { reset, setValue, setValues })` — so you can clear the
 form on success: `onSubmit: (values, { reset }) => { await save(values); reset() }`. (`reset()` is
@@ -1140,16 +1190,16 @@ createFileRoute('/dashboard/')({
 The package exposes **scoped subpaths**, not just the root. The aggregator files in `src/entries/`
 define each surface; the root `src/index.ts` re-exports them all. `package.json` `exports` maps:
 
-| subpath                               | source entry                          | what's in it                                                     |
-| ------------------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
-| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                    |
-| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                 |
-| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                          |
-| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys` |
-| `./theme`                             | `src/entries/theme.ts`                | `ThemeProvider`, `useTheme`, `applyTheme`                        |
-| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                        |
-| `./helpers`                           | `src/entries/helpers.ts`              | `setAccessKeys`, `getAccessKeys`, `hasAccess`                    |
-| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                              |
+| subpath                               | source entry                          | what's in it                                                                                                                                                                |
+| ------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                                                                                                                               |
+| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                            |
+| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                     |
+| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                            |
+| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `applyTheme`                                                                                        |
+| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                   |
+| `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) |
+| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                         |
 
 Rules when adding/moving public API: keep internal-only symbols **out** of the entry files (e.g.
 `useFormContext`, `usePageTitle`, `useBreadcrumbs`, nav-tree internals); a new top-level group gets a
@@ -1198,7 +1248,7 @@ new `src/entries/<group>.ts` + an `exports` block. Every component folder's `ind
   `tsconfig.build.json`, so they never emit into `dist`.
 - **What to test** (high value, low brittleness):
   - Pure logic — `applyTheme` (hex→rgb, 3-digit expansion, YIQ contrast, `CONTRAST_OVERRIDE`),
-    `ThemeProvider` (dark-merge order, localStorage persistence, `useTheme` throwing outside a provider).
+    `ConfigProvider` (dark-merge order, localStorage persistence, `useTheme` throwing outside a provider).
   - Behavior & a11y contracts — rendering, `loading`/`disabled`/`nonClickable` states, icon-swap,
     `aria-*` / `role`, ref forwarding, the `--tz-btn-rgb` inline var, variant/size class names.
 - **What NOT to test:** computed colors / visual styling (jsdom doesn't apply CSS files), and HTML

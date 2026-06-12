@@ -25,7 +25,7 @@ import { TimePickerSection } from '../TimePicker'
 import { RadioSection } from '../Radio'
 import { SwitchSection } from '../Switch'
 import { ColorPickerSection } from '../ColorPicker'
-import { FormSection } from '../Form'
+import { FormSection, FormDataSection, FormEditSection } from '../Form'
 import { IconButtonSection } from '../IconButton'
 import { IconSection } from '../Icon'
 import { LoaderSection } from '../Loader'
@@ -326,8 +326,20 @@ const timePickerRoute = createRoute({
 const formRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form',
-  staticData: { name: 'Form', icon: 'Edit', order: 13 },
+  staticData: { name: 'Form (JSON)', icon: 'Edit', order: 13 },
   component: inPage(FormSection),
+})
+const formDataRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'form-data',
+  staticData: { name: 'Form (FormData)', icon: 'DocumentUpload', order: 14 },
+  component: inPage(FormDataSection),
+})
+const formEditRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'form-edit',
+  staticData: { name: 'Form (Edit)', icon: 'Translate', order: 15 },
+  component: inPage(FormEditSection),
 })
 
 const shellRouter = createRouter({
@@ -367,6 +379,8 @@ const shellRouter = createRouter({
         dateTimePickerRoute,
         timePickerRoute,
         formRoute,
+        formDataRoute,
+        formEditRoute,
       ]),
     ]),
   ]),

@@ -18,15 +18,15 @@ name is `@techzy/ui`). Stack on the consumer side: React 18+ and TypeScript.
 Imports are grouped by **subpath** (the root `'sava-test'` still re-exports everything, if you prefer
 one import):
 
-| subpath                                               | what's in it                                                                                                        |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `sava-test/components`                                | every UI component — `Button`, `TextField`, …, `Form`, `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect` |
-| `sava-test/components/<Name>`                         | a single component, e.g. `import Button from 'sava-test/components/Button'` (default **or** named)                  |
-| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useLockBodyScroll`, `useAccessKeys`                                                    |
-| `sava-test/theme`                                     | `ThemeProvider`, `useTheme`, `applyTheme` + theme types                                                             |
-| `sava-test/icons`                                     | `Icon`, `IconName`, `ICON_NAMES`, the raw `icons` registry                                                          |
-| `sava-test/helpers`                                   | `setAccessKeys`, `getAccessKeys`, `hasAccess` (RBAC)                                                                |
-| `sava-test/css/reset.css`, `sava-test/css/styles.css` | the two stylesheets                                                                                                 |
+| subpath                                               | what's in it                                                                                                                                         |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sava-test/components`                                | every UI component — `Button`, `TextField`, …, `Form`, `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect`                                  |
+| `sava-test/components/<Name>`                         | a single component, e.g. `import Button from 'sava-test/components/Button'` (default **or** named)                                                   |
+| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useLockBodyScroll`, `useAccessKeys`                                                                                     |
+| `sava-test/theme`                                     | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `applyTheme` + types (`Config`, `LocaleConfig`, …)                           |
+| `sava-test/icons`                                     | `Icon`, `IconName`, `ICON_NAMES`, the raw `icons` registry                                                                                           |
+| `sava-test/helpers`                                   | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`) |
+| `sava-test/css/reset.css`, `sava-test/css/styles.css` | the two stylesheets                                                                                                                                  |
 
 > Subpath imports need TypeScript `moduleResolution: "bundler"` (or `"node16"`/`"nodenext"`) — the
 > default in Vite/Next/CRA5 setups. On an older `"node"` resolution, import everything from the root
@@ -49,28 +49,31 @@ npm i dayjs
 
 ## 2. One-time setup (app entry, e.g. main.tsx)
 
-Import the stylesheets **once**, then wrap the app in `ThemeProvider`:
+Import the stylesheets **once**, then wrap the app in `ConfigProvider`:
 
 ```tsx
 import 'sava-test/css/reset.css' // global reset
 import 'sava-test/css/styles.css' // design tokens + base styles
-import { ThemeProvider } from 'sava-test/theme'
+import { ConfigProvider } from 'sava-test/theme'
 
 // The library ships a complete Techzy theme (light + dark). Override any subset — or omit `config`
-// entirely to use the defaults.
-const theme = {
-  mode: 'light' as const,
-  colors: {
-    light: { primary: '#13404e', secondary: '#f4f9f8' }, // override any subset; the rest use defaults
-    dark: { secondary: '#04202b' }, // partial dark overrides; the lib fills the rest
+// entirely to use the defaults. `Config` also holds `locales` (and more later), not just theming.
+const config = {
+  locales: [{ code: 'en-US', label: 'English' }],
+  theme: {
+    mode: 'light' as const,
+    colors: {
+      light: { primary: '#13404e', secondary: '#f4f9f8' }, // override any subset; the rest use defaults
+      dark: { secondary: '#04202b' }, // partial dark overrides; the lib fills the rest
+    },
   },
 }
 
 createRoot(el).render(
-  // …or simply <ThemeProvider><App /></ThemeProvider> for the built-in theme
-  <ThemeProvider config={theme}>
+  // …or simply <ConfigProvider><App /></ConfigProvider> for the built-in theme
+  <ConfigProvider config={config}>
     <App />
-  </ThemeProvider>,
+  </ConfigProvider>,
 )
 ```
 
@@ -81,11 +84,17 @@ createRoot(el).render(
   surfaces on top of it (cards, inputs, dropdowns) use `secondary`. Defaults to white in light mode
   and a deep dark in dark mode; override it per mode like any color.
 - **Built-in defaults live in the library** (`DEFAULT_LIGHT_COLORS` + `DEFAULT_DARK_COLORS`), so the
-  theme works with **no config**. `ThemeConfig` is all-optional:
-  `{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`
-  — pass only the colors you want to change.
+  theme works with **no config**. The `<ConfigProvider config>` type is **`Config`** = `{ theme?, locales?, translations? }`
+  (app config: theme + locales + more later); theme settings live under **`theme`**:
+  `theme: { colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`
+  — all optional; pass only the colors you want to change.
 - Merge order: light = `defaults → your light`; dark = `merged light → library dark defaults → your dark`.
-- `useTheme()` → `{ mode, setMode, toggleMode }` (must be inside `ThemeProvider`).
+- **`locales`** (`{ code, label? }[]`) — your app's content locales; the source `<TranslatedFields>`
+  reads for its tabs. Read them with `useLocales()`. E.g. `locales: [{ code: 'en-US', label: 'English' }, { code: 'ka-GE', label: 'ქართული' }]`.
+- **`translations`** (`{ namespace? }`) — the translation namespace word for `<TranslatedFields>`
+  (default `'translations'`, e.g. `'languages'`). Read the resolved value with `useTranslationsNamespace()`
+  (pass it to `buildTranslations` / `nestTranslations` to match).
+- `useTheme()` → `{ mode, setMode, toggleMode }` (must be inside `ConfigProvider`).
 - `<ThemeToggle />` / `<FullscreenToggle />` — ready-made light/dark and browser-fullscreen switch buttons.
 - **Always pass a color by token name** via the `color` prop (`color="error"`); never hardcode hex.
 - Sizes everywhere are `sm | md | lg` (default `md`).
@@ -282,6 +291,38 @@ Home / End) + `role="tablist"`/`tab`/`tabpanel` a11y (name the tablist with `ari
 `content` render the active panel.
 `<Tabs queryKey="tab" items={[{ value: 'general', label: 'General', icon: 'Setting2' }, …]} />`.
 
+**TranslatedFields** — a tabbed group of **per-locale** form fields (one tab per content locale). You
+write the fields **once** via a render function `(name, locale) => …`; `name(field)` returns the
+locale-namespaced form name, so a `<Form>` submits `translations[en-US].title` / `translations[ka-GE].title`.
+Locales come from `<ConfigProvider config={{ locales }}>` (override with the `locales` prop:
+`{ code, label? }[]`). The top-level word is the **`namespace`** — resolves `namespace` prop →
+`ConfigProvider`'s `translations.namespace` → `'translations'` (e.g. set it once to `'languages'` in
+config). An incomplete locale's tab shows a **dot**, and on submit the strip
+**auto-advances** to the first locale with errors and focuses its field (so a hidden tab's error isn't missed).
+Build the matching schema + defaults with **`buildTranslations(locales, fields, namespace?)`** (spread
+into `z.object(...)` for the schema, use directly for `defaultValues`). The form values are **flat**
+(`translations[en-US].title` — the `FormData` shape); **`nestTranslations(values)`** gives the **nested**
+JSON shape (`{ translations: { 'en-US': { title } } }`) for a JSON POST, **`flattenTranslations(response)`**
+turns a nested backend response back into flat `defaultValues`, and **`toFormData(values)`** builds a
+`FormData` (arrays → `tags[0]`, files as-is) for a multipart POST. `variant`/`size` pass through to `Tabs`.
+
+```tsx
+const codes = ['en-US', 'ka-GE']
+const schema = z.object(buildTranslations(codes, { title: z.string().min(1), description: z.string() }))
+const form = useForm({ schema, defaultValues: buildTranslations(codes, { title: '', description: '' }) })
+<Form form={form}>
+  <TranslatedFields>
+    {(name) => (
+      <>
+        <TextField name={name('title')} label="Title" required />
+        <MultilineTextField name={name('description')} label="Description" />
+      </>
+    )}
+  </TranslatedFields>
+  <Button type="submit">Save</Button>
+</Form>
+```
+
 **Row / Col / Flex** — flexbox layout via props (no inline `style`). `gap` · `align` · `justify` ·
 `wrap` · `padding` · `grow` · `inline`. `gap`/`padding` accept a token key (`"md"`), a px number, or any
 CSS string. `Row` = centered horizontal, `Col` = vertical, `Flex` = the general one (`direction`).
@@ -338,7 +379,8 @@ function SignIn() {
   `onChange`, `onBlur`, `error` and `helperText` are wired automatically. (Or spread
   `{...form.field('email')}` onto a field manually.)
 - `handleSubmit` validates the whole form and calls `onSubmit(parsedValues, { reset, setValue, setValues })`
-  only when valid. `useForm` also returns `values`, `errors`, `isValid`, `isSubmitted`, `isSubmitting`, `reset`.
+  only when valid. `useForm` also returns `values`, `errors`, `isValid`, `isSubmitted`, `submitCount`
+  (increments per submit), `isSubmitting`, `reset`.
 - **Scroll-to-error:** on a failed submit the form smooth-scrolls to and focuses the **topmost** invalid
   field automatically (the first red one on the page). Opt out with `useForm({ …, scrollToError: false })`.
 - Errors show after blur (then live), per `mode`. Field form-values are real types: number for

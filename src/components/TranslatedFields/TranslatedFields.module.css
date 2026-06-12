@@ -1,0 +1,8 @@
+/* TranslatedFields = a Tabs strip (one tab per locale) over a per-locale field stack. The tab strip +
+   panel chrome come from Tabs; this only lays out the fields inside each tab's panel. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-sm);
+}

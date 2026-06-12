@@ -1,179 +1,217 @@
+import { useMemo, useState, type ReactNode } from 'react'
 import { z } from 'zod'
 import {
   Button,
-  Checkbox,
+  buildTranslations,
   Col,
-  ColorPicker,
-  DatePicker,
-  DateTimePicker,
+  flattenTranslations,
   Form,
   Grid,
   MultilineTextField,
   MultiSelect,
+  nestTranslations,
   NumberField,
-  RadioGroup,
-  Select,
   Switch,
   TagsField,
   TextField,
-  TimePicker,
-  Typography,
+  toFormData,
+  TranslatedFields,
   useForm,
+  useLocales,
 } from '../../../src'
 import { Block, Section } from '../../shared'
 
-const schema = z.object({
-  firstName: z.string().min(1, 'Required'),
-  lastName: z.string().min(1, 'Required'),
-  email: z.string().email('Enter a valid email'),
-  phone: z.string().min(1, 'Required'),
-  company: z.string().min(1, 'Required'),
-  address: z.string().min(1, 'Required'),
-  city: z.string().min(1, 'Required'),
-  password: z.string().min(6, 'At least 6 characters'),
-  // nullable so the field can start empty; `: boolean` stops TS from inferring a type-predicate.
-  quantity: z
-    .number()
-    .min(1, 'At least 1')
-    .max(10, 'Max 10')
-    .nullable()
-    .refine((v): boolean => v !== null, 'Required'),
-  brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Pick a color'),
-  bio: z.string().min(10, 'At least 10 characters'),
-  birthDate: z.string().min(1, 'Pick a date'),
-  startsAt: z.string().min(1, 'Pick a date & time'),
-  startTime: z.string().min(1, 'Pick a time'),
-  skills: z.array(z.string()).min(1, 'Add at least one skill'),
-  country: z.string().min(1, 'Select a country'),
-  interests: z.array(z.string()).min(1, 'Pick at least one'),
-  plan: z.string().min(1, 'Select a plan'),
-  notifications: z.boolean().refine((v) => v, 'Enable notifications to continue'),
-  acceptTerms: z.boolean().refine((v) => v, 'You must accept the terms'),
+// ── shared field set (identical on all three pages, so the submit shapes are comparable) ───────────
+
+const CATEGORIES = [
+  { value: 'design', label: 'Design' },
+  { value: 'eng', label: 'Engineering' },
+  { value: 'product', label: 'Product' },
+  { value: 'data', label: 'Data' },
+]
+
+/** A nested server response — flattened into the Edit page's defaults so the fields arrive filled. */
+const TEST_RESPONSE = {
+  email: 'hello@techzy.app',
+  quantity: 5,
+  tags: ['news', 'featured'],
+  categories: ['design', 'eng'],
+  published: true,
+  translations: {
+    'en-US': { title: 'test NEWS', description: '<p>testing</p>' },
+    'ka-GE': { title: 'ტესტტესტ', description: '<p>ტესტ</p>' },
+  },
+}
+
+const buildSchema = (codes: string[]) => {
+  const shape: z.ZodRawShape = {
+    email: z.string().email('Enter a valid email'),
+    quantity: z
+      .number()
+      .min(1, 'At least 1')
+      .nullable()
+      .refine((v): boolean => v !== null, 'Required'),
+    tags: z.array(z.string()).min(1, 'Add at least one tag'),
+    categories: z.array(z.string()).min(1, 'Pick at least one'),
+    published: z.boolean(),
+    ...buildTranslations(codes, {
+      title: z.string().min(1, 'Required'),
+      description: z.string().min(1, 'Required'),
+    }),
+  }
+  return z.object(shape)
+}
+
+const buildDefaults = (codes: string[]) => ({
+  email: '',
+  quantity: null as number | null,
+  tags: [] as string[],
+  categories: [] as string[],
+  published: false,
+  ...buildTranslations(codes, { title: '', description: '' }),
 })
 
-export function FormSection() {
-  const form = useForm({
-    schema,
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      company: '',
-      address: '',
-      city: '',
-      password: '',
-      quantity: null,
-      brandColor: '',
-      bio: '',
-      birthDate: '',
-      startsAt: '',
-      startTime: '',
-      skills: [] as string[],
-      country: '',
-      interests: [] as string[],
-      plan: '',
-      notifications: false,
-      acceptTerms: false,
-    },
-    onSubmit: (values, { reset }) => {
-      alert(`Submitted:\n${JSON.stringify(values, null, 2)}`)
-      reset()
-    },
-  })
+function Fields() {
+  return (
+    <Col gap={16}>
+      <Grid minItemWidth={240} gap={16}>
+        <TextField name="email" required label="Email" placeholder="you@example.com" />
+        <NumberField name="quantity" required label="Quantity" min={0} />
+      </Grid>
+      <TagsField name="tags" required label="Tags" placeholder="Add a tag, press Enter…" />
+      <MultiSelect
+        name="categories"
+        required
+        label="Categories"
+        placeholder="Pick a few…"
+        options={CATEGORIES}
+      />
+      <Switch name="published" label="Published" />
+      <TranslatedFields>
+        {(name) => (
+          <>
+            <TextField name={name('title')} required label="Title" />
+            <MultilineTextField
+              name={name('description')}
+              required
+              label="Description"
+              minRows={3}
+            />
+          </>
+        )}
+      </TranslatedFields>
+    </Col>
+  )
+}
 
+function Output({ children }: { children: ReactNode }) {
+  return (
+    <pre
+      style={{
+        margin: 0,
+        padding: 'var(--tz-space-sm)',
+        background: 'var(--tz-color-secondary)',
+        border: '1px solid var(--tz-color-border)',
+        borderRadius: 'var(--tz-radius-sm)',
+        fontSize: 'var(--tz-font-size-sm)',
+        color: 'var(--tz-color-text)',
+        whiteSpace: 'pre-wrap',
+        overflowX: 'auto',
+      }}
+    >
+      {children}
+    </pre>
+  )
+}
+
+function FormShell({
+  label,
+  description,
+  form,
+  output,
+}: {
+  label: string
+  description: string
+  form: ReturnType<typeof useNewsForm>
+  output: string | null
+}) {
   return (
     <Section>
-      <Block label="validation — submit empty to scroll to the first red field">
+      <Block label={label} description={description}>
         <Col gap={16} style={{ maxWidth: 560 }}>
-          <Typography variant="bodySmall" color="muted">
-            Press “Sign Up” with fields empty — the page smooth-scrolls to (and focuses) the topmost
-            invalid field. Fill the top ones and submit again to watch it jump to the next.
-          </Typography>
           <Form form={form}>
             <Col gap={16}>
-              <Grid minItemWidth={220} gap={16}>
-                <TextField name="firstName" required label="First Name" />
-                <TextField name="lastName" required label="Last Name" placeholder="Savaneli" />
-                <TextField name="email" required label="Email" placeholder="you@example.com" />
-                <TextField name="phone" required label="Phone" placeholder="(555) 123-4567" />
-                <TextField name="company" required label="Company" placeholder="Techzy" />
-                <TextField name="city" required label="City" placeholder="Tbilisi" />
-                <TextField name="address" required label="Address" placeholder="123 Main St" />
-                <TextField
-                  name="password"
-                  required
-                  type="password"
-                  label="Password"
-                  placeholder="••••••"
-                />
-                <NumberField name="quantity" required label="Quantity" min={0} max={10} />
-                <ColorPicker name="brandColor" required label="Brand color" />
-                <DatePicker name="birthDate" required label="Birth date" />
-                <DateTimePicker name="startsAt" required label="Starts at" minuteStep={5} />
-                <TimePicker name="startTime" required label="Start time" minuteStep={5} />
-                <Select
-                  name="country"
-                  required
-                  label="Country"
-                  searchable
-                  placeholder="Select a country…"
-                  options={[
-                    { value: 'ge', label: 'Georgia' },
-                    { value: 'de', label: 'Germany' },
-                    { value: 'fr', label: 'France' },
-                    { value: 'us', label: 'United States' },
-                    { value: 'jp', label: 'Japan' },
-                  ]}
-                />
-                <MultiSelect
-                  name="interests"
-                  required
-                  label="Interests"
-                  clearable
-                  placeholder="Pick a few…"
-                  options={[
-                    { value: 'design', label: 'Design' },
-                    { value: 'eng', label: 'Engineering' },
-                    { value: 'product', label: 'Product' },
-                    { value: 'data', label: 'Data' },
-                    { value: 'ops', label: 'Operations' },
-                  ]}
-                />
-              </Grid>
-              <MultilineTextField
-                name="bio"
-                required
-                label="Bio"
-                minRows={3}
-                placeholder="At least 10 characters…"
-              />
-              <TagsField
-                name="skills"
-                required
-                label="Skills"
-                placeholder="Add a skill, press Enter…"
-              />
-              <RadioGroup
-                name="plan"
-                required
-                label="Plan"
-                orientation="horizontal"
-                options={[
-                  { value: 'free', label: 'Free' },
-                  { value: 'pro', label: 'Pro' },
-                  { value: 'team', label: 'Team' },
-                ]}
-              />
-              <Switch name="notifications" required label="Enable notifications" />
-              <Checkbox name="acceptTerms" required label="I accept the terms" />
-              <Button type="submit" loading={form.isSubmitting}>
-                Sign Up
-              </Button>
+              <Fields />
+              <div>
+                <Button type="submit" loading={form.isSubmitting}>
+                  Submit
+                </Button>
+              </div>
             </Col>
           </Form>
+          {output != null && <Output>{output}</Output>}
         </Col>
       </Block>
     </Section>
+  )
+}
+
+/** Shared form setup — locales drive the schema/defaults; the page picks how to serialize on submit. */
+function useNewsForm(
+  onSubmit: (values: Record<string, unknown>) => void,
+  defaults?: Record<string, unknown>,
+) {
+  const locales = useLocales()
+  const codes = useMemo(() => locales.map((l) => l.code), [locales])
+  const schema = useMemo(() => buildSchema(codes), [codes])
+  const defaultValues = useMemo(() => defaults ?? buildDefaults(codes), [codes, defaults])
+  return useForm({ schema, defaultValues, onSubmit })
+}
+
+// ── pages ───────────────────────────────────────────────────────────────────────────────────────
+
+export function FormSection() {
+  const [output, setOutput] = useState<string | null>(null)
+  const form = useNewsForm((values) => setOutput(JSON.stringify(nestTranslations(values), null, 2)))
+  return (
+    <FormShell
+      label="JSON — translations nest under one object"
+      description="Submitting POSTs JSON: nestTranslations() folds the flat fields into { translations: { 'en-US': { … } } }."
+      form={form}
+      output={output}
+    />
+  )
+}
+
+export function FormDataSection() {
+  const [output, setOutput] = useState<string | null>(null)
+  const form = useNewsForm((values) => {
+    const fd = toFormData(values)
+    setOutput([...fd.entries()].map(([key, value]) => `${key} = ${value}`).join('\n'))
+  })
+  return (
+    <FormShell
+      label="FormData — flat bracket keys for multipart/form-data"
+      description="Submitting builds FormData via toFormData(): translations[en-US].title, arrays as tags[0], etc. (shown as key = value below)."
+      form={form}
+      output={output}
+    />
+  )
+}
+
+export function FormEditSection() {
+  const defaults = useMemo(() => flattenTranslations(TEST_RESPONSE), [])
+  const [output, setOutput] = useState<string | null>(null)
+  const form = useNewsForm(
+    (values) => setOutput(JSON.stringify(nestTranslations(values), null, 2)),
+    defaults,
+  )
+  return (
+    <FormShell
+      label="Edit — prefilled from a server response"
+      description="A nested response is flattenTranslations()'d into the form defaults, so every field (incl. both locale tabs) arrives filled and ready to edit."
+      form={form}
+      output={output}
+    />
   )
 }

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { fireEvent, render, renderHook, screen } from '@testing-library/react'
-import { ThemeProvider, useTheme } from './ThemeProvider'
+import { ConfigProvider, useTheme } from './ConfigProvider'
 import type { ThemePalette } from './applyTheme'
 
 const LIGHT: ThemePalette = {
@@ -25,7 +25,7 @@ function Toggle() {
   return <button onClick={toggleMode}>{mode}</button>
 }
 
-describe('ThemeProvider', () => {
+describe('ConfigProvider', () => {
   beforeEach(() => {
     localStorage.clear()
     root().removeAttribute('data-tz-theme')
@@ -34,9 +34,9 @@ describe('ThemeProvider', () => {
 
   it('applies the light palette and marks the mode on <html>', () => {
     render(
-      <ThemeProvider config={{ mode: 'light', colors: { light: LIGHT } }}>
+      <ConfigProvider config={{ theme: { mode: 'light', colors: { light: LIGHT } } }}>
         <Toggle />
-      </ThemeProvider>,
+      </ConfigProvider>,
     )
     expect(root().getAttribute('data-tz-theme')).toBe('light')
     expect(cssVar('--tz-color-primary-rgb')).toBe('19, 64, 78')
@@ -47,9 +47,9 @@ describe('ThemeProvider', () => {
 
   it('toggles the mode and persists it', () => {
     render(
-      <ThemeProvider config={{ mode: 'light', colors: { light: LIGHT } }}>
+      <ConfigProvider config={{ theme: { mode: 'light', colors: { light: LIGHT } } }}>
         <Toggle />
-      </ThemeProvider>,
+      </ConfigProvider>,
     )
     fireEvent.click(screen.getByRole('button'))
     expect(root().getAttribute('data-tz-theme')).toBe('dark')
@@ -59,9 +59,9 @@ describe('ThemeProvider', () => {
 
   it('falls back to the library dark defaults when the app gives no dark overrides', () => {
     render(
-      <ThemeProvider config={{ mode: 'dark', colors: { light: LIGHT } }}>
+      <ConfigProvider config={{ theme: { mode: 'dark', colors: { light: LIGHT } } }}>
         <Toggle />
-      </ThemeProvider>,
+      </ConfigProvider>,
     )
     // DEFAULT_DARK_COLORS.primary = #e6e8eb -> 230, 232, 235
     expect(cssVar('--tz-color-primary-rgb')).toBe('230, 232, 235')
@@ -71,11 +71,13 @@ describe('ThemeProvider', () => {
 
   it('lets the app dark override win over the library default', () => {
     render(
-      <ThemeProvider
-        config={{ mode: 'dark', colors: { light: LIGHT, dark: { secondary: '#04202b' } } }}
+      <ConfigProvider
+        config={{
+          theme: { mode: 'dark', colors: { light: LIGHT, dark: { secondary: '#04202b' } } },
+        }}
       >
         <Toggle />
-      </ThemeProvider>,
+      </ConfigProvider>,
     )
     // app override: #04202b -> 4, 32, 43
     expect(cssVar('--tz-color-secondary-rgb')).toBe('4, 32, 43')
@@ -84,18 +86,18 @@ describe('ThemeProvider', () => {
   it('prefers the persisted mode over config.mode on first render', () => {
     localStorage.setItem('tz-theme-mode', 'dark')
     render(
-      <ThemeProvider config={{ mode: 'light', colors: { light: LIGHT } }}>
+      <ConfigProvider config={{ theme: { mode: 'light', colors: { light: LIGHT } } }}>
         <Toggle />
-      </ThemeProvider>,
+      </ConfigProvider>,
     )
     expect(root().getAttribute('data-tz-theme')).toBe('dark')
   })
 
   it('uses the built-in default palette when no config is given', () => {
     render(
-      <ThemeProvider>
+      <ConfigProvider>
         <Toggle />
-      </ThemeProvider>,
+      </ConfigProvider>,
     )
     expect(root().getAttribute('data-tz-theme')).toBe('light')
     // DEFAULT_LIGHT_COLORS.primary = #13404e -> 19, 64, 78
@@ -106,9 +108,9 @@ describe('ThemeProvider', () => {
 
   it('merges a partial light override onto the built-in defaults', () => {
     render(
-      <ThemeProvider config={{ colors: { light: { primary: '#000000' } } }}>
+      <ConfigProvider config={{ theme: { colors: { light: { primary: '#000000' } } } }}>
         <Toggle />
-      </ThemeProvider>,
+      </ConfigProvider>,
     )
     expect(cssVar('--tz-color-primary-rgb')).toBe('0, 0, 0') // overridden
     // a color not in the override is filled from DEFAULT_LIGHT_COLORS (medium = #056472)
@@ -116,6 +118,6 @@ describe('ThemeProvider', () => {
   })
 
   it('throws when useTheme is called outside a provider', () => {
-    expect(() => renderHook(() => useTheme())).toThrow(/within a <ThemeProvider>/)
+    expect(() => renderHook(() => useTheme())).toThrow(/within a <ConfigProvider>/)
   })
 })

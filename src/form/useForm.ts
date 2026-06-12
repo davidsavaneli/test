@@ -70,6 +70,8 @@ export interface FormApi<Values> {
   isValid: boolean
   /** True once a submit has been attempted. */
   isSubmitted: boolean
+  /** Number of submit attempts (increments on every `handleSubmit`) — watch it to react to each submit. */
+  submitCount: number
   /** True while an async `onSubmit` is in flight. */
   isSubmitting: boolean
   /** Spread onto a `<TextField />` (or let `<Form>` + a `name` prop wire it for you). */
@@ -140,6 +142,7 @@ export function useForm<S extends ZodType>({
   const [values, setValues] = useState<Values>(defaultValues)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [submitted, setSubmitted] = useState(false)
+  const [submitCount, setSubmitCount] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const errors = useMemo(() => collectErrors(schema, values), [schema, values])
@@ -181,6 +184,7 @@ export function useForm<S extends ZodType>({
       setValues(next ?? defaultValues)
       setTouched({})
       setSubmitted(false)
+      setSubmitCount(0)
     },
     [defaultValues],
   )
@@ -189,6 +193,7 @@ export function useForm<S extends ZodType>({
     (event?: SyntheticEvent) => {
       event?.preventDefault()
       setSubmitted(true)
+      setSubmitCount((c) => c + 1)
 
       const result = schema.safeParse(values)
       if (!result.success) {
@@ -223,6 +228,8 @@ export function useForm<S extends ZodType>({
     isValid,
     /** True once a submit has been attempted. */
     isSubmitted: submitted,
+    /** Number of submit attempts (increments on every `handleSubmit`). */
+    submitCount,
     /** True while an async `onSubmit` is in flight. */
     isSubmitting,
     /** Spread onto a `<TextField />`: wires value/onChange/onBlur and shows the field's error. */
