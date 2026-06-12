@@ -1,0 +1,191 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--tz-font-family);
+}
+/* vertical: strip beside the panel */
+.root.vertical {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+/* ── tablist ──────────────────────────────────────────────────────────────── */
+.tablist {
+  display: flex;
+  align-items: stretch;
+}
+.tablist.horizontal {
+  flex-direction: row;
+  /* scroll horizontally when the tabs don't fit (the rail/border stays put) — scrollbar hidden */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge/IE */
+}
+.tablist.horizontal::-webkit-scrollbar {
+  display: none; /* WebKit/Blink */
+}
+.tablist.vertical {
+  flex-direction: column;
+}
+.fullWidth .tab {
+  flex: 1;
+}
+
+/* underline variant — a hairline rail with a moving accent under/beside the active tab */
+.underline.horizontal {
+  gap: var(--tz-space-sm);
+  border-bottom: 1px solid var(--tz-color-border);
+}
+.underline.vertical {
+  gap: var(--tz-space-xxs);
+  border-right: 1px solid var(--tz-color-border);
+}
+
+/* pill variant — rounded buttons, soft-filled when active */
+.pill {
+  gap: var(--tz-space-xxs);
+}
+
+/* ── tab ──────────────────────────────────────────────────────────────────── */
+.tab {
+  display: inline-flex;
+  flex: none; /* keep natural width so the strip scrolls instead of squashing tabs */
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  color: var(--tz-color-primary-shade600);
+  font-family: inherit;
+  font-weight: var(--tz-font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--tz-duration),
+    background var(--tz-duration),
+    box-shadow var(--tz-duration);
+}
+.tab:hover:not(:disabled) {
+  color: var(--tz-color-text);
+}
+.tab:focus-visible {
+  outline: 2px solid rgba(var(--tz-btn-rgb), 0.5);
+  outline-offset: -2px;
+}
+.tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.tab.error {
+  color: rgb(var(--tz-color-error-rgb));
+}
+
+.inner {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+}
+.icon {
+  display: inline-flex;
+  flex: none;
+}
+.label {
+  min-width: 0;
+}
+
+/* count: inline pill trailing the label (spaced by the `.inner` gap) */
+.count {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgb(var(--tz-btn-rgb));
+  color: var(--tz-btn-on, #fff);
+  font-size: var(--tz-font-size-xs);
+  font-weight: var(--tz-font-weight-medium);
+  line-height: 1;
+}
+/* dot: pinned to the top-right corner of the label/icon (anchored to `.inner`) */
+.dot {
+  position: absolute;
+  top: -2px;
+  right: -5px;
+  transform: translate(50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(var(--tz-btn-rgb));
+}
+
+/* ── active states per variant ──────────────────────────────────────────────── */
+.underline .tab {
+  border-radius: var(--tz-radius-xs) var(--tz-radius-xs) 0 0;
+}
+.underline.vertical .tab {
+  border-radius: var(--tz-radius-xs) 0 0 var(--tz-radius-xs);
+}
+.underline .tab.active {
+  color: rgb(var(--tz-btn-rgb));
+}
+/* the accent sits on the rail (no layout shift) */
+.underline.horizontal .tab.active {
+  box-shadow: inset 0 -2px 0 rgb(var(--tz-btn-rgb));
+}
+.underline.vertical .tab.active {
+  box-shadow: inset -2px 0 0 rgb(var(--tz-btn-rgb));
+}
+
+.pill .tab {
+  border-radius: 999px;
+}
+.pill .tab:hover:not(:disabled) {
+  background: rgba(var(--tz-btn-rgb), 0.08);
+}
+.pill .tab.active {
+  background: rgba(var(--tz-btn-rgb), 0.12);
+  color: rgb(var(--tz-btn-rgb));
+}
+.pill .tab.active:hover:not(:disabled) {
+  background: rgba(var(--tz-btn-rgb), 0.2);
+}
+
+/* ── sizes (padding + font + min-height) ────────────────────────────────────── */
+.sm .tab {
+  min-height: var(--tz-control-height-sm);
+  padding: 0 var(--tz-space-xs);
+  font-size: var(--tz-font-size-sm);
+}
+.md .tab {
+  min-height: var(--tz-control-height-md);
+  padding: 0 var(--tz-space-sm);
+  font-size: var(--tz-font-size-md);
+}
+.lg .tab {
+  min-height: var(--tz-control-height-lg);
+  padding: 0 var(--tz-space-md);
+  font-size: var(--tz-font-size-lg);
+}
+
+/* ── panel ──────────────────────────────────────────────────────────────────── */
+.panel {
+  flex: 1;
+  min-width: 0;
+  padding-top: var(--tz-space-md);
+  color: var(--tz-color-text);
+  font-size: var(--tz-font-size-md);
+}
+.panel:focus-visible {
+  outline: 2px solid rgba(var(--tz-color-primary-rgb), 0.5);
+  outline-offset: 2px;
+}
+.vertical .panel {
+  padding-top: 0;
+  padding-left: var(--tz-space-md);
+}

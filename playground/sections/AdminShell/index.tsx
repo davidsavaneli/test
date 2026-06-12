@@ -15,6 +15,7 @@ import { DividerSection } from '../Divider'
 import { LayoutSection } from '../Layout'
 import { ListSection } from '../List'
 import { DropdownSection } from '../Dropdown'
+import { TabsSection } from '../Tabs'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
 import { CheckboxSection } from '../Checkbox'
@@ -230,6 +231,12 @@ const dropdownRoute = createRoute({
   staticData: { name: 'Dropdown', icon: 'ArrowSquareDown', order: 12 },
   component: inPage(DropdownSection),
 })
+const tabsRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'tabs',
+  staticData: { name: 'Tabs', icon: 'RowHorizontal', order: 13 },
+  component: inPage(TabsSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -343,6 +350,7 @@ const shellRouter = createRouter({
         cardRoute,
         listRoute,
         dropdownRoute,
+        tabsRoute,
       ]),
       formsRoute.addChildren([
         textFieldRoute,

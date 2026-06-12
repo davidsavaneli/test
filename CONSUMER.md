@@ -266,6 +266,19 @@ open. `size` (`sm`/`md`/`lg`) sets the panel min-width (150 / 190 / 220) + item 
 `defaultOpen` / `onOpenChange` · `matchTriggerWidth` (select-like) · `disabled` · `offset`.
 `<Dropdown trigger={<Button>Menu</Button>}><ListItem icon="User" clickable>Profile</ListItem></Dropdown>`.
 
+**Tabs** — a data-driven tab strip (+ optional panels). `items: { value, label?, ariaLabel?, icon?,
+disabled?, error?, dot?, badge?, content? }[]` · `value`/`defaultValue` + `onChange(value)`. **`queryKey`**
+syncs the active tab to the URL query (`?<queryKey>=…`, your param name) via the native History API, so a
+**refresh restores the tab** (works standalone or inside any router; omit for state-only). By default tab
+changes **replace** the URL (Back doesn't step through tabs); pass **`pushHistory`** to make Back navigate
+tabs. Per-tab `icon` / `disabled` / `error` (red tint) / `badge` (a trailing count pill, caps at `99+`) /
+`dot` (a corner dot) / `ariaLabel` (for icon-only tabs). `variant` (`underline` default · `pill`) · `size`
+· `color` · `orientation` (`horizontal` · `vertical`) · `fullWidth`. The strip **scrolls horizontally**
+(scrollbar hidden) when the tabs overflow, keeping the active tab in view. Full keyboard nav (Arrows /
+Home / End) + `role="tablist"`/`tab`/`tabpanel` a11y (name the tablist with `aria-label`); items with
+`content` render the active panel.
+`<Tabs queryKey="tab" items={[{ value: 'general', label: 'General', icon: 'Setting2' }, …]} />`.
+
 **Row / Col / Flex** — flexbox layout via props (no inline `style`). `gap` · `align` · `justify` ·
 `wrap` · `padding` · `grow` · `inline`. `gap`/`padding` accept a token key (`"md"`), a px number, or any
 CSS string. `Row` = centered horizontal, `Col` = vertical, `Flex` = the general one (`direction`).

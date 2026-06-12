@@ -856,6 +856,30 @@ is focused on open. Controlled (`open` + `onOpenChange`) or uncontrolled (`defau
 trigger gap; `disabled` blocks opening. Enter transition keyed off `data-open`/`data-side` (opacity +
 a token-sized translate). Uses `react-dom` `createPortal` (peer dep). Own CSS module.
 
+### Tabs
+
+A data-driven tab strip (+ optional panels). **`items`**: `{ value, label?, ariaLabel?, icon? (IconName|node),
+disabled?, error?, dot?, badge?, content? }[]`. Controlled (`value` + `onChange(value)`) or uncontrolled
+(`defaultValue`); the active value defaults to the URL query (when synced) then the first enabled tab.
+**URL query sync — the headline feature:** set **`queryKey`** (any name, e.g. `'tab'` → `?tab=general`)
+and the active tab reads from / writes to the query via the **native History API** (`URLSearchParams` +
+`history.replace`/`pushState`; no router dependency, works standalone or inside TanStack Router), so a
+**refresh restores the tab**. The URL is canonicalized on mount (replace). **Back-button behavior:** by
+**default tab changes `replaceState`** (no history entry — Back leaves the page, doesn't step through
+tabs); pass **`pushHistory`** to `pushState` instead (Back walks tabs). A `popstate` listener restores
+the tab from the query on Back/Forward. Omit `queryKey` for pure state (URL untouched). Per-tab: `icon`,
+`disabled` (skipped by keyboard), `error` (error-color tint), and two Badge-style indicators (both tinted
+via `--tz-btn-rgb`) — a **`badge`** count as a small **inline pill trailing the label** (caps at `99+`, so
+it never overlaps the text) and a **`dot`** pinned to the label's **top-right corner** (absolute, anchored
+to the inner content). When the tabs don't fit, the strip **scrolls horizontally** (`overflow-x:auto`,
+scrollbar hidden; tabs keep their natural width) and the active tab is kept in view (`scrollIntoView`).
+For an **icon-only** tab pass `ariaLabel` (falls back to `value`). `variant` (`underline` default · `pill`), `size` (`sm/md/lg`), `color` (brand
+token, default `primary`, via the `--tz-btn-rgb` pattern), `orientation` (`horizontal` default ·
+`vertical`), `fullWidth`. a11y: `role="tablist"`/`tab`/`tabpanel`, `aria-selected`, roving tabindex with
+Arrow/Home/End keyboard nav (automatic activation), `aria-controls`/`aria-labelledby` linking the active
+panel, and an **`aria-label`** prop naming the tablist; the resolved active value is always clamped to a
+present, enabled tab (no keyboard trap). Items with `content` render an active `role="tabpanel"`. Own CSS module.
+
 ### Hooks
 
 `useDisclosure(initial = false)` → `{ isOpen, open, close, toggle }`. Model new hooks on this:
