@@ -1,6 +1,7 @@
 import { createRef } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import { ConfigProvider } from '../../theme'
 import { Tabs, type TabItem } from './Tabs'
 
 const items: TabItem[] = [
@@ -97,6 +98,90 @@ describe('Tabs', () => {
   })
 
   // ── URL query sync ──────────────────────────────────────────────────────────
+  it('syncs to ?tab= by default (no queryKey, no config)', () => {
+    render(<Tabs items={items} />)
+    expect(new URLSearchParams(window.location.search).get('tab')).toBe('general') // canonicalized on mount
+    fireEvent.click(screen.getByRole('tab', { name: 'Security' }))
+    expect(new URLSearchParams(window.location.search).get('tab')).toBe('security')
+  })
+
+  it('uses the default queryKey from the ConfigProvider config', () => {
+    render(
+      <ConfigProvider config={{ keys: { tabQueryKey: 'view' } }}>
+        <Tabs items={items} />
+      </ConfigProvider>,
+    )
+    expect(new URLSearchParams(window.location.search).get('view')).toBe('general')
+    fireEvent.click(screen.getByRole('tab', { name: 'Security' }))
+    expect(new URLSearchParams(window.location.search).get('view')).toBe('security')
+  })
+
+  it('an explicit queryKey overrides the config default', () => {
+    render(
+      <ConfigProvider config={{ keys: { tabQueryKey: 'view' } }}>
+        <Tabs items={items} queryKey="section" />
+      </ConfigProvider>,
+    )
+    expect(new URLSearchParams(window.location.search).get('section')).toBe('general')
+    expect(new URLSearchParams(window.location.search).get('view')).toBeNull()
+  })
+
+  it('a nested <Tabs> uses ?nestedTab= so it does not collide with the outer ?tab=', () => {
+    render(
+      <Tabs
+        items={[
+          {
+            value: 'outerA',
+            label: 'Outer A',
+            content: (
+              <Tabs
+                items={[
+                  { value: 'innerX', label: 'Inner X' },
+                  { value: 'innerY', label: 'Inner Y' },
+                ]}
+              />
+            ),
+          },
+          { value: 'outerB', label: 'Outer B' },
+        ]}
+      />,
+    )
+    const onMount = new URLSearchParams(window.location.search)
+    expect(onMount.get('tab')).toBe('outerA') // outer strip → tab
+    expect(onMount.get('nestedTab')).toBe('innerX') // nested strip → nestedTab
+    // switching the inner tab moves only the nested param
+    fireEvent.click(screen.getByRole('tab', { name: 'Inner Y' }))
+    const after = new URLSearchParams(window.location.search)
+    expect(after.get('tab')).toBe('outerA')
+    expect(after.get('nestedTab')).toBe('innerY')
+  })
+
+  it('a nested <Tabs> honors the configured nestedTabQueryKey', () => {
+    render(
+      <ConfigProvider config={{ keys: { tabQueryKey: 'outer', nestedTabQueryKey: 'inner' } }}>
+        <Tabs
+          items={[
+            {
+              value: 'a',
+              label: 'A',
+              content: (
+                <Tabs
+                  items={[
+                    { value: 'x', label: 'X' },
+                    { value: 'y', label: 'Y' },
+                  ]}
+                />
+              ),
+            },
+          ]}
+        />
+      </ConfigProvider>,
+    )
+    const params = new URLSearchParams(window.location.search)
+    expect(params.get('outer')).toBe('a')
+    expect(params.get('inner')).toBe('x')
+  })
+
   it('initializes the active tab from the URL query', () => {
     window.history.replaceState({}, '', '/?tab=advanced')
     render(<Tabs items={items} queryKey="tab" />)
@@ -120,8 +205,8 @@ describe('Tabs', () => {
     expect(screen.getByRole('tab', { name: 'General' })).toHaveAttribute('aria-selected', 'true')
   })
 
-  it('leaves the URL untouched without a queryKey', () => {
-    render(<Tabs items={items} />)
+  it('leaves the URL untouched when opted out with queryKey={null}', () => {
+    render(<Tabs items={items} queryKey={null} />)
     fireEvent.click(screen.getByRole('tab', { name: 'Security' }))
     expect(window.location.search).toBe('')
   })

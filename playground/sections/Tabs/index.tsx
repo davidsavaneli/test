@@ -28,6 +28,40 @@ const many: TabItem[] = Array.from({ length: 12 }, (_, i) => ({
   label: `Section ${i + 1}`,
 }))
 
+// a Tabs whose panels each hold ANOTHER Tabs — the inner strips auto-pick the nested query key
+const nested: TabItem[] = [
+  {
+    value: 'profile',
+    label: 'Profile',
+    icon: 'Profile',
+    content: (
+      <Tabs
+        variant="pill"
+        aria-label="Profile sub-tabs"
+        items={[
+          { value: 'basic', label: 'Basic', content: <p>Basic profile fields.</p> },
+          { value: 'avatar', label: 'Avatar', content: <p>Avatar & cover image.</p> },
+        ]}
+      />
+    ),
+  },
+  {
+    value: 'billing',
+    label: 'Billing',
+    icon: 'Card',
+    content: (
+      <Tabs
+        variant="pill"
+        aria-label="Billing sub-tabs"
+        items={[
+          { value: 'plan', label: 'Plan', content: <p>Plan & pricing.</p> },
+          { value: 'invoices', label: 'Invoices', content: <p>Invoice history.</p> },
+        ]}
+      />
+    ),
+  },
+]
+
 export function TabsSection() {
   const [active, setActive] = useState('account')
 
@@ -35,19 +69,25 @@ export function TabsSection() {
     <Section>
       <Block
         label="basic · controlled (active shown below)"
-        description="Data-driven via items; onChange reports the active value."
+        description="Data-driven via items; onChange reports the active value. queryKey={null} keeps it state-only."
       >
-        <Tabs items={basic} value={active} onChange={setActive} aria-label="Settings" />
+        <Tabs
+          items={basic}
+          value={active}
+          onChange={setActive}
+          queryKey={null}
+          aria-label="Settings"
+        />
         <Typography variant="bodySmall" color="muted">
           Active: “{active}”
         </Typography>
       </Block>
 
       <Block
-        label="URL query sync — refresh-safe"
-        description="queryKey writes ?tab=… so a page refresh restores the tab. Watch the address bar as you switch."
+        label="URL query sync — on by default (?tab=…)"
+        description="With no queryKey, every Tabs syncs to ?tab=… (refresh-safe). Watch the address bar as you switch. Set the param name globally via ConfigProvider's keys.tabQueryKey, or per-strip with queryKey."
       >
-        <Tabs items={basic} queryKey="tab" aria-label="Query-synced" />
+        <Tabs items={basic} aria-label="Query-synced" />
       </Block>
 
       <Block
@@ -58,25 +98,32 @@ export function TabsSection() {
       </Block>
 
       <Block
-        label="indicators — icon · badge · dot · error · disabled"
-        description="Per-tab Badge (count or dot), an error tint, and disabled tabs (skipped by keyboard)."
+        label="nested tabs — outer + inner don't collide"
+        description="A Tabs inside another tab's panel auto-uses the nested query key (keys.nestedTabQueryKey → ?nestedTab=). The outer here sets queryKey='nested' (→ ?nested=) just to avoid clashing with the ?tab= demo above; the inner strips have no queryKey and auto-resolve to ?nestedTab=. Watch the address bar."
       >
-        <Tabs items={indicators} aria-label="Indicators" />
+        <Tabs items={nested} queryKey="nested" aria-label="Nested" />
+      </Block>
+
+      <Block
+        label="indicators — icon · badge · dot · error · disabled"
+        description="A trailing count badge, a tinted dot (dot), a red validation dot (error — no full-tab tint), and disabled tabs (skipped by keyboard)."
+      >
+        <Tabs items={indicators} queryKey={null} aria-label="Indicators" />
       </Block>
 
       <Block label="variants" description="underline (default) and pill.">
-        <Tabs items={basic} variant="underline" aria-label="Underline" />
-        <Tabs items={basic} variant="pill" aria-label="Pill" />
+        <Tabs items={basic} variant="underline" queryKey={null} aria-label="Underline" />
+        <Tabs items={basic} variant="pill" queryKey={null} aria-label="Pill" />
       </Block>
 
       <Block label="sizes" description="sm / md / lg.">
         {SIZES.map((s) => (
-          <Tabs key={s} items={basic} size={s} aria-label={`Size ${s}`} />
+          <Tabs key={s} items={basic} size={s} queryKey={null} aria-label={`Size ${s}`} />
         ))}
       </Block>
 
       <Block label="full width" description="Tabs stretch to fill the strip equally.">
-        <Tabs items={basic} fullWidth aria-label="Full width" />
+        <Tabs items={basic} fullWidth queryKey={null} aria-label="Full width" />
       </Block>
 
       <Block
@@ -84,16 +131,22 @@ export function TabsSection() {
         description="When the tabs don't fit, the strip scrolls horizontally and keeps the active tab in view."
       >
         <div style={{ maxWidth: 420 }}>
-          <Tabs items={many} aria-label="Scrollable" />
+          <Tabs items={many} queryKey={null} aria-label="Scrollable" />
         </div>
       </Block>
 
       <Block label="with panels" description="Items with content render an active role=tabpanel.">
-        <Tabs items={withPanels} aria-label="With panels" />
+        <Tabs items={withPanels} queryKey={null} aria-label="With panels" />
       </Block>
 
       <Block label="vertical" description="orientation='vertical' — strip beside the panel.">
-        <Tabs items={withPanels} orientation="vertical" variant="pill" aria-label="Vertical" />
+        <Tabs
+          items={withPanels}
+          orientation="vertical"
+          variant="pill"
+          queryKey={null}
+          aria-label="Vertical"
+        />
       </Block>
     </Section>
   )

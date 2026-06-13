@@ -275,19 +275,32 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `background
 #1F1F1E`, plus a brighter `dark`/`medium`/`light` teal ramp). `theme.css` holds **no** color values — only the structure (solids, shades,
   contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
-- **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; translations?: TranslationsConfig }`
+- **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; keys?: KeysConfig }`
   — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),
-  non-theme app config (`locales`, `translations`, …) at the top. Everything optional — omit `config` (or `theme`) to
-  ship the built-in theme; override any **subset** of either palette. (Grows over time.)
+  the configurable key/param **names** grouped under **`keys`**, and the rest (`locales`, …) at the top.
+  Everything optional — omit `config` (or `theme`) to ship the built-in theme; override any **subset** of
+  either palette. (Grows over time.)
 - **`locales`** (`LocaleConfig[]` = `{ code: string; label?: string }[]`): the app's content locales —
   the single source the **`<TranslatedFields>`** tabs read (one tab per locale). Exposed via
   **`useLocales()`** (lenient — returns `[]` outside a provider, since a `<TranslatedFields locales>`
   prop can override). It's not theming per se, but it's the app-level config the provider already owns.
-- **`translations`** (`TranslationsConfig` = `{ namespace?: string }`): the translation namespace word —
-  `<TranslatedFields>`' field names resolve **`namespace` prop → `config.translations.namespace` →
-  `DEFAULT_TRANSLATIONS_NAMESPACE` (`'translations'`)**. Exposed via **`useTranslationsNamespace()`**
-  (returns the resolved string; lenient outside a provider) — pass it to the helpers to match, e.g.
-  `buildTranslations(codes, fields, useTranslationsNamespace())`.
+- **`keys`** (`KeysConfig`): the configurable key / query-param **names** the components read, grouped in
+  one place (grows over time — e.g. `page` / `size` for paginated tables ⇒ `?page=1&size=10`). Today:
+  - **`keys.tabQueryKey`** (default `'tab'`): the URL query param a **top-level** **`Tabs`** syncs its
+    active tab to — resolves **`queryKey` prop → `config.keys.tabQueryKey` → `DEFAULT_TABS_QUERY_KEY`
+    (`'tab'`)**, so every strip is URL-synced out of the box (pass `queryKey={null}` on a strip to opt
+    out). Read via **`useTabsQueryKey()`**.
+  - **`keys.nestedTabQueryKey`** (default `'nestedTab'`): the query param a **nested** `Tabs` (one
+    rendered inside another tab's panel) syncs to, so it doesn't collide with the outer strip's
+    `tabQueryKey` (`?tab=…&nestedTab=…`). Auto-applied by nesting depth (`Tabs` tracks depth via an
+    internal context); resolves **`queryKey` prop → `config.keys.nestedTabQueryKey` →
+    `DEFAULT_NESTED_TAB_QUERY_KEY` (`'nestedTab'`)**. Read via **`useNestedTabQueryKey()`**. (3+ nesting
+    levels reuse the nested key — set distinct `queryKey`s explicitly there.)
+  - **`keys.translationsNamespace`** (default `'translations'`): the **`<TranslatedFields>`** namespace
+    word — field names resolve **`namespace` prop → `config.keys.translationsNamespace` →
+    `DEFAULT_TRANSLATIONS_NAMESPACE` (`'translations'`)**. Read via **`useTranslationsNamespace()`** —
+    pass it to the helpers to match, e.g. `buildTranslations(codes, fields, useTranslationsNamespace())`.
+  - All three hooks return the resolved string and are lenient outside a provider.
 - **Light merge**: `{ ...DEFAULT_LIGHT_COLORS, ...config.colors.light }` — built-in defaults as base,
   the app's light overrides win.
 - **Dark merge**: `{ ...light, ...DEFAULT_DARK_COLORS, ...config.colors.dark }` — the merged light
@@ -629,7 +642,8 @@ components — `DateRangePicker`, `DateTimeRangePicker` — will follow, reusing
 ### DateTimePicker
 
 The **date + time sibling of `DatePicker`** — a typed masked input plus a popover that splits date and
-time into **two tabs** (built with the library's own **`Tabs`**, no `queryKey`): a **Date** tab holding
+time into **two tabs** (built with the library's own **`Tabs`**, `queryKey={null}` so the internal
+Date/Time tabs never touch the page URL): a **Date** tab holding
 the reused **`Calendar`** and a **Time** tab holding scrollable **time columns** (`TimeColumns`: hour /
 minute / optional second, + an AM/PM toggle in 12-hour mode). It reuses DatePicker's field chrome
 (`DatePicker.module.css` imported for control/input/clear/sizes/helper + the calendar) and adds its own
@@ -879,17 +893,29 @@ a token-sized translate). Uses `react-dom` `createPortal` (peer dep). Own CSS mo
 A data-driven tab strip (+ optional panels). **`items`**: `{ value, label?, ariaLabel?, icon? (IconName|node),
 disabled?, error?, dot?, badge?, content? }[]`. Controlled (`value` + `onChange(value)`) or uncontrolled
 (`defaultValue`); the active value defaults to the URL query (when synced) then the first enabled tab.
-**URL query sync — the headline feature:** set **`queryKey`** (any name, e.g. `'tab'` → `?tab=general`)
-and the active tab reads from / writes to the query via the **native History API** (`URLSearchParams` +
-`history.replace`/`pushState`; no router dependency, works standalone or inside TanStack Router), so a
-**refresh restores the tab**. The URL is canonicalized on mount (replace). **Back-button behavior:** by
-**default tab changes `replaceState`** (no history entry — Back leaves the page, doesn't step through
-tabs); pass **`pushHistory`** to `pushState` instead (Back walks tabs). A `popstate` listener restores
-the tab from the query on Back/Forward. Omit `queryKey` for pure state (URL untouched). Per-tab: `icon`,
-`disabled` (skipped by keyboard), `error` (error-color tint), and two Badge-style indicators (both tinted
-via `--tz-btn-rgb`) — a **`badge`** count as a small **inline pill trailing the label** (caps at `99+`, so
-it never overlaps the text) and a **`dot`** pinned to the label's **top-right corner** (absolute, anchored
-to the inner content). When the tabs don't fit, the strip **scrolls horizontally** (`overflow-x:auto`,
+**URL query sync — the headline feature, ON BY DEFAULT:** the active tab reads from / writes to the URL
+query via the **native History API** (`URLSearchParams` + `history.replace`/`pushState`; no router
+dependency, works standalone or inside TanStack Router), so a **refresh restores the tab**. The param
+name resolves **`queryKey` prop → `<ConfigProvider config={{ keys: { tabQueryKey } }}>` →
+`DEFAULT_TABS_QUERY_KEY` (`'tab'`)** (e.g. `?tab=general`); set **`queryKey`** to override per-strip, and
+pass **`queryKey={null}`** to opt out (pure state, URL untouched). **Nested tabs auto-avoid collisions:**
+a `Tabs` rendered inside another tab's panel detects its nesting depth (via an internal
+`TabsDepthContext`) and defaults to **`keys.nestedTabQueryKey` (`'nestedTab'`)** instead, so the outer and
+inner strips sync to different params (`?tab=…&nestedTab=…`) with zero consumer effort. **Multiple
+**unrelated** strips on one page still need distinct keys** (3+ nesting levels too); the library's own
+internal tab strips — `DateTimePicker`'s Date/Time tabs and `TranslatedFields`' locale tabs — pass
+`queryKey={null}` so they never touch the page URL. The URL is
+canonicalized on mount (replace). **Back-button behavior:** by **default tab changes `replaceState`** (no
+history entry — Back leaves the page, doesn't step through tabs); pass **`pushHistory`** to `pushState`
+instead (Back walks tabs). A `popstate` listener restores the tab from the query on Back/Forward. Per-tab: `icon`,
+`disabled` (skipped by keyboard), `error`, and two Badge-style indicators — a **`badge`** count as a
+small **inline pill trailing the label** (tinted via `--tz-btn-rgb`; caps at `99+`, so it never overlaps
+the text) and a **`dot`** (a fixed **6px** circle pinned to the label's **top-right corner**, absolute,
+anchored to the inner content). Two flavors of dot: a plain **`dot: true`** is the **tab color**
+(`--tz-btn-rgb`, e.g. an unread/notification marker), while **`error: true`** shows a **red**
+(`--tz-color-error`) dot — the validation/"needs-fixing" signal (e.g. an invalid `TranslatedFields`
+locale) — and **does not tint the rest of the tab** (no red label; the active underline/pill stays the
+brand color). `error` renders its red dot even without an explicit `dot`. When the tabs don't fit, the strip **scrolls horizontally** (`overflow-x:auto`,
 scrollbar hidden; tabs keep their natural width) and the active tab is kept in view (`scrollIntoView`).
 For an **icon-only** tab pass `ariaLabel` (falls back to `value`). `variant` (`underline` default · `pill`), `size` (`sm/md/lg`), `color` (brand
 token, default `primary`, via the `--tz-btn-rgb` pattern), `orientation` (`horizontal` default ·
@@ -913,9 +939,9 @@ to build each tab's content; only the active tab mounts, and switching tabs **re
 `label ?? code`; globe **`icon`** default `'Global'`). The top-level word is the **`namespace`** —
 field names are `<namespace>[<locale>].<field>` (the exported **`buildTranslationName(locale, field, namespace?)`**,
 the flat bracket key that maps to `FormData`); it resolves **`namespace` prop →
-`<ConfigProvider config={{ translations: { namespace } }}>` → `'translations'`** (via
-`useTranslationsNamespace()`). Inside a `<Form>`, a locale's tab shows a **`dot`** (the `Tabs` `dot`
-indicator — not an error tint) when any of its fields is invalid **and** shown (submitted/touched). On
+`<ConfigProvider config={{ keys: { translationsNamespace } }}>` → `'translations'`** (via
+`useTranslationsNamespace()`). Inside a `<Form>`, a locale's tab is flagged **`error`** (the `Tabs`
+**red dot** — no full-tab tint) when any of its fields is invalid **and** shown (submitted/touched). On
 submit, if the active locale is complete but **another locale holds the only remaining errors**, the
 strip **auto-advances to that locale and focuses its first invalid field** — the form's own
 scroll-to-error can't reach an unmounted tab, so `TranslatedFields` watches the form's **`submitCount`**
@@ -1054,11 +1080,12 @@ it extends `HTMLAttributes<HTMLDivElement>` and ships named **and** default from
 `sava-test/components/PageLayout`.
 
 Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
-`{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[]; badge?: string }`
+`{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[]; badge?: string; dot?: ThemeColor }`
 — a route with **no `name`** never appears; `hidden` keeps it routed but off the menu; `order` sorts
 (asc, then alphabetical); `roles` gates it by access (see RBAC below); `badge` shows a small "New"-style
 pill on the menu row (a styled span, **not** the `Badge` component — `--tz-color-dark` fill, rendered
-in the row's trailing slot before any chevron). **Dynamic/param routes** (e.g.
+in the row's trailing slot before any chevron); `dot` shows a small colored dot on the row tinted by any
+brand `ThemeColor` (e.g. `dot: 'error'`, via `var(--tz-color-<color>)`). **Dynamic/param routes** (e.g.
 `/users/$userId`) work normally — give them no `name` (or `hidden`) and they route + render via the
 `<Outlet/>` but stay off the menu; the page title and breadcrumb then fall back to the nearest named
 ancestor (the menu reads only `staticData`, so it never tries to build a `$param` link).
@@ -1196,7 +1223,7 @@ define each surface; the root `src/index.ts` re-exports them all. `package.json`
 | `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                            |
 | `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                     |
 | `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                            |
-| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `applyTheme`                                                                                        |
+| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `applyTheme`                                             |
 | `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                   |
 | `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) |
 | `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                         |

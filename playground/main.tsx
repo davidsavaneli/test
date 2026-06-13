@@ -11,6 +11,12 @@ const config: Config = {
     { code: 'en-US', label: 'English' },
     { code: 'ka-GE', label: 'ქართული' },
   ],
+  // configurable key / query-param names the components read (grows: page, size, …)
+  keys: {
+    tabQueryKey: 'tab', // top-level <Tabs> URL query param, e.g. ?tab=… (try 'view')
+    nestedTabQueryKey: 'nestedTab', // a <Tabs> nested in another tab's panel, e.g. ?nestedTab=…
+    translationsNamespace: 'translations', // <TranslatedFields> namespace, e.g. translations[en-US].title (try 'languages')
+  },
   theme: {
     mode: 'light',
     colors: {

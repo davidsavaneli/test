@@ -18,15 +18,15 @@ name is `@techzy/ui`). Stack on the consumer side: React 18+ and TypeScript.
 Imports are grouped by **subpath** (the root `'sava-test'` still re-exports everything, if you prefer
 one import):
 
-| subpath                                               | what's in it                                                                                                                                         |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sava-test/components`                                | every UI component — `Button`, `TextField`, …, `Form`, `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect`                                  |
-| `sava-test/components/<Name>`                         | a single component, e.g. `import Button from 'sava-test/components/Button'` (default **or** named)                                                   |
-| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useLockBodyScroll`, `useAccessKeys`                                                                                     |
-| `sava-test/theme`                                     | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `applyTheme` + types (`Config`, `LocaleConfig`, …)                           |
-| `sava-test/icons`                                     | `Icon`, `IconName`, `ICON_NAMES`, the raw `icons` registry                                                                                           |
-| `sava-test/helpers`                                   | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`) |
-| `sava-test/css/reset.css`, `sava-test/css/styles.css` | the two stylesheets                                                                                                                                  |
+| subpath                                               | what's in it                                                                                                                                                                                                                                                                                                                              |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sava-test/components`                                | every UI component — `Button`, `TextField`, …, `Form`, `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect`                                                                                                                                                                                                                       |
+| `sava-test/components/<Name>`                         | a single component, e.g. `import Button from 'sava-test/components/Button'` (default **or** named)                                                                                                                                                                                                                                        |
+| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useLockBodyScroll`, `useAccessKeys`                                                                                                                                                                                                                                                                          |
+| `sava-test/theme`                                     | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `applyTheme`, `DEFAULT_TABS_QUERY_KEY`/`DEFAULT_NESTED_TAB_QUERY_KEY` + types (`Config`, `ThemeConfig`, `ThemeColors`, `ThemeMode`, `ThemeColor`, `ThemePalette`, `LocaleConfig`, `KeysConfig`, `ConfigProviderProps`) |
+| `sava-test/icons`                                     | `Icon`, `IconName`, `ICON_NAMES`, `ICON_COUNT` (the `1195` name count), the raw `icons` registry                                                                                                                                                                                                                                          |
+| `sava-test/helpers`                                   | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslationName`/`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`, `DEFAULT_TRANSLATIONS_NAMESPACE`)                                                                                                                             |
+| `sava-test/css/reset.css`, `sava-test/css/styles.css` | the two stylesheets                                                                                                                                                                                                                                                                                                                       |
 
 > Subpath imports need TypeScript `moduleResolution: "bundler"` (or `"node16"`/`"nodenext"`) — the
 > default in Vite/Next/CRA5 setups. On an older `"node"` resolution, import everything from the root
@@ -35,16 +35,106 @@ one import):
 
 ---
 
+## 0. Quickstart — a brand-new project from scratch
+
+Starting from an empty folder? This is the **full bootstrap** (the numbered sections below are the
+detailed reference). It assumes **file-based routing** with TanStack Router — the library's admin shell
+is built on it.
+
+```bash
+# 1. scaffold a React + TypeScript app
+npm create vite@latest my-admin -- --template react-ts
+cd my-admin && npm i
+
+# 2. the library + its peers (see §1 for which peers are optional)
+npm i sava-test
+npm i @tanstack/react-router        # router (peer, for the admin shell)
+npm i -D @tanstack/router-plugin    # file-based route-tree generator (Vite plugin)
+npm i zod dayjs                     # optional — forms (zod) + date pickers (dayjs)
+```
+
+**`vite.config.ts`** — add the router plugin **before** `@vitejs/plugin-react`:
+
+```ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
+
+export default defineConfig({
+  plugins: [
+    // generates src/routeTree.gen.ts from src/routes/** — MUST come before react()
+    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+    react(),
+  ],
+})
+```
+
+**`src/main.tsx`** — the one place that wires everything: the two stylesheets, the router instance, and
+`ConfigProvider` **wrapping** `RouterProvider` (this is the router version of §2's snippet):
+
+```tsx
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { createRouter, RouterProvider } from '@tanstack/react-router'
+import { ConfigProvider, type Config } from 'sava-test/theme'
+import { routeTree } from './routeTree.gen' // auto-generated by the plugin on first `npm run dev` (don't edit)
+import 'sava-test/css/reset.css' // import the two stylesheets once, in this order
+import 'sava-test/css/styles.css'
+
+const router = createRouter({ routeTree })
+
+// makes Link / navigate / useParams fully typed across the app
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router
+  }
+}
+
+const config: Config = {
+  locales: [{ code: 'en-US', label: 'English' }],
+  // omit `theme` for the built-in Techzy theme, or override any subset — see §3
+}
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    {/* ConfigProvider MUST wrap RouterProvider — every component renders inside it (see §2 gotcha) */}
+    <ConfigProvider config={config}>
+      <RouterProvider router={router} />
+    </ConfigProvider>
+  </StrictMode>,
+)
+```
+
+Then create the route files (full examples in **§6**):
+
+- `src/routes/__root.tsx` — the `RootLayout` shell (sidebar + header + `<Outlet/>`).
+- `src/routes/index.tsx` — `FirstRouteRedirect` (the `/` route → first menu item).
+- a page, e.g. `src/routes/dashboard/index.tsx`, with `staticData: { name: 'Dashboard', icon: 'Category' }`.
+
+`tsconfig.json` needs `"moduleResolution": "bundler"` (Vite's default) for the subpath imports. Run
+`npm run dev` → a themed admin shell with an auto-generated sidebar. From here, build pages with the
+components (§4), forms (§5), and the routing/RBAC conventions (§6).
+
+> **Not using TanStack Router?** Everything else still works — install just `sava-test` (+ `zod`/`dayjs`
+> as needed), do the §2 setup, and use components/forms/theme inside `<ConfigProvider>` however your app
+> routes. Only the admin shell (§6) needs the router.
+
+---
+
 ## 1. Install
 
 ```bash
 npm i sava-test
+# requires Node >=18 (package "engines")
 # peer deps (the app provides these):
 #   react >=18, react-dom >=18
 # zod is an OPTIONAL peer — only needed if you use the form layer (useForm / <Form>):
 npm i zod
 # dayjs is an OPTIONAL peer — only needed if you use the date components (DatePicker, …):
 npm i dayjs
+# @tanstack/react-router is an OPTIONAL peer (>=1) — only for the admin shell
+# (RootLayout / Sidebar / Breadcrumbs / FirstRouteRedirect):
+npm i @tanstack/react-router
 ```
 
 ## 2. One-time setup (app entry, e.g. main.tsx)
@@ -77,6 +167,11 @@ createRoot(el).render(
 )
 ```
 
+> **Gotcha:** importing the stylesheets alone yields **no brand colors** — the color-value triplets are
+> injected at runtime by `ConfigProvider` (it calls `applyTheme` in a `useLayoutEffect`, before first
+> paint). Everything must render **inside** `<ConfigProvider>`; a subtree mounted outside it (e.g. a
+> stray portal, a Storybook story without the provider) renders uncolored.
+
 ## 3. Theming
 
 - **10 brand colors** (`ThemeColor`): `primary secondary background dark medium light success error info warning`.
@@ -84,16 +179,24 @@ createRoot(el).render(
   surfaces on top of it (cards, inputs, dropdowns) use `secondary`. Defaults to white in light mode
   and a deep dark in dark mode; override it per mode like any color.
 - **Built-in defaults live in the library** (`DEFAULT_LIGHT_COLORS` + `DEFAULT_DARK_COLORS`), so the
-  theme works with **no config**. The `<ConfigProvider config>` type is **`Config`** = `{ theme?, locales?, translations? }`
-  (app config: theme + locales + more later); theme settings live under **`theme`**:
+  theme works with **no config**. The `<ConfigProvider config>` type is **`Config`** = `{ theme?, locales?, keys? }`
+  (app config: theme + locales + the configurable key/param names + more later); theme settings live under **`theme`**:
   `theme: { colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`
   — all optional; pass only the colors you want to change.
 - Merge order: light = `defaults → your light`; dark = `merged light → library dark defaults → your dark`.
 - **`locales`** (`{ code, label? }[]`) — your app's content locales; the source `<TranslatedFields>`
   reads for its tabs. Read them with `useLocales()`. E.g. `locales: [{ code: 'en-US', label: 'English' }, { code: 'ka-GE', label: 'ქართული' }]`.
-- **`translations`** (`{ namespace? }`) — the translation namespace word for `<TranslatedFields>`
-  (default `'translations'`, e.g. `'languages'`). Read the resolved value with `useTranslationsNamespace()`
-  (pass it to `buildTranslations` / `nestTranslations` to match).
+- **`keys`** (`KeysConfig`) — the configurable key / query-param **names** the components read, grouped in
+  one place (grows over time — e.g. `page` / `size` for paginated tables ⇒ `?page=1&size=10`). Today:
+  - **`keys.tabQueryKey`** (default `'tab'`, also exported as the `DEFAULT_TABS_QUERY_KEY` const) — the URL query
+    param a top-level `<Tabs>` syncs to (e.g. `'view'` ⇒ `?view=…`). Strips URL-sync **by default**; override
+    per-strip with `queryKey`, or `queryKey={null}` to opt out. Read with `useTabsQueryKey()`.
+  - **`keys.nestedTabQueryKey`** (default `'nestedTab'`, also exported as `DEFAULT_NESTED_TAB_QUERY_KEY`) — the
+    param a `<Tabs>` **nested** inside another tab's panel syncs to (auto-applied by depth), so it doesn't collide
+    with the outer (`?tab=…&nestedTab=…`). Read with `useNestedTabQueryKey()`.
+  - **`keys.translationsNamespace`** (default `'translations'`) — the `<TranslatedFields>` namespace word (e.g.
+    `'languages'`). Read with `useTranslationsNamespace()` (pass it to `buildTranslations` /
+    `nestTranslations` to match).
 - `useTheme()` → `{ mode, setMode, toggleMode }` (must be inside `ConfigProvider`).
 - `<ThemeToggle />` / `<FullscreenToggle />` — ready-made light/dark and browser-fullscreen switch buttons.
 - **Always pass a color by token name** via the `color` prop (`color="error"`); never hardcode hex.
@@ -278,25 +381,30 @@ open. `size` (`sm`/`md`/`lg`) sets the panel min-width (150 / 190 / 220) + item 
 `<Dropdown trigger={<Button>Menu</Button>}><ListItem icon="User" clickable>Profile</ListItem></Dropdown>`.
 
 **Tabs** — a data-driven tab strip (+ optional panels). `items: { value, label?, ariaLabel?, icon?,
-disabled?, error?, dot?, badge?, content? }[]` · `value`/`defaultValue` + `onChange(value)`. **`queryKey`**
-syncs the active tab to the URL query (`?<queryKey>=…`, your param name) via the native History API, so a
-**refresh restores the tab** (works standalone or inside any router; omit for state-only). By default tab
+disabled?, error?, dot?, badge?, content? }[]` · `value`/`defaultValue` + `onChange(value)`. The active tab
+**syncs to the URL query by default** (via the native History API, so a **refresh restores the tab**;
+works standalone or inside any router) — the param name resolves **`queryKey` prop → `ConfigProvider`'s
+`keys.tabQueryKey` → `'tab'`** (so out of the box it's `?tab=…`). Set **`queryKey`** to override per-strip; pass
+**`queryKey={null}`** for state-only. **A nested `<Tabs>`** (inside another tab's panel) auto-uses
+`keys.nestedTabQueryKey` (`?nestedTab=`) so it doesn't collide with the outer; **unrelated strips on one
+page still need distinct keys.** By default tab
 changes **replace** the URL (Back doesn't step through tabs); pass **`pushHistory`** to make Back navigate
-tabs. Per-tab `icon` / `disabled` / `error` (red tint) / `badge` (a trailing count pill, caps at `99+`) /
-`dot` (a corner dot) / `ariaLabel` (for icon-only tabs). `variant` (`underline` default · `pill`) · `size`
+tabs. Per-tab `icon` / `disabled` / `badge` (a trailing count pill, caps at `99+`) / `ariaLabel` (for
+icon-only tabs) and two corner-dot flavors: **`dot`** (a 6px dot in the tab color — unread/notification)
+and **`error`** (a 6px **red** dot — the validation signal; no full-tab tint, label stays normal). `variant` (`underline` default · `pill`) · `size`
 · `color` · `orientation` (`horizontal` · `vertical`) · `fullWidth` · `autoFocus` (focus the active tab on
 mount — handy inside a popover). The strip **scrolls horizontally**
 (scrollbar hidden) when the tabs overflow, keeping the active tab in view. Full keyboard nav (Arrows /
 Home / End) + `role="tablist"`/`tab`/`tabpanel` a11y (name the tablist with `aria-label`); items with
 `content` render the active panel.
-`<Tabs queryKey="tab" items={[{ value: 'general', label: 'General', icon: 'Setting2' }, …]} />`.
+`<Tabs items={[{ value: 'general', label: 'General', icon: 'Setting2' }, …]} />` (auto-syncs to `?tab=`).
 
 **TranslatedFields** — a tabbed group of **per-locale** form fields (one tab per content locale). You
 write the fields **once** via a render function `(name, locale) => …`; `name(field)` returns the
 locale-namespaced form name, so a `<Form>` submits `translations[en-US].title` / `translations[ka-GE].title`.
 Locales come from `<ConfigProvider config={{ locales }}>` (override with the `locales` prop:
 `{ code, label? }[]`). The top-level word is the **`namespace`** — resolves `namespace` prop →
-`ConfigProvider`'s `translations.namespace` → `'translations'` (e.g. set it once to `'languages'` in
+`ConfigProvider`'s `keys.translationsNamespace` → `'translations'` (e.g. set it once to `'languages'` in
 config). An incomplete locale's tab shows a **dot**, and on submit the strip
 **auto-advances** to the first locale with errors and focuses its field (so a hidden tab's error isn't missed).
 Build the matching schema + defaults with **`buildTranslations(locales, fields, namespace?)`** (spread
@@ -305,6 +413,9 @@ into `z.object(...)` for the schema, use directly for `defaultValues`). The form
 JSON shape (`{ translations: { 'en-US': { title } } }`) for a JSON POST, **`flattenTranslations(response)`**
 turns a nested backend response back into flat `defaultValues`, and **`toFormData(values)`** builds a
 `FormData` (arrays → `tags[0]`, files as-is) for a multipart POST. `variant`/`size` pass through to `Tabs`.
+To build a single field name **outside** the render function, call **`buildTranslationName(locale, field, namespace?)`**
+→ the flat `<namespace>[<locale>].<field>` key (e.g. `translations[en-US].title`); `DEFAULT_TRANSLATIONS_NAMESPACE`
+is the `'translations'` fallback word. (All translation helpers are framework-agnostic, from `sava-test/helpers`.)
 
 ```tsx
 const codes = ['en-US', 'ka-GE']
@@ -379,8 +490,10 @@ function SignIn() {
   `onChange`, `onBlur`, `error` and `helperText` are wired automatically. (Or spread
   `{...form.field('email')}` onto a field manually.)
 - `handleSubmit` validates the whole form and calls `onSubmit(parsedValues, { reset, setValue, setValues })`
-  only when valid. `useForm` also returns `values`, `errors`, `isValid`, `isSubmitted`, `submitCount`
-  (increments per submit), `isSubmitting`, `reset`.
+  only when valid. `useForm` also returns `values`, `errors`, `touched`, `field`, `isValid`, `isSubmitted`,
+  `submitCount` (increments per submit), `isSubmitting`, `handleSubmit`, `reset`, and the imperative setters
+  **`setValue(name, value)`** (set one field) / **`setValues(next)`** (replace all) — use them to prefill after
+  an async load or update dependent fields (e.g. `form.setValue('email', user.email)`).
 - **Scroll-to-error:** on a failed submit the form smooth-scrolls to and focuses the **topmost** invalid
   field automatically (the first red one on the page). Opt out with `useForm({ …, scrollToError: false })`.
 - Errors show after blur (then live), per `mode`. Field form-values are real types: number for
@@ -411,6 +524,8 @@ peer: `npm i @tanstack/react-router` (>=1).
   `onLogout` adds an account avatar whose menu has a **Sign
   out** item (calls `onLogout`); `user` adds a name+email header in that menu (avatar = a user icon, or `user.avatar` image). The content area auto-stacks
   **`Breadcrumbs` → the page title (the active route's `staticData.name`, as an `h2`) → your page**.
+  (The component's props are the exported **`RootLayoutProps`** type and the `header` value's shape is
+  **`RootLayoutHeader`**, both importable from `sava-test/components` if you build the `header` separately.)
 - **`PageLayout`** — the container your page body sits in (border + radius + padding); uses the page `background`, so cards/inputs inside read as elevated.
   Wrap each route's content: `<PageLayout>…</PageLayout>`. Extends `HTMLAttributes<HTMLDivElement>`,
   exported named **and** default from `sava-test/components` (and `sava-test/components/PageLayout`).
@@ -422,8 +537,10 @@ peer: `npm i @tanstack/react-router` (>=1).
   other string as text. Also exported from `sava-test/components` if you want to place it yourself.
 - **`FirstRouteRedirect`** — use as the `/` route's component; forwards to the first menu item.
 - Each route self-registers via **`staticData`** (typed once you import from the package):
-  `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[] }`. No `name`
-  → not in the menu. Segments infer structure: `/dashboard` → top link; `/components/forms/button` →
+  `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[]; badge?: string; dot?: ThemeColor }`.
+  No `name` → not in the menu. `badge` shows a small "New"-style text pill on the menu row (e.g.
+  `badge: 'New'`); `dot` shows a small colored dot on the row, tinted by any brand `ThemeColor` (e.g.
+  `dot: 'error'`). Segments infer structure: `/dashboard` → top link; `/components/forms/button` →
   module → group → page; an index route at a group path makes the group its own page. Module/group
   label+icon come from that folder's `route.tsx` `staticData`.
 - **Dynamic / detail routes** (e.g. `/news/$newsId`) just work: leave them without a `name` (or set

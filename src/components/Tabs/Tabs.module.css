@@ -78,9 +78,6 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-.tab.error {
-  color: rgb(var(--tz-color-error-rgb));
-}
 
 .inner {
   position: relative;
@@ -118,10 +115,14 @@
   top: -2px;
   right: -5px;
   transform: translate(50%, -50%);
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: rgb(var(--tz-btn-rgb));
+  background: rgb(var(--tz-btn-rgb)); /* generic dot: the tab's color */
+}
+/* an error tab's dot is the error color (the validation/"needs-fixing" signal) */
+.tab.error .dot {
+  background: var(--tz-color-error);
 }
 
 /* ── active states per variant ──────────────────────────────────────────────── */
@@ -164,12 +165,12 @@
 }
 .md .tab {
   min-height: var(--tz-control-height-md);
-  padding: 0 var(--tz-space-sm);
+  padding: 0 var(--tz-space-xs);
   font-size: var(--tz-font-size-md);
 }
 .lg .tab {
   min-height: var(--tz-control-height-lg);
-  padding: 0 var(--tz-space-md);
+  padding: 0 var(--tz-space-sm);
   font-size: var(--tz-font-size-lg);
 }
 

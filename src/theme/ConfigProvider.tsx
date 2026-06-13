@@ -35,26 +35,46 @@ export interface ThemeConfig {
   mode?: ThemeMode
 }
 
-/** Translation settings. Lives under `Config.translations`. */
-export interface TranslationsConfig {
+/**
+ * The configurable key / param **names** the library's components read — grouped under `Config.keys`
+ * so they live in one place. Each is overridable; omit one to use its built-in default. Grows over
+ * time (e.g. `page` / `size` for paginated tables ⇒ `?page=1&size=10`).
+ */
+export interface KeysConfig {
+  /**
+   * URL query param name a **top-level** `<Tabs>` syncs its active tab to (e.g. `'view'` ⇒ `?view=…`),
+   * unless that strip sets its own `queryKey` (or `queryKey={null}` to opt out). Defaults to `'tab'`.
+   */
+  tabQueryKey?: string
+  /**
+   * URL query param name a **nested** `<Tabs>` (one rendered inside another tab's panel) syncs to, so it
+   * doesn't collide with the outer strip's `tabQueryKey` (e.g. `?tab=…&nestedTab=…`). Auto-applied by
+   * nesting depth; overridable per strip via `queryKey`. Defaults to `'nestedTab'`.
+   */
+  nestedTabQueryKey?: string
   /**
    * Top-level namespace word for `<TranslatedFields>`' form names + the nested object — e.g.
-   * `'languages'` ⇒ `languages[en-US].title`. Defaults to `'translations'` when omitted.
+   * `'languages'` ⇒ `languages[en-US].title`. Defaults to `'translations'`.
    */
-  namespace?: string
+  translationsNamespace?: string
 }
 
 /**
- * App-level configuration passed to `<ConfigProvider config={…}>`. Groups theming under `theme` and
- * keeps non-theme app config (`locales`, `translations`, …) at the top — a single place to grow.
+ * App-level configuration passed to `<ConfigProvider config={…}>`. Groups theming under `theme`,
+ * the configurable key/param names under `keys`, and keeps the rest (`locales`, …) at the top — a
+ * single place to grow.
  */
 export interface Config {
   /** Theme settings (color overrides + initial mode). Omit entirely to use the built-in theme. */
   theme?: ThemeConfig
   /** Content locales the app supports — drive `<TranslatedFields>`' tabs (one per locale). */
   locales?: LocaleConfig[]
-  /** Translation settings — e.g. the `namespace` word for `<TranslatedFields>` (default `'translations'`). */
-  translations?: TranslationsConfig
+  /**
+   * Configurable key / query-param names the components read — e.g. the `<Tabs>` query keys
+   * (`tabQueryKey` / `nestedTabQueryKey`) and the `<TranslatedFields>` namespace
+   * (`translationsNamespace`). Grows over time (`page`, `size`, …).
+   */
+  keys?: KeysConfig
 }
 
 interface ThemeContextValue {
@@ -62,12 +82,20 @@ interface ThemeContextValue {
   setMode: (mode: ThemeMode) => void
   toggleMode: () => void
   locales: LocaleConfig[]
-  /** Resolved translations namespace (`config.translations.namespace` ?? the built-in default). */
+  /** Resolved translations namespace (`config.keys.translationsNamespace` ?? the built-in default). */
   translationsNamespace: string
+  /** Resolved top-level tabs query key (`config.keys.tabQueryKey` ?? the built-in default). */
+  tabQueryKey: string
+  /** Resolved nested tabs query key (`config.keys.nestedTabQueryKey` ?? the built-in default). */
+  nestedTabQueryKey: string
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 const STORAGE_KEY = 'tz-theme-mode'
+/** The built-in default URL query param name a **top-level** `<Tabs>` syncs to (no `queryKey`/config). */
+export const DEFAULT_TABS_QUERY_KEY = 'tab'
+/** The built-in default URL query param name a **nested** `<Tabs>` syncs to (no `queryKey`/config). */
+export const DEFAULT_NESTED_TAB_QUERY_KEY = 'nestedTab'
 /** Stable empty-locales fallback so the context value memo doesn't churn when no locales are configured. */
 const EMPTY_LOCALES: LocaleConfig[] = []
 
@@ -142,11 +170,22 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
   }, [])
 
   const locales = config?.locales ?? EMPTY_LOCALES
-  const translationsNamespace = config?.translations?.namespace ?? DEFAULT_TRANSLATIONS_NAMESPACE
+  const translationsNamespace =
+    config?.keys?.translationsNamespace ?? DEFAULT_TRANSLATIONS_NAMESPACE
+  const tabQueryKey = config?.keys?.tabQueryKey ?? DEFAULT_TABS_QUERY_KEY
+  const nestedTabQueryKey = config?.keys?.nestedTabQueryKey ?? DEFAULT_NESTED_TAB_QUERY_KEY
 
   const value = useMemo<ThemeContextValue>(
-    () => ({ mode, setMode, toggleMode, locales, translationsNamespace }),
-    [mode, setMode, toggleMode, locales, translationsNamespace],
+    () => ({
+      mode,
+      setMode,
+      toggleMode,
+      locales,
+      translationsNamespace,
+      tabQueryKey,
+      nestedTabQueryKey,
+    }),
+    [mode, setMode, toggleMode, locales, translationsNamespace, tabQueryKey, nestedTabQueryKey],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
@@ -169,10 +208,29 @@ export function useLocales(): LocaleConfig[] {
 }
 
 /**
- * The translations namespace configured on `<ConfigProvider config={{ translations: { namespace } }}>`,
+ * The translations namespace configured on `<ConfigProvider config={{ keys: { translationsNamespace } }}>`,
  * resolved against the built-in default (`'translations'`). Lenient outside a provider. Use it to pass
  * the same namespace to the helpers, e.g. `buildTranslations(codes, fields, useTranslationsNamespace())`.
  */
 export function useTranslationsNamespace(): string {
   return useContext(ThemeContext)?.translationsNamespace ?? DEFAULT_TRANSLATIONS_NAMESPACE
+}
+
+/**
+ * The default top-level tabs query key configured on `<ConfigProvider config={{ keys: { tabQueryKey } }}>`,
+ * resolved against the built-in default (`'tab'`). Lenient outside a provider. A top-level `<Tabs>` reads
+ * it as the fallback for an omitted `queryKey`, so every tab strip URL-syncs out of the box.
+ */
+export function useTabsQueryKey(): string {
+  return useContext(ThemeContext)?.tabQueryKey ?? DEFAULT_TABS_QUERY_KEY
+}
+
+/**
+ * The default nested tabs query key configured on
+ * `<ConfigProvider config={{ keys: { nestedTabQueryKey } }}>`, resolved against the built-in default
+ * (`'nestedTab'`). Lenient outside a provider. A `<Tabs>` nested inside another tab's panel uses this
+ * (instead of `tabQueryKey`) so the two strips don't collide on the same URL param.
+ */
+export function useNestedTabQueryKey(): string {
+  return useContext(ThemeContext)?.nestedTabQueryKey ?? DEFAULT_NESTED_TAB_QUERY_KEY
 }

@@ -23,7 +23,7 @@ export interface TranslatedFieldsProps {
   locales?: LocaleConfig[]
   /**
    * Top-level namespace for the field names (`<namespace>[<locale>].<field>`) and the nested object.
-   * Falls back to `<ConfigProvider config={{ translations: { namespace } }}>`, then `'translations'`.
+   * Falls back to `<ConfigProvider config={{ keys: { translationsNamespace } }}>`, then `'translations'`.
    * Pass to override per-instance (e.g. `'languages'`).
    */
   namespace?: string
@@ -154,8 +154,8 @@ export const TranslatedFields = forwardRef<HTMLDivElement, TranslatedFieldsProps
       value: loc.code,
       label: loc.label ?? loc.code,
       icon,
-      // a small dot marks an incomplete locale (instead of reddening the whole tab)
-      dot: localeHasError(loc.code),
+      // an invalid locale shows the Tabs error dot (a small red dot — no full-tab tint)
+      error: localeHasError(loc.code),
       // keyed by locale so switching tabs remounts the fields (no value/state bleed between locales)
       content: (
         <div key={loc.code} className={styles.fields}>
@@ -174,6 +174,8 @@ export const TranslatedFields = forwardRef<HTMLDivElement, TranslatedFieldsProps
         onChange={setActive}
         variant={variant}
         size={size}
+        // locale tabs are internal UI — never sync them to the page URL
+        queryKey={null}
         aria-label={ariaLabel}
       />
     )

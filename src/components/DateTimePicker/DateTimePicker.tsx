@@ -407,6 +407,8 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
             aria-label="Date and time"
             fullWidth
             autoFocus
+            // the Date/Time tabs are internal popover UI — never sync them to the page URL
+            queryKey={null}
             value={tab}
             onChange={(v) => setTab(v as 'date' | 'time')}
             items={[

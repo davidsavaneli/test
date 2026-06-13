@@ -55,7 +55,7 @@ describe('TranslatedFields', () => {
 
   it('uses the namespace from ConfigProvider config when no prop is given', () => {
     render(
-      <ConfigProvider config={{ translations: { namespace: 'languages' }, locales: LOCALES }}>
+      <ConfigProvider config={{ keys: { translationsNamespace: 'languages' }, locales: LOCALES }}>
         <TranslatedFields>
           {(name) => <input aria-label="title" name={name('title')} />}
         </TranslatedFields>
@@ -66,7 +66,7 @@ describe('TranslatedFields', () => {
 
   it('lets the namespace prop override the ConfigProvider config', () => {
     render(
-      <ConfigProvider config={{ translations: { namespace: 'languages' }, locales: LOCALES }}>
+      <ConfigProvider config={{ keys: { translationsNamespace: 'languages' }, locales: LOCALES }}>
         <TranslatedFields namespace="i18n">
           {(name) => <input aria-label="title" name={name('title')} />}
         </TranslatedFields>
@@ -110,7 +110,7 @@ describe('TranslatedFields', () => {
     expect(input).toHaveAttribute('name', 'translations[en-US].title')
   })
 
-  it('marks an incomplete locale tab with a dot (not an error tint) after submit', () => {
+  it('marks an incomplete locale tab with a red error dot after submit', () => {
     function Harness() {
       const form = useForm({
         schema: z.object(
@@ -131,8 +131,8 @@ describe('TranslatedFields', () => {
     render(<Harness />)
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     const en = screen.getByRole('tab', { name: 'English' })
-    expect(en).not.toHaveClass('error') // no red tint
-    expect(en.querySelector('.dot')).toBeInTheDocument() // dot indicator instead
+    expect(en).toHaveClass('error') // error state → drives the red dot (CSS), not a full-tab tint
+    expect(en.querySelector('.dot')).toBeInTheDocument() // the (red) dot indicator
     expect(screen.getByRole('tab', { name: 'ქართული' }).querySelector('.dot')).toBeInTheDocument()
   })
 
