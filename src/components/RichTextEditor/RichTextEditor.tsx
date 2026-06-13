@@ -273,6 +273,17 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
 
     const handleBlur = (event: FocusEvent<HTMLDivElement>) => bound?.onBlur(event as never)
 
+    // Mirror the form `name` onto the editable DOM node so a `<Form>`'s scroll-to-error can find and
+    // focus it — the contenteditable isn't an `<input>`, and Lexical's `ContentEditable` doesn't take
+    // a `name` prop, so set the attribute imperatively via a ref.
+    const contentRef = useRef<HTMLDivElement | null>(null)
+    useEffect(() => {
+      const el = contentRef.current
+      if (!el) return
+      if (name) el.setAttribute('name', name)
+      else el.removeAttribute('name')
+    }, [name])
+
     const initialConfig = {
       namespace: 'tz-rich-text-editor',
       theme: THEME,
@@ -315,6 +326,7 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
               <RichTextPlugin
                 contentEditable={
                   <ContentEditable
+                    ref={contentRef}
                     className={styles.content}
                     aria-label={ariaLabel}
                     aria-invalid={resolvedError || undefined}

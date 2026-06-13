@@ -488,7 +488,10 @@ A **WYSIWYG rich text editor** built on **Lexical** (an **optional peer** — `l
 React packages, all `external`/never bundled, like `zod`/`dayjs`). **Value is an HTML string** — controlled
 (`value` + `onChange(html)`) or uncontrolled (`defaultValue`); inside a `<Form>` a **`name`** prop binds the
 HTML value (read raw `form.values[name]`, written via `setValue`; touched/error from `field()`, like
-`Select`/`NumberField`). Shares the field-family chrome (`label` · `size` · `error` + `helperText` ·
+`Select`/`NumberField`) — and the **`name` is mirrored onto the editable `contenteditable` node** (via a
+ref+effect) so the form's **scroll-to-error** can find **and focus** the editor (it queries `[name="…"]`;
+the RTE has no native input, so without this the field would be invisible to scroll-to-error). Shares the
+field-family chrome (`label` · `size` · `error` + `helperText` ·
 `required` · `disabled` · `placeholder`) + a token-bordered `.control` with a `:focus-within` ring.
 **Toolbar is built from the library's own primitives** (not a borrowed editor UI): `IconButton`s for
 undo/redo, **bold/italic/underline** (the format toggles soft-`filled` while active), a **text-color**
@@ -522,8 +525,8 @@ our own last emit). a11y: the editable region is a `role="textbox"` `ContentEdit
 `aria-label`; the toolbar is `role="toolbar"`. **Note:** interactive editing (typing, toolbar commands)
 relies on trusted browser events, so it's verified in a real browser, not jsdom/automated harnesses (the
 tests cover render/structure/a11y/options + the pure `toVideoEmbedSrc` URL normalization). Own CSS module.
-_Code blocks, tables, and text-color/alignment are out of v1 scope; video upload + a link/image popover
-(vs the current `window.prompt`) are the natural next iterations._
+_Code blocks and tables are out of v1 scope; video upload + a link/image popover (vs the current
+`window.prompt`) are the natural next iterations._
 
 ### TagsField
 
