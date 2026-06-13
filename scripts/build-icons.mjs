@@ -13,6 +13,7 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { customIcons } from './custom-icons.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const RAW_DIR = join(ROOT, 'icons-raw')
@@ -90,6 +91,16 @@ for (const file of rawFiles) {
   while (used.has(name)) name = bump(name) // resolve dup / native-numeric clashes
   used.add(name)
   records.push({ name, inner: processSvg(readFileSync(join(RAW_DIR, file), 'utf8')) })
+}
+
+// Merge hand-authored icons (not in the Iconsax dump) so they survive regeneration.
+for (const { name, inner } of customIcons) {
+  if (used.has(name)) {
+    console.warn(`custom icon "${name}" clashes with a generated one — skipping.`)
+    continue
+  }
+  used.add(name)
+  records.push({ name, inner })
 }
 
 records.sort((a, b) => a.name.localeCompare(b.name))

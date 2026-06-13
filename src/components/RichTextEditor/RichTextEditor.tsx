@@ -273,10 +273,6 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
 
     const handleBlur = (event: FocusEvent<HTMLDivElement>) => bound?.onBlur(event as never)
 
-    // toolbar controls sit one step smaller than the editor (sm→sm, md→sm, lg→md) — the full
-    // control size reads too big in the strip; the content font-size still tracks `size`.
-    const toolbarSize: RichTextEditorSize = size === 'lg' ? 'md' : 'sm'
-
     const initialConfig = {
       namespace: 'tz-rich-text-editor',
       theme: THEME,
@@ -314,7 +310,7 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
 
         <div className={styles.control}>
           <LexicalComposer initialConfig={initialConfig}>
-            <Toolbar size={toolbarSize} disabled={disabled} onImageUpload={onImageUpload} />
+            <Toolbar size={size} disabled={disabled} onImageUpload={onImageUpload} />
             <div className={styles.shell}>
               <RichTextPlugin
                 contentEditable={

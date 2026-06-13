@@ -61,7 +61,7 @@ src/
     translations.ts       # translation form helpers (buildTranslations/nest/flatten/toFormData)
   icons/
     icons.ts              # generated inline-SVG registry (committed source of truth)
-    names.ts              # generated IconName union + ICON_NAMES / ICON_COUNT (~1195 names)
+    names.ts              # generated IconName union + ICON_NAMES / ICON_COUNT (~1197 names)
   entries/                # curated public surfaces, one file per subpath export
     components.ts hooks.ts theme.ts icons.ts helpers.ts
   styles/
@@ -492,8 +492,8 @@ HTML value (read raw `form.values[name]`, written via `setValue`; touched/error 
 `required` · `disabled` · `placeholder`) + a token-bordered `.control` with a `:focus-within` ring.
 **Toolbar is built from the library's own primitives** (not a borrowed editor UI): `IconButton`s for
 undo/redo, **bold/italic/underline** (the format toggles soft-`filled` while active), a
-**block-type `Dropdown`** (Paragraph / Heading 1–3 / **Bullet / Numbered list** — lists live here as
-there's no list icon), a standalone **Quote** toggle button, **text-alignment** (left / center / right,
+**block-type `Dropdown`** (Paragraph / Heading 1–3), standalone toggle buttons for **Bullet list** /
+**Numbered list** (the custom `ListBullet`/`ListNumber` icons) and **Quote**, **text-alignment** (left / center / right,
 via `FORMAT_ELEMENT_COMMAND` → exported as inline `text-align` style), a **link** toggle, an **image**
 `Dropdown` (Upload / By URL),
 and a **video** button. The toolbar controls sit one size step below the editor (md→sm, lg→md). Content
@@ -1227,13 +1227,18 @@ createFileRoute('/dashboard/')({
 
 ## 9. Icons pipeline
 
-- Icons are an Iconsax-derived set, ~1195 entries. The committed source of truth is
+- Icons are an Iconsax-derived set, ~1197 entries. The committed source of truth is
   `src/icons/icons.ts` (inline SVG strings) + `src/icons/names.ts` (the `IconName` union). Raw
   `.svg` files are **not** kept in the repo.
 - To change the set: drop the raw Iconsax dump into `icons-raw/` (gitignored), run
   `npm run build:icons`, commit the regenerated `icons.ts` + `names.ts`, then clear `icons-raw/`.
 - The generator strips `width`/`height` (size comes from `<Icon>`), drops no-op clipPaths, and
   normalizes every color to `currentColor`. Names are PascalCase; numeric suffixes resolve clashes.
+- **Custom (non-Iconsax) icons** live in `scripts/custom-icons.mjs` (`{ name, inner }`, matching the
+  fill-based style); `build:icons` merges them into the registry so they survive regeneration. Today:
+  `ListBullet` / `ListNumber` (bulleted & numbered-list icons reusing the `Task` checklist's line paths,
+  used by the `RichTextEditor` block dropdown). When hand-editing the generated `icons.ts`/`names.ts`
+  directly (e.g. when no raw dump is present), keep them in sync with `custom-icons.mjs`.
 
 ---
 

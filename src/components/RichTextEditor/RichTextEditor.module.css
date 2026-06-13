@@ -20,28 +20,31 @@
   margin-top: var(--tz-space-xxs);
 }
 
-/* ── control (bordered surface owning the focus ring) ───────────────────────── */
+/* ── control (bordered surface owning the focus ring) — matches the TextField field chrome ──── */
 .control {
   border: 1px solid var(--tz-color-border);
-  border-radius: var(--tz-radius-sm);
-  background: var(--tz-color-secondary);
+  border-radius: var(--tz-radius-xs);
+  background-color: var(--tz-color-secondary);
   overflow: hidden;
   transition:
     border-color var(--tz-duration),
-    box-shadow var(--tz-duration);
+    box-shadow var(--tz-duration),
+    opacity var(--tz-duration);
 }
 .control:focus-within {
-  border-color: rgb(var(--tz-color-primary-rgb));
-  box-shadow: 0 0 0 3px rgba(var(--tz-color-primary-rgb), 0.15);
+  border-color: var(--tz-color-primary-shade500);
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-primary-rgb), 0.08);
 }
 .error .control {
-  border-color: var(--tz-color-error);
+  border-color: rgb(var(--tz-color-error-rgb));
 }
 .error .control:focus-within {
-  box-shadow: 0 0 0 3px rgba(var(--tz-color-error-rgb), 0.15);
+  border-color: rgb(var(--tz-color-error-rgb));
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-error-rgb), 0.12);
 }
 .disabled .control {
-  opacity: 0.6;
+  background-color: var(--tz-color-primary-shade100);
+  opacity: 0.7;
 }
 
 /* ── toolbar ────────────────────────────────────────────────────────────────── */
@@ -52,6 +55,26 @@
   gap: var(--tz-space-xxs);
   padding: var(--tz-space-xxs) var(--tz-space-xs);
   border-bottom: 1px solid var(--tz-color-border);
+  /* compact toolbar — shrink the control box below the standard heights (uniform for the icon
+     buttons + the block-type Button, since both read these tokens). The toolbar tracks the editor
+     `size`, so all three are overridden. */
+  --tz-control-height-sm: 22px;
+  --tz-control-height-md: 26px;
+  --tz-control-height-lg: 30px;
+}
+/* and shrink the icon glyphs per editor size ([aria-label] = the icon-only buttons; the editor-size
+   class + attribute selector outrank Icon's own `.icon.<size>` size rule) */
+.sm .toolbar button[aria-label] svg {
+  width: 12px;
+  height: 12px;
+}
+.md .toolbar button[aria-label] svg {
+  width: 14px;
+  height: 14px;
+}
+.lg .toolbar button[aria-label] svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* ── editable area ──────────────────────────────────────────────────────────── */

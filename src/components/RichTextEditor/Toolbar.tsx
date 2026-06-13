@@ -63,14 +63,12 @@ const BLOCK_LABEL: Record<BlockType, string> = {
   check: 'Check List',
 }
 
-/** Items in the block-type dropdown — Quote is a standalone toolbar button; check lists are excluded. */
+/** Items in the block-type dropdown — lists & quote are standalone toolbar buttons; check lists are excluded. */
 const BLOCKS: { type: BlockType; icon?: IconName }[] = [
   { type: 'paragraph', icon: 'Text' },
   { type: 'h1', icon: 'Hashtag' },
   { type: 'h2', icon: 'Hashtag' },
   { type: 'h3', icon: 'Hashtag' },
-  { type: 'bullet' },
-  { type: 'number' },
 ]
 
 /** Text-alignment controls (set the block element's `text-align`). */
@@ -238,6 +236,10 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
     </IconButton>
   )
 
+  // the block dropdown only manages Paragraph / Headings — lists & quote are separate toggle buttons,
+  // so when the cursor is in a list/quote/check the trigger shows "Paragraph", not e.g. "Bullet List".
+  const dropdownBlock: BlockType = blockType.startsWith('h') ? blockType : 'paragraph'
+
   return (
     <div
       className={styles.toolbar}
@@ -281,7 +283,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         disabled={disabled}
         trigger={
           <Button variant="text" color="primary" size={size} endIcon={<Icon name="ArrowDown4" />}>
-            {BLOCK_LABEL[blockType]}
+            {BLOCK_LABEL[dropdownBlock]}
           </Button>
         }
       >
@@ -289,7 +291,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
           <ListItem
             key={b.type}
             clickable
-            selected={blockType === b.type}
+            selected={dropdownBlock === b.type}
             icon={b.icon}
             onClick={() => applyBlock(b.type)}
           >
@@ -298,6 +300,18 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         ))}
       </Dropdown>
 
+      {fmtBtn(
+        blockType === 'bullet',
+        'Bullet list',
+        () => applyBlock('bullet'),
+        <Icon name="ListBullet" />,
+      )}
+      {fmtBtn(
+        blockType === 'number',
+        'Numbered list',
+        () => applyBlock('number'),
+        <Icon name="ListNumber" />,
+      )}
       {fmtBtn(blockType === 'quote', 'Quote', toggleQuote, <Icon name="QuoteUp" />)}
 
       <Divider orientation="vertical" />

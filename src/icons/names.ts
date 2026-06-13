@@ -639,6 +639,8 @@ export type IconName =
   | 'Link4'
   | 'LinkCircle'
   | 'LinkSquare'
+  | 'ListBullet'
+  | 'ListNumber'
   | 'Litecoin'
   | 'Location'
   | 'LocationAdd'
@@ -1836,6 +1838,8 @@ export const ICON_NAMES = [
   'Link4',
   'LinkCircle',
   'LinkSquare',
+  'ListBullet',
+  'ListNumber',
   'Litecoin',
   'Location',
   'LocationAdd',
@@ -2394,4 +2398,4 @@ export const ICON_NAMES = [
   'Zoom',
 ] as const satisfies readonly IconName[]
 
-export const ICON_COUNT = 1195
+export const ICON_COUNT = 1197
