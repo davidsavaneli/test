@@ -23,6 +23,7 @@ import { DatePickerSection } from '../DatePicker'
 import { DateTimePickerSection } from '../DateTimePicker'
 import { TimePickerSection } from '../TimePicker'
 import { RadioSection } from '../Radio'
+import { RichTextEditorSection } from '../RichTextEditor'
 import { SwitchSection } from '../Switch'
 import { ColorPickerSection } from '../ColorPicker'
 import { FormSection, FormDataSection, FormEditSection } from '../Form'
@@ -323,22 +324,28 @@ const timePickerRoute = createRoute({
   staticData: { name: 'Time Picker', icon: 'Clock', order: 12 },
   component: inPage(TimePickerSection),
 })
+const richTextEditorRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'rich-text-editor',
+  staticData: { name: 'Rich Text Editor', icon: 'DocumentText', order: 13 },
+  component: inPage(RichTextEditorSection),
+})
 const formRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form',
-  staticData: { name: 'Form (JSON)', icon: 'Edit', order: 13 },
+  staticData: { name: 'Form (JSON)', icon: 'Edit', order: 14 },
   component: inPage(FormSection),
 })
 const formDataRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form-data',
-  staticData: { name: 'Form (FormData)', icon: 'DocumentUpload', order: 14 },
+  staticData: { name: 'Form (FormData)', icon: 'DocumentUpload', order: 15 },
   component: inPage(FormDataSection),
 })
 const formEditRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form-edit',
-  staticData: { name: 'Form (Edit)', icon: 'Translate', order: 15 },
+  staticData: { name: 'Form (Edit)', icon: 'Translate', order: 16 },
   component: inPage(FormEditSection),
 })
 
@@ -378,6 +385,7 @@ const shellRouter = createRouter({
         datePickerRoute,
         dateTimePickerRoute,
         timePickerRoute,
+        richTextEditorRoute,
         formRoute,
         formDataRoute,
         formEditRoute,

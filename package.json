@@ -109,10 +109,19 @@
   },
   "peerDependencies": {
     "@tanstack/react-router": ">=1.0.0",
+    "dayjs": ">=1.11.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
     "zod": ">=3.23.0",
-    "dayjs": ">=1.11.0"
+    "lexical": ">=0.45.0",
+    "@lexical/react": ">=0.45.0",
+    "@lexical/rich-text": ">=0.45.0",
+    "@lexical/list": ">=0.45.0",
+    "@lexical/link": ">=0.45.0",
+    "@lexical/html": ">=0.45.0",
+    "@lexical/markdown": ">=0.45.0",
+    "@lexical/selection": ">=0.45.0",
+    "@lexical/utils": ">=0.45.0"
   },
   "peerDependenciesMeta": {
     "@tanstack/react-router": {
@@ -123,9 +132,44 @@
     },
     "dayjs": {
       "optional": true
+    },
+    "lexical": {
+      "optional": true
+    },
+    "@lexical/react": {
+      "optional": true
+    },
+    "@lexical/rich-text": {
+      "optional": true
+    },
+    "@lexical/list": {
+      "optional": true
+    },
+    "@lexical/link": {
+      "optional": true
+    },
+    "@lexical/html": {
+      "optional": true
+    },
+    "@lexical/markdown": {
+      "optional": true
+    },
+    "@lexical/selection": {
+      "optional": true
+    },
+    "@lexical/utils": {
+      "optional": true
     }
   },
   "devDependencies": {
+    "@lexical/html": "^0.45.0",
+    "@lexical/link": "^0.45.0",
+    "@lexical/list": "^0.45.0",
+    "@lexical/markdown": "^0.45.0",
+    "@lexical/react": "^0.45.0",
+    "@lexical/rich-text": "^0.45.0",
+    "@lexical/selection": "^0.45.0",
+    "@lexical/utils": "^0.45.0",
     "@tanstack/react-router": "^1.170.11",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -134,6 +178,7 @@
     "@types/react-dom": "^19.2.3",
     "dayjs": "^1.11.21",
     "jsdom": "^25.0.1",
+    "lexical": "^0.45.0",
     "prettier": "^3.8.3",
     "publint": "^0.3.14",
     "react": "^19.2.6",

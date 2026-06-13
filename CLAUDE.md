@@ -19,11 +19,12 @@ change only what differs.
 - **Scope & dependency policy — batteries-included for admin panels.** The goal is to pre-build as
   much reusable logic as possible so consuming apps stay thin; adding weight or a dependency is fine
   when it materially simplifies app code. (This supersedes the earlier "keep it light at all costs"
-  rule.) Today the only **bundled** runtime dep is `clsx`. Three **optional peer dependencies** are
+  rule.) Today the only **bundled** runtime dep is `clsx`. The **optional peer dependencies** are
   `external` (never bundled, used via the consumer's own instance): **`zod`** powers the form layer
   (`useForm`), **`@tanstack/react-router`** (`>=1`) powers the admin shell (`RootLayout` /
-  `Sidebar` / `FirstRouteRedirect`), and **`dayjs`** (`>=1.11`) powers the date components
-  (`DatePicker`, …). Prefer React Context + hooks for internal state; reach for a
+  `Sidebar` / `FirstRouteRedirect`), **`dayjs`** (`>=1.11`) powers the date components
+  (`DatePicker`, …), and **`lexical`** (`>=0.45`) + its `@lexical/*` React packages power the
+  **`RichTextEditor`**. Prefer React Context + hooks for internal state; reach for a
   dependency when it clearly earns its place.
 
 ---
@@ -480,6 +481,44 @@ password reveal / `mask` / `regex`). Resize is JS-driven (`resize: none`): on ev
 forwarded ref + an internal ref are merged so the field can measure itself. Controlled (`value` +
 `onChange`) or uncontrolled (`defaultValue`). Own CSS module (mirrors `TextField.module.css`, minus the
 adornment rules; the `.control` has no fixed height and `align-items` defaults so the textarea fills).
+
+### RichTextEditor
+
+A **WYSIWYG rich text editor** built on **Lexical** (an **optional peer** — `lexical` + the `@lexical/*`
+React packages, all `external`/never bundled, like `zod`/`dayjs`). **Value is an HTML string** — controlled
+(`value` + `onChange(html)`) or uncontrolled (`defaultValue`); inside a `<Form>` a **`name`** prop binds the
+HTML value (read raw `form.values[name]`, written via `setValue`; touched/error from `field()`, like
+`Select`/`NumberField`). Shares the field-family chrome (`label` · `size` · `error` + `helperText` ·
+`required` · `disabled` · `placeholder`) + a token-bordered `.control` with a `:focus-within` ring.
+**Toolbar is built from the library's own primitives** (not a borrowed editor UI): `IconButton`s for
+undo/redo, **bold/italic/underline** (the format toggles soft-`filled` while active), a
+**block-type `Dropdown`** (Paragraph / Heading 1–3 / **Bullet / Numbered list** — lists live here as
+there's no list icon), a standalone **Quote** toggle button, **text-alignment** (left / center / right,
+via `FORMAT_ELEMENT_COMMAND` → exported as inline `text-align` style), a **link** toggle, an **image**
+`Dropdown` (Upload / By URL),
+and a **video** button. The toolbar controls sit one size step below the editor (md→sm, lg→md). Content
+is styled entirely with `--tz-*` tokens via a Lexical `theme` mapping node types → CSS-module classes
+(headings/quote/lists/check-list/link/inline formats/media). **Markdown shortcuts** while typing (`# `,
+`- `, `> `, `1. `, `* *`, …) via the default transformers **minus** the fenced-code-block one (it needs
+`CodeNode`, out of v1 scope). **Media:** **images** insert by URL **or** upload — upload embeds the file as
+a base64 `data:` URL by default (no backend), or, if **`onImageUpload(file) => Promise<string>`** is
+given, uploads through it and inserts the returned URL; **video** is **URL-embed only** (a `VideoNode`
+that normalizes YouTube/Vimeo links to a responsive `<iframe>` embed and renders direct media files as
+`<video controls>` — no upload). Custom `ImageNode` / `VideoNode` (`DecoratorNode`s) serialize to clean
+`<img>` / `<iframe>`/`<video>` and parse back on paste/load. **HTML value hygiene:** the exported HTML is
+**class-stripped** (`cleanExportedHtml`) so the value is portable markup (`<h2>` not
+`<h2 class="_h2_ab12">`); re-import keys off tag names, so it round-trips. A **blank editor emits `''`**
+(not Lexical's `<p><br></p>`) via `$isEditorEmpty`, so a cleared field reads as empty and a `required`
+rule fires. Two important Lexical gotchas
+baked in: the change listener serializes via **`editor.read`** (not `editorState.read`) so the active
+editor is bound for `$generateHtmlFromNodes` (else it throws "no active editor"), and the controlled
+value↔editor sync guards a feedback loop via a `lastHtml` ref (re-sync only when the incoming value isn't
+our own last emit). a11y: the editable region is a `role="textbox"` `ContentEditable` with the
+`aria-label`; the toolbar is `role="toolbar"`. **Note:** interactive editing (typing, toolbar commands)
+relies on trusted browser events, so it's verified in a real browser, not jsdom/automated harnesses (the
+tests cover render/structure/a11y/options + the pure `toVideoEmbedSrc` URL normalization). Own CSS module.
+_Code blocks, tables, and text-color/alignment are out of v1 scope; video upload + a link/image popover
+(vs the current `window.prompt`) are the natural next iterations._
 
 ### TagsField
 

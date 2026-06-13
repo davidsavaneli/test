@@ -135,6 +135,8 @@ npm i dayjs
 # @tanstack/react-router is an OPTIONAL peer (>=1) — only for the admin shell
 # (RootLayout / Sidebar / Breadcrumbs / FirstRouteRedirect):
 npm i @tanstack/react-router
+# lexical (+ @lexical/* React packages) are OPTIONAL peers (>=0.45) — only for <RichTextEditor>:
+npm i lexical @lexical/react @lexical/rich-text @lexical/list @lexical/link @lexical/html @lexical/markdown @lexical/selection @lexical/utils
 ```
 
 ## 2. One-time setup (app entry, e.g. main.tsx)
@@ -231,6 +233,18 @@ height**. Same `label` · `size` · `error` + `helperText` · `required` · `ful
 `disabled` · `value`/`defaultValue` · `onChange` + `<Form>` binding by `name` (string value). Grows from
 `minRows` (**default 3**) up to `maxRows` (**default 6**; `Infinity` for unbounded), then scrolls. No
 adornment/mask/password (those are input-only). `<MultilineTextField label="Bio" minRows={3} maxRows={8} name="bio" />`.
+
+**RichTextEditor** — a WYSIWYG editor whose **value is an HTML string**. Needs the **Lexical optional
+peers** (see §1). Toolbar: undo/redo, **bold/italic/underline**, text-alignment (left/center/right), a block-type
+dropdown (Paragraph / Heading 1–3 / **Bullet / Numbered** list), a **Quote** toggle, **link**, **image**
+(Upload **or** By URL), **video** (paste a YouTube/Vimeo/file URL → embed). Markdown shortcuts work while
+typing (`# `, `- `, `> `, …). Shares the field chrome (`label` · `size` · `error` + `helperText` ·
+`required` · `disabled` · `placeholder` · `minHeight`) and binds to a `<Form>` by **`name`** (value = the
+HTML string; validate with e.g. `z.string().min(1)`). Controlled (`value` + `onChange(html)`) or
+uncontrolled (`defaultValue`). **Image upload** embeds the file inline as a base64 `data:` URL by default
+(no backend); pass **`onImageUpload={(file) => uploadAndReturnUrl(file)}`** to upload instead and insert
+the returned URL. Exported HTML is clean, class-free markup (`<h2>`, `<strong>`, `<ul>`, `<img>`,
+`<iframe>`). `<RichTextEditor name="body" label="Content" placeholder="Write…" />`.
 
 **TagsField** — a tags/token input. Type + **Enter** / the **+ button** / the `separator` key adds a tag;
 a chip's delete button (or **Backspace** on the empty input) removes one. `label` · `size` · `error` +

@@ -11,6 +11,7 @@ import {
   MultiSelect,
   nestTranslations,
   NumberField,
+  RichTextEditor,
   Switch,
   TagsField,
   TextField,
@@ -37,6 +38,7 @@ const TEST_RESPONSE = {
   tags: ['news', 'featured'],
   categories: ['design', 'eng'],
   published: true,
+  body: '<h2>Edit me</h2><p>Prefilled <strong>rich</strong> content.</p>',
   translations: {
     'en-US': { title: 'test NEWS', description: '<p>testing</p>' },
     'ka-GE': { title: 'ტესტტესტ', description: '<p>ტესტ</p>' },
@@ -54,6 +56,8 @@ const buildSchema = (codes: string[]) => {
     tags: z.array(z.string()).min(1, 'Add at least one tag'),
     categories: z.array(z.string()).min(1, 'Pick at least one'),
     published: z.boolean(),
+    // RTE value is HTML — require actual text, not just empty markup like <p><br></p>
+    body: z.string().refine((v) => v.replace(/<[^>]*>/g, '').trim().length > 0, 'Required'),
     ...buildTranslations(codes, {
       title: z.string().min(1, 'Required'),
       description: z.string().min(1, 'Required'),
@@ -68,6 +72,7 @@ const buildDefaults = (codes: string[]) => ({
   tags: [] as string[],
   categories: [] as string[],
   published: false,
+  body: '',
   ...buildTranslations(codes, { title: '', description: '' }),
 })
 
@@ -87,6 +92,13 @@ function Fields() {
         options={CATEGORIES}
       />
       <Switch name="published" label="Published" />
+      <RichTextEditor
+        name="body"
+        required
+        label="Body"
+        placeholder="Write the article…"
+        minHeight={160}
+      />
       <TranslatedFields>
         {(name) => (
           <>

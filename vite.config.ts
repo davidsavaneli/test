@@ -45,6 +45,8 @@ export default defineConfig({
         /^zod($|\/)/,
         /^dayjs($|\/)/,
         /^@tanstack\/react-router($|\/)/,
+        /^lexical($|\/)/,
+        /^@lexical\/[^/]+($|\/)/,
       ],
       output: {
         // Components expose both a named and a default export — force named CJS interop so the
