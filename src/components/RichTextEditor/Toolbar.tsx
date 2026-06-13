@@ -31,13 +31,19 @@ import {
   REMOVE_LIST_COMMAND,
 } from '@lexical/list'
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link'
-import { $setBlocksType } from '@lexical/selection'
+import {
+  $getSelectionStyleValueForProperty,
+  $patchStyleText,
+  $setBlocksType,
+} from '@lexical/selection'
 import { $findMatchingParent, $getNearestNodeOfType, mergeRegister } from '@lexical/utils'
 import { $insertNodeToNearestRoot } from '@lexical/utils'
 import type { IconName } from '../../icons/names'
 import { Button } from '../Button'
+import { ColorPickerPanel, DEFAULT_SWATCHES } from '../ColorPicker/ColorPickerPanel'
 import { Divider } from '../Divider'
 import { Dropdown } from '../Dropdown'
+import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
 import { ListItem } from '../List'
@@ -78,6 +84,28 @@ const ALIGNS: { value: ElementFormatType; label: string; icon: IconName }[] = [
   { value: 'right', label: 'Align right', icon: 'TextalignRight' },
 ]
 
+/** Font-size options (the `font-size` style value). */
+const FONT_SIZES = ['10px', '12px', '14px', '16px', '18px', '20px']
+
+/** The editor's default content size per `size` (mirrors `.content` in the CSS) — shown active when the
+ * selection has no explicit `font-size`. */
+const DEFAULT_FONT_SIZE: Record<Size, string> = { sm: '12px', md: '14px', lg: '16px' }
+
+/** The text-color button glyph — a brush icon over a bar tinted with the current text color (so the
+ * selected color is always visible). Accepts the `size` `IconButton` injects so it doesn't hit the DOM. */
+function ColorGlyph({ color, size }: { color: string; size?: Size }) {
+  return (
+    <span className={styles.colorGlyph}>
+      <Icon name="Brush" size={size} />
+      <span
+        className={styles.colorBar}
+        style={{ background: color || 'currentColor' }}
+        aria-hidden="true"
+      />
+    </span>
+  )
+}
+
 export interface ToolbarProps {
   size: Size
   disabled: boolean
@@ -96,6 +124,10 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
   const [isLink, setIsLink] = useState(false)
   const [blockType, setBlockType] = useState<BlockType>('paragraph')
   const [elementFormat, setElementFormat] = useState<ElementFormatType>('left')
+  const [fontSize, setFontSize] = useState('')
+  const [textColor, setTextColor] = useState('')
+  const [colorOpen, setColorOpen] = useState(false)
+  const colorTriggerRef = useRef<HTMLButtonElement | null>(null)
   const [canUndo, setCanUndo] = useState(false)
   const [canRedo, setCanRedo] = useState(false)
 
@@ -105,6 +137,8 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
     setIsBold(selection.hasFormat('bold'))
     setIsItalic(selection.hasFormat('italic'))
     setIsUnderline(selection.hasFormat('underline'))
+    setTextColor($getSelectionStyleValueForProperty(selection, 'color', ''))
+    setFontSize($getSelectionStyleValueForProperty(selection, 'font-size', ''))
 
     const anchorNode = selection.anchor.getNode()
     setIsLink($isLinkNode(anchorNode) || $isLinkNode(anchorNode.getParent()))
@@ -160,6 +194,24 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
   const format = (type: TextFormatType) => editor.dispatchCommand(FORMAT_TEXT_COMMAND, type)
 
   const applyAlign = (fmt: ElementFormatType) => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, fmt)
+
+  // apply the picked color to the (retained) selection; `''` clears it back to the default
+  const applyColor = (color: string) => {
+    setTextColor(color)
+    editor.update(() => {
+      const selection = $getSelection()
+      if ($isRangeSelection(selection)) $patchStyleText(selection, { color: color || null })
+    })
+  }
+
+  // apply a font size to the (retained) selection; `''` clears it back to the editor default
+  const applyFontSize = (value: string) => {
+    setFontSize(value)
+    editor.update(() => {
+      const selection = $getSelection()
+      if ($isRangeSelection(selection)) $patchStyleText(selection, { 'font-size': value || null })
+    })
+  }
 
   const applyBlock = (type: BlockType) => {
     if (type === 'bullet' || type === 'number' || type === 'check') {
@@ -240,6 +292,9 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
   // so when the cursor is in a list/quote/check the trigger shows "Paragraph", not e.g. "Bullet List".
   const dropdownBlock: BlockType = blockType.startsWith('h') ? blockType : 'paragraph'
 
+  // font-size shown active: the selection's explicit size, else the editor's default for this `size`
+  const effectiveFontSize = fontSize || DEFAULT_FONT_SIZE[size]
+
   return (
     <div
       className={styles.toolbar}
@@ -272,9 +327,34 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
 
       <Divider orientation="vertical" />
 
-      {fmtBtn(isBold, 'Bold', () => format('bold'), <Icon name="TextBold" />)}
-      {fmtBtn(isItalic, 'Italic', () => format('italic'), <Icon name="TextItalic" />)}
-      {fmtBtn(isUnderline, 'Underline', () => format('underline'), <Icon name="TextUnderline" />)}
+      <Dropdown
+        size={size}
+        disabled={disabled}
+        minWidth={false}
+        trigger={
+          <Button
+            variant="text"
+            color="primary"
+            size={size}
+            endIcon={<Icon name="ArrowDown4" />}
+            aria-label="Font size"
+            onMouseDown={(e) => e.preventDefault()} // keep the selection while opening
+          >
+            {effectiveFontSize}
+          </Button>
+        }
+      >
+        {FONT_SIZES.map((f) => (
+          <ListItem
+            key={f}
+            clickable
+            selected={f === effectiveFontSize}
+            onClick={() => applyFontSize(f)}
+          >
+            {f}
+          </ListItem>
+        ))}
+      </Dropdown>
 
       <Divider orientation="vertical" />
 
@@ -299,6 +379,46 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
           </ListItem>
         ))}
       </Dropdown>
+
+      <Divider orientation="vertical" />
+
+      {fmtBtn(isBold, 'Bold', () => format('bold'), <Icon name="TextBold" />)}
+      {fmtBtn(isItalic, 'Italic', () => format('italic'), <Icon name="TextItalic" />)}
+      {fmtBtn(isUnderline, 'Underline', () => format('underline'), <Icon name="TextUnderline" />)}
+
+      <IconButton
+        ref={colorTriggerRef}
+        variant="text"
+        color="primary"
+        size={size}
+        disabled={disabled}
+        aria-label="Text color"
+        aria-expanded={colorOpen}
+        onMouseDown={(e) => e.preventDefault()} // keep the editor's selection while opening
+        onClick={() => setColorOpen((o) => !o)}
+      >
+        <ColorGlyph color={textColor} />
+      </IconButton>
+      <FloatingPanel
+        open={colorOpen}
+        triggerRef={colorTriggerRef}
+        onClose={(refocus) => {
+          setColorOpen(false)
+          if (refocus) colorTriggerRef.current?.focus()
+        }}
+        role="dialog"
+        ariaLabel="Text color"
+        width={232}
+      >
+        {/* no "no color" swatch; with no explicit color the brand default (first swatch) shows selected */}
+        <ColorPickerPanel
+          value={textColor || DEFAULT_SWATCHES[0]}
+          onChange={applyColor}
+          clearable={false}
+        />
+      </FloatingPanel>
+
+      <Divider orientation="vertical" />
 
       {fmtBtn(
         blockType === 'bullet',

@@ -491,12 +491,17 @@ HTML value (read raw `form.values[name]`, written via `setValue`; touched/error 
 `Select`/`NumberField`). Shares the field-family chrome (`label` · `size` · `error` + `helperText` ·
 `required` · `disabled` · `placeholder`) + a token-bordered `.control` with a `:focus-within` ring.
 **Toolbar is built from the library's own primitives** (not a borrowed editor UI): `IconButton`s for
-undo/redo, **bold/italic/underline** (the format toggles soft-`filled` while active), a
-**block-type `Dropdown`** (Paragraph / Heading 1–3), standalone toggle buttons for **Bullet list** /
-**Numbered list** (the custom `ListBullet`/`ListNumber` icons) and **Quote**, **text-alignment** (left / center / right,
-via `FORMAT_ELEMENT_COMMAND` → exported as inline `text-align` style), a **link** toggle, an **image**
-`Dropdown` (Upload / By URL),
-and a **video** button. The toolbar controls sit one size step below the editor (md→sm, lg→md). Content
+undo/redo, **bold/italic/underline** (the format toggles soft-`filled` while active), a **text-color**
+control (a brush button whose bar shows the current color; opens the shared **`ColorPickerPanel`** in a
+`FloatingPanel`, applied to the selection via `$patchStyleText` → inline `color` style, read back via
+`$getSelectionStyleValueForProperty`), a **block-type `Dropdown`** (Paragraph / Heading 1–3), a
+**font-size `Dropdown`** (10–20px; the editor's default for the current `size` — sm 12 / md 14 / lg 16 —
+shows active when the selection has no explicit size; via `$patchStyleText` → inline `font-size`), standalone
+toggle buttons for **Bullet list** / **Numbered list** (the custom `ListBullet`/`ListNumber` icons) and
+**Quote**, **text-alignment** (left / center / right, via `FORMAT_ELEMENT_COMMAND` → exported as inline
+`text-align` style), a **link** toggle, an **image** `Dropdown` (Upload / By URL),
+and a **video** button. The toolbar controls are compact (smaller box + icon than the standard sizes —
+box 22/26/30px, icon 12/14/16px by editor `size`). Content
 is styled entirely with `--tz-*` tokens via a Lexical `theme` mapping node types → CSS-module classes
 (headings/quote/lists/check-list/link/inline formats/media). **Markdown shortcuts** while typing (`# `,
 `- `, `> `, `1. `, `* *`, …) via the default transformers **minus** the fenced-code-block one (it needs
@@ -588,7 +593,13 @@ trigger carries `name` so the form's **scroll-to-error** can focus it. Color mat
 `normalizeHex`, plus `parseColor`/`formatColor` for hex/rgb/rgba + alpha) lives in `colorUtils.ts`.
 Token-styled except the **spectrum gradients** (the SV square + hue rail) and the **alpha
 checkerboard** — both use literal colors (an unavoidable exception); the dynamic hue is fed via an
-inline `--cp-hue` var, the alpha fill via `--cp-fill` / `--cp-rgb`. Own CSS module.
+inline `--cp-hue` var, the alpha fill via `--cp-fill` / `--cp-rgb`. Own CSS module. The picking surface
+itself (SV square + hue/alpha sliders + input + swatches) is an internal **`ColorPickerPanel`**
+(`{ value, onChange, swatches, clearable }`, controlled by one color string) that `ColorPicker` wraps in
+its `FloatingPanel` — and the **`RichTextEditor`** text-color control reuses the same panel (import via
+`../ColorPicker/ColorPickerPanel`; not in the public surface). `clearable` (default `true`) shows the
+leading "no color" swatch; the RTE passes `clearable={false}` and a non-empty default so the first
+swatch (the brand color) shows selected when the text has no explicit color.
 
 ### Select
 

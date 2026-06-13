@@ -77,6 +77,27 @@
   height: 16px;
 }
 
+/* text-color button: a brush icon stacked over a bar tinted with the current text color */
+.colorGlyph {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  line-height: 0;
+}
+.colorBar {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.sm .colorBar {
+  width: 12px;
+}
+.lg .colorBar {
+  width: 16px;
+}
+
 /* ── editable area ──────────────────────────────────────────────────────────── */
 .shell {
   position: relative;

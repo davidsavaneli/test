@@ -235,7 +235,7 @@ height**. Same `label` · `size` · `error` + `helperText` · `required` · `ful
 adornment/mask/password (those are input-only). `<MultilineTextField label="Bio" minRows={3} maxRows={8} name="bio" />`.
 
 **RichTextEditor** — a WYSIWYG editor whose **value is an HTML string**. Needs the **Lexical optional
-peers** (see §1). Toolbar: undo/redo, **bold/italic/underline**, text-alignment (left/center/right), a block-type
+peers** (see §1). Toolbar: undo/redo, **bold/italic/underline**, **text color** (a picker popover; the button shows the current color), **font size** (10–20px; the editor default shows active), text-alignment (left/center/right), a block-type
 dropdown (Paragraph / Heading 1–3), **Bullet / Numbered list** + **Quote** toggle buttons, **link**, **image**
 (Upload **or** By URL), **video** (paste a YouTube/Vimeo/file URL → embed). Markdown shortcuts work while
 typing (`# `, `- `, `> `, …). Shares the field chrome (`label` · `size` · `error` + `helperText` ·

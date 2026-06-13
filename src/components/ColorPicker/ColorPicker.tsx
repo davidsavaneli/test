@@ -1,52 +1,21 @@
 import {
   forwardRef,
   useCallback,
-  useEffect,
   useId,
   useRef,
   useState,
   type CSSProperties,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
 import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
-import { Icon } from '../Icon'
 import { Typography } from '../Typography'
-import {
-  clamp01,
-  contrastOn,
-  formatColor,
-  hexToHsv,
-  hsvToRgb,
-  parseColor,
-  rgbToHex,
-  rgbToHsv,
-  type HSV,
-} from './colorUtils'
+import { ColorPickerPanel } from './ColorPickerPanel'
+import { formatColor, parseColor } from './colorUtils'
 import styles from './ColorPicker.module.css'
 
 export type ColorPickerSize = 'sm' | 'md' | 'lg'
-
-/** A pleasant default palette shown as quick-pick swatches in the popover. */
-const DEFAULT_SWATCHES = [
-  '#13404e',
-  '#039aa1',
-  '#00a854',
-  '#0ea5e9',
-  '#6366f1',
-  '#7c3aed',
-  '#f04134',
-  '#f59e0b',
-  '#ffbf00',
-  '#10b981',
-  '#64748b',
-  '#0f172a',
-  '#ffffff',
-]
-
-const FALLBACK_HSV: HSV = hexToHsv('#13404e')
 
 /** Popover width (px). */
 const POPOVER_WIDTH = 232
@@ -108,7 +77,7 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
     value,
     defaultValue,
     onChange,
-    swatches = DEFAULT_SWATCHES,
+    swatches,
     name,
     placeholder,
     id: idProp,
@@ -154,35 +123,6 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
     onChange?.(color)
   }
 
-  // ── working HSV + alpha (HSV keeps hue stable while dragging at grey/black; alpha is the opacity) ─
-  const [hsv, setHsv] = useState<HSV>(parsed ? rgbToHsv(parsed) : FALLBACK_HSV)
-  const hsvRef = useRef(hsv)
-  hsvRef.current = hsv
-  const [alpha, setAlpha] = useState<number>(parsed?.a ?? 1)
-  const alphaRef = useRef(alpha)
-  alphaRef.current = alpha
-
-  // re-derive HSV + alpha only when the value changes from OUTSIDE our own edits (prop/preset/input)
-  useEffect(() => {
-    if (!parsed) return
-    const cur = formatColor({ ...hsvToRgb(hsvRef.current), a: alphaRef.current })
-    if (displayValue !== cur) {
-      setHsv(rgbToHsv(parsed))
-      setAlpha(parsed.a)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [displayValue])
-
-  const applyHsv = (next: HSV) => {
-    setHsv(next)
-    commit(formatColor({ ...hsvToRgb(next), a: alphaRef.current }))
-  }
-
-  const applyAlpha = (next: number) => {
-    setAlpha(next)
-    commit(formatColor({ ...hsvToRgb(hsvRef.current), a: next }))
-  }
-
   // ── popover (positioning / scroll-lock / dismiss come from FloatingPanel) ──────────────────────
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const popoverRef = useRef<HTMLDivElement | null>(null)
@@ -201,67 +141,6 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
     setOpen(false)
     if (refocus) triggerRef.current?.focus()
   }, [])
-
-  // ── drag (SV square + hue slider) ─────────────────────────────────────────────────────────────
-  const drag =
-    (onMove: (clientX: number, clientY: number, rect: DOMRect) => void) =>
-    (event: ReactPointerEvent<HTMLDivElement>) => {
-      event.preventDefault()
-      const el = event.currentTarget
-      const move = (clientX: number, clientY: number) =>
-        onMove(clientX, clientY, el.getBoundingClientRect())
-      move(event.clientX, event.clientY)
-      const onPointerMove = (e: PointerEvent) => move(e.clientX, e.clientY)
-      const onPointerUp = () => {
-        window.removeEventListener('pointermove', onPointerMove)
-        window.removeEventListener('pointerup', onPointerUp)
-      }
-      window.addEventListener('pointermove', onPointerMove)
-      window.addEventListener('pointerup', onPointerUp)
-    }
-
-  const onSvDown = drag((x, y, rect) => {
-    const s = clamp01((x - rect.left) / rect.width)
-    const v = clamp01(1 - (y - rect.top) / rect.height)
-    applyHsv({ ...hsvRef.current, s, v })
-  })
-
-  const onHueDown = drag((x, _y, rect) => {
-    const h = clamp01((x - rect.left) / rect.width) * 360
-    applyHsv({ ...hsvRef.current, h })
-  })
-
-  const onAlphaDown = drag((x, _y, rect) => {
-    applyAlpha(clamp01((x - rect.left) / rect.width))
-  })
-
-  // ── color input (accepts hex / rgb() / rgba()) + clear ──────────────────────────────────────────
-  const [colorDraft, setColorDraft] = useState('')
-  useEffect(() => {
-    setColorDraft(displayValue ?? '')
-  }, [displayValue, open])
-
-  const onColorInput = (raw: string) => {
-    setColorDraft(raw)
-    const p = parseColor(raw)
-    if (p) {
-      setHsv(rgbToHsv(p))
-      setAlpha(p.a)
-      commit(formatColor(p))
-    }
-  }
-
-  const handleClear = () => {
-    commit('')
-    setHsv(FALLBACK_HSV)
-    setAlpha(1)
-  }
-
-  // working color (hsv + alpha): the current swatch + the SV thumb (opaque) + the alpha track base
-  const workingColor = formatColor({ ...hsvToRgb(hsv), a: alpha })
-  const solidHex = rgbToHex(hsvToRgb(hsv))
-  const cur = hsvToRgb(hsv)
-  const cpRgb = `${Math.round(cur.r)}, ${Math.round(cur.g)}, ${Math.round(cur.b)}`
 
   return (
     <div
@@ -320,83 +199,8 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
         role="dialog"
         ariaLabel="Color picker"
         width={POPOVER_WIDTH}
-        className={styles.popover}
-        style={{ '--cp-hue': hsv.h } as CSSProperties}
       >
-        <div className={styles.sv} onPointerDown={onSvDown}>
-          <span
-            className={styles.svThumb}
-            style={{
-              left: `${hsv.s * 100}%`,
-              top: `${(1 - hsv.v) * 100}%`,
-              background: solidHex,
-            }}
-          />
-        </div>
-
-        <div className={styles.hue} onPointerDown={onHueDown}>
-          <span className={styles.hueThumb} style={{ left: `${(hsv.h / 360) * 100}%` }} />
-        </div>
-
-        <div
-          className={styles.alpha}
-          onPointerDown={onAlphaDown}
-          style={{ '--cp-rgb': cpRgb } as CSSProperties}
-        >
-          <span className={styles.alphaThumb} style={{ left: `${alpha * 100}%` }} />
-        </div>
-
-        <div className={styles.hexRow}>
-          <span
-            className={styles.currentSwatch}
-            style={{ '--cp-fill': workingColor } as CSSProperties}
-          />
-          <span className={styles.hexField}>
-            <input
-              className={styles.hexInput}
-              value={colorDraft}
-              spellCheck={false}
-              maxLength={28}
-              aria-label="Color value"
-              onChange={(e) => onColorInput(e.target.value)}
-            />
-          </span>
-        </div>
-
-        <div className={styles.swatches}>
-          {/* "no color" — clears the field (the diagonal-stripe swatch) */}
-          <button
-            type="button"
-            className={clsx(styles.swatch, styles.swatchClear)}
-            aria-label="No color"
-            aria-pressed={!parsed}
-            onClick={handleClear}
-          >
-            {!parsed && <Icon name="TickCircle" size="sm" />}
-          </button>
-          {swatches.map((sw) => {
-            const p = parseColor(sw)
-            if (!p) return null
-            const swHex = formatColor({ r: p.r, g: p.g, b: p.b, a: 1 })
-            const selected = displayValue === swHex
-            return (
-              <button
-                key={sw}
-                type="button"
-                className={styles.swatch}
-                style={{ background: swHex, color: contrastOn(swHex) }}
-                aria-label={swHex}
-                aria-pressed={selected}
-                onClick={() => {
-                  setHsv(rgbToHsv(p))
-                  commit(formatColor({ r: p.r, g: p.g, b: p.b, a: alphaRef.current }))
-                }}
-              >
-                {selected && <Icon name="TickCircle" size="sm" />}
-              </button>
-            )
-          })}
-        </div>
+        <ColorPickerPanel value={currentColor} onChange={commit} swatches={swatches} />
       </FloatingPanel>
 
       {resolvedHelperText != null && (
