@@ -493,17 +493,17 @@ ref+effect) so the form's **scroll-to-error** can find **and focus** the editor 
 the RTE has no native input, so without this the field would be invisible to scroll-to-error). Shares the
 field-family chrome (`label` · `size` · `error` + `helperText` ·
 `required` · `disabled` · `placeholder`) + a token-bordered `.control` with a `:focus-within` ring.
-**Toolbar is built from the library's own primitives** (not a borrowed editor UI): `IconButton`s for
-undo/redo, **bold/italic/underline** (the format toggles soft-`filled` while active), a **text-color**
-control (a brush button whose bar shows the current color; opens the shared **`ColorPickerPanel`** in a
-`FloatingPanel`, applied to the selection via `$patchStyleText` → inline `color` style, read back via
-`$getSelectionStyleValueForProperty`), a **block-type `Dropdown`** (Paragraph / Heading 1–3), a
-**font-size `Dropdown`** (10–20px; the editor's default for the current `size` — sm 12 / md 14 / lg 16 —
-shows active when the selection has no explicit size; via `$patchStyleText` → inline `font-size`), standalone
-toggle buttons for **Bullet list** / **Numbered list** (the custom `ListBullet`/`ListNumber` icons) and
-**Quote**, **text-alignment** (left / center / right, via `FORMAT_ELEMENT_COMMAND` → exported as inline
-`text-align` style), a **link** toggle, an **image** `Dropdown` (Upload / By URL),
-and a **video** button. The toolbar controls are compact (smaller box + icon than the standard sizes —
+**Toolbar is built from the library's own primitives** (not a borrowed editor UI), left-to-right:
+`IconButton`s for undo/redo, a **font-size `Dropdown`** (10–20px; the editor's default for the current
+`size` — sm 12 / md 14 / lg 16 — shows active when the selection has no explicit size; via
+`$patchStyleText` → inline `font-size`), a **block-type `Dropdown`** (Paragraph / Heading 1–3),
+**bold/italic/underline** (the format toggles soft-`filled` while active), standalone toggle buttons for
+**Bullet list** / **Numbered list** (the custom `ListBullet`/`ListNumber` icons) and **Quote**,
+**text-alignment** (left / center / right, via `FORMAT_ELEMENT_COMMAND` → exported as inline
+`text-align` style), a **text-color** control (a brush button whose corner triangle shows the current
+color; opens the shared **`ColorPickerPanel`** in a `FloatingPanel`, applied to the selection via
+`$patchStyleText` → inline `color` style, read back via `$getSelectionStyleValueForProperty`), a
+**link** toggle, an **image** `Dropdown` (Upload / By URL), and a **video** button. The toolbar controls are compact (smaller box + icon than the standard sizes —
 box 22/26/30px, icon 12/14/16px by editor `size`). Content
 is styled entirely with `--tz-*` tokens via a Lexical `theme` mapping node types → CSS-module classes
 (headings/quote/lists/check-list/link/inline formats/media). **Markdown shortcuts** while typing (`# `,

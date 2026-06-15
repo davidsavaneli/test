@@ -91,15 +91,16 @@ const FONT_SIZES = ['10px', '12px', '14px', '16px', '18px', '20px']
  * selection has no explicit `font-size`. */
 const DEFAULT_FONT_SIZE: Record<Size, string> = { sm: '12px', md: '14px', lg: '16px' }
 
-/** The text-color button glyph — a brush icon over a bar tinted with the current text color (so the
- * selected color is always visible). Accepts the `size` `IconButton` injects so it doesn't hit the DOM. */
+/** The text-color button glyph — a brush icon with a corner triangle tinted with the current text
+ * color (so the selected color is always visible). Accepts the `size` `IconButton` injects so it
+ * doesn't hit the DOM. */
 function ColorGlyph({ color, size }: { color: string; size?: Size }) {
   return (
     <span className={styles.colorGlyph}>
       <Icon name="Brush" size={size} />
       <span
         className={styles.colorBar}
-        style={{ background: color || 'currentColor' }}
+        style={{ borderColor: `transparent transparent ${color || 'currentColor'} transparent` }}
         aria-hidden="true"
       />
     </span>
@@ -386,6 +387,36 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
       {fmtBtn(isItalic, 'Italic', () => format('italic'), <Icon name="TextItalic" />)}
       {fmtBtn(isUnderline, 'Underline', () => format('underline'), <Icon name="TextUnderline" />)}
 
+      <Divider orientation="vertical" />
+
+      {fmtBtn(
+        blockType === 'bullet',
+        'Bullet list',
+        () => applyBlock('bullet'),
+        <Icon name="ListBullet" />,
+      )}
+      {fmtBtn(
+        blockType === 'number',
+        'Numbered list',
+        () => applyBlock('number'),
+        <Icon name="ListNumber" />,
+      )}
+      {fmtBtn(blockType === 'quote', 'Quote', toggleQuote, <Icon name="QuoteUp" />)}
+
+      <Divider orientation="vertical" />
+
+      {ALIGNS.map((a) =>
+        fmtBtn(
+          elementFormat === a.value,
+          a.label,
+          () => applyAlign(a.value),
+          <Icon name={a.icon} />,
+          a.value,
+        ),
+      )}
+
+      <Divider orientation="vertical" />
+
       <IconButton
         ref={colorTriggerRef}
         variant="text"
@@ -417,36 +448,6 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
           clearable={false}
         />
       </FloatingPanel>
-
-      <Divider orientation="vertical" />
-
-      {fmtBtn(
-        blockType === 'bullet',
-        'Bullet list',
-        () => applyBlock('bullet'),
-        <Icon name="ListBullet" />,
-      )}
-      {fmtBtn(
-        blockType === 'number',
-        'Numbered list',
-        () => applyBlock('number'),
-        <Icon name="ListNumber" />,
-      )}
-      {fmtBtn(blockType === 'quote', 'Quote', toggleQuote, <Icon name="QuoteUp" />)}
-
-      <Divider orientation="vertical" />
-
-      {ALIGNS.map((a) =>
-        fmtBtn(
-          elementFormat === a.value,
-          a.label,
-          () => applyAlign(a.value),
-          <Icon name={a.icon} />,
-          a.value,
-        ),
-      )}
-
-      <Divider orientation="vertical" />
 
       {fmtBtn(isLink, 'Insert link', insertLink, <Icon name="Link2" />)}
 

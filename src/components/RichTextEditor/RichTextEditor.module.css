@@ -77,8 +77,9 @@
   height: 16px;
 }
 
-/* text-color button: a brush icon stacked over a bar tinted with the current text color */
+/* text-color button: a brush icon with a corner triangle tinted with the current text color */
 .colorGlyph {
+  position: relative;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -86,16 +87,20 @@
   line-height: 0;
 }
 .colorBar {
-  width: 14px;
-  height: 3px;
-  border-radius: 2px;
-  background: currentColor;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0px 0px 7px 7px;
+  border-color: transparent transparent currentColor transparent;
 }
 .sm .colorBar {
-  width: 12px;
+  border-width: 0px 0px 6px 6px;
 }
 .lg .colorBar {
-  width: 16px;
+  border-width: 0px 0px 8px 8px;
 }
 
 /* ── editable area ──────────────────────────────────────────────────────────── */

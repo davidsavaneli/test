@@ -56,8 +56,8 @@ const buildSchema = (codes: string[]) => {
     tags: z.array(z.string()).min(1, 'Add at least one tag'),
     categories: z.array(z.string()).min(1, 'Pick at least one'),
     published: z.boolean(),
-    // RTE value is HTML — require actual text, not just empty markup like <p><br></p>
-    body: z.string().refine((v) => v.replace(/<[^>]*>/g, '').trim().length > 0, 'Required'),
+    // RTE value is HTML, but a blank editor emits '' (not <p><br></p>), so min(1) is enough
+    body: z.string().min(1, 'Required'),
     ...buildTranslations(codes, {
       title: z.string().min(1, 'Required'),
       description: z.string().min(1, 'Required'),
