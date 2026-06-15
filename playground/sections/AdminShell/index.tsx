@@ -14,6 +14,7 @@ import { ChipSection } from '../Chip'
 import { DividerSection } from '../Divider'
 import { LayoutSection } from '../Layout'
 import { ListSection } from '../List'
+import { ModalSection } from '../Modal'
 import { DropdownSection } from '../Dropdown'
 import { TabsSection } from '../Tabs'
 import { ButtonSection } from '../Button'
@@ -238,6 +239,12 @@ const tabsRoute = createRoute({
   staticData: { name: 'Tabs', icon: 'RowHorizontal', order: 13 },
   component: inPage(TabsSection),
 })
+const modalRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'modal',
+  staticData: { name: 'Modal', icon: 'Maximize3', order: 14 },
+  component: inPage(ModalSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -370,6 +377,7 @@ const shellRouter = createRouter({
         listRoute,
         dropdownRoute,
         tabsRoute,
+        modalRoute,
       ]),
       formsRoute.addChildren([
         textFieldRoute,

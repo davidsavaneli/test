@@ -1,0 +1,162 @@
+/* ── overlay (backdrop) ───────────────────────────────────────────────────────
+   Fixed full-viewport scrim that centers the dialog and dims the page. The scrim color is a literal
+   black-alpha (an unavoidable exception to the token rule — a brand-token tint would invert in dark
+   mode; a constant dark scrim reads correctly under both themes). */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tz-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--tz-space-md);
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity var(--tz-duration);
+}
+.overlay[data-open='true'] {
+  opacity: 1;
+}
+.overlay[data-size='fullScreen'] {
+  padding: 0;
+}
+
+/* ── dialog box ───────────────────────────────────────────────────────────────── */
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 100%;
+  background-color: var(--tz-color-secondary);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-md);
+  box-shadow: var(--tz-shadow-xl);
+  outline: none;
+  opacity: 0;
+  transform: translateY(var(--tz-space-xxs)) scale(0.98);
+  transition:
+    opacity var(--tz-duration),
+    transform var(--tz-duration);
+}
+.modal[data-open='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* sizes — max-width caps; the box stays responsive (width: 100%) up to the cap */
+.sm {
+  max-width: 400px;
+}
+.md {
+  max-width: 520px;
+}
+.lg {
+  max-width: 760px;
+}
+.fullScreen {
+  max-width: none;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  border: 0;
+  border-radius: 0;
+  /* fill the viewport with no inset during the enter — fade only (drop the translate/scale) */
+  transform: none;
+}
+
+/* ── header (mirrors Card: tinted icon box + title/subtitle, divider when content follows) ──────── */
+.header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+  padding: var(--tz-space-sm) var(--tz-space-md);
+  border-bottom: 1px dashed transparent;
+  transition: border-color var(--tz-duration);
+}
+.headerDivided {
+  border-bottom-color: var(--tz-color-border);
+}
+.headerMain {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+  flex: 1;
+  min-width: 0;
+}
+.icon {
+  flex: none;
+}
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--tz-space-xxs) / 2);
+  flex: 1;
+  min-width: 0;
+}
+.title {
+  min-width: 0;
+  /* wrap to at most two lines, then truncate with an ellipsis */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--tz-font-size-md);
+  font-weight: var(--tz-font-weight-bold);
+  line-height: calc(var(--tz-line-height) / 1.07);
+}
+.subtitle {
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--tz-font-size-xs);
+  font-weight: var(--tz-font-weight-regular);
+  line-height: var(--tz-line-height);
+  color: var(--tz-color-primary-shade600);
+}
+.close {
+  flex: none;
+}
+
+/* ── body ─────────────────────────────────────────────────────────────────────── */
+.body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--tz-space-md);
+  color: var(--tz-color-text);
+}
+
+/* ── footer ───────────────────────────────────────────────────────────────────── */
+.footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--tz-space-xs);
+  padding: var(--tz-space-sm) var(--tz-space-md);
+  border-top: 1px solid var(--tz-color-border);
+}
+
+/* ── scroll behavior — `outside`: the whole dialog grows and the overlay scrolls (vs the default
+   `inside`, where the body scrolls and the header + footer stay pinned). fullScreen is unaffected
+   (it's already viewport-bound and scrolls its body). ─────────────────────────────────────────── */
+.overlay[data-scroll='outside'] {
+  /* column flow makes the vertical axis the MAIN axis, where the dialog's auto margins correctly
+     collapse to 0 once it overflows (centered when it fits, top-aligned + scrollable when it doesn't —
+     a plain `margin: auto` on the cross axis would instead clip the top) */
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.overlay[data-scroll='outside'] .modal:not(.fullScreen) {
+  max-height: none;
+  margin-block: auto;
+}
+.overlay[data-scroll='outside'] .modal:not(.fullScreen) .body {
+  overflow-y: visible;
+}

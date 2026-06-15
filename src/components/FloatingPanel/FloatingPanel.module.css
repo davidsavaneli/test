@@ -3,7 +3,8 @@
    layout overrides via `className` (padding / display / overflow / width). */
 
 .panel {
-  z-index: var(--tz-z-dropdown);
+  /* popover layer — above `--tz-z-modal` so a Select / picker opened inside a Modal floats over it */
+  z-index: var(--tz-z-popover);
   box-sizing: border-box;
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);

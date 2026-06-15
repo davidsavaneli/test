@@ -2,7 +2,8 @@
    handling; only the surface + enter transition are styled here. Token-only, theme-aware. */
 
 .panel {
-  z-index: var(--tz-z-dropdown);
+  /* popover layer — above `--tz-z-modal` so a menu opened inside a Modal floats over it */
+  z-index: var(--tz-z-popover);
   box-sizing: border-box;
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);
