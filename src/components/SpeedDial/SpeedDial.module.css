@@ -1,0 +1,80 @@
+/* SpeedDial — a FAB that fans out action buttons. The actions container is absolutely positioned off
+   the FAB so it never shifts the FAB; it stays a DOM child so hover (mouseleave) treats it as inside. */
+
+.speedDial {
+  position: relative;
+  display: inline-flex;
+}
+
+.fab {
+  /* the FAB sits above the actions so its own shadow/border reads cleanly */
+  position: relative;
+  z-index: 1;
+  box-shadow: var(--tz-shadow-lg);
+}
+
+/* rotate the default `+` into a `×` while open (skipped when an explicit openIcon is given) */
+.fabIcon {
+  display: inline-flex;
+  transition: transform var(--tz-duration);
+}
+.fabIconOpen {
+  transform: rotate(45deg);
+}
+
+/* ── actions container ──────────────────────────────────────────────────────── */
+.actions {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  /* padding toward the FAB is a hover bridge so moving FAB → action doesn't trigger mouseleave */
+  padding: var(--tz-space-xs);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--tz-duration),
+    visibility var(--tz-duration);
+}
+.actions[data-open='true'] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* direction — anchor the container to a FAB edge and stack the actions outward */
+.up {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: column-reverse;
+}
+.down {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: column;
+}
+.left {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: row-reverse;
+}
+.right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: row;
+}
+
+/* each action pops from scale(0) → scale(1) when the dial opens */
+.action {
+  transform: scale(0);
+  transition: transform var(--tz-duration);
+  box-shadow: var(--tz-shadow-md);
+}
+.actions[data-open='true'] .action {
+  transform: scale(1);
+}

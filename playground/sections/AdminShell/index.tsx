@@ -16,6 +16,7 @@ import { LayoutSection } from '../Layout'
 import { ListSection } from '../List'
 import { ModalSection } from '../Modal'
 import { ToggleButtonSection } from '../ToggleButton'
+import { SpeedDialSection } from '../SpeedDial'
 import { DropdownSection } from '../Dropdown'
 import { TabsSection } from '../Tabs'
 import { ButtonSection } from '../Button'
@@ -252,6 +253,12 @@ const toggleButtonRoute = createRoute({
   staticData: { name: 'Toggle Button', icon: 'Category2', order: 15 },
   component: inPage(ToggleButtonSection),
 })
+const speedDialRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'speed-dial',
+  staticData: { name: 'Speed Dial', icon: 'AddCircle', order: 16 },
+  component: inPage(SpeedDialSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -386,6 +393,7 @@ const shellRouter = createRouter({
         tabsRoute,
         modalRoute,
         toggleButtonRoute,
+        speedDialRoute,
       ]),
       formsRoute.addChildren([
         textFieldRoute,
