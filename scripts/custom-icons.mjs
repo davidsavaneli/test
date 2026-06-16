@@ -13,6 +13,13 @@ const num = (d, y) =>
   `<text x="4" y="${y}" font-family="system-ui, sans-serif" font-size="8" font-weight="600" text-anchor="middle">${d}</text>`
 
 export const customIcons = [
+  // Bare X — the Iconsax `Add` (plus) paths rotated 45°, so it keeps Add's exact thin stroke weight.
+  // Used by the `Modal` close button.
+  {
+    name: 'Close',
+    inner:
+      '<g transform="rotate(45 12 12)"><path d="M18 12.75H6C5.59 12.75 5.25 12.41 5.25 12C5.25 11.59 5.59 11.25 6 11.25H18C18.41 11.25 18.75 11.59 18.75 12C18.75 12.41 18.41 12.75 18 12.75Z"/><path d="M12 18.75C11.59 18.75 11.25 18.41 11.25 18V6C11.25 5.59 11.59 5.25 12 5.25C12.41 5.25 12.75 5.59 12.75 6V18C12.75 18.41 12.41 18.75 12 18.75Z"/></g>',
+  },
   // Bulleted (unordered) list — the checklist's lines with bullet dots instead of ticks.
   {
     name: 'ListBullet',

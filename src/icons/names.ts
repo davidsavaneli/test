@@ -299,6 +299,7 @@ export type IconName =
   | 'Clock2'
   | 'Clock3'
   | 'Clock4'
+  | 'Close'
   | 'CloseCircle'
   | 'CloseSquare'
   | 'Cloud'
@@ -1498,6 +1499,7 @@ export const ICON_NAMES = [
   'Clock2',
   'Clock3',
   'Clock4',
+  'Close',
   'CloseCircle',
   'CloseSquare',
   'Cloud',
@@ -2398,4 +2400,4 @@ export const ICON_NAMES = [
   'Zoom',
 ] as const satisfies readonly IconName[]
 
-export const ICON_COUNT = 1197
+export const ICON_COUNT = 1198

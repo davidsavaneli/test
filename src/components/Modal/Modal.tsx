@@ -36,9 +36,9 @@ export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'
   /** Preset width: `sm` 360 · `md` 620 · `lg` 900 px, or `fullScreen` (fills the viewport). Defaults to `md`. */
   size?: ModalSize
   /**
-   * Where overflow scrolls when the content is taller than the viewport: `inside` (default — the body
-   * scrolls while the header + footer stay pinned) or `outside` (the whole dialog grows and the
-   * overlay scrolls).
+   * Where overflow scrolls when the content is taller than the viewport: `outside` (default — the
+   * whole dialog grows and the overlay/page scrolls) or `inside` (the body scrolls while the header +
+   * footer stay pinned).
    */
   scrollBehavior?: ModalScrollBehavior
   /** Header title. When set, labels the dialog (`aria-labelledby`). */
@@ -82,7 +82,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
     open,
     onClose,
     size = 'md',
-    scrollBehavior = 'inside',
+    scrollBehavior = 'outside',
     title,
     description,
     icon,
@@ -264,7 +264,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
                 aria-label="Close"
                 onClick={onClose}
               >
-                <Icon name="CloseCircle" />
+                <Icon name="Close" />
               </IconButton>
             )}
           </div>

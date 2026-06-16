@@ -128,7 +128,7 @@
 .body {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: var(--tz-space-md);
+  padding: var(--tz-space-md) var(--tz-space-md) var(--tz-space-xl) var(--tz-space-md);
   color: var(--tz-color-text);
 }
 

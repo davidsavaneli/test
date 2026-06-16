@@ -47,6 +47,8 @@ import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
 import { ListItem } from '../List'
+import { Modal } from '../Modal'
+import { TextField } from '../TextField'
 import { $createImageNode } from './nodes/ImageNode'
 import { $createVideoNode } from './nodes/VideoNode'
 import styles from './RichTextEditor.module.css'
@@ -91,6 +93,16 @@ const FONT_SIZES = ['10px', '12px', '14px', '16px', '18px', '20px']
  * selection has no explicit `font-size`. */
 const DEFAULT_FONT_SIZE: Record<Size, string> = { sm: '12px', md: '14px', lg: '16px' }
 
+/** Config for the shared URL-input `Modal` (link / image-by-URL / video) — replaces `window.prompt`. */
+type UrlDialog = {
+  icon: IconName
+  title: string
+  label: string
+  placeholder: string
+  confirmLabel: string
+  onConfirm: (url: string) => void
+}
+
 /** The text-color button glyph — a brush icon with a corner triangle tinted with the current text
  * color (so the selected color is always visible). Accepts the `size` `IconButton` injects so it
  * doesn't hit the DOM. */
@@ -123,6 +135,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
   const [isItalic, setIsItalic] = useState(false)
   const [isUnderline, setIsUnderline] = useState(false)
   const [isLink, setIsLink] = useState(false)
+  const [linkUrl, setLinkUrl] = useState('')
   const [blockType, setBlockType] = useState<BlockType>('paragraph')
   const [elementFormat, setElementFormat] = useState<ElementFormatType>('left')
   const [fontSize, setFontSize] = useState('')
@@ -131,6 +144,9 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
   const colorTriggerRef = useRef<HTMLButtonElement | null>(null)
   const [canUndo, setCanUndo] = useState(false)
   const [canRedo, setCanRedo] = useState(false)
+  // shared URL-input modal (link / image-by-URL / video)
+  const [urlDialog, setUrlDialog] = useState<UrlDialog | null>(null)
+  const [urlValue, setUrlValue] = useState('')
 
   const syncState = useCallback(() => {
     const selection = $getSelection()
@@ -142,7 +158,10 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
     setFontSize($getSelectionStyleValueForProperty(selection, 'font-size', ''))
 
     const anchorNode = selection.anchor.getNode()
-    setIsLink($isLinkNode(anchorNode) || $isLinkNode(anchorNode.getParent()))
+    const parent = anchorNode.getParent()
+    const linkNode = $isLinkNode(anchorNode) ? anchorNode : $isLinkNode(parent) ? parent : null
+    setIsLink(linkNode !== null)
+    setLinkUrl(linkNode?.getURL() ?? '')
 
     // the block element under the cursor — drives both the alignment and block-type state
     const element =
@@ -240,17 +259,42 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
 
   const toggleQuote = () => applyBlock(blockType === 'quote' ? 'paragraph' : 'quote')
 
-  const insertLink = () => {
-    const url = window.prompt('Link URL (leave empty to remove)')
-    if (url === null) return
-    editor.dispatchCommand(TOGGLE_LINK_COMMAND, url.trim() === '' ? null : url.trim())
+  // open the shared URL modal (prefilled value + handler differ per action)
+  const openUrlDialog = (config: UrlDialog, initial = '') => {
+    setUrlValue(initial)
+    setUrlDialog(config)
+  }
+  const closeUrlDialog = () => setUrlDialog(null)
+  const confirmUrlDialog = () => {
+    urlDialog?.onConfirm(urlValue.trim())
+    setUrlDialog(null)
   }
 
-  const insertImageByUrl = () => {
-    const url = window.prompt('Image URL')?.trim()
-    if (!url) return
-    editor.update(() => $insertNodeToNearestRoot($createImageNode(url)))
-  }
+  const insertLink = () =>
+    openUrlDialog(
+      {
+        icon: 'Link2',
+        title: 'Insert Link',
+        label: 'Link URL',
+        placeholder: 'https://example.com',
+        confirmLabel: isLink ? 'Update' : 'Insert',
+        // an empty value removes the link (matches the old prompt behavior)
+        onConfirm: (url) => editor.dispatchCommand(TOGGLE_LINK_COMMAND, url === '' ? null : url),
+      },
+      linkUrl, // prefill the current link's URL when the cursor sits in one
+    )
+
+  const insertImageByUrl = () =>
+    openUrlDialog({
+      icon: 'GalleryAdd',
+      title: 'Insert Image',
+      label: 'Image URL',
+      placeholder: 'https://example.com/image.jpg',
+      confirmLabel: 'Insert',
+      onConfirm: (url) => {
+        if (url) editor.update(() => $insertNodeToNearestRoot($createImageNode(url)))
+      },
+    })
 
   const onImageFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -260,11 +304,17 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
     editor.update(() => $insertNodeToNearestRoot($createImageNode(url, file.name)))
   }
 
-  const insertVideo = () => {
-    const url = window.prompt('Video URL (YouTube, Vimeo, or a direct file)')?.trim()
-    if (!url) return
-    editor.update(() => $insertNodeToNearestRoot($createVideoNode(url)))
-  }
+  const insertVideo = () =>
+    openUrlDialog({
+      icon: 'VideoSquare',
+      title: 'Insert Video',
+      label: 'Video URL',
+      placeholder: 'YouTube, Vimeo, or a direct file URL',
+      confirmLabel: 'Insert',
+      onConfirm: (url) => {
+        if (url) editor.update(() => $insertNodeToNearestRoot($createVideoNode(url)))
+      },
+    })
 
   /** A format toggle — soft-filled while active. */
   const fmtBtn = (
@@ -489,6 +539,41 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         aria-hidden="true"
         tabIndex={-1}
       />
+
+      {/* shared URL-input dialog for link / image-by-URL / video (replaces window.prompt). The footer
+          Submit drives the body <form> via the `form` attribute (works across the modal's portal). */}
+      <Modal
+        open={urlDialog !== null}
+        onClose={closeUrlDialog}
+        size="sm"
+        icon={urlDialog?.icon}
+        title={urlDialog?.title}
+        footer={
+          <>
+            <Button variant="text" onClick={closeUrlDialog}>
+              Cancel
+            </Button>
+            <Button type="submit" form="rte-url-form">
+              {urlDialog?.confirmLabel ?? 'Insert'}
+            </Button>
+          </>
+        }
+      >
+        <form
+          id="rte-url-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            confirmUrlDialog()
+          }}
+        >
+          <TextField
+            label={urlDialog?.label}
+            placeholder={urlDialog?.placeholder}
+            value={urlValue}
+            onChange={(e) => setUrlValue(e.target.value)}
+          />
+        </form>
+      </Modal>
     </div>
   )
 }

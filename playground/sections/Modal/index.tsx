@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 import {
   Button,
@@ -7,11 +7,13 @@ import {
   DatePicker,
   Form,
   Grid,
+  type IconName,
   Modal,
   type ModalScrollBehavior,
   type ModalSize,
   Row,
   Select,
+  Tabs,
   TextField,
   Typography,
   useDisclosure,
@@ -44,9 +46,28 @@ const schema = z.object({
   agree: z.boolean().refine((v) => v, 'Required'),
 })
 
-/** A modal whose body is a validated `<Form>`; the footer Submit targets it via the `form` attribute. */
+/** Field → tab mapping for the tabbed form modal — drives the per-tab error dots + the submit auto-switch. */
+type FieldName = keyof z.infer<typeof schema>
+const FORM_TABS: { value: string; label: string; icon: IconName; fields: readonly FieldName[] }[] =
+  [
+    { value: 'profile', label: 'Profile', icon: 'User', fields: ['name', 'email'] },
+    {
+      value: 'access',
+      label: 'Access',
+      icon: 'ShieldTick',
+      fields: ['role', 'startDate', 'agree'],
+    },
+  ]
+
+/**
+ * A modal whose body is a **tabbed** validated `<Form>` — fields split across tabs. The footer Submit
+ * targets the form via the `form` attribute (across the portal). On a failed submit, an invalid hidden
+ * tab shows a red dot and the strip auto-switches to the first one and focuses its field — the form's
+ * own scroll-to-error can't reach an unmounted tab, so we watch `submitCount` (like `TranslatedFields`).
+ */
 function FormModal() {
   const { isOpen, open, close } = useDisclosure()
+  const [tab, setTab] = useState('profile')
   const [saved, setSaved] = useState<string | null>(null)
   const form = useForm({
     schema,
@@ -62,8 +83,70 @@ function FormModal() {
   const openFresh = () => {
     form.reset()
     setSaved(null)
+    setTab('profile')
     open()
   }
+
+  // a tab shows the red dot when one of its fields is invalid AND the error is visible (submitted/touched)
+  const tabHasError = (fields: readonly FieldName[]) =>
+    fields.some((f) => form.errors[f] && (form.isSubmitted || form.touched[f]))
+
+  // on submit, if the active tab is clean but another tab holds the errors, switch to it (the form's
+  // scroll-to-error only sees the mounted tab), then focus the first invalid field once it has mounted
+  const lastSubmit = useRef(0)
+  const pendingFocus = useRef<string | null>(null)
+  useEffect(() => {
+    if (form.submitCount === lastSubmit.current) return
+    lastSubmit.current = form.submitCount
+    if (Object.keys(form.errors).length === 0) return
+    const activeFields = FORM_TABS.find((t) => t.value === tab)?.fields ?? []
+    if (activeFields.some((f) => form.errors[f])) return // active tab owns an error → the form scrolls to it
+    const firstBad = FORM_TABS.find((t) => t.fields.some((f) => form.errors[f]))
+    if (firstBad && firstBad.value !== tab) {
+      pendingFocus.current = firstBad.value
+      setTab(firstBad.value)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.submitCount])
+
+  useEffect(() => {
+    if (pendingFocus.current !== tab) return
+    pendingFocus.current = null
+    const bad = (FORM_TABS.find((t) => t.value === tab)?.fields ?? []).find((f) => form.errors[f])
+    const el = bad ? document.querySelector<HTMLElement>(`[name="${bad}"]`) : null
+    el?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+    el?.focus?.({ preventScroll: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab])
+
+  const fieldsFor = (value: string) =>
+    value === 'profile' ? (
+      <>
+        <TextField name="name" required label="Full Name" placeholder="Jane Doe" />
+        <TextField name="email" required label="Email" placeholder="jane@techzy.app" />
+      </>
+    ) : (
+      <>
+        <Grid minItemWidth={200} gap={16}>
+          <Select name="role" required label="Role" placeholder="Pick a role" options={ROLES} />
+          <DatePicker name="startDate" required label="Start Date" />
+        </Grid>
+        <Checkbox name="agree" label="I agree to the terms" />
+      </>
+    )
+
+  const items = FORM_TABS.map((t) => ({
+    value: t.value,
+    label: t.label,
+    icon: t.icon,
+    error: tabHasError(t.fields),
+    // keyed per tab so switching remounts the fields (no state bleed); values persist in the form
+    content: (
+      <Col key={t.value} gap={16}>
+        {fieldsFor(t.value)}
+      </Col>
+    ),
+  }))
 
   return (
     <>
@@ -81,7 +164,7 @@ function FormModal() {
         onClose={close}
         icon="ProfileAdd"
         title="New Member"
-        description="Invite a teammate. Submitting validates first and scrolls to the first error."
+        description="Fields split across tabs. On submit, the strip jumps to the tab with the first error."
         footer={
           <>
             <Button variant="text" onClick={close}>
@@ -94,15 +177,13 @@ function FormModal() {
         }
       >
         <Form form={form} id="member-form">
-          <Col gap={16}>
-            <TextField name="name" required label="Full Name" placeholder="Jane Doe" />
-            <TextField name="email" required label="Email" placeholder="jane@techzy.app" />
-            <Grid minItemWidth={200} gap={16}>
-              <Select name="role" required label="Role" placeholder="Pick a role" options={ROLES} />
-              <DatePicker name="startDate" required label="Start Date" />
-            </Grid>
-            <Checkbox name="agree" label="I agree to the terms" />
-          </Col>
+          <Tabs
+            items={items}
+            value={tab}
+            onChange={setTab}
+            queryKey={null}
+            aria-label="Member fields"
+          />
         </Form>
       </Modal>
     </>
@@ -255,8 +336,8 @@ export function ModalSection() {
       </Block>
 
       <Block
-        label="Form modal — validation inside a dialog"
-        description="The body is a <Form>; the footer Submit targets it via the form attribute (works across the portal)."
+        label="Form modal — tabbed form with validation inside a dialog"
+        description="The body is a tabbed <Form>; an invalid hidden tab gets a red dot and the strip auto-switches on submit. The footer Submit drives the form across the portal."
       >
         <FormModal />
       </Block>

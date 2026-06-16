@@ -61,7 +61,7 @@ src/
     translations.ts       # translation form helpers (buildTranslations/nest/flatten/toFormData)
   icons/
     icons.ts              # generated inline-SVG registry (committed source of truth)
-    names.ts              # generated IconName union + ICON_NAMES / ICON_COUNT (~1197 names)
+    names.ts              # generated IconName union + ICON_NAMES / ICON_COUNT (~1198 names)
   entries/                # curated public surfaces, one file per subpath export
     components.ts hooks.ts theme.ts icons.ts helpers.ts
   styles/
@@ -507,7 +507,11 @@ field-family chrome (`label` · `size` · `error` + `helperText` ·
 `text-align` style), a **text-color** control (a brush button whose corner triangle shows the current
 color; opens the shared **`ColorPickerPanel`** in a `FloatingPanel`, applied to the selection via
 `$patchStyleText` → inline `color` style, read back via `$getSelectionStyleValueForProperty`), a
-**link** toggle, an **image** `Dropdown` (Upload / By URL), and a **video** button. The toolbar controls are compact (smaller box + icon than the standard sizes —
+**link** toggle, an **image** `Dropdown` (Upload / By URL), and a **video** button. The **link** /
+**image-by-URL** / **video** actions collect their URL through a shared **`Modal`** (a `TextField` +
+Cancel/Confirm — the footer Submit drives the body `<form>` across the modal's portal; the link dialog
+prefills the current link's URL), **not `window.prompt`**; the Lexical command runs on the editor's
+retained selection when the modal confirms. The toolbar controls are compact (smaller box + icon than the standard sizes —
 box 22/26/30px, icon 12/14/16px by editor `size`). Content
 is styled entirely with `--tz-*` tokens via a Lexical `theme` mapping node types → CSS-module classes
 (headings/quote/lists/check-list/link/inline formats/media). **Markdown shortcuts** while typing (`# `,
@@ -529,8 +533,7 @@ our own last emit). a11y: the editable region is a `role="textbox"` `ContentEdit
 `aria-label`; the toolbar is `role="toolbar"`. **Note:** interactive editing (typing, toolbar commands)
 relies on trusted browser events, so it's verified in a real browser, not jsdom/automated harnesses (the
 tests cover render/structure/a11y/options + the pure `toVideoEmbedSrc` URL normalization). Own CSS module.
-_Code blocks and tables are out of v1 scope; video upload + a link/image popover (vs the current
-`window.prompt`) are the natural next iterations._
+_Code blocks and tables are out of v1 scope; video upload is the natural next iteration._
 
 ### TagsField
 
@@ -951,38 +954,39 @@ A centered, backdrop-dimmed overlay dialog — the library's interruptive-task s
 quick forms, detail views). Controlled by **`open`** + **`onClose`** (no uncontrolled mode — a modal is
 always app-driven). **`size`** is `sm` 360 / `md` 620 / `lg` 900 px (max-width caps; the box stays
 responsive up to the cap) or **`fullScreen`** (fills the viewport, no radius/border). **`scrollBehavior`**
-picks how over-tall content scrolls: **`inside`** (default — the body scrolls while the header + footer
-stay pinned) or **`outside`** (the whole dialog grows and the **overlay** scrolls; the overlay flips to
-`flex-direction: column` so the dialog's `margin-block: auto` centers it when it fits and top-aligns +
-scrolls when it doesn't; `fullScreen` is unaffected). **The header mirrors `Card`:** an optional leading
-**`icon`** (an `IconName` or node) in a **filled, non-clickable `IconButton` box** tinted by **`color`**
-(brand token, default `medium`), a **`title`** (md/bold, clamps to 2 lines) that labels the dialog via
-`aria-labelledby`, and a **`description`** (xs/muted subtitle, clamps to 2 lines); a **dashed** divider
-(like Card) sets the header apart when a body/footer follows. **`children`** is the body and **`footer`** holds right-aligned
-actions over a top divider (e.g. Cancel / Confirm). Dismissal is three-way and each toggle-able: a header
-**`CloseCircle` × button** (`showCloseButton`, default `true`), **backdrop click** (`closeOnBackdrop`,
-default `true`), and **Escape** (`closeOnEscape`, default `true`); `ariaLabel` names the dialog when
-there's no `title`. The close button is a **`filled` `IconButton`** (neutral `primary` tint, so it
-doesn't clash with an `error`/`warning` modal `color`). The header is omitted entirely when there's no
-title/description/icon/close button.
-**Behavior:** `createPortal` to `<body>`, **locks page scroll** (`useLockBodyScroll`), **traps Tab focus**
-inside (Shift+Tab cycles; wraps at both ends) and **restores focus to the previously-focused element on
-close** (guarded by `isConnected` so an unmounted trigger doesn't strand focus), moves focus on open to
-**the first body field → else the first footer action (so confirm dialogs land on Cancel, not the ×) →
-else any control → else the dialog** (all with `preventScroll` so an `outside`-scroll modal doesn't jump
-to a below-fold control), and **enters with the shared opacity + translate animation** (keyed off
-`data-open` via a rAF `visible` flag — same idiom as `Dropdown`/`FloatingPanel`, enter-only/unmount on
-close; `fullScreen` fades only). `role="dialog"` + `aria-modal` + `aria-describedby` (when `description`);
-`--tz-z-modal`, `--tz-shadow-xl`, `--tz-radius-md`. The **backdrop scrim is a literal `rgba(0,0,0,0.45)`**
-(an unavoidable exception — a brand-token tint would invert in dark mode), Escape is always swallowed at
-the overlay (so it can't reach React-tree ancestors), and the **backdrop dismiss is gated on the
-pointer-down AND the click both landing on the overlay** (so a text-selection drag ending on the scrim
-doesn't close it). **A footer Submit button can drive a `<Form>` in the body via the `form` attribute**
-(`<Button type="submit" form="…">` + `<Form id="…">`) — it works **across the portal** since both live in
-the same document, and the form's **scroll-to-error** focuses the first invalid field inside the body.
-The forwarded ref points at the dialog element. Own CSS
-module. _Header `actions` (beside the close button) + an imperative/promise-based API are natural next
-iterations._
+picks how over-tall content scrolls: **`outside`** (default — the whole dialog grows and the **overlay**
+scrolls; the overlay flips to `flex-direction: column` so the dialog's `margin-block: auto` centers it
+when it fits and top-aligns + scrolls when it doesn't) or **`inside`** (the body scrolls while the header
+
+- footer stay pinned); `fullScreen` is unaffected by either. **The header mirrors `Card`:** an optional leading
+  **`icon`** (an `IconName` or node) in a **filled, non-clickable `IconButton` box** tinted by **`color`**
+  (brand token, default `medium`), a **`title`** (md/bold, clamps to 2 lines) that labels the dialog via
+  `aria-labelledby`, and a **`description`** (xs/muted subtitle, clamps to 2 lines); a **dashed** divider
+  (like Card) sets the header apart when a body/footer follows. **`children`** is the body and **`footer`** holds right-aligned
+  actions over a top divider (e.g. Cancel / Confirm). Dismissal is three-way and each toggle-able: a header
+  **× close button** (the custom bare-`Close` icon; `showCloseButton`, default `true`), **backdrop click** (`closeOnBackdrop`,
+  default `true`), and **Escape** (`closeOnEscape`, default `true`); `ariaLabel` names the dialog when
+  there's no `title`. The close button is a **`filled` `IconButton`** (neutral `primary` tint, so it
+  doesn't clash with an `error`/`warning` modal `color`). The header is omitted entirely when there's no
+  title/description/icon/close button.
+  **Behavior:** `createPortal` to `<body>`, **locks page scroll** (`useLockBodyScroll`), **traps Tab focus**
+  inside (Shift+Tab cycles; wraps at both ends) and **restores focus to the previously-focused element on
+  close** (guarded by `isConnected` so an unmounted trigger doesn't strand focus), moves focus on open to
+  **the first body field → else the first footer action (so confirm dialogs land on Cancel, not the ×) →
+  else any control → else the dialog** (all with `preventScroll` so an `outside`-scroll modal doesn't jump
+  to a below-fold control), and **enters with the shared opacity + translate animation** (keyed off
+  `data-open` via a rAF `visible` flag — same idiom as `Dropdown`/`FloatingPanel`, enter-only/unmount on
+  close; `fullScreen` fades only). `role="dialog"` + `aria-modal` + `aria-describedby` (when `description`);
+  `--tz-z-modal`, `--tz-shadow-xl`, `--tz-radius-md`. The **backdrop scrim is a literal `rgba(0,0,0,0.45)`**
+  (an unavoidable exception — a brand-token tint would invert in dark mode), Escape is always swallowed at
+  the overlay (so it can't reach React-tree ancestors), and the **backdrop dismiss is gated on the
+  pointer-down AND the click both landing on the overlay** (so a text-selection drag ending on the scrim
+  doesn't close it). **A footer Submit button can drive a `<Form>` in the body via the `form` attribute**
+  (`<Button type="submit" form="…">` + `<Form id="…">`) — it works **across the portal** since both live in
+  the same document, and the form's **scroll-to-error** focuses the first invalid field inside the body.
+  The forwarded ref points at the dialog element. Own CSS
+  module. _Header `actions` (beside the close button) + an imperative/promise-based API are natural next
+  iterations._
 
 ### Tabs
 
@@ -1284,7 +1288,7 @@ createFileRoute('/dashboard/')({
 
 ## 9. Icons pipeline
 
-- Icons are an Iconsax-derived set, ~1197 entries. The committed source of truth is
+- Icons are an Iconsax-derived set, ~1198 entries. The committed source of truth is
   `src/icons/icons.ts` (inline SVG strings) + `src/icons/names.ts` (the `IconName` union). Raw
   `.svg` files are **not** kept in the repo.
 - To change the set: drop the raw Iconsax dump into `icons-raw/` (gitignored), run
@@ -1294,8 +1298,10 @@ createFileRoute('/dashboard/')({
 - **Custom (non-Iconsax) icons** live in `scripts/custom-icons.mjs` (`{ name, inner }`, matching the
   fill-based style); `build:icons` merges them into the registry so they survive regeneration. Today:
   `ListBullet` / `ListNumber` (bulleted & numbered-list icons reusing the `Task` checklist's line paths,
-  used by the `RichTextEditor` block dropdown). When hand-editing the generated `icons.ts`/`names.ts`
-  directly (e.g. when no raw dump is present), keep them in sync with `custom-icons.mjs`.
+  used by the `RichTextEditor` block dropdown) and `Close` (a bare × — the `Add` plus paths rotated 45°,
+  so it keeps Add's thin stroke weight — used by the `Modal` close button). When hand-editing the
+  generated `icons.ts`/`names.ts` directly (e.g. when no raw dump is present), keep them in sync with
+  `custom-icons.mjs`.
 
 ---
 
