@@ -6,6 +6,12 @@ export interface ThemePalette {
    * defaults: white in light mode, a deep dark (darker than `dark`) in dark mode.
    */
   background: string
+  /**
+   * A light surface color, **available** as `--tz-color-surface` (configurable per mode like any brand
+   * color) — intended for things like form-field backgrounds. Not yet applied to any component by
+   * default; reserved for future use.
+   */
+  surface: string
   dark: string
   medium: string
   light: string

@@ -1,9 +1,0 @@
-/* Page content container. Uses the page `background` (blends with the shell), so cards/inputs
-   placed inside it — which use `surface` — read as elevated. Token-only, follows the active theme. */
-
-.pageLayout {
-  background: var(--tz-color-background);
-  border: 1px solid var(--tz-color-border);
-  border-radius: var(--tz-radius-md);
-  padding: var(--tz-space-lg);
-}

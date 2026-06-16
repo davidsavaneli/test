@@ -1,21 +1,19 @@
-import { forwardRef, type HTMLAttributes } from 'react'
-import { clsx } from 'clsx'
-import styles from './PageLayout.module.css'
+import { forwardRef } from 'react'
+import { Card, type CardProps } from '../Card'
 
-export interface PageLayoutProps extends HTMLAttributes<HTMLDivElement> {}
+/** PageLayout is a flat `Card`, so it gains all of Card's slots minus the `flat` toggle (always flat). */
+export interface PageLayoutProps extends Omit<CardProps, 'flat'> {}
 
 /**
- * The content container a page's body sits in — a token-styled surface card (border + radius +
- * padding). Rendered by the consumer inside each route, below the shell's breadcrumbs and page
- * title: `<PageLayout>…page content…</PageLayout>`. Styling uses `--tz-*` tokens only.
+ * The content container a page's body sits in — a **flat `Card`** (no shadow, the page `background`
+ * color), so it blends with the shell while the Cards/inputs placed inside it read as elevated. Being
+ * a Card, it gains the full Card anatomy: an optional header (`icon` + `title` + `subtitle` +
+ * `actions`), the body (`children`), a `footer` / `footerStart`, and `collapsible`. Rendered by the
+ * consumer inside each route, below the shell's breadcrumbs + page title:
+ * `<PageLayout title="Settings" actions={…}>…</PageLayout>`. Styling uses `--tz-*` tokens only.
  */
-export const PageLayout = forwardRef<HTMLDivElement, PageLayoutProps>(function PageLayout(
-  { className, children, ...props },
-  ref,
-) {
-  return (
-    <div ref={ref} className={clsx(styles.pageLayout, className)} {...props}>
-      {children}
-    </div>
-  )
-})
+export const PageLayout = forwardRef<HTMLDivElement, PageLayoutProps>(
+  function PageLayout(props, ref) {
+    return <Card ref={ref} flat {...props} />
+  },
+)

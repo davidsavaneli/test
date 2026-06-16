@@ -32,6 +32,12 @@ export interface RootLayoutHeader {
    * toggle auto-hides where the Fullscreen API is unavailable (e.g. iOS Safari on iPhone).
    */
   fullscreen?: boolean
+  /**
+   * Render the automatic page title (the active route's `staticData.name`) as an `h2` above the
+   * content. Defaults to `true`. Set `false` when pages carry their own heading inside their
+   * `PageLayout` header (so the title isn't shown twice).
+   */
+  pageTitle?: boolean
   /** When provided, an account `Avatar` appears on the right; its menu has a **Sign out** item that calls this. */
   onLogout?: () => void
   /** Signed-in user — shown in the header avatar and as a header block atop the account menu. */
@@ -54,13 +60,15 @@ export interface RootLayoutProps {
  * (on by default) plus an account `Avatar` whose menu has a **Sign out** item when `header.onLogout`
  * is given. The content area stacks
  * **`Breadcrumbs` → the page title (the active route's `staticData.name`) → `children`**; pages wrap
- * their own body in `PageLayout`. Styling is token-based, so it follows the active `ConfigProvider`
- * mode. Requires `@tanstack/react-router` (peer).
+ * their own body in `PageLayout`. Set `header.pageTitle = false` to drop the auto `h2` when pages
+ * carry their own heading inside their `PageLayout` header. Styling is token-based, so it follows the
+ * active `ConfigProvider` mode. Requires `@tanstack/react-router` (peer).
  */
 export function RootLayout({ logo, header, children }: RootLayoutProps) {
   const title = usePageTitle()
   const showTheme = header?.theme ?? true
   const showFullscreen = header?.fullscreen ?? true
+  const showPageTitle = header?.pageTitle ?? true
   const onLogout = header?.onLogout
   const user = header?.user
   const [collapsed, setCollapsed] = useState(false)
@@ -123,7 +131,7 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
         </header>
         <main className={styles.content}>
           <Breadcrumbs />
-          {title ? (
+          {showPageTitle && title ? (
             <Typography variant="h2" className={styles.pageTitle}>
               {title}
             </Typography>

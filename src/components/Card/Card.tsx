@@ -17,6 +17,8 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title' 
   icon?: IconName | ReactNode
   /** Brand color that tints the leading icon box. Defaults to `medium`. */
   color?: ThemeColor
+  /** Render flat — no shadow, the page `background` instead of the elevated `secondary` surface. Used by `PageLayout`. */
+  flat?: boolean
   /** Header actions, placed at the end of the header row (before the collapse toggle). */
   actions?: ReactNode
   /** Footer content (e.g. actions), pinned to the **right** of the footer row. */
@@ -46,6 +48,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
     subtitle,
     icon,
     color = 'medium',
+    flat = false,
     actions,
     footer,
     footerStart,
@@ -87,7 +90,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
   return (
     <div
       ref={ref}
-      className={clsx(styles.card, isCollapsed && styles.collapsed, className)}
+      className={clsx(styles.card, flat && styles.flat, isCollapsed && styles.collapsed, className)}
       {...props}
     >
       {hasHeader && (

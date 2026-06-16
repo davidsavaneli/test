@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import {
   Outlet,
   RouterProvider,
@@ -6,8 +6,17 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  useRouter,
+  useRouterState,
 } from '@tanstack/react-router'
-import { FirstRouteRedirect, PageLayout, RootLayout } from '../../../src'
+import {
+  Button,
+  FirstRouteRedirect,
+  Icon,
+  PageLayout,
+  RootLayout,
+  type IconName,
+} from '../../../src'
 import { AvatarSection } from '../Avatar'
 import { BadgeSection } from '../Badge'
 import { ChipSection } from '../Chip'
@@ -50,12 +59,42 @@ import { UserDetailBody, UserFormBody, UsersListBody } from '../Users'
    generate themselves from these routes; the content area stacks breadcrumbs → page title → the page,
    and each page wraps its body in `PageLayout`. */
 
-// Wrap a page body in PageLayout — exactly how a consuming app renders a route's content.
-const inPage = (Body: ComponentType) => () => (
-  <PageLayout>
-    <Body />
-  </PageLayout>
-)
+// The deepest matched route's `staticData` (name + icon) — same lookup as the shell's `usePageTitle`,
+// so each PageLayout header mirrors the page the breadcrumbs/sidebar already name.
+function useActivePage(): { name?: string; icon?: IconName } {
+  const router = useRouter()
+  const matches = useRouterState({ select: (s) => s.matches })
+  for (let i = matches.length - 1; i >= 0; i--) {
+    const sd = router.looseRoutesById[matches[i].routeId]?.options?.staticData
+    if (sd?.name) return { name: sd.name, icon: sd.icon }
+  }
+  return {}
+}
+
+// Wrap a page body in PageLayout — exactly how a consuming app renders a route's content. The header
+// (icon + title) is derived from the route's `staticData`; pass `subtitle`/`actions` to enrich it.
+// The shell still shows its auto page-title (`h2`) above, so the heading reads both there and here.
+function PageContainer({
+  Body,
+  subtitle,
+  actions,
+}: {
+  Body: ComponentType
+  subtitle?: ReactNode
+  actions?: ReactNode
+}) {
+  const { name, icon } = useActivePage()
+  return (
+    <PageLayout icon={icon} title={name} subtitle={subtitle} actions={actions}>
+      <Body />
+    </PageLayout>
+  )
+}
+
+const inPage =
+  (Body: ComponentType, opts?: { subtitle?: ReactNode; actions?: ReactNode }) => () => (
+    <PageContainer Body={Body} subtitle={opts?.subtitle} actions={opts?.actions} />
+  )
 
 // Test brand logo (the Techzy wordmark). `fill="currentColor"` so it follows the theme text color.
 function TechzyLogo() {
@@ -362,19 +401,30 @@ const formRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form',
   staticData: { name: 'Form (JSON)', icon: 'Edit', order: 14 },
-  component: inPage(FormSection),
+  component: inPage(FormSection, {
+    subtitle: 'Zod-validated form — Submit POSTs nested JSON.',
+    actions: (
+      <Button size="sm" variant="outlined" startIcon={<Icon name="DocumentText" />}>
+        Docs
+      </Button>
+    ),
+  }),
 })
 const formDataRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form-data',
   staticData: { name: 'Form (FormData)', icon: 'DocumentUpload', order: 15 },
-  component: inPage(FormDataSection),
+  component: inPage(FormDataSection, {
+    subtitle: 'Same form — Submit POSTs multipart/form-data.',
+  }),
 })
 const formEditRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form-edit',
   staticData: { name: 'Form (Edit)', icon: 'Translate', order: 16 },
-  component: inPage(FormEditSection),
+  component: inPage(FormEditSection, {
+    subtitle: 'Edit mode — prefilled values, translations flattened in.',
+  }),
 })
 
 const shellRouter = createRouter({

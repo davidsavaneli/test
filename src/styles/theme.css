@@ -28,6 +28,18 @@
   --tz-color-secondary-shade700: rgba(var(--tz-color-secondary-rgb), 0.8);
   --tz-color-secondary-shade800: rgba(var(--tz-color-secondary-rgb), 0.9);
 
+  /* surface — a light surface color (very light in light mode, elevated dark in dark). Defined +
+     injected like any brand color, but NOT yet wired to any component — reserved for future use. */
+  --tz-color-surface: rgb(var(--tz-color-surface-rgb));
+  --tz-color-surface-shade100: rgba(var(--tz-color-surface-rgb), 0.06);
+  --tz-color-surface-shade200: rgba(var(--tz-color-surface-rgb), 0.1);
+  --tz-color-surface-shade300: rgba(var(--tz-color-surface-rgb), 0.14);
+  --tz-color-surface-shade400: rgba(var(--tz-color-surface-rgb), 0.3);
+  --tz-color-surface-shade500: rgba(var(--tz-color-surface-rgb), 0.5);
+  --tz-color-surface-shade600: rgba(var(--tz-color-surface-rgb), 0.7);
+  --tz-color-surface-shade700: rgba(var(--tz-color-surface-rgb), 0.8);
+  --tz-color-surface-shade800: rgba(var(--tz-color-surface-rgb), 0.9);
+
   /* background — page canvas (body / shell). Separate from `secondary` (surface): white in light
      mode, a deep dark in dark mode. Overridable per mode via ConfigProvider like any brand color. */
   --tz-color-background: rgb(var(--tz-color-background-rgb));
@@ -121,6 +133,7 @@
      applyTheme() recomputes these per mode from each color's luminance. */
   --tz-color-primary-contrast: #ffffff;
   --tz-color-secondary-contrast: rgb(var(--tz-color-primary-rgb));
+  --tz-color-surface-contrast: rgb(var(--tz-color-primary-rgb));
   --tz-color-background-contrast: #04202b;
   --tz-color-dark-contrast: #ffffff;
   --tz-color-medium-contrast: #ffffff;

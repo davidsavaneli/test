@@ -97,20 +97,21 @@ references it:
 --tz-color-primary-contrast: #ffffff; /* readable text color on a solid fill (theme.css fallback) */
 ```
 
-**Brand palette (10 colors)** — light-mode defaults:
+**Brand palette (11 colors)** — light-mode defaults:
 
-| token        | hex       | role                                |
-| ------------ | --------- | ----------------------------------- |
-| `primary`    | `#13404e` | primary brand / default text        |
-| `secondary`  | `#ffffff` | surface (cards, inputs, dropdowns)  |
-| `background` | `#ffffff` | page canvas — separate from surface |
-| `dark`       | `#033b44` | dark brand shade                    |
-| `medium`     | `#056472` | mid brand shade                     |
-| `light`      | `#039aa1` | light brand shade                   |
-| `success`    | `#00a854` | semantic — success                  |
-| `error`      | `#f04134` | semantic — error/danger             |
-| `info`       | `#039aa1` | semantic — info                     |
-| `warning`    | `#ffbf00` | semantic — warning                  |
+| token        | hex       | role                                            |
+| ------------ | --------- | ----------------------------------------------- |
+| `primary`    | `#13404e` | primary brand / default text                    |
+| `secondary`  | `#ffffff` | surface (cards, inputs, dropdowns)              |
+| `background` | `#ffffff` | page canvas — separate from surface             |
+| `surface`    | `#f5f7fa` | light surface — **defined but not yet applied** |
+| `dark`       | `#033b44` | dark brand shade                                |
+| `medium`     | `#056472` | mid brand shade                                 |
+| `light`      | `#039aa1` | light brand shade                               |
+| `success`    | `#00a854` | semantic — success                              |
+| `error`      | `#f04134` | semantic — error/danger                         |
+| `info`       | `#039aa1` | semantic — info                                 |
+| `warning`    | `#ffbf00` | semantic — warning                              |
 
 > These hex values are the library's built-in light defaults — they live in `DEFAULT_LIGHT_COLORS`
 > (`ConfigProvider.tsx`), the single source of truth. Consuming apps override any subset through
@@ -133,10 +134,11 @@ that color used as a solid fill. Used by `contained` controls. Defaults are most
 ### 3.2 Semantic colors
 
 Just two thin aliases derived from brand tokens, so they flip automatically when the palette is
-swapped per mode. There's **no** `--tz-color-surface` — surfaces (cards, inputs, dropdowns) use
-`--tz-color-secondary` directly; and the page canvas is its own `--tz-color-background` brand color
-(see §3.1). The whole shell (sidebar, header, content) and `PageLayout` use `--tz-color-background`,
-so only cards/inputs/dropdowns (`--tz-color-secondary`) read as elevated:
+swapped per mode. `--tz-color-surface` **is defined** (§3.1) and configurable, but **nothing uses it
+yet** — surfaces (cards, inputs, dropdowns) still use `--tz-color-secondary` directly; and the page
+canvas is its own `--tz-color-background` brand color (see §3.1). The whole shell (sidebar, header,
+content) and `PageLayout` use `--tz-color-background`, so only cards/inputs/dropdowns
+(`--tz-color-secondary`) read as elevated:
 
 ```css
 --tz-color-text: rgb(var(--tz-color-primary-rgb)); /* = primary, the default text color */
@@ -278,7 +280,7 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 - **Default palettes live in TS, in `ConfigProvider.tsx`** — `DEFAULT_LIGHT_COLORS` (the full built-in
   light palette = the single source of truth for every brand color's default value) and
   `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `background
-#1F1F1E`, plus a brighter `dark`/`medium`/`light` teal ramp). `theme.css` holds **no** color values — only the structure (solids, shades,
+#1F1F1E`, `surface #2a2a28`, plus a brighter `dark`/`medium`/`light` teal ramp). `theme.css` holds **no** color values — only the structure (solids, shades,
   contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
 - **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; keys?: KeysConfig }`
   — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),
@@ -926,8 +928,10 @@ sets the header apart from the body while expanded. `collapsible` adds an `Arrow
 a leading **filled, non-clickable `IconButton`** box (decorative → `aria-hidden`), tinted by `color`
 (brand token, default `medium`). `subtitle` is a muted description line under the `title`; both `title`
 and `subtitle` clamp to **two lines** then ellipsis (`-webkit-line-clamp`).
-Surface + border + `--tz-radius-md` + `--tz-shadow-xs`. Header omitted entirely when there's no
-title/icon/actions/collapsible. Own CSS module.
+Surface + border + `--tz-radius-md` + `--tz-shadow-xs`. **`flat`** drops the shadow and swaps the
+`secondary` surface for the page `--tz-color-background` (blends with the shell, no elevation) — used by
+`PageLayout`, which is a flat Card. Header omitted entirely when there's no title/icon/actions/collapsible.
+Own CSS module.
 
 ### Flex / Row / Col / Grid
 
@@ -1228,7 +1232,7 @@ header **toggle** `IconButton` (left, `filled`, `Menu` icon) collapses/hides the
 its `width` to `0` (the shell's first grid column is `auto`, so it follows); the `ThemeToggle` is
 `filled` too. Nav icons match the row label
 (text) color via `--tz-list-icon-color` set on the nav. The **header** holds only the right-side controls driven by the
-`header` config — `header?: { theme?: boolean /* default true */; fullscreen?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`
+`header` config — `header?: { theme?: boolean /* default true */; fullscreen?: boolean /* default true */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`
 (a `FullscreenToggle` + `ThemeToggle`, both on by default and `filled`, plus an account `Avatar` — a
 focusable button whose `Dropdown` menu
 has a single **Sign out** `ListItem` calling `onLogout` — shown when `onLogout` is given; when `user`
@@ -1236,6 +1240,8 @@ is supplied the menu opens with a `User`-icon (or `user.avatar` image) + name + 
 divider). The
 content area stacks **`Breadcrumbs` → the page title (the active route's `staticData.name`, via the
 internal `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**.
+Set **`header.pageTitle: false`** to drop that auto `h2` when pages render their own heading inside
+their `PageLayout` header instead (icon + title + actions) — so the title isn't shown twice.
 **`Sidebar`** auto-builds a 3-level menu (module → group → page) by
 walking `useRouter().looseRoutesById` and reading each route's `fullPath` + `staticData` — no manual
 menu config. Rows are composed from **`List` / `ListItem`** (links render via `ListItem as={Link}`,
@@ -1243,11 +1249,12 @@ bridged by a small typed `NavLink` cast since `to` is router-specific); the acti
 `ListItem selected`, leaves use dot bullets (no icons) at `size="md"`, and an expandable group's leaf
 `List` folds with the same smooth `grid-template-rows: 1fr → 0fr` transition as `Card` (chevron
 `ArrowDown4`). The module label is a dark, `md`, uppercase heading (no icon). **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item. **`PageLayout`**
-is a plain container on the page `background` (`border` + `radius` + `padding`, token-only) for a
-page's content — the whole shell (sidebar, header, content) and `PageLayout` share
-`--tz-color-background`, so only cards/inputs/dropdowns (`--tz-color-secondary`) read as elevated;
-it extends `HTMLAttributes<HTMLDivElement>` and ships named **and** default from
-`sava-test/components/PageLayout`.
+is a **flat `Card`** (`<Card flat>`) for a page's content — so it gains Card's full anatomy (optional
+header `icon`/`title`/`subtitle`/`actions`, body, `footer`/`footerStart`, `collapsible`) while staying on
+the page `--tz-color-background` with no shadow. The whole shell (sidebar, header, content) and
+`PageLayout` share `--tz-color-background`, so only cards/inputs/dropdowns (`--tz-color-secondary`) read
+as elevated; its props are `Omit<CardProps, 'flat'>` (always flat) and it ships named **and** default
+from `sava-test/components/PageLayout`.
 
 Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
 `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[]; badge?: string; dot?: ThemeColor }`

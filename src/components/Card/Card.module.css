@@ -9,6 +9,12 @@
   color: var(--tz-color-text);
 }
 
+/* flat — blends with the page (no elevation): the page `background` + no shadow (used by `PageLayout`) */
+.flat {
+  background: var(--tz-color-background);
+  box-shadow: none;
+}
+
 /* ── header ─────────────────────────────────────────────────────────────── */
 .header {
   display: flex;
