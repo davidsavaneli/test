@@ -121,4 +121,12 @@ describe('SpeedDial', () => {
     render(<SpeedDial ariaLabel="Actions" actions={ACTIONS} ref={ref} />)
     expect(ref.current).toBe(getFab().parentElement)
   })
+
+  it('renders persistent labels with tooltipOpen (no hover needed)', () => {
+    render(<SpeedDial ariaLabel="Actions" actions={ACTIONS} defaultOpen tooltipOpen />)
+    const labels = [...document.querySelectorAll('[class*="actionLabel"]')].map((el) =>
+      el.textContent?.trim(),
+    )
+    expect(labels).toEqual(['Edit', 'Copy'])
+  })
 })

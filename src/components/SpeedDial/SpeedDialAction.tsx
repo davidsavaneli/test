@@ -17,7 +17,9 @@ export interface SpeedDialActionProps extends Omit<
   icon: IconName | ReactNode
   /** Label shown as a tooltip beside the action (also its `aria-label` when a string). */
   label?: ReactNode
-  /** Hide the tooltip (still used for `aria-label`). */
+  /** Show the label persistently (no hover) while the dial is open — overrides the dial's `tooltipOpen`. */
+  tooltipOpen?: boolean
+  /** Hide the tooltip / persistent label (still used for `aria-label`). */
   hideTooltip?: boolean
 }
 
@@ -28,7 +30,7 @@ export interface SpeedDialActionProps extends Omit<
  */
 export const SpeedDialAction = forwardRef<HTMLButtonElement, SpeedDialActionProps>(
   function SpeedDialAction(
-    { icon, label, hideTooltip = false, onClick, disabled, className, ...props },
+    { icon, label, tooltipOpen, hideTooltip = false, onClick, disabled, className, ...props },
     ref,
   ) {
     const dial = useSpeedDial()
@@ -56,8 +58,26 @@ export const SpeedDialAction = forwardRef<HTMLButtonElement, SpeedDialActionProp
     )
 
     if (label == null || hideTooltip) return button
+
+    const placement = dial?.placement ?? 'left'
+    // persistent label: render a static label beside the button (no hover) — like MUI's tooltipOpen
+    const persistent = tooltipOpen ?? dial?.persistentLabels ?? false
+    if (persistent) {
+      return (
+        <span
+          className={clsx(
+            styles.actionWrap,
+            placement === 'top' ? styles.labelTop : styles.labelLeft,
+          )}
+        >
+          {button}
+          <span className={styles.actionLabel}>{label}</span>
+        </span>
+      )
+    }
+
     return (
-      <Tooltip content={label} placement={dial?.placement ?? 'left'}>
+      <Tooltip content={label} placement={placement}>
         {button}
       </Tooltip>
     )

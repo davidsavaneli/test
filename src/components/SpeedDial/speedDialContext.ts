@@ -12,6 +12,8 @@ export interface SpeedDialContextValue {
   placement: TooltipPlacement
   /** Close the dial after an action is clicked. */
   closeOnClick: boolean
+  /** Show every action's label persistently (no hover needed) while the dial is open. */
+  persistentLabels: boolean
   /** Request the dial to close (called by an action on click). */
   requestClose: () => void
 }

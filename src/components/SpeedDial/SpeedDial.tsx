@@ -71,6 +71,8 @@ export interface SpeedDialProps extends Omit<HTMLAttributes<HTMLDivElement>, 'co
   openOnHover?: boolean
   /** Close the dial after an action is clicked. Defaults to `true`. */
   closeOnActionClick?: boolean
+  /** Show every action's label persistently while open (no hover needed) — like MUI's `tooltipOpen`. */
+  tooltipOpen?: boolean
   /** Data-driven actions — an alternative to `<SpeedDialAction>` children. */
   actions?: SpeedDialActionItem[]
   /** Disables the FAB (and hover-opening). */
@@ -101,6 +103,7 @@ export const SpeedDial = forwardRef<HTMLDivElement, SpeedDialProps>(function Spe
     onOpenChange,
     openOnHover = true,
     closeOnActionClick = true,
+    tooltipOpen = false,
     actions,
     disabled = false,
     children,
@@ -165,6 +168,7 @@ export const SpeedDial = forwardRef<HTMLDivElement, SpeedDialProps>(function Spe
     size: ACTION_SIZE[size],
     placement: TOOLTIP_PLACEMENT[direction],
     closeOnClick: closeOnActionClick,
+    persistentLabels: tooltipOpen,
     requestClose: () => setOpen(false),
   }
 

@@ -17,27 +17,28 @@ const ACTIONS: SpeedDialActionItem[] = [
   { key: 'print', icon: 'Printer', label: 'Print' },
 ]
 
-/** Where the FAB sits in its stage so the actions fan out into the box (not over the page). */
-const STAGE_ALIGN: Record<SpeedDialDirection, CSSProperties> = {
-  up: { alignItems: 'flex-end', justifyContent: 'center' },
-  down: { alignItems: 'flex-start', justifyContent: 'center' },
-  left: { alignItems: 'center', justifyContent: 'flex-end' },
-  right: { alignItems: 'center', justifyContent: 'flex-start' },
+/* The dial positions ITSELF — `position: absolute` pinned to a corner of a relative parent (or
+   `fixed` to the viewport for a page FAB). The Panel below is just that relative parent (your page /
+   card / section); the dial doesn't need any special wrapper. The corner is chosen per direction so
+   the actions fan into the parent. */
+const DIAL_POS: Record<SpeedDialDirection, CSSProperties> = {
+  up: { position: 'absolute', right: 16, bottom: 16 },
+  down: { position: 'absolute', right: 16, top: 16 },
+  left: { position: 'absolute', right: 16, bottom: 16 },
+  right: { position: 'absolute', left: 16, bottom: 16 },
 }
 
-/** A padded box that gives a dial room to fan out. */
-function Stage({ direction, children }: { direction: SpeedDialDirection; children: ReactNode }) {
+/** A relative positioning context (stands in for your page/card) so the absolute dial has an anchor. */
+function Panel({ children }: { children: ReactNode }) {
   return (
     <div
       style={{
         position: 'relative',
-        display: 'flex',
-        minHeight: 220,
-        minWidth: 200,
-        padding: 'var(--tz-space-md)',
+        height: 230,
+        minWidth: 230,
+        flex: '1 1 230px',
         border: '1px dashed var(--tz-color-border)',
         borderRadius: 'var(--tz-radius-md)',
-        ...STAGE_ALIGN[direction],
       }}
     >
       {children}
@@ -55,19 +56,38 @@ export function SpeedDialSection() {
     <Section>
       <Block
         label="Basic — hover or click the FAB"
-        description="The + rotates to × on open; actions fan up with tooltip labels and close on click."
+        description="Position the dial yourself: position: absolute in a relative parent (the dashed panel here), or position: fixed for a page FAB. The + rotates to × on open; actions fan up and close on click."
       >
-        <Stage direction="up">
-          <SpeedDial ariaLabel="Document actions" actions={ACTIONS} />
-        </Stage>
+        <Panel>
+          <SpeedDial ariaLabel="Document actions" actions={ACTIONS} style={DIAL_POS.up} />
+        </Panel>
+      </Block>
+
+      <Block
+        label="Persistent labels — tooltipOpen"
+        description="Every action's label shows as soon as the dial opens, no hover needed."
+      >
+        <Panel>
+          <SpeedDial
+            ariaLabel="Labelled actions"
+            actions={ACTIONS}
+            tooltipOpen
+            style={DIAL_POS.up}
+          />
+        </Panel>
       </Block>
 
       <Block label="Directions — up / down / left / right">
         <Row gap={16} wrap>
           {DIRECTIONS.map((d) => (
-            <Stage key={d} direction={d}>
-              <SpeedDial ariaLabel={`${cap(d)} actions`} direction={d} actions={ACTIONS} />
-            </Stage>
+            <Panel key={d}>
+              <SpeedDial
+                ariaLabel={`${cap(d)} actions`}
+                direction={d}
+                actions={ACTIONS}
+                style={DIAL_POS[d]}
+              />
+            </Panel>
           ))}
         </Row>
       </Block>
@@ -75,9 +95,14 @@ export function SpeedDialSection() {
       <Block label="Colors — the FAB tint follows the color prop">
         <Row gap={16} wrap>
           {COLORS.map((c) => (
-            <Stage key={c} direction="up">
-              <SpeedDial ariaLabel={`${cap(c)} actions`} color={c} actions={ACTIONS.slice(0, 3)} />
-            </Stage>
+            <Panel key={c}>
+              <SpeedDial
+                ariaLabel={`${cap(c)} actions`}
+                color={c}
+                actions={ACTIONS.slice(0, 3)}
+                style={DIAL_POS.up}
+              />
+            </Panel>
           ))}
         </Row>
       </Block>
@@ -86,13 +111,19 @@ export function SpeedDialSection() {
         label="Custom open icon + children"
         description="openIcon swaps the glyph (× here) instead of rotating; actions passed as children."
       >
-        <Stage direction="up">
-          <SpeedDial ariaLabel="Create" icon="Add" openIcon="CloseSquare" color="dark">
+        <Panel>
+          <SpeedDial
+            ariaLabel="Create"
+            icon="Add"
+            openIcon="CloseSquare"
+            color="dark"
+            style={DIAL_POS.up}
+          >
             <SpeedDialAction icon="Edit2" label="New Doc" />
             <SpeedDialAction icon="Share" label="New Folder" />
             <SpeedDialAction icon="Heart" label="New Favorite" />
           </SpeedDial>
-        </Stage>
+        </Panel>
       </Block>
 
       <Block
@@ -103,7 +134,7 @@ export function SpeedDialSection() {
           <Button variant="outlined" onClick={controlled.toggle}>
             {controlled.isOpen ? 'Close' : 'Open'} Dial
           </Button>
-          <Stage direction="right">
+          <Panel>
             <SpeedDial
               ariaLabel="Controlled actions"
               direction="right"
@@ -111,8 +142,9 @@ export function SpeedDialSection() {
               open={controlled.isOpen}
               onOpenChange={(o) => (o ? controlled.open() : controlled.close())}
               actions={ACTIONS}
+              style={DIAL_POS.right}
             />
-          </Stage>
+          </Panel>
         </Row>
       </Block>
     </Section>

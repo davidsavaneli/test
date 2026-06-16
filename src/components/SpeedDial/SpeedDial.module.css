@@ -75,6 +75,48 @@
   transition: transform var(--tz-duration);
   box-shadow: var(--tz-shadow-md);
 }
+/* the action surface (secondary) matches the page background, so a hairline border delineates the
+   circle (like Card/inputs) — the contained border is the same surface color. `button.action` outranks
+   IconButton's `.contained` regardless of CSS order. */
+button.action {
+  border: 1px solid var(--tz-color-border);
+}
 .actions[data-open='true'] .action {
   transform: scale(1);
+}
+
+/* ── persistent labels (tooltipOpen) ─────────────────────────────────────────────
+   the label floats beside the button (absolute, so it never shifts the FAB's position — buttons stay
+   aligned in the fan); styling mirrors the hover Tooltip (brand `primary` fill). */
+.actionWrap {
+  position: relative;
+  display: inline-flex;
+}
+.actionLabel {
+  position: absolute;
+  width: max-content;
+  max-width: 240px;
+  padding: var(--tz-space-xxs) var(--tz-space-xs);
+  border-radius: var(--tz-radius-xs);
+  background: var(--tz-color-primary);
+  color: var(--tz-color-primary-contrast);
+  font-size: var(--tz-font-size-sm);
+  font-weight: var(--tz-font-weight-regular);
+  line-height: var(--tz-line-height);
+  box-shadow: var(--tz-shadow-md);
+  pointer-events: none;
+}
+/* left of the button (vertical dials) */
+.labelLeft .actionLabel {
+  top: 50%;
+  right: 100%;
+  margin-right: var(--tz-space-xs);
+  transform: translateY(-50%);
+}
+/* above the button (horizontal dials) */
+.labelTop .actionLabel {
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: var(--tz-space-xs);
+  transform: translateX(-50%);
 }
