@@ -15,6 +15,7 @@ import { DividerSection } from '../Divider'
 import { LayoutSection } from '../Layout'
 import { ListSection } from '../List'
 import { ModalSection } from '../Modal'
+import { ToggleButtonSection } from '../ToggleButton'
 import { DropdownSection } from '../Dropdown'
 import { TabsSection } from '../Tabs'
 import { ButtonSection } from '../Button'
@@ -245,6 +246,12 @@ const modalRoute = createRoute({
   staticData: { name: 'Modal', icon: 'Maximize3', order: 14 },
   component: inPage(ModalSection),
 })
+const toggleButtonRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'toggle-button',
+  staticData: { name: 'Toggle Button', icon: 'Category2', order: 15 },
+  component: inPage(ToggleButtonSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -378,6 +385,7 @@ const shellRouter = createRouter({
         dropdownRoute,
         tabsRoute,
         modalRoute,
+        toggleButtonRoute,
       ]),
       formsRoute.addChildren([
         textFieldRoute,

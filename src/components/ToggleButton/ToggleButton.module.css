@@ -1,0 +1,115 @@
+/* ToggleButton + ToggleButtonGroup. Selected uses the soft `filled` tint of --tz-btn-rgb (set inline
+   from the `color` prop). The group collapses adjacent borders into one joined, segmented control. */
+
+.toggleButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tz-space-xs);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-xs);
+  background-color: transparent;
+  color: var(--tz-color-text);
+  font-family: var(--tz-font-family);
+  font-weight: var(--tz-font-weight-regular);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--tz-duration),
+    border-color var(--tz-duration),
+    color var(--tz-duration),
+    opacity var(--tz-duration);
+}
+.toggleButton:hover:not(:disabled) {
+  background-color: rgba(var(--tz-color-primary-rgb), 0.06);
+}
+.toggleButton.selected {
+  background-color: rgba(var(--tz-btn-rgb), 0.16);
+  color: rgb(var(--tz-btn-rgb));
+}
+.toggleButton.selected:hover:not(:disabled) {
+  background-color: rgba(var(--tz-btn-rgb), 0.24);
+}
+.toggleButton:focus-visible {
+  outline: none;
+  z-index: 1;
+  box-shadow: 0 0 0 2px rgba(var(--tz-btn-rgb), 0.4);
+}
+.toggleButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.fullWidth {
+  width: 100%;
+}
+
+/* sizes — height/padding/font from the control tokens; min-width = height so icon-only stays square */
+.sm {
+  height: var(--tz-control-height-sm);
+  min-width: var(--tz-control-height-sm);
+  padding: 0 var(--tz-space-sm);
+  font-size: var(--tz-font-size-sm);
+}
+.md {
+  height: var(--tz-control-height-md);
+  min-width: var(--tz-control-height-md);
+  padding: 0 var(--tz-space-md);
+  font-size: var(--tz-font-size-md);
+}
+.lg {
+  height: var(--tz-control-height-lg);
+  min-width: var(--tz-control-height-lg);
+  padding: 0 var(--tz-space-md);
+  font-size: var(--tz-font-size-lg);
+}
+
+/* ── group (joined / segmented) ─────────────────────────────────────────────── */
+.group {
+  display: inline-flex;
+}
+.group.vertical {
+  flex-direction: column;
+}
+.group.fullWidth {
+  display: flex;
+  width: 100%;
+}
+.group.fullWidth .toggleButton {
+  flex: 1;
+}
+
+/* collapse the shared border + round only the outer corners */
+.group .toggleButton {
+  border-radius: 0;
+}
+.group:not(.vertical) .toggleButton:not(:first-child) {
+  margin-left: -1px;
+}
+.group:not(.vertical) .toggleButton:first-child {
+  border-top-left-radius: var(--tz-radius-xs);
+  border-bottom-left-radius: var(--tz-radius-xs);
+}
+.group:not(.vertical) .toggleButton:last-child {
+  border-top-right-radius: var(--tz-radius-xs);
+  border-bottom-right-radius: var(--tz-radius-xs);
+}
+.group.vertical .toggleButton:not(:first-child) {
+  margin-top: -1px;
+}
+.group.vertical .toggleButton:first-child {
+  border-top-left-radius: var(--tz-radius-xs);
+  border-top-right-radius: var(--tz-radius-xs);
+}
+.group.vertical .toggleButton:last-child {
+  border-bottom-left-radius: var(--tz-radius-xs);
+  border-bottom-right-radius: var(--tz-radius-xs);
+}
+/* raise the hovered/selected/focused button so its border isn't hidden under the neighbor's */
+.group .toggleButton:hover:not(:disabled),
+.group .toggleButton.selected,
+.group .toggleButton:focus-visible {
+  z-index: 1;
+}
