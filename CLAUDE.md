@@ -998,6 +998,24 @@ is focused on open. Controlled (`open` + `onOpenChange`) or uncontrolled (`defau
 trigger gap; `disabled` blocks opening. Enter transition keyed off `data-open`/`data-side` (opacity +
 a token-sized translate). Uses `react-dom` `createPortal` (peer dep). Own CSS module.
 
+### Popover
+
+An **anchored popover for arbitrary content** — the generic floating surface (filter panels, forms,
+detail cards) that `Dropdown` is **not** (Dropdown is a `role="menu"` of items). Built on the shared
+**`FloatingPanel`**: portaled to `<body>`, opens **below the `trigger`** (flips above on overflow),
+**locks page scroll**, dismisses on **outside-pointerdown** / **Escape** (refocusing the trigger), and
+enters with the shared opacity + translate animation. The **`trigger`** element is cloned to wire
+`onClick` (toggle) + `aria-haspopup="dialog"`/`aria-expanded`/`aria-controls` and a merged `ref` (so a
+`Badge`-wrapped `IconButton` works as the trigger). **`children`** is any content. **`align`** picks the
+horizontal anchor: `start` (default — left edges align, grows right) or `end` (right edges align, grows
+**left** — for a trigger near the right edge; vertical side still auto-flips). **`trapFocus`** cycles Tab
+within (for form/filter popovers — also sets `aria-modal`); **`matchTriggerWidth`** sizes the panel ≥ the
+trigger (select-like); **`width`** sets a fixed panel width; **`ariaLabel`** names the `role="dialog"` panel. Controlled (`open` + `onOpenChange`) or uncontrolled (`defaultOpen`); `disabled`
+blocks opening. The panel is `--tz-radius-sm` / `--tz-shadow-md` (from `FloatingPanel`) with
+`overflow: hidden` so full-width dividers/footers meet the rounded corners — compose a header (tinted
+icon box + title) + a `Divider` + body + footer (e.g. Clear / Close / Filter `Button`s) inside, mirroring
+`Card`/`Modal`. Own CSS module. _Placement variants (top/left/right) + an arrow are natural next iterations._
+
 ### Modal
 
 A centered, backdrop-dimmed overlay dialog — the library's interruptive-task surface (confirmations,
@@ -1131,10 +1149,12 @@ outside-pointerdown / `Escape`. Not in the public hooks surface.
 ### FloatingPanel (internal)
 
 The single shared popover, wrapping `useFloatingPanel` — **every floating popover in the library**
-(`Select` / `MultiSelect`, `DatePicker` / `DateTimePicker` / `TimePicker`, `ColorPicker`) renders it, so
-the portal + positioned div + `data-open`/`data-side` + enter animation + (optional) focus-trap aren't
-written per component. Props: `open` · `triggerRef` · `onClose(refocus)` · `role?` (`'dialog'`) ·
-`ariaLabel?` · `trapFocus?` (traps Tab **and** sets `aria-modal` — for the modal date/time dialogs) ·
+(`Select` / `MultiSelect`, `DatePicker` / `DateTimePicker` / `TimePicker`, `ColorPicker`, and the public
+**`Popover`**) renders it, so the portal + positioned div + `data-open`/`data-side` + enter animation +
+(optional) focus-trap aren't written per component. Props: `open` · `triggerRef` · `onClose(refocus)` ·
+`align?` (`start` default · `end` right-aligns + grows left, used by `Popover`) ·
+`id?` (for the trigger's `aria-controls`, used by `Popover`) · `role?` (`'dialog'`) · `ariaLabel?` ·
+`trapFocus?` (traps Tab **and** sets `aria-modal` — for the modal date/time dialogs + form popovers) ·
 `matchTriggerWidth?` (select-like, used by Select/MultiSelect) · `width?` (fixed, e.g. ColorPicker's
 `232`) · `className` (merged after the shared chrome) · `style` (e.g. ColorPicker's `--cp-hue`). It
 **forwards its ref** to the panel element so a consumer can still read it (blur bookkeeping, focus

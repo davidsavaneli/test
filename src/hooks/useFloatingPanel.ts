@@ -19,6 +19,11 @@ export interface UseFloatingPanelOptions {
   /** Ref to the anchor/trigger element. */
   triggerRef: RefObject<HTMLElement | null>
   /**
+   * Horizontal alignment to the trigger: `start` (panel's left edge at the trigger's left — grows
+   * right, the default) or `end` (panel's right edge at the trigger's right — grows left).
+   */
+  align?: 'start' | 'end'
+  /**
    * Dismiss request. Outside-pointerdown passes whether focus was parked inside the panel (so the
    * consumer can restore focus to the trigger); Escape passes `true`.
    */
@@ -48,6 +53,7 @@ export interface UseFloatingPanelResult {
 export function useFloatingPanel({
   open,
   triggerRef,
+  align = 'start',
   onClose,
 }: UseFloatingPanelOptions): UseFloatingPanelResult {
   const popoverRef = useRef<HTMLDivElement | null>(null)
@@ -81,12 +87,14 @@ export function useFloatingPanel({
     // clamp using the panel's actual width (a panel can be wider than its trigger, e.g. a calendar);
     // `width` returns the trigger width for consumers that match it (Select/MultiSelect).
     const panelW = panel.offsetWidth
+    // `end` pins the panel's right edge to the trigger's right (grows left); `start` pins left (grows right)
+    const baseLeft = align === 'end' ? rect.right - panelW : rect.left
     const left = Math.min(
-      Math.max(rect.left, VIEWPORT_PADDING),
+      Math.max(baseLeft, VIEWPORT_PADDING),
       Math.max(VIEWPORT_PADDING, vw - VIEWPORT_PADDING - panelW),
     )
     setPosition({ top, left, width: rect.width, side, maxHeight })
-  }, [triggerRef])
+  }, [triggerRef, align])
 
   useLayoutEffect(() => {
     if (!open) {

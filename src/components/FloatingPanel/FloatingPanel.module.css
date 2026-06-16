@@ -6,6 +6,9 @@
   /* popover layer — above `--tz-z-modal` so a Select / picker opened inside a Modal floats over it */
   z-index: var(--tz-z-popover);
   box-sizing: border-box;
+  /* never exceed the viewport (minus the 8px edge gap the positioner keeps) — a fixed `width` (e.g. a
+     320px Popover) shrinks on narrow screens instead of overflowing horizontally */
+  max-width: calc(100vw - 16px);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);
   background: var(--tz-color-secondary);

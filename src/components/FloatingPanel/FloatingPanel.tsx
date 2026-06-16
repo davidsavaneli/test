@@ -15,8 +15,12 @@ export interface FloatingPanelProps {
   open: boolean
   /** Ref to the anchor/trigger element the panel is positioned against. */
   triggerRef: RefObject<HTMLElement | null>
+  /** Horizontal alignment to the trigger: `start` (default, grows right) or `end` (grows left). */
+  align?: 'start' | 'end'
   /** Dismiss request: outside-pointerdown (arg = restore focus to the trigger?) or Escape (`true`). */
   onClose: (refocus: boolean) => void
+  /** `id` for the panel element — pair with the trigger's `aria-controls`. */
+  id?: string
   /** ARIA role for the panel element (e.g. `'dialog'`). Omit for a plain wrapper (e.g. around a listbox). */
   role?: string
   /** Accessible label, paired with `role`. */
@@ -40,7 +44,7 @@ const FOCUSABLE = 'button:not([tabindex="-1"]):not(:disabled), [tabindex="0"]'
 
 /**
  * The shared floating popover used across the library — `Select` / `MultiSelect`, the date/time
- * pickers, and `ColorPicker`. Wraps `useFloatingPanel` and renders a `<body>`-portaled, viewport-clamped
+ * pickers, `ColorPicker`, and the public `Popover`. Wraps `useFloatingPanel` and renders a `<body>`-portaled, viewport-clamped
  * panel that opens below its trigger (flips above only when it would overflow), locks page scroll while
  * open, animates in (opacity + translate, keyed off `data-open`/`data-side`), and dismisses on
  * outside-pointerdown / `Escape`. Optionally **traps Tab focus** (`trapFocus`, for modal dialogs — also
@@ -51,7 +55,9 @@ export const FloatingPanel = forwardRef<HTMLDivElement, FloatingPanelProps>(func
   {
     open,
     triggerRef,
+    align,
     onClose,
+    id,
     role,
     ariaLabel,
     trapFocus = false,
@@ -63,7 +69,16 @@ export const FloatingPanel = forwardRef<HTMLDivElement, FloatingPanelProps>(func
   },
   forwardedRef,
 ) {
-  const { popoverRef, position: pos, visible } = useFloatingPanel({ open, triggerRef, onClose })
+  const {
+    popoverRef,
+    position: pos,
+    visible,
+  } = useFloatingPanel({
+    open,
+    triggerRef,
+    align,
+    onClose,
+  })
 
   // attach the panel node to both the hook's ref (for positioning) and the forwarded ref (for the
   // consumer's blur/focus bookkeeping)
@@ -98,6 +113,7 @@ export const FloatingPanel = forwardRef<HTMLDivElement, FloatingPanelProps>(func
   return createPortal(
     <div
       ref={setRef}
+      id={id}
       className={clsx(styles.panel, className)}
       role={role}
       aria-modal={role === 'dialog' && trapFocus ? true : undefined}

@@ -1,0 +1,6 @@
+/* Popover — anchored panel for arbitrary content. The shared FloatingPanel `.panel` supplies the
+   border / radius / surface / shadow / enter animation; this only clips content to the rounded corners
+   (so full-width dividers / footers meet the radius cleanly). */
+.popover {
+  overflow: hidden;
+}

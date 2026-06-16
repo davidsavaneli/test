@@ -17,6 +17,7 @@ import { ListSection } from '../List'
 import { ModalSection } from '../Modal'
 import { ToggleButtonSection } from '../ToggleButton'
 import { SpeedDialSection } from '../SpeedDial'
+import { PopoverSection } from '../Popover'
 import { DropdownSection } from '../Dropdown'
 import { TabsSection } from '../Tabs'
 import { ButtonSection } from '../Button'
@@ -259,6 +260,12 @@ const speedDialRoute = createRoute({
   staticData: { name: 'Speed Dial', icon: 'AddCircle', order: 16 },
   component: inPage(SpeedDialSection),
 })
+const popoverRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'popover',
+  staticData: { name: 'Popover', icon: 'Filter', order: 17 },
+  component: inPage(PopoverSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -394,6 +401,7 @@ const shellRouter = createRouter({
         modalRoute,
         toggleButtonRoute,
         speedDialRoute,
+        popoverRoute,
       ]),
       formsRoute.addChildren([
         textFieldRoute,
