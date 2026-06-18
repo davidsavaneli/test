@@ -1,0 +1,124 @@
+/* Pagination — page navigator. Selected page tinted via the shared --tz-btn-rgb / --tz-btn-on pattern. */
+
+.pagination {
+  font-family: var(--tz-font-family);
+  color: var(--tz-color-text);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tz-space-xxs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+}
+
+/* sizes — box / font / arrow-icon drive the page buttons + ellipsis via custom props on the root.
+   Pagination uses a compact box scale (28/32/36px) below the control-height tokens — no token maps to
+   these, the same deliberate literal-px exception the RichTextEditor toolbar makes. Font sits one step
+   down the shared scale (xs/sm/md = 10/12/13); the arrow icon (--pg-icon, 14/16/18) is a touch smaller
+   than the global Icon presets — a pagination-local override (see `.arrow svg`) so it reads compact at
+   a clean 2:1 box ratio without resizing the shared Icon component. */
+.sm {
+  --pg-box: 28px;
+  --pg-font: var(--tz-font-size-xs);
+  --pg-icon: 14px;
+}
+.md {
+  --pg-box: 32px;
+  --pg-font: var(--tz-font-size-sm);
+  --pg-icon: 16px;
+}
+.lg {
+  --pg-box: 36px;
+  --pg-font: var(--tz-font-size-md);
+  --pg-icon: 18px;
+}
+
+/* a page number / arrow button */
+.page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: var(--pg-box);
+  height: var(--pg-box);
+  padding: 0 var(--tz-space-xxs);
+  border: 1px solid transparent;
+  border-radius: var(--tz-radius-xs);
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--pg-font);
+  font-weight: var(--tz-font-weight-regular);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.page:hover:not(:disabled):not(.selected) {
+  transition: background-color var(--tz-duration);
+  background: rgba(var(--tz-btn-rgb), 0.08);
+}
+
+.page:focus-visible {
+  outline: 2px solid rgba(var(--tz-btn-rgb), 0.5);
+  outline-offset: 2px;
+}
+
+.page:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* outlined variant — every page / arrow gets a hairline border (the `text` variant stays borderless) */
+.outlined .page {
+  border-color: var(--tz-color-border);
+}
+
+/* selected page — solid brand fill (the current-page indicator); declared after the variant rules so it wins */
+.page.selected {
+  background: rgb(var(--tz-btn-rgb));
+  border-color: rgb(var(--tz-btn-rgb));
+  color: var(--tz-btn-on, #fff);
+  cursor: default;
+  transition:
+    border-color var(--tz-duration),
+    color var(--tz-duration);
+}
+
+/* circular page buttons */
+.rounded .page {
+  border-radius: 999px;
+}
+
+/* compact arrow icon — pagination-local; overrides the global Icon size preset (--pg-icon, 14/16/18) */
+.arrow svg {
+  width: var(--pg-icon);
+  height: var(--pg-icon);
+}
+
+/* the next / last icons reuse the left-facing glyph, mirrored to point right */
+.flip {
+  transform: scaleX(-1);
+}
+
+/* the `…` gap between page groups — non-interactive, muted */
+.ellipsis {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: var(--pg-box);
+  height: var(--pg-box);
+  padding-bottom: var(--tz-space-xxs);
+  color: var(--tz-color-primary-shade600);
+  font-size: var(--pg-font);
+  line-height: 1;
+  user-select: none;
+}
