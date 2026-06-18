@@ -176,4 +176,35 @@ describe('Modal', () => {
     )
     expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancel' }))
   })
+
+  it('defaults placement to center', () => {
+    render(
+      <Modal open onClose={() => {}} title="Centered">
+        x
+      </Modal>,
+    )
+    const overlay = screen.getByRole('dialog').parentElement as HTMLElement
+    expect(overlay).toHaveAttribute('data-placement', 'center')
+  })
+
+  it('renders as a side drawer with data-placement on the overlay', () => {
+    render(
+      <Modal open onClose={() => {}} placement="left" title="Filters">
+        x
+      </Modal>,
+    )
+    const overlay = screen.getByRole('dialog').parentElement as HTMLElement
+    expect(overlay).toHaveAttribute('data-placement', 'left')
+  })
+
+  it('forces inside scroll for a side drawer, ignoring scrollBehavior', () => {
+    render(
+      <Modal open onClose={() => {}} placement="right" scrollBehavior="outside" title="Filters">
+        x
+      </Modal>,
+    )
+    const overlay = screen.getByRole('dialog').parentElement as HTMLElement
+    expect(overlay).toHaveAttribute('data-placement', 'right')
+    expect(overlay).toHaveAttribute('data-scroll', 'inside')
+  })
 })

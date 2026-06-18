@@ -160,3 +160,35 @@
 .overlay[data-scroll='outside'] .modal:not(.fullScreen) .body {
   overflow-y: visible;
 }
+
+/* ── side drawer (placement left / right) — a full-height sheet pinned to the edge, sliding in from it.
+   Width comes from `size` (the max-width cap); the body scrolls inside while header + footer stay
+   pinned (placement always forces `inside` scroll, so the outside-scroll rules above never apply). ── */
+.overlay[data-placement='left'],
+.overlay[data-placement='right'] {
+  padding: 0;
+  align-items: stretch;
+}
+.overlay[data-placement='left'] {
+  justify-content: flex-start;
+}
+.overlay[data-placement='right'] {
+  justify-content: flex-end;
+}
+.overlay[data-placement='left'] .modal,
+.overlay[data-placement='right'] .modal {
+  max-height: 100%;
+  border: 0;
+  border-radius: 0;
+}
+/* slide in from the pinned edge — overrides the centered dialog's translateY/scale enter */
+.overlay[data-placement='left'] .modal {
+  transform: translateX(-100%);
+}
+.overlay[data-placement='right'] .modal {
+  transform: translateX(100%);
+}
+.overlay[data-placement='left'] .modal[data-open='true'],
+.overlay[data-placement='right'] .modal[data-open='true'] {
+  transform: none;
+}

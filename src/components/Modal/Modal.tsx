@@ -21,6 +21,7 @@ import styles from './Modal.module.css'
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'fullScreen'
 export type ModalScrollBehavior = 'inside' | 'outside'
+export type ModalPlacement = 'center' | 'left' | 'right'
 
 const ICON_NAME_SET = new Set<string>(ICON_NAMES)
 
@@ -38,9 +39,16 @@ export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'
   /**
    * Where overflow scrolls when the content is taller than the viewport: `outside` (default — the
    * whole dialog grows and the overlay/page scrolls) or `inside` (the body scrolls while the header +
-   * footer stay pinned).
+   * footer stay pinned). Ignored for side-drawer placements (`left`/`right`), which always scroll inside.
    */
   scrollBehavior?: ModalScrollBehavior
+  /**
+   * Where the dialog sits: `center` (default — the standard centered modal), or `left` / `right` to
+   * make it a **full-height side drawer** (sheet) that slides in from that edge. A drawer takes its
+   * width from `size`, fills the viewport height, and always scrolls its body inside (header + footer
+   * stay pinned).
+   */
+  placement?: ModalPlacement
   /** Header title. When set, labels the dialog (`aria-labelledby`). */
   title?: ReactNode
   /** Muted description line under the title (e.g. a confirm prompt). */
@@ -67,7 +75,8 @@ export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'
  * A centered, backdrop-dimmed overlay dialog. Portaled to `<body>`, it locks page scroll while open,
  * traps Tab focus inside, restores focus to the previously-focused element on close, and dismisses on
  * close button / backdrop click / Escape (each toggleable). Sizes are `sm`/`md`/`lg` (max-width caps)
- * or `fullScreen`; `scrollBehavior` picks inside-body vs. whole-dialog scrolling. The header mirrors
+ * or `fullScreen`; `scrollBehavior` picks inside-body vs. whole-dialog scrolling. `placement` turns it
+ * into a full-height side drawer (`left`/`right`) that slides in from the edge. The header mirrors
  * `Card` — an optional tinted `icon` box + `title` + `description`. Controlled by `open` + `onClose`.
  * The forwarded ref points at the dialog element.
  *
@@ -83,6 +92,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
     onClose,
     size = 'md',
     scrollBehavior = 'outside',
+    placement = 'center',
     title,
     description,
     icon,
@@ -191,6 +201,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
 
   if (!open) return null
 
+  // a side drawer (left/right) is always full-height with the body scrolling inside (header/footer pinned)
+  const isDrawer = placement !== 'center'
+
   const renderedIcon =
     icon == null ? null : typeof icon === 'string' && ICON_NAME_SET.has(icon) ? (
       <Icon name={icon as IconName} />
@@ -207,7 +220,8 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
       className={styles.overlay}
       data-open={visible ? 'true' : 'false'}
       data-size={size}
-      data-scroll={scrollBehavior}
+      data-placement={placement}
+      data-scroll={isDrawer ? 'inside' : scrollBehavior}
       onMouseDown={handleOverlayMouseDown}
       onClick={handleOverlayClick}
       onKeyDown={handleKeyDown}

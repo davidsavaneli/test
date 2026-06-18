@@ -1030,7 +1030,13 @@ picks how over-tall content scrolls: **`outside`** (default — the whole dialog
 scrolls; the overlay flips to `flex-direction: column` so the dialog's `margin-block: auto` centers it
 when it fits and top-aligns + scrolls when it doesn't) or **`inside`** (the body scrolls while the header
 
-- footer stay pinned); `fullScreen` is unaffected by either. **The header mirrors `Card`:** an optional leading
+- footer stay pinned); `fullScreen` is unaffected by either. **`placement`** turns the dialog into a
+  **full-height side drawer** (sheet): `center` (default) is the standard centered modal, while **`left`**
+  / **`right`** pin it flush to that edge, fill the viewport height, and **slide in** from the edge
+  (`translateX(±100%)` → `0`, overriding the centered translate/scale enter). A drawer takes its width
+  from `size` (the `sm`/`md`/`lg` cap), drops its radius/border, and **always scrolls its body inside**
+  (header + footer pinned — `placement` forces `scrollBehavior: inside`, so the `outside` rules never
+  apply). **The header mirrors `Card`:** an optional leading
   **`icon`** (an `IconName` or node) in a **filled, non-clickable `IconButton` box** tinted by **`color`**
   (brand token, default `medium`), a **`title`** (md/bold, clamps to 2 lines) that labels the dialog via
   `aria-labelledby`, and a **`description`** (xs/muted subtitle, clamps to 2 lines); a **dashed** divider
@@ -1059,6 +1065,24 @@ when it fits and top-aligns + scrolls when it doesn't) or **`inside`** (the body
   The forwarded ref points at the dialog element. Own CSS
   module. _Header `actions` (beside the close button) + an imperative/promise-based API are natural next
   iterations._
+
+### RemoveDialog
+
+A ready-made **delete confirmation** — a thin convenience wrapper over `Modal` for the ubiquitous
+"Are you sure you want to delete?" prompt, so apps don't re-assemble it each time. It hardcodes the
+destructive flavor: a centered `Trash` glyph in a soft **`error`**-shade circle above the prompt, and a
+**`filled`** `error` **Delete** button (the soft tint) beside a `text` **Cancel** (built on `Modal size="sm"`, so it inherits the portal,
+scroll-lock, focus-trap, and backdrop/Escape dismissal). Controlled by **`open`** + **`onClose`**;
+**`onConfirm`** is the destructive action and **may be async** — while its promise is pending the Delete
+button shows a loader and the dialog **locks** (close button hidden, backdrop/Escape disabled, Cancel
+disabled), then it **auto-closes on success** (stays open on rejection so the user can retry — surface
+the error yourself). Text is overridable: **`title`** (default `"Remove"`), **`message`** (default
+`"Are you sure you want to delete?"`), **`confirmLabel`** (default `"Delete"`), **`cancelLabel`** (default
+`"Cancel"`); an external **`loading`** is OR'd with the internal async state. Deliberately delete-only
+(not a generic ConfirmDialog) for a minimal API; the forwarded ref points at the dialog element. Own CSS
+module (just the centered icon-circle + prompt; the rest is `Modal` chrome). The 42px icon circle / 22px
+glyph are one-off literal sizes (no token maps to the box — the same exception `Pagination` / the RTE
+toolbar make).
 
 ### Tabs
 

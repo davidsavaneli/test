@@ -1,0 +1,27 @@
+/* RemoveDialog body — a centered destructive glyph above the prompt (the rest is Modal chrome). */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tz-space-md);
+  padding-block: var(--tz-space-sm);
+}
+
+/* a soft-error circle holding the Trash glyph — 42px / 22px are one-off sizes (no token maps to the
+   box, the same deliberate literal-px exception the RichTextEditor toolbar / Pagination make) */
+.iconBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--tz-color-error-shade200);
+  color: var(--tz-color-error);
+}
+.iconBox svg {
+  width: 22px;
+  height: 22px;
+}

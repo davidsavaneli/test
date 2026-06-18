@@ -9,6 +9,7 @@ import {
   Grid,
   type IconName,
   Modal,
+  type ModalPlacement,
   type ModalScrollBehavior,
   type ModalSize,
   Row,
@@ -193,6 +194,7 @@ function FormModal() {
 export function ModalSection() {
   const [size, setSize] = useState<ModalSize | null>(null)
   const [scroll, setScroll] = useState<ModalScrollBehavior | null>(null)
+  const [drawer, setDrawer] = useState<ModalPlacement | null>(null)
   const [iconColor, setIconColor] = useState<(typeof ICON_COLORS)[number] | null>(null)
   const confirm = useDisclosure()
   const locked = useDisclosure()
@@ -329,6 +331,46 @@ export function ModalSection() {
               <Typography key={i}>
                 {i + 1}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
                 tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+              </Typography>
+            ))}
+          </Col>
+        </Modal>
+      </Block>
+
+      <Block
+        label="Side drawer — placement left / right (full-height sheet, body scrolls inside)"
+        description="placement='left' or 'right' slides a full-height drawer in from that edge; its width comes from size, and the body scrolls while the header + footer stay pinned."
+      >
+        <Row gap={16} wrap>
+          <Button variant="outlined" onClick={() => setDrawer('left')}>
+            Left Drawer
+          </Button>
+          <Button variant="outlined" onClick={() => setDrawer('right')}>
+            Right Drawer
+          </Button>
+        </Row>
+        <Modal
+          open={drawer !== null}
+          onClose={() => setDrawer(null)}
+          placement={drawer ?? 'right'}
+          size="sm"
+          icon="Filter"
+          title="Filters"
+          description="A side drawer — great for filters, details, or navigation."
+          footer={
+            <>
+              <Button variant="text" onClick={() => setDrawer(null)}>
+                Clear
+              </Button>
+              <Button onClick={() => setDrawer(null)}>Apply</Button>
+            </>
+          }
+        >
+          <Col gap={12}>
+            {Array.from({ length: 16 }, (_, i) => (
+              <Typography key={i}>
+                {i + 1}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+                tempor incididunt ut labore et dolore magna aliqua.
               </Typography>
             ))}
           </Col>
