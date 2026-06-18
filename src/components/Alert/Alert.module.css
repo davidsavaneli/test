@@ -1,0 +1,79 @@
+/* Alert — a message banner. Tinted via the shared --tz-btn-rgb / --tz-btn-on pattern across 4 variants. */
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--tz-space-sm) / 1.5);
+  width: 100%;
+  padding: var(--tz-space-sm) var(--tz-space-sm);
+  border: 1px solid transparent;
+  border-radius: calc(var(--tz-radius-sm) / 1.5);
+  font-family: var(--tz-font-family);
+  font-size: var(--tz-font-size-md);
+  line-height: var(--tz-line-height);
+  color: var(--tz-color-text);
+}
+
+/* ── variants ─────────────────────────────────────────────────────────────── */
+.filled {
+  background: rgba(var(--tz-btn-rgb), 0.1);
+}
+.contained {
+  background: rgb(var(--tz-btn-rgb));
+  color: var(--tz-btn-on, #fff);
+}
+.outlined {
+  background: var(--tz-color-secondary);
+  border-color: rgba(var(--tz-btn-rgb), 0.5);
+}
+.text {
+  background: transparent;
+}
+
+/* leading icon — the brand color; on the solid `contained` fill it inherits the contrast text color */
+.icon {
+  display: inline-flex;
+  flex: none;
+  color: rgb(var(--tz-btn-rgb));
+}
+.contained .icon {
+  color: inherit;
+}
+
+.message {
+  flex: 1;
+  min-width: 0;
+  padding-block: 1px;
+}
+
+.action {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* close — an `IconButton` shrunk below its `sm` preset and re-tinted: a faint color wash with the
+   × in the alert text color (inherit). `.alert .close` outranks IconButton's own size/variant rules. */
+.alert .close {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  min-width: 0;
+  border: 0;
+  border-radius: var(--tz-radius-xs);
+  color: inherit;
+}
+.alert .close:hover:not(:disabled) {
+  opacity: 1;
+}
+/* on the solid `contained` fill a brand tint wouldn't read — use a white-alpha wash (literal exception) */
+.contained .close {
+  background: rgba(255, 255, 255, 0.15);
+}
+.contained .close:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+}
+.alert .close svg {
+  width: 14px;
+  height: 14px;
+}

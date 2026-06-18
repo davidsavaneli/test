@@ -29,6 +29,7 @@ import { SpeedDialSection } from '../SpeedDial'
 import { PopoverSection } from '../Popover'
 import { PaginationSection } from '../Pagination'
 import { RemoveDialogSection } from '../RemoveDialog'
+import { AlertSection } from '../Alert'
 import { DropdownSection } from '../Dropdown'
 import { TabsSection } from '../Tabs'
 import { ButtonSection } from '../Button'
@@ -319,6 +320,12 @@ const removeDialogRoute = createRoute({
   staticData: { name: 'Remove Dialog', icon: 'Trash', order: 19 },
   component: inPage(RemoveDialogSection),
 })
+const alertRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'alert',
+  staticData: { name: 'Alert', icon: 'InfoCircle', order: 20 },
+  component: inPage(AlertSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -468,6 +475,7 @@ const shellRouter = createRouter({
         popoverRoute,
         paginationRoute,
         removeDialogRoute,
+        alertRoute,
       ]),
       formsRoute.addChildren([
         textFieldRoute,
