@@ -1,0 +1,179 @@
+/* Slider — a styled native range input. Track/fill/thumb tinted via --tz-btn-rgb; fill % via --tz-slider-fill.
+   Track + thumb px are one-off literals (no token maps to them — the same exception the RTE toolbar makes). */
+
+/* sizes — track height + thumb diameter via custom props (inherited by the range input) */
+.sm {
+  --sl-track: 4px;
+  --sl-thumb: 12px;
+}
+.md {
+  --sl-track: 5px;
+  --sl-thumb: 16px;
+}
+.lg {
+  --sl-track: 6px;
+  --sl-thumb: 20px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tz-space-sm);
+}
+.value {
+  margin-left: auto;
+  /* font-weight: var(--tz-font-weight-medium); */
+  color: var(--tz-color-text);
+}
+
+.track {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+/* the marks are absolutely positioned below the track (height: 0), so reserve room for them here —
+   otherwise the labels overlap the helper text / whatever element follows the slider */
+.hasMarks {
+  margin-bottom: var(--tz-space-lg);
+}
+
+/* ── the native range input ─────────────────────────────────────────────────── */
+.input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: var(--sl-thumb); /* hit area tall enough for the thumb */
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+}
+.input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* track + fill — WebKit (the fill is a hard-stop gradient at --tz-slider-fill) */
+.input::-webkit-slider-runnable-track {
+  height: var(--sl-track);
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    rgb(var(--tz-btn-rgb)) var(--tz-slider-fill),
+    var(--tz-color-primary-shade200) var(--tz-slider-fill)
+  );
+}
+.input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--sl-thumb);
+  height: var(--sl-thumb);
+  margin-top: calc((var(--sl-track) - var(--sl-thumb)) / 2);
+  border-radius: 50%;
+  background: rgb(var(--tz-btn-rgb));
+  border: 2px solid var(--tz-color-secondary);
+  box-shadow: var(--tz-shadow-xs);
+  pointer-events: auto; /* grabbable even when the input ignores pointer events (range mode) */
+  transition: box-shadow var(--tz-duration);
+}
+.input:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgba(var(--tz-btn-rgb), 0.25);
+}
+
+/* track + fill — Firefox (uses the native ::-moz-range-progress for the filled part) */
+.input::-moz-range-track {
+  height: var(--sl-track);
+  border-radius: 999px;
+  background: var(--tz-color-primary-shade200);
+}
+.input::-moz-range-progress {
+  height: var(--sl-track);
+  border-radius: 999px;
+  background: rgb(var(--tz-btn-rgb));
+}
+.input::-moz-range-thumb {
+  width: var(--sl-thumb);
+  height: var(--sl-thumb);
+  border-radius: 50%;
+  background: rgb(var(--tz-btn-rgb));
+  border: 2px solid var(--tz-color-secondary);
+  box-shadow: var(--tz-shadow-xs);
+  pointer-events: auto;
+}
+.input:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px rgba(var(--tz-btn-rgb), 0.25);
+}
+
+/* ── labeled ticks under the track ──────────────────────────────────────────── */
+.marks {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0;
+  /* sit just under the track, inset by half a thumb so end marks line up with the thumb range */
+  margin: calc(var(--tz-space-xxs) / 2) calc(var(--sl-thumb) / 2) 0;
+  pointer-events: none;
+}
+.mark {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tz-space-xxs);
+}
+.tick {
+  width: 2px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--tz-color-primary-shade600);
+}
+.markLabel {
+  font-size: var(--tz-font-size-xs);
+  color: var(--tz-color-primary-shade600);
+  white-space: nowrap;
+}
+
+/* ── range (two thumbs) — a custom rail + fill behind two transparent-track inputs ──────────────── */
+.rangeTrack {
+  position: relative;
+  height: var(--sl-thumb);
+}
+/* the rail + fill sit behind both inputs, vertically centered */
+.rail,
+.rangeFill {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: var(--sl-track);
+  border-radius: 999px;
+}
+.rail {
+  left: 0;
+  right: 0;
+  background: var(--tz-color-primary-shade200);
+}
+.rangeFill {
+  background: rgb(var(--tz-btn-rgb));
+}
+/* both inputs overlap the rail; the track is transparent (the rail/fill show through), only the
+   thumbs catch pointer events (`.input` sets pointer-events:auto on the thumb) */
+.rangeInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.rangeInput::-webkit-slider-runnable-track {
+  background: transparent;
+}
+.rangeInput::-moz-range-track {
+  background: transparent;
+}
+.rangeInput::-moz-range-progress {
+  background: transparent;
+}

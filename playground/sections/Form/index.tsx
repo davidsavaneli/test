@@ -12,6 +12,7 @@ import {
   nestTranslations,
   NumberField,
   RichTextEditor,
+  Slider,
   Switch,
   TagsField,
   TextField,
@@ -38,6 +39,7 @@ const TEST_RESPONSE = {
   tags: ['news', 'featured'],
   categories: ['design', 'eng'],
   published: true,
+  priority: 7,
   body: '<h2>Edit me</h2><p>Prefilled <strong>rich</strong> content.</p>',
   translations: {
     'en-US': { title: 'test NEWS', description: '<p>testing</p>' },
@@ -56,6 +58,7 @@ const buildSchema = (codes: string[]) => {
     tags: z.array(z.string()).min(1, 'Add at least one tag'),
     categories: z.array(z.string()).min(1, 'Pick at least one'),
     published: z.boolean(),
+    priority: z.number().min(1, 'Set a priority (min 1)'),
     // RTE value is HTML, but a blank editor emits '' (not <p><br></p>), so min(1) is enough
     body: z.string().min(1, 'Required'),
     ...buildTranslations(codes, {
@@ -72,6 +75,7 @@ const buildDefaults = (codes: string[]) => ({
   tags: [] as string[],
   categories: [] as string[],
   published: false,
+  priority: 0,
   body: '',
   ...buildTranslations(codes, { title: '', description: '' }),
 })
@@ -92,6 +96,18 @@ function Fields() {
         options={CATEGORIES}
       />
       <Switch name="published" label="Published" />
+      <Slider
+        name="priority"
+        required
+        label="Priority"
+        min={0}
+        max={10}
+        marks={[
+          { value: 0, label: '0' },
+          { value: 5, label: '5' },
+          { value: 10, label: '10' },
+        ]}
+      />
       <RichTextEditor
         name="body"
         required

@@ -9,14 +9,7 @@ import {
   useRouter,
   useRouterState,
 } from '@tanstack/react-router'
-import {
-  Button,
-  FirstRouteRedirect,
-  Icon,
-  PageLayout,
-  RootLayout,
-  type IconName,
-} from '../../../src'
+import { FirstRouteRedirect, PageLayout, RootLayout, type IconName } from '../../../src'
 import { ToastSection } from '../Toast'
 import { EmptyStateSection } from '../EmptyState'
 import { AccordionSection } from '../Accordion'
@@ -43,9 +36,10 @@ import { DateTimePickerSection } from '../DateTimePicker'
 import { TimePickerSection } from '../TimePicker'
 import { RadioSection } from '../Radio'
 import { RichTextEditorSection } from '../RichTextEditor'
+import { SliderSection } from '../Slider'
 import { SwitchSection } from '../Switch'
 import { ColorPickerSection } from '../ColorPicker'
-import { FormSection, FormDataSection, FormEditSection } from '../Form'
+import { FormValidationsSection } from '../FormValidations'
 import { IconButtonSection } from '../IconButton'
 import { IconSection } from '../Icon'
 import { LoaderSection } from '../Loader'
@@ -197,159 +191,185 @@ const componentsRoute = createRoute({
   component: () => <Outlet />,
 })
 
-// Group: General components.
-const generalRoute = createRoute({
+// Group: Layouts.
+const layoutsRoute = createRoute({
   getParentRoute: () => componentsRoute,
-  path: 'general',
-  staticData: { name: 'General', icon: 'Grid2', order: 0, badge: 'New' },
+  path: 'layouts',
+  staticData: { name: 'Layouts', icon: 'Grid3', order: 0 },
+  component: () => <Outlet />,
+})
+const layoutRoute = createRoute({
+  getParentRoute: () => layoutsRoute,
+  path: 'layout',
+  staticData: { name: 'Layout (Row/Col)', icon: 'Grid3', order: 0 },
+  component: inPage(LayoutSection),
+})
+const cardRoute = createRoute({
+  getParentRoute: () => layoutsRoute,
+  path: 'card',
+  staticData: { name: 'Card', icon: 'Cards', order: 1 },
+  component: inPage(CardSection),
+})
+const dividerRoute = createRoute({
+  getParentRoute: () => layoutsRoute,
+  path: 'divider',
+  staticData: { name: 'Divider', icon: 'RowHorizontal', order: 2 },
+  component: inPage(DividerSection),
+})
+const accordionRoute = createRoute({
+  getParentRoute: () => layoutsRoute,
+  path: 'accordion',
+  staticData: { name: 'Accordion', icon: 'ArrowDown3', order: 3 },
+  component: inPage(AccordionSection),
+})
+
+// Group: Data Display.
+const dataDisplayRoute = createRoute({
+  getParentRoute: () => componentsRoute,
+  path: 'data-display',
+  staticData: { name: 'Data Display', icon: 'Category2', order: 2 },
+  component: () => <Outlet />,
+})
+const typographyRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'typography',
+  staticData: { name: 'Typography', icon: 'TextBlock', order: 0 },
+  component: inPage(TypographySection),
+})
+const avatarRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'avatar',
+  staticData: { name: 'Avatar', icon: 'User', order: 1 },
+  component: inPage(AvatarSection),
+})
+const badgeRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'badge',
+  staticData: { name: 'Badge', icon: 'Notification', order: 2 },
+  component: inPage(BadgeSection),
+})
+const chipRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'chip',
+  staticData: { name: 'Chip', icon: 'Tag', order: 3 },
+  component: inPage(ChipSection),
+})
+const listRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'list',
+  staticData: { name: 'List', icon: 'RowVertical', order: 4 },
+  component: inPage(ListSection),
+})
+const tooltipRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'tooltip',
+  staticData: { name: 'Tooltip', icon: 'MessageText', order: 5 },
+  component: inPage(TooltipSection),
+})
+const emptyStateRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'empty-state',
+  staticData: { name: 'Empty State', icon: 'Box', order: 6 },
+  component: inPage(EmptyStateSection),
+})
+
+// Group: Navigation.
+const navigationRoute = createRoute({
+  getParentRoute: () => componentsRoute,
+  path: 'navigation',
+  staticData: { name: 'Navigation', icon: 'Routing', order: 3 },
+  component: () => <Outlet />,
+})
+const tabsRoute = createRoute({
+  getParentRoute: () => navigationRoute,
+  path: 'tabs',
+  staticData: { name: 'Tabs', icon: 'RowHorizontal', order: 0 },
+  component: inPage(TabsSection),
+})
+const dropdownRoute = createRoute({
+  getParentRoute: () => navigationRoute,
+  path: 'dropdown',
+  staticData: { name: 'Dropdown', icon: 'ArrowSquareDown', order: 1 },
+  component: inPage(DropdownSection),
+})
+const paginationRoute = createRoute({
+  getParentRoute: () => navigationRoute,
+  path: 'pagination',
+  staticData: { name: 'Pagination', icon: 'More', order: 2 },
+  component: inPage(PaginationSection),
+})
+const speedDialRoute = createRoute({
+  getParentRoute: () => navigationRoute,
+  path: 'speed-dial',
+  staticData: { name: 'Speed Dial', icon: 'AddCircle', order: 3 },
+  component: inPage(SpeedDialSection),
+})
+
+// Group: Feedback.
+const feedbackRoute = createRoute({
+  getParentRoute: () => componentsRoute,
+  path: 'feedback',
+  staticData: { name: 'Feedback', icon: 'Notification', order: 4 },
+  component: () => <Outlet />,
+})
+const alertRoute = createRoute({
+  getParentRoute: () => feedbackRoute,
+  path: 'alert',
+  staticData: { name: 'Alert', icon: 'InfoCircle', order: 0 },
+  component: inPage(AlertSection),
+})
+const toastRoute = createRoute({
+  getParentRoute: () => feedbackRoute,
+  path: 'toast',
+  staticData: { name: 'Toast', icon: 'NotificationBing', order: 1 },
+  component: inPage(ToastSection),
+})
+const modalRoute = createRoute({
+  getParentRoute: () => feedbackRoute,
+  path: 'modal',
+  staticData: { name: 'Modal', icon: 'Maximize3', order: 2 },
+  component: inPage(ModalSection),
+})
+const removeDialogRoute = createRoute({
+  getParentRoute: () => feedbackRoute,
+  path: 'remove-dialog',
+  staticData: { name: 'Remove Dialog', icon: 'Trash', order: 3 },
+  component: inPage(RemoveDialogSection),
+})
+const loaderRoute = createRoute({
+  getParentRoute: () => feedbackRoute,
+  path: 'loader',
+  staticData: { name: 'Loader', icon: 'Routing', order: 4 },
+  component: inPage(LoaderSection),
+})
+
+// Group: Other.
+const otherRoute = createRoute({
+  getParentRoute: () => componentsRoute,
+  path: 'other',
+  staticData: { name: 'Other', icon: 'MoreSquare', order: 5 },
   component: () => <Outlet />,
 })
 const buttonRoute = createRoute({
-  getParentRoute: () => generalRoute,
+  getParentRoute: () => otherRoute,
   path: 'button',
   staticData: { name: 'Button', icon: 'Magicpen', order: 0 },
   component: inPage(ButtonSection),
 })
 const iconButtonRoute = createRoute({
-  getParentRoute: () => generalRoute,
+  getParentRoute: () => otherRoute,
   path: 'icon-button',
   staticData: { name: 'Icon Button', icon: 'Brush', order: 1 },
   component: inPage(IconButtonSection),
 })
-const typographyRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'typography',
-  staticData: { name: 'Typography', icon: 'TextBlock', order: 2 },
-  component: inPage(TypographySection),
-})
-const loaderRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'loader',
-  staticData: { name: 'Loader', icon: 'Routing', order: 3 },
-  component: inPage(LoaderSection),
-})
-const badgeRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'badge',
-  staticData: { name: 'Badge', icon: 'Notification', order: 4 },
-  component: inPage(BadgeSection),
-})
-const tooltipRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'tooltip',
-  staticData: { name: 'Tooltip', icon: 'MessageText', order: 5 },
-  component: inPage(TooltipSection),
-})
-const avatarRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'avatar',
-  staticData: { name: 'Avatar', icon: 'User', order: 6 },
-  component: inPage(AvatarSection),
-})
-const dividerRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'divider',
-  staticData: { name: 'Divider', icon: 'RowHorizontal', order: 7 },
-  component: inPage(DividerSection),
-})
-const chipRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'chip',
-  staticData: { name: 'Chip', icon: 'Tag', order: 8 },
-  component: inPage(ChipSection),
-})
-const layoutRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'layout',
-  staticData: { name: 'Layout (Row/Col)', icon: 'Grid3', order: 9 },
-  component: inPage(LayoutSection),
-})
-const cardRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'card',
-  staticData: { name: 'Card', icon: 'Cards', order: 10 },
-  component: inPage(CardSection),
-})
-const listRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'list',
-  staticData: { name: 'List', icon: 'RowVertical', order: 11 },
-  component: inPage(ListSection),
-})
-const dropdownRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'dropdown',
-  staticData: { name: 'Dropdown', icon: 'ArrowSquareDown', order: 12 },
-  component: inPage(DropdownSection),
-})
-const tabsRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'tabs',
-  staticData: { name: 'Tabs', icon: 'RowHorizontal', order: 13 },
-  component: inPage(TabsSection),
-})
-const modalRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'modal',
-  staticData: { name: 'Modal', icon: 'Maximize3', order: 14 },
-  component: inPage(ModalSection),
-})
-const toggleButtonRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'toggle-button',
-  staticData: { name: 'Toggle Button', icon: 'Category2', order: 15 },
-  component: inPage(ToggleButtonSection),
-})
-const speedDialRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'speed-dial',
-  staticData: { name: 'Speed Dial', icon: 'AddCircle', order: 16 },
-  component: inPage(SpeedDialSection),
-})
 const popoverRoute = createRoute({
-  getParentRoute: () => generalRoute,
+  getParentRoute: () => otherRoute,
   path: 'popover',
-  staticData: { name: 'Popover', icon: 'Filter', order: 17 },
+  staticData: { name: 'Popover', icon: 'Filter', order: 2 },
   component: inPage(PopoverSection),
 })
-const paginationRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'pagination',
-  staticData: { name: 'Pagination', icon: 'More', order: 18 },
-  component: inPage(PaginationSection),
-})
-const removeDialogRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'remove-dialog',
-  staticData: { name: 'Remove Dialog', icon: 'Trash', order: 19 },
-  component: inPage(RemoveDialogSection),
-})
-const alertRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'alert',
-  staticData: { name: 'Alert', icon: 'InfoCircle', order: 20 },
-  component: inPage(AlertSection),
-})
-const toastRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'toast',
-  staticData: { name: 'Toast', icon: 'NotificationBing', order: 21 },
-  component: inPage(ToastSection),
-})
-const emptyStateRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'empty-state',
-  staticData: { name: 'Empty State', icon: 'Box', order: 22 },
-  component: inPage(EmptyStateSection),
-})
-const accordionRoute = createRoute({
-  getParentRoute: () => generalRoute,
-  path: 'accordion',
-  staticData: { name: 'Accordion', icon: 'ArrowDown3', order: 23 },
-  component: inPage(AccordionSection),
-})
 
-// Group: Form controls.
+// Group: Forms.
 const formsRoute = createRoute({
   getParentRoute: () => componentsRoute,
   path: 'forms',
@@ -440,34 +460,23 @@ const richTextEditorRoute = createRoute({
   staticData: { name: 'Rich Text Editor', icon: 'DocumentText', order: 13 },
   component: inPage(RichTextEditorSection),
 })
-const formRoute = createRoute({
+const toggleButtonRoute = createRoute({
   getParentRoute: () => formsRoute,
-  path: 'form',
-  staticData: { name: 'Form (JSON)', icon: 'Edit', order: 14 },
-  component: inPage(FormSection, {
-    subtitle: 'Zod-validated form — Submit POSTs nested JSON.',
-    actions: (
-      <Button size="sm" variant="outlined" startIcon={<Icon name="DocumentText" />}>
-        Docs
-      </Button>
-    ),
-  }),
+  path: 'toggle-button',
+  staticData: { name: 'Toggle Button', icon: 'Category2', order: 14 },
+  component: inPage(ToggleButtonSection),
 })
-const formDataRoute = createRoute({
+const sliderRoute = createRoute({
   getParentRoute: () => formsRoute,
-  path: 'form-data',
-  staticData: { name: 'Form (FormData)', icon: 'DocumentUpload', order: 15 },
-  component: inPage(FormDataSection, {
-    subtitle: 'Same form — Submit POSTs multipart/form-data.',
-  }),
+  path: 'slider',
+  staticData: { name: 'Slider', icon: 'SliderHorizontal', order: 15 },
+  component: inPage(SliderSection),
 })
-const formEditRoute = createRoute({
+const formValidationsRoute = createRoute({
   getParentRoute: () => formsRoute,
-  path: 'form-edit',
-  staticData: { name: 'Form (Edit)', icon: 'Translate', order: 16 },
-  component: inPage(FormEditSection, {
-    subtitle: 'Edit mode — prefilled values, translations flattened in.',
-  }),
+  path: 'form-validations',
+  staticData: { name: 'Form Validations', icon: 'Edit', order: 16 },
+  component: inPage(FormValidationsSection),
 })
 
 const shellRouter = createRouter({
@@ -476,32 +485,7 @@ const shellRouter = createRouter({
     iconsRoute,
     usersRoute.addChildren([usersIndexRoute, userNewRoute, userDetailRoute, userEditRoute]),
     componentsRoute.addChildren([
-      generalRoute.addChildren([
-        buttonRoute,
-        iconButtonRoute,
-        typographyRoute,
-        loaderRoute,
-        badgeRoute,
-        tooltipRoute,
-        avatarRoute,
-        dividerRoute,
-        chipRoute,
-        layoutRoute,
-        cardRoute,
-        listRoute,
-        dropdownRoute,
-        tabsRoute,
-        modalRoute,
-        toggleButtonRoute,
-        speedDialRoute,
-        popoverRoute,
-        paginationRoute,
-        removeDialogRoute,
-        alertRoute,
-        toastRoute,
-        emptyStateRoute,
-        accordionRoute,
-      ]),
+      layoutsRoute.addChildren([layoutRoute, cardRoute, dividerRoute, accordionRoute]),
       formsRoute.addChildren([
         textFieldRoute,
         multilineTextFieldRoute,
@@ -517,10 +501,28 @@ const shellRouter = createRouter({
         dateTimePickerRoute,
         timePickerRoute,
         richTextEditorRoute,
-        formRoute,
-        formDataRoute,
-        formEditRoute,
+        toggleButtonRoute,
+        sliderRoute,
+        formValidationsRoute,
       ]),
+      dataDisplayRoute.addChildren([
+        typographyRoute,
+        avatarRoute,
+        badgeRoute,
+        chipRoute,
+        listRoute,
+        tooltipRoute,
+        emptyStateRoute,
+      ]),
+      navigationRoute.addChildren([tabsRoute, dropdownRoute, paginationRoute, speedDialRoute]),
+      feedbackRoute.addChildren([
+        alertRoute,
+        toastRoute,
+        modalRoute,
+        removeDialogRoute,
+        loaderRoute,
+      ]),
+      otherRoute.addChildren([buttonRoute, iconButtonRoute, popoverRoute]),
     ]),
   ]),
   // Open on the icon gallery so it's visible right away.
