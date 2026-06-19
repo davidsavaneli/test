@@ -902,6 +902,33 @@ brand tint wouldn't read; `.alert .close` outranks IconButton's own size/variant
 message. `role="alert"`. The 24px close box / 14px × are one-off literal sizes. Own CSS module. _A `title`
 line + auto-dismiss timer are natural next iterations._
 
+### Toast / Toaster
+
+Transient notifications via an **imperative API + a mount-once viewport** — modeled on `react-toastify`
+but built in-house (no dependency), reusing **`Alert`** for every toast's visual. **`toast`** is a
+module-singleton API (the same store-with-subscription pattern as `helpers/access.ts`), so it's callable
+**from anywhere** — event handlers, async code, even outside React: **`toast(msg, opts)`** (neutral/info)
+plus **`toast.success` / `.error` / `.warning` / `.info`** (each sets the `Alert` color + its semantic
+icon), and **`toast.dismiss(id?)`** (one, or all). Each call returns an **id**; pass **`opts.id`** to
+update an existing toast (or target a later dismiss). **`ToastOptions`**: `duration` (ms; **`Infinity`** =
+sticky; overrides the Toaster default), `variant` (`Alert` variant, default `contained`), `icon`
+(`IconName`/node/`false`), `action` (a trailing node, e.g. an `UNDO` button). **`<Toaster>`** is mounted
+**once** near the app root — and **`RootLayout` mounts it for you by default** (configure via its
+`toaster` prop, or `toaster={false}` to opt out), so most apps never mount it manually. It
+`createPortal`s to `<body>` at **`--tz-z-toast`**, subscribes to the store
+via **`useSyncExternalStore`**, and stacks each toast as an animated `Alert`. Props: **`position`**
+(`bottom-right` default · the 6 corners/edges — sets the fixed anchor + slide direction; newest sits
+nearest the anchored corner via `flex-direction`) and **`duration`** (default `4000`). Each toast
+**auto-dismisses** after its duration (**paused on hover**, tracking the remaining time), enters/exits with
+the shared opacity + translate animation (`data-open` + rAF `visible`), and closes via its `Alert`'s × or
+the timer; closing flips the store record's `open` to `false` (drives the exit), then it's removed after
+the animation. The viewport is `pointer-events: none` (clicks fall through the empty area; each toast
+re-enables them) and `aria-live="polite"` with toasts as `role="status"`. Each toast gets a
+`--tz-shadow-lg` to float. The `toast` API + `Toaster` ship from `sava-test/components/Toast` (and the
+root); the store internals (`subscribeToasts`/`getToasts`/`closeToast`/`removeToast`/`ToastRecord`) stay
+private. `ToastItem` is internal. Own CSS module. _A `toast.promise(...)` helper + a max-visible cap are
+natural next iterations._
+
 ### Tooltip
 
 A **wrapper** that shows a floating label on hover/focus of a single child element:
@@ -950,6 +977,24 @@ Surface + border + `--tz-radius-md` + `--tz-shadow-xs`. **`flat`** drops the sha
 `secondary` surface for the page `--tz-color-background` (blends with the shell, no elevation) — used by
 `PageLayout`, which is a flat Card. Header omitted entirely when there's no title/icon/actions/collapsible.
 Own CSS module.
+
+### EmptyState
+
+The empty-state placeholder — drop it wherever a page / table / list / gallery has nothing to show (no
+records yet, no search matches). A centered column: a muted glyph in a **soft neutral circle**
+(`--tz-color-primary-shade200` fill + `-shade600` icon — deliberately neutral, not tinted by a semantic
+color) + a **`title`** (default `"No Results Found"`) + an optional muted **`description`** + an **`action`** slot
+(e.g. an "Add Item" / "Clear Filters" button). **`icon`** is an `IconName` (default `FolderOpen`), any node (pass
+a tinted `<Icon>`/illustration), or **`false`** to hide it. **`size`** (`sm`/`md`/`lg`) scales the circle
+(48 / 64 / 80px — one-off literals), the icon, the title font, and the vertical padding so it fills the
+empty area; `children` renders extra content below the action. **`pattern`** is the polished
+"hero" look — a **faded grid backdrop** (token `--tz-color-border` lines on a 40px cell, radial-masked
+so it fades out toward the edges, never a hard box) + an **elevated icon puck** (a `secondary →
+primary-shade100` gradient + `--tz-shadow-md`) — and is **on by default**; pass `pattern={false}` for the
+flat, compact placeholder (e.g. a small inline / table empty state). Reuse it for empty data **and** empty filters/search, not just "no
+records". `title` uses medium weight; the description caps its line length (`max-width: 42ch`) for
+readability. Token-only (the grid cell + radial mask are decorative one-offs). Own CSS module. _A
+compact inline (row) variant is a natural next iteration._
 
 ### Flex / Row / Col / Grid
 
@@ -1309,6 +1354,9 @@ content area stacks **`Breadcrumbs` → the page title (the active route's `stat
 internal `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**.
 Set **`header.pageTitle: false`** to drop that auto `h2` when pages render their own heading inside
 their `PageLayout` header instead (icon + title + actions) — so the title isn't shown twice.
+RootLayout also **mounts a `<Toaster>` by default** (so `toast.*()` works app-wide with no extra setup):
+the top-level **`toaster`** prop is `true` (defaults), a `ToasterProps` object (`{ position, duration }`),
+or `false` to opt out (e.g. you mount your own `<Toaster>` — two viewports would double every toast).
 **`Sidebar`** auto-builds a 3-level menu (module → group → page) by
 walking `useRouter().looseRoutesById` and reading each route's `fullPath` + `staticData` — no manual
 menu config. Rows are composed from **`List` / `ListItem`** (links render via `ListItem as={Link}`,

@@ -17,6 +17,8 @@ import {
   RootLayout,
   type IconName,
 } from '../../../src'
+import { ToastSection } from '../Toast'
+import { EmptyStateSection } from '../EmptyState'
 import { AvatarSection } from '../Avatar'
 import { BadgeSection } from '../Badge'
 import { ChipSection } from '../Chip'
@@ -134,6 +136,7 @@ const shellRoot = createRootRoute({
         user: { name: 'David Savaneli', email: 'd.savaneli@techzy.app' },
       }}
     >
+      {/* RootLayout mounts the <Toaster> by default, so toast.*() works on every page */}
       <Outlet />
     </RootLayout>
   ),
@@ -326,6 +329,18 @@ const alertRoute = createRoute({
   staticData: { name: 'Alert', icon: 'InfoCircle', order: 20 },
   component: inPage(AlertSection),
 })
+const toastRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'toast',
+  staticData: { name: 'Toast', icon: 'NotificationBing', order: 21 },
+  component: inPage(ToastSection),
+})
+const emptyStateRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'empty-state',
+  staticData: { name: 'Empty State', icon: 'Box', order: 22 },
+  component: inPage(EmptyStateSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -476,6 +491,8 @@ const shellRouter = createRouter({
         paginationRoute,
         removeDialogRoute,
         alertRoute,
+        toastRoute,
+        emptyStateRoute,
       ]),
       formsRoute.addChildren([
         textFieldRoute,

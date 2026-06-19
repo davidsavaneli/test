@@ -11,6 +11,7 @@ import { FullscreenToggle } from '../FullscreenToggle'
 import { ThemeToggle } from '../ThemeToggle'
 import { Typography } from '../Typography'
 import { Breadcrumbs } from '../Breadcrumbs'
+import { Toaster, type ToasterProps } from '../Toast'
 import { Sidebar, usePageTitle } from '../Sidebar/Sidebar'
 import styles from './RootLayout.module.css'
 
@@ -49,6 +50,12 @@ export interface RootLayoutProps {
   logo?: ReactNode
   /** Header config: the built-in theme toggle (`theme`, default `true`) and an optional `onLogout`. */
   header?: RootLayoutHeader
+  /**
+   * The built-in toast viewport, mounted for you so `toast.*()` works app-wide with no extra setup.
+   * Defaults to `true` (a `<Toaster>` with its defaults). Pass `ToasterProps` to configure it
+   * (`{ position, duration }`), or `false` to opt out — e.g. when you mount your own `<Toaster>`.
+   */
+  toaster?: boolean | ToasterProps
   /** Routed content — the consumer passes `<Outlet />`. */
   children: ReactNode
 }
@@ -61,13 +68,16 @@ export interface RootLayoutProps {
  * is given. The content area stacks
  * **`Breadcrumbs` → the page title (the active route's `staticData.name`) → `children`**; pages wrap
  * their own body in `PageLayout`. Set `header.pageTitle = false` to drop the auto `h2` when pages
- * carry their own heading inside their `PageLayout` header. Styling is token-based, so it follows the
- * active `ConfigProvider` mode. Requires `@tanstack/react-router` (peer).
+ * carry their own heading inside their `PageLayout` header. A `<Toaster>` is **mounted by default** so
+ * `toast.*()` works app-wide with no extra setup (configure via `toaster`, or `toaster={false}` to opt
+ * out). Styling is token-based, so it follows the active `ConfigProvider` mode. Requires
+ * `@tanstack/react-router` (peer).
  */
-export function RootLayout({ logo, header, children }: RootLayoutProps) {
+export function RootLayout({ logo, header, toaster = true, children }: RootLayoutProps) {
   const title = usePageTitle()
   const showTheme = header?.theme ?? true
   const showFullscreen = header?.fullscreen ?? true
+  const toasterProps = typeof toaster === 'object' ? toaster : undefined
   const showPageTitle = header?.pageTitle ?? true
   const onLogout = header?.onLogout
   const user = header?.user
@@ -139,6 +149,7 @@ export function RootLayout({ logo, header, children }: RootLayoutProps) {
           {children}
         </main>
       </div>
+      {toaster !== false && <Toaster {...toasterProps} />}
     </div>
   )
 }

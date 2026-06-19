@@ -1,0 +1,95 @@
+/* EmptyState — a centered, muted placeholder for "nothing to show" areas. Token-only, theme-aware. */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--tz-space-xs);
+  padding: var(--es-pad) var(--tz-space-md);
+  font-family: var(--tz-font-family);
+  color: var(--tz-color-text);
+}
+
+/* sizes — circle / icon / title scale via custom props. The circle + icon px are one-off literals
+   (no token maps to them — the same exception RemoveDialog / Pagination / the RTE toolbar make). */
+.sm {
+  --es-circle: 42px;
+  --es-icon: 18px;
+  --es-title: var(--tz-font-size-sm);
+  --es-pad: var(--tz-space-lg);
+}
+.md {
+  --es-circle: 56px;
+  --es-icon: 24px;
+  --es-title: var(--tz-font-size-md);
+  --es-pad: var(--tz-space-xl);
+}
+.lg {
+  --es-circle: 70px;
+  --es-icon: 30px;
+  --es-title: var(--tz-font-size-lg);
+  --es-pad: var(--tz-space-xxl);
+}
+
+/* soft neutral circle holding a muted glyph */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--es-circle);
+  height: var(--es-circle);
+  margin-bottom: var(--tz-space-xs);
+  border-radius: 50%;
+  background: var(--tz-color-primary-shade200);
+  color: var(--tz-color-primary-shade600);
+}
+.icon svg {
+  width: var(--es-icon);
+  height: var(--es-icon);
+}
+
+.title {
+  font-size: var(--es-title);
+  font-weight: var(--tz-font-weight-medium);
+  line-height: var(--tz-line-height);
+}
+
+.description {
+  /* cap the line length for readability */
+  max-width: 42ch;
+  font-size: var(--tz-font-size-md);
+  font-weight: var(--tz-font-weight-regular);
+  line-height: var(--tz-line-height);
+  color: var(--tz-color-primary-shade600);
+}
+
+.action {
+  margin-top: var(--tz-space-sm);
+}
+
+/* ── `pattern` — a polished hero look: a faded grid backdrop + an elevated, floating icon ───────────
+   The 40px grid cell + the radial mask are decorative one-offs; the grid lines use `--tz-color-border`
+   and the whole thing fades out toward the edges so it reads as a soft backdrop, never a hard box. */
+.pattern {
+  position: relative;
+  isolation: isolate;
+}
+.pattern::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(to right, var(--tz-color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--tz-color-border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(ellipse 60% 65% at 50% 42%, #000, transparent 72%);
+  mask-image: radial-gradient(ellipse 60% 65% at 50% 42%, #000, transparent 72%);
+}
+/* elevated, floating icon puck (a subtle surface→shade gradient + a soft drop shadow) */
+.pattern .icon {
+  background: linear-gradient(180deg, var(--tz-color-secondary), var(--tz-color-primary-shade100));
+  box-shadow: var(--tz-shadow-md);
+}

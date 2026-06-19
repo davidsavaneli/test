@@ -1,0 +1,65 @@
+/* Toaster — a fixed, corner-anchored viewport of stacked toasts (portaled to <body>). */
+
+.viewport {
+  position: fixed;
+  z-index: var(--tz-z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-xs);
+  padding: var(--tz-space-md);
+  /* let clicks fall through the empty area; each toast re-enables pointer events */
+  pointer-events: none;
+}
+
+/* vertical edge */
+.viewport[data-position^='top-'] {
+  top: 0;
+  /* newest nearest the top corner */
+  flex-direction: column-reverse;
+}
+.viewport[data-position^='bottom-'] {
+  bottom: 0;
+}
+
+/* horizontal edge */
+.viewport[data-position$='-left'] {
+  left: 0;
+  align-items: flex-start;
+}
+.viewport[data-position$='-right'] {
+  right: 0;
+  align-items: flex-end;
+}
+.viewport[data-position$='-center'] {
+  left: 50%;
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+/* ── a single toast ───────────────────────────────────────────────────────── */
+.item {
+  pointer-events: auto;
+  width: 360px;
+  max-width: calc(100vw - var(--tz-space-md) * 2);
+  opacity: 0;
+  transition:
+    opacity var(--tz-duration),
+    transform var(--tz-duration);
+}
+/* slide in from the anchored edge (also the resting target the exit animates back to) */
+.item[data-position^='bottom-'] {
+  transform: translateY(var(--tz-space-sm));
+}
+.item[data-position^='top-'] {
+  transform: translateY(calc(var(--tz-space-sm) * -1));
+}
+/* visible/resting state — declared last so it wins over the per-position transforms */
+.item[data-open='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* the floating alert gets elevation over the page */
+.alert {
+  box-shadow: var(--tz-shadow-lg);
+}
