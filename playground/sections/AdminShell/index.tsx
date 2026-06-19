@@ -19,6 +19,7 @@ import {
 } from '../../../src'
 import { ToastSection } from '../Toast'
 import { EmptyStateSection } from '../EmptyState'
+import { AccordionSection } from '../Accordion'
 import { AvatarSection } from '../Avatar'
 import { BadgeSection } from '../Badge'
 import { ChipSection } from '../Chip'
@@ -341,6 +342,12 @@ const emptyStateRoute = createRoute({
   staticData: { name: 'Empty State', icon: 'Box', order: 22 },
   component: inPage(EmptyStateSection),
 })
+const accordionRoute = createRoute({
+  getParentRoute: () => generalRoute,
+  path: 'accordion',
+  staticData: { name: 'Accordion', icon: 'ArrowDown3', order: 23 },
+  component: inPage(AccordionSection),
+})
 
 // Group: Form controls.
 const formsRoute = createRoute({
@@ -493,6 +500,7 @@ const shellRouter = createRouter({
         alertRoute,
         toastRoute,
         emptyStateRoute,
+        accordionRoute,
       ]),
       formsRoute.addChildren([
         textFieldRoute,
