@@ -67,6 +67,8 @@ export interface FileUploaderProps extends Omit<
   maxFiles?: number
   /** Maximum size per file — a bytes `number`, or a human string like `"5MB"` / `"500KB"`. Larger picks are rejected. */
   maxFileSize?: number | string
+  /** Where a newly added file lands in the list (`multiple` only): `'start'` (top) or `'end'` (bottom). Defaults to `'end'`. */
+  itemInsertLocation?: 'start' | 'end'
   /** Controlled value — one item (or `null`) when single, an array when `multiple`. */
   value?: FileUploaderValue
   /** Initial value for uncontrolled use. */
@@ -245,6 +247,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     accept,
     maxFiles,
     maxFileSize,
+    itemInsertLocation = 'end',
     value,
     defaultValue,
     onChange,
@@ -371,7 +374,11 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     setNotice(reasons.length > 0 ? reasons.join(' · ') : null)
     if (taken.length === 0) return
     const picked = taken.map<FileUploaderItem>((file) => ({ file, source: '', sortIndex: 0 }))
-    commit(multiple ? [...items, ...picked] : [picked[0]])
+    if (!multiple) {
+      commit([picked[0]])
+      return
+    }
+    commit(itemInsertLocation === 'start' ? [...picked, ...items] : [...items, ...picked])
   }
   const removeAt = (index: number) => {
     setNotice(null)
@@ -446,7 +453,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
         </div>
       )}
 
-      {/* always rendered (even when empty) so auto-animate can animate the last row out on removal */}
+      {/* always rendered (even when empty) so auto-animate can animate the last card out on removal */}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}

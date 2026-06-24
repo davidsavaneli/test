@@ -91,6 +91,13 @@ export function FileUploaderSection() {
       </Block>
 
       <Block
+        label='itemInsertLocation="start"'
+        description="A newly added file lands at the top of the list instead of the bottom (default is 'end')."
+      >
+        <FileUploader multiple itemInsertLocation="start" defaultValue={EXISTING} />
+      </Block>
+
+      <Block
         label="Edit mode — already-uploaded files (source URLs)"
         description="Controlled value with source items (no binary). Remove or reorder them, or add new picks alongside."
       >

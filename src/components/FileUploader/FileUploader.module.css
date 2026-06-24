@@ -8,6 +8,7 @@
 }
 
 /* ── dropzone — a compact horizontal bar at the top of the box ───────────────────── */
+/* dropzone — a compact horizontal bar above the cards */
 .dropzone {
   display: flex;
   flex-direction: row;
