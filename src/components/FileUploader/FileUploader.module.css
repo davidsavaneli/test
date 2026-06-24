@@ -1,0 +1,218 @@
+/* FileUploader — a soft dropzone panel above a list of file rows. Tokens only; the icon-box / drop-icon
+   square sizes are one-off literals (no token maps to them — the same exception the Slider track makes). */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--tz-font-family);
+}
+
+/* ── dropzone — a compact horizontal bar at the top of the box ───────────────────── */
+.dropzone {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tz-space-sm);
+  padding: var(--tz-space-sm) var(--tz-space-md);
+  border: 1px dashed var(--tz-color-medium-shade400);
+  border-radius: var(--tz-radius-sm);
+  background-color: var(--tz-color-medium-shade100);
+  cursor: pointer;
+  outline: none;
+  transition:
+    border-color var(--tz-duration),
+    background-color var(--tz-duration),
+    box-shadow var(--tz-duration);
+}
+/* icon + text stacked, sitting next to the icon */
+.dropText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+.dropzone:hover,
+.dropzone:focus-visible {
+  border-color: var(--tz-color-medium-shade600);
+  background-color: var(--tz-color-medium-shade200);
+}
+.dropzone:focus-visible {
+  box-shadow: 0 0 0 3px rgba(var(--tz-color-medium-rgb), 0.16);
+}
+/* a file is being dragged over the zone */
+.dropzone.dropping {
+  border-color: var(--tz-color-medium-shade600);
+  background-color: var(--tz-color-medium-shade200);
+}
+
+.dropIcon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--tz-radius-sm);
+  color: rgb(var(--tz-color-primary-rgb));
+  background-color: var(--tz-color-secondary);
+  box-shadow: var(--tz-shadow-xs);
+}
+.prompt {
+  font-size: var(--tz-font-size-md);
+  line-height: var(--tz-line-height);
+  color: var(--tz-color-primary-shade600);
+}
+.accent {
+  color: rgb(var(--tz-color-primary-rgb));
+  font-weight: var(--tz-font-weight-medium);
+}
+/* static constraint hint inside the dropzone (max files / size) */
+.hint {
+  font-size: var(--tz-font-size-sm);
+  color: var(--tz-color-primary-shade500);
+}
+
+/* transient validation notice shown when a pick is rejected (too big / wrong type / over the count) */
+.notice {
+  margin-top: var(--tz-space-xs);
+  font-size: var(--tz-font-size-sm);
+  color: rgb(var(--tz-color-error-rgb));
+}
+
+/* ── uploaded items — a wrapping grid of fixed 240px image cards ─────────────────── */
+.list {
+  display: grid;
+  /* fixed 240px cards that wrap; min(100%, 240px) keeps a lone card from overflowing a narrow container */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 240px));
+  gap: var(--tz-space-sm);
+}
+/* space below the dropzone only while there are rows (keeps an empty list from leaving a gap) */
+.populated {
+  margin-top: var(--tz-space-sm);
+}
+/* add/remove/shift of rows is animated by auto-animate (useAutoAnimate on this list) */
+
+/* the enter drop-in (fill-mode left at `none` so the end state never overrides dnd-kit's drag transform) */
+@keyframes tz-fu-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* an uploaded item — an image-forward card; the image fills it, controls overlay the top */
+.tile {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--tz-radius-md);
+  overflow: hidden;
+  background-color: var(--tz-color-primary-shade100);
+  outline: none;
+}
+.grabbable {
+  cursor: grab;
+  touch-action: none; /* a touch-drag reorders instead of scrolling the page */
+}
+.grabbable:active {
+  cursor: grabbing;
+}
+/* only a genuinely new tile drops in — applied via JS to new ids so a reorder (which re-inserts the
+   node) never restarts this entrance animation on the moved / shifted tiles */
+.entering {
+  animation: tz-fu-drop-in var(--tz-duration) ease-out;
+}
+.dragging {
+  z-index: 1;
+  box-shadow: var(--tz-shadow-lg);
+  opacity: 0.9;
+}
+/* a tile whose file fails validation (e.g. too large) — a red ring (not clipped by overflow: hidden) */
+.tileError {
+  box-shadow: 0 0 0 2px rgb(var(--tz-color-error-rgb));
+}
+
+/* the image fills the card */
+.tileImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* non-image fallback — a centered file icon */
+.tileFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--tz-color-primary-shade600);
+}
+
+/* top overlay — × + name/size over a dark scrim so they read on any image. The scrim/white text are
+   literal black/white (the image behind doesn't change with the theme, so a brand-token tint would be
+   wrong in one mode) — the same justified exception the Modal backdrop makes. */
+.tileTop {
+  position: absolute;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tz-space-xs);
+  padding: var(--tz-space-xs);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+}
+.tileRemove {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--tz-radius-xs);
+  background-color: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color var(--tz-duration);
+}
+.tileRemove:hover,
+.tileRemove:focus-visible {
+  background-color: rgb(var(--tz-color-error-rgb));
+  outline: none;
+}
+.tileText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+/* the title line: a shrinking base + an always-visible extension → long names read as `name….ext` */
+.name {
+  display: flex;
+  min-width: 0;
+  font-size: var(--tz-font-size-md);
+  font-weight: var(--tz-font-weight-medium);
+  color: #fff; /* white over the scrim */
+}
+.nameBase {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nameExt {
+  flex: none;
+  white-space: nowrap;
+}
+.tileMeta {
+  font-size: var(--tz-font-size-sm);
+  color: rgba(255, 255, 255, 0.85);
+}
+.metaError {
+  color: rgb(var(--tz-color-error-rgb));
+}

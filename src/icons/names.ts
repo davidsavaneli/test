@@ -381,6 +381,7 @@ export type IconName =
   | 'Discover2'
   | 'Dislike'
   | 'Document'
+  | 'DragHandle'
   | 'Document2'
   | 'DocumentCloud'
   | 'DocumentCode'
@@ -1581,6 +1582,7 @@ export const ICON_NAMES = [
   'Discover2',
   'Dislike',
   'Document',
+  'DragHandle',
   'Document2',
   'DocumentCloud',
   'DocumentCode',
@@ -2400,4 +2402,4 @@ export const ICON_NAMES = [
   'Zoom',
 ] as const satisfies readonly IconName[]
 
-export const ICON_COUNT = 1198
+export const ICON_COUNT = 1199

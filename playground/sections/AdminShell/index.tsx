@@ -27,6 +27,7 @@ import { PaginationSection } from '../Pagination'
 import { RemoveDialogSection } from '../RemoveDialog'
 import { AlertSection } from '../Alert'
 import { DropdownSection } from '../Dropdown'
+import { FileUploaderSection } from '../FileUploader'
 import { TabsSection } from '../Tabs'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
@@ -460,22 +461,28 @@ const richTextEditorRoute = createRoute({
   staticData: { name: 'Rich Text Editor', icon: 'DocumentText', order: 13 },
   component: inPage(RichTextEditorSection),
 })
+const fileUploaderRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'file-uploader',
+  staticData: { name: 'File Uploader', icon: 'GalleryAdd', order: 14 },
+  component: inPage(FileUploaderSection),
+})
 const toggleButtonRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'toggle-button',
-  staticData: { name: 'Toggle Button', icon: 'Category2', order: 14 },
+  staticData: { name: 'Toggle Button', icon: 'Category2', order: 15 },
   component: inPage(ToggleButtonSection),
 })
 const sliderRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'slider',
-  staticData: { name: 'Slider', icon: 'SliderHorizontal', order: 15 },
+  staticData: { name: 'Slider', icon: 'SliderHorizontal', order: 16 },
   component: inPage(SliderSection),
 })
 const formValidationsRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'form-validations',
-  staticData: { name: 'Form Validations', icon: 'Edit', order: 16 },
+  staticData: { name: 'Form Validations', icon: 'Edit', order: 17 },
   component: inPage(FormValidationsSection),
 })
 
@@ -501,6 +508,7 @@ const shellRouter = createRouter({
         dateTimePickerRoute,
         timePickerRoute,
         richTextEditorRoute,
+        fileUploaderRoute,
         toggleButtonRoute,
         sliderRoute,
         formValidationsRoute,
