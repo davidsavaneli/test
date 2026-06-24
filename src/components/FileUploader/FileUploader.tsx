@@ -65,6 +65,8 @@ export interface FileUploaderProps extends Omit<
   allowReorder?: boolean
   /** Show a download button on each item (downloads the File / source). Defaults to `true`. */
   allowDownload?: boolean
+  /** Disables the whole control — no adding, removing, reordering, or downloading; dimmed + inert. */
+  disabled?: boolean
   /**
    * Accepted file types (react-dropzone's format: a MIME type → file-extensions map) — restricts the file
    * picker and rejects non-matching drops. E.g. `{ 'image/*': [] }` or
@@ -209,6 +211,7 @@ interface RowProps {
   preview: string | null
   sortable: boolean
   entering: boolean
+  disabled?: boolean
   error?: string
   onRemove: () => void
   onDownload?: () => void
@@ -221,6 +224,7 @@ function Row({
   preview,
   sortable,
   entering,
+  disabled,
   error,
   onRemove,
   onDownload,
@@ -268,15 +272,17 @@ function Row({
       )}
 
       <div className={styles.tileTop}>
-        <button
-          type="button"
-          className={styles.tileRemove}
-          aria-label={`Remove ${label}`}
-          onClick={onRemove}
-          onPointerDown={(e) => e.stopPropagation()} // don't start a drag from the remove button
-        >
-          <Icon name="Close" size="sm" />
-        </button>
+        {!disabled && (
+          <button
+            type="button"
+            className={styles.tileRemove}
+            aria-label={`Remove ${label}`}
+            onClick={onRemove}
+            onPointerDown={(e) => e.stopPropagation()} // don't start a drag from the remove button
+          >
+            <Icon name="Close" size="sm" />
+          </button>
+        )}
         <span className={styles.tileText}>
           <span className={styles.name} title={label}>
             <span className={styles.nameBase}>{base}</span>
@@ -316,6 +322,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     allowDrop = true,
     allowReorder = true,
     allowDownload = true,
+    disabled = false,
     accept,
     maxFiles,
     maxFileSize,
@@ -374,7 +381,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   const shownHelper = notice ?? resolvedHelperText
   const helperIsError = Boolean(notice) || resolvedError
 
-  const reorderEnabled = allowReorder && multiple
+  const reorderEnabled = allowReorder && multiple && !disabled
 
   // Stable ids per item so a row keeps its identity (and focus) across reorders.
   const fileIds = useRef(new WeakMap<File, string>())
@@ -515,6 +522,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple,
     accept,
+    disabled,
     // note: maxSize is NOT passed — oversized files are still added but flagged in an error state below
     noKeyboard: false,
     noDrag: !allowDrop,
@@ -553,6 +561,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
         styles.root,
         fullWidth && styles.fullWidth,
         resolvedError && styles.error,
+        disabled && styles.disabled,
         className,
       )}
       style={style}
@@ -609,13 +618,14 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
                 preview={previewOf(item)}
                 sortable={reorderEnabled && items.length > 1}
                 entering={enteringIds.has(ids[index])}
+                disabled={disabled}
                 error={
                   item.file && maxBytes != null && item.file.size > maxBytes
                     ? `Exceeds ${formatBytes(maxBytes)} limit`
                     : undefined
                 }
                 onRemove={() => removeAt(index)}
-                onDownload={allowDownload ? () => triggerDownload(item) : undefined}
+                onDownload={allowDownload && !disabled ? () => triggerDownload(item) : undefined}
                 onPreviewError={
                   !item.file && item.source ? () => markSourceFailed(item.source!) : undefined
                 }

@@ -10,6 +10,13 @@
   display: flex;
   width: 100%;
 }
+/* disabled — dimmed + inert (the dropzone is also react-dropzone-disabled, actions hidden) */
+.disabled {
+  opacity: 0.6;
+}
+.disabled .dropzone {
+  cursor: not-allowed;
+}
 
 /* ── dropzone — a compact horizontal bar at the top of the box ───────────────────── */
 /* dropzone — a compact horizontal bar above the cards */

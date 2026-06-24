@@ -207,6 +207,13 @@ export function FileUploaderSection() {
       >
         <FileUploader multiple allowDownload={false} defaultValue={EXISTING} />
       </Block>
+
+      <Block
+        label="disabled"
+        description="Dimmed + inert — no adding, removing, reordering, or downloading."
+      >
+        <FileUploader multiple disabled defaultValue={EXISTING} />
+      </Block>
     </Section>
   )
 }
