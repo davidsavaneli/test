@@ -2,9 +2,13 @@
    square sizes are one-off literals (no token maps to them — the same exception the Slider track makes). */
 
 .root {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   font-family: var(--tz-font-family);
+}
+.fullWidth {
+  display: flex;
+  width: 100%;
 }
 
 /* ── dropzone — a compact horizontal bar at the top of the box ───────────────────── */
@@ -46,6 +50,10 @@
   border-color: var(--tz-color-medium-shade600);
   background-color: var(--tz-color-medium-shade200);
 }
+/* form/validation error → redden the dropzone border (the helper text turns red via <Typography>) */
+.error .dropzone {
+  border-color: rgb(var(--tz-color-error-rgb));
+}
 
 .dropIcon {
   flex: none;
@@ -72,13 +80,6 @@
 .hint {
   font-size: var(--tz-font-size-sm);
   color: var(--tz-color-primary-shade500);
-}
-
-/* transient validation notice shown when a pick is rejected (too big / wrong type / over the count) */
-.notice {
-  margin-top: var(--tz-space-xs);
-  font-size: var(--tz-font-size-sm);
-  color: rgb(var(--tz-color-error-rgb));
 }
 
 /* ── uploaded items — a wrapping grid of fixed 240px image cards ─────────────────── */
@@ -166,7 +167,8 @@
   padding: var(--tz-space-xs);
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
 }
-.tileRemove {
+.tileRemove,
+.tileDownload {
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -184,6 +186,12 @@
 .tileRemove:hover,
 .tileRemove:focus-visible {
   background-color: rgb(var(--tz-color-error-rgb));
+  outline: none;
+}
+/* download — neutral darken on hover (it's not destructive like remove) */
+.tileDownload:hover,
+.tileDownload:focus-visible {
+  background-color: rgba(0, 0, 0, 0.7);
   outline: none;
 }
 .tileText {

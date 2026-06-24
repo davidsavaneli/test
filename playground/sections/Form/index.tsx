@@ -4,6 +4,8 @@ import {
   Button,
   buildTranslations,
   Col,
+  FileUploader,
+  type FileUploaderItem,
   flattenTranslations,
   Form,
   Grid,
@@ -35,6 +37,10 @@ const CATEGORIES = [
 /** A nested server response — flattened into the Edit page's defaults so the fields arrive filled. */
 const TEST_RESPONSE = {
   email: 'hello@techzy.app',
+  gallery: [
+    { source: 'https://picsum.photos/seed/techzy1/240/180', sortIndex: 0 },
+    { source: 'https://picsum.photos/seed/techzy2/240/180', sortIndex: 1 },
+  ],
   quantity: 5,
   tags: ['news', 'featured'],
   categories: ['design', 'eng'],
@@ -47,9 +53,19 @@ const TEST_RESPONSE = {
   },
 }
 
+// A FileUploader item: a fresh pick (binary in `file`) OR an already-uploaded one (`source` URL).
+const fileItemSchema = z
+  .object({
+    file: z.instanceof(File).optional(),
+    source: z.string().optional(),
+    sortIndex: z.number(),
+  })
+  .refine((it) => Boolean(it.file) || Boolean(it.source), 'Missing file')
+
 const buildSchema = (codes: string[]) => {
   const shape: z.ZodRawShape = {
     email: z.string().email('Enter a valid email'),
+    gallery: z.array(fileItemSchema).min(1, 'Add at least one image'),
     quantity: z
       .number()
       .min(1, 'At least 1')
@@ -71,6 +87,7 @@ const buildSchema = (codes: string[]) => {
 
 const buildDefaults = (codes: string[]) => ({
   email: '',
+  gallery: [] as FileUploaderItem[],
   quantity: null as number | null,
   tags: [] as string[],
   categories: [] as string[],
@@ -87,6 +104,15 @@ function Fields() {
         <TextField name="email" required label="Email" placeholder="you@example.com" />
         <NumberField name="quantity" required label="Quantity" min={0} />
       </Grid>
+      <FileUploader
+        name="gallery"
+        required
+        multiple
+        label="Gallery"
+        accept={{ 'image/*': [] }}
+        maxFiles={5}
+        maxFileSize="5MB"
+      />
       <TagsField name="tags" required label="Tags" placeholder="Add a tag, press Enter…" />
       <MultiSelect
         name="categories"

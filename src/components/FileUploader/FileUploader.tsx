@@ -1,9 +1,11 @@
 import {
   forwardRef,
   useEffect,
+  useId,
   useRef,
   useState,
   type CSSProperties,
+  type FocusEvent,
   type HTMLAttributes,
   type ReactNode,
 } from 'react'
@@ -28,7 +30,11 @@ import { CSS } from '@dnd-kit/utilities'
 import type { AutoAnimationPlugin } from '@formkit/auto-animate'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { useDropzone, type Accept, type FileRejection } from 'react-dropzone'
+import { useFormContext } from '../../form/formContext'
 import { Icon } from '../Icon'
+import { Typography } from '../Typography'
+// shared field chrome (wrapper / label / required / helper) — the Slider precedent
+import fieldStyles from '../TextField/TextField.module.css'
 import styles from './FileUploader.module.css'
 
 /**
@@ -57,6 +63,8 @@ export interface FileUploaderProps extends Omit<
   allowDrop?: boolean
   /** Allow drag + keyboard reordering of the rows (only meaningful with `multiple`). Defaults to `true`. */
   allowReorder?: boolean
+  /** Show a download button on each item (downloads the File / source). Defaults to `true`. */
+  allowDownload?: boolean
   /**
    * Accepted file types (react-dropzone's format: a MIME type → file-extensions map) — restricts the file
    * picker and rejects non-matching drops. E.g. `{ 'image/*': [] }` or
@@ -75,6 +83,22 @@ export interface FileUploaderProps extends Omit<
   defaultValue?: FileUploaderValue
   /** Fires with the next value whenever files are added, removed, or reordered. */
   onChange?: (value: FileUploaderValue) => void
+  /** Label rendered above the control. */
+  label?: ReactNode
+  /** Marks the field invalid: red dropzone border + the `helperText` in the error color. */
+  error?: boolean
+  /** Helper / validation text under the control. Adopts the error color while `error`. */
+  helperText?: ReactNode
+  /** Adds a red asterisk after the label. */
+  required?: boolean
+  /** Stretches the control to fill its container width. Defaults to `true`. */
+  fullWidth?: boolean
+  /**
+   * Binds the field to a surrounding `<Form>` — the form value is the item / array, validated with e.g.
+   * `z.array(fileItemSchema).min(1)`. Reads the raw `form.values[name]` and writes via `setValue`;
+   * error/touched come from the form, and the form's scroll-to-error can focus the field.
+   */
+  name?: string
 }
 
 const canMakeObjectUrl = (): boolean =>
@@ -140,6 +164,31 @@ const labelOf = (item: FileUploaderItem): string => {
   return 'File'
 }
 
+/** Download an item — a File via a fresh object URL, a source URL via a download link. */
+const triggerDownload = (item: FileUploaderItem) => {
+  if (typeof document === 'undefined') return
+  const a = document.createElement('a')
+  a.style.display = 'none'
+  if (item.file) {
+    if (!canMakeObjectUrl()) return
+    const url = URL.createObjectURL(item.file)
+    a.href = url
+    a.download = item.file.name
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  } else if (item.source) {
+    a.href = item.source
+    a.download = labelOf(item)
+    a.target = '_blank'
+    a.rel = 'noopener'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
+}
+
 /**
  * Split a name into the part that may truncate and a short trailing extension that should always stay
  * visible — so a long name middle-ellipses as `name….ext` instead of overflowing or losing the type.
@@ -162,10 +211,21 @@ interface RowProps {
   entering: boolean
   error?: string
   onRemove: () => void
+  onDownload?: () => void
   onPreviewError?: () => void
 }
 
-function Row({ id, item, preview, sortable, entering, error, onRemove, onPreviewError }: RowProps) {
+function Row({
+  id,
+  item,
+  preview,
+  sortable,
+  entering,
+  error,
+  onRemove,
+  onDownload,
+  onPreviewError,
+}: RowProps) {
   // the whole tile is the drag handle (no separate grip — matches the image-card visual)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -224,6 +284,17 @@ function Row({ id, item, preview, sortable, entering, error, onRemove, onPreview
           </span>
           <span className={clsx(styles.tileMeta, error && styles.metaError)}>{error ?? meta}</span>
         </span>
+        {onDownload && (
+          <button
+            type="button"
+            className={styles.tileDownload}
+            aria-label={`Download ${label}`}
+            onClick={onDownload}
+            onPointerDown={(e) => e.stopPropagation()} // don't start a drag from the download button
+          >
+            <Icon name="DocumentDownload" size="sm" />
+          </button>
+        )}
       </div>
     </div>
   )
@@ -244,6 +315,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     multiple = false,
     allowDrop = true,
     allowReorder = true,
+    allowDownload = true,
     accept,
     maxFiles,
     maxFileSize,
@@ -251,12 +323,24 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     value,
     defaultValue,
     onChange,
+    label,
+    error,
+    helperText,
+    required = false,
+    fullWidth = true,
+    name,
+    id: idProp,
+    onBlur,
     className,
     style,
     ...props
   },
   ref,
 ) {
+  const reactId = useId()
+  const id = idProp ?? reactId
+  const helperId = `${id}-helper`
+
   const maxBytes = maxFileSize != null ? toBytes(maxFileSize) : undefined
   const [notice, setNotice] = useState<string | null>(null)
   // the rejection notice auto-dismisses so it doesn't linger forever
@@ -265,13 +349,30 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     const timer = window.setTimeout(() => setNotice(null), 4000)
     return () => window.clearTimeout(timer)
   }, [notice])
-  const isControlled = value !== undefined
-  const [internal, setInternal] = useState<FileUploaderValue>(
-    defaultValue ?? (multiple ? [] : null),
-  )
-  const current = isControlled ? value : internal
+
+  // Auto-bind to a surrounding <Form> by `name`. The value is a typed object/array, so read it RAW from
+  // values[name] (never field().value, which String-coerces); error/touched come from field().
+  const form = useFormContext()
+  const isFormBound = Boolean(form && name)
+  const bound = form && name ? form.field(name) : undefined
+
+  const fallback: FileUploaderValue = multiple ? [] : null
+  const externalValue: FileUploaderValue | undefined =
+    value !== undefined
+      ? value
+      : isFormBound
+        ? ((form!.values[name!] as FileUploaderValue | undefined) ?? fallback)
+        : undefined
+  const isControlled = externalValue !== undefined
+  const [internal, setInternal] = useState<FileUploaderValue>(defaultValue ?? fallback)
+  const current = isControlled ? externalValue! : internal
   const items: FileUploaderItem[] =
     current == null ? [] : Array.isArray(current) ? current : [current]
+
+  const resolvedError = error ?? bound?.error ?? false
+  const resolvedHelperText = helperText ?? bound?.helperText
+  const shownHelper = notice ?? resolvedHelperText
+  const helperIsError = Boolean(notice) || resolvedError
 
   const reorderEnabled = allowReorder && multiple
 
@@ -353,6 +454,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     const ordered = reindex(next)
     const out: FileUploaderValue = multiple ? ordered : (ordered[0] ?? null)
     if (!isControlled) setInternal(out)
+    if (isFormBound) form!.setValue(name!, out)
     onChange?.(out)
   }
 
@@ -436,8 +538,44 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     <span className={styles.accent}>Choose a file</span>
   )
 
+  // mark the field touched once focus leaves the whole widget (so blurThenLive errors reveal on blur)
+  const onRootBlur = (event: FocusEvent<HTMLDivElement>) => {
+    onBlur?.(event)
+    if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
+    bound?.onBlur(event as unknown as FocusEvent<HTMLInputElement>)
+  }
+
   return (
-    <div ref={ref} className={clsx(styles.root, className)} style={style} {...props}>
+    <div
+      ref={ref}
+      id={id}
+      className={clsx(
+        styles.root,
+        fullWidth && styles.fullWidth,
+        resolvedError && styles.error,
+        className,
+      )}
+      style={style}
+      aria-invalid={resolvedError || undefined}
+      aria-describedby={shownHelper != null ? helperId : undefined}
+      onBlur={onRootBlur}
+      {...props}
+      // name + tabIndex are load-bearing for the form's scroll-to-error → spread last so props can't clobber
+      {...(name ? { name, tabIndex: -1 } : {})}
+    >
+      {label != null && (
+        <label className={fieldStyles.label}>
+          <Typography as="span" variant="bodySmall" color="muted">
+            {label}
+          </Typography>
+          {required && (
+            <span className={fieldStyles.required} aria-hidden="true">
+              *
+            </span>
+          )}
+        </label>
+      )}
+
       {showDropzone && (
         <div
           {...getRootProps({ className: clsx(styles.dropzone, isDragActive && styles.dropping) })}
@@ -477,6 +615,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
                     : undefined
                 }
                 onRemove={() => removeAt(index)}
+                onDownload={allowDownload ? () => triggerDownload(item) : undefined}
                 onPreviewError={
                   !item.file && item.source ? () => markSourceFailed(item.source!) : undefined
                 }
@@ -486,10 +625,18 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
         </SortableContext>
       </DndContext>
 
-      {notice && (
-        <span className={styles.notice} role="status">
-          {notice}
-        </span>
+      {shownHelper != null && (
+        <Typography
+          as="span"
+          id={helperId}
+          variant="bodySmall"
+          color={helperIsError ? 'error' : 'muted'}
+          className={fieldStyles.helper}
+          role="status"
+          aria-live="polite"
+        >
+          {shownHelper}
+        </Typography>
       )}
     </div>
   )

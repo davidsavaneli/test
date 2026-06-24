@@ -1,6 +1,54 @@
 import { useState } from 'react'
-import { FileUploader, type FileUploaderItem, type FileUploaderValue } from '../../../src'
+import { z } from 'zod'
+import {
+  Button,
+  FileUploader,
+  Form,
+  useForm,
+  type FileUploaderItem,
+  type FileUploaderValue,
+} from '../../../src'
 import { Block, Section } from '../../shared'
+
+// A file item: a fresh pick (binary) OR an already-uploaded one (source URL).
+const fileItemSchema = z
+  .object({
+    file: z.instanceof(File).optional(),
+    source: z.string().optional(),
+    sortIndex: z.number(),
+  })
+  .refine((it) => Boolean(it.file) || Boolean(it.source), 'Missing file')
+
+/** Bound to a <Form> by `name` — zod validates the array on submit; scroll-to-error focuses the field. */
+function FormDemo() {
+  const [output, setOutput] = useState<string | null>(null)
+  const form = useForm({
+    schema: z.object({ gallery: z.array(fileItemSchema).min(1, 'Add at least one image') }),
+    defaultValues: { gallery: [] as FileUploaderItem[] },
+    onSubmit: (values) =>
+      setOutput(`${(values.gallery as FileUploaderItem[]).length} file(s) — ready to upload`),
+  })
+  return (
+    <Form form={form}>
+      <FileUploader
+        name="gallery"
+        multiple
+        required
+        label="Gallery"
+        accept={{ 'image/*': [] }}
+        maxFiles={5}
+      />
+      <Button type="submit" style={{ marginTop: 'var(--tz-space-sm)' }}>
+        Submit
+      </Button>
+      {output != null && (
+        <span style={{ marginLeft: 'var(--tz-space-sm)', color: 'var(--tz-color-success)' }}>
+          ✓ {output}
+        </span>
+      )}
+    </Form>
+  )
+}
 
 // Stand-in "already uploaded" images as inline SVG data URIs, so the demo renders with no network.
 // A real backend would return a normal https URL here — the component treats any source string the same.
@@ -68,6 +116,13 @@ export function FileUploaderSection() {
 
   return (
     <Section>
+      <Block
+        label="In a <Form> — required + zod validation"
+        description="name binds it to useForm; Submit with no files shows the error + scroll-to-error focuses the field. Validate the array with z.array(fileItemSchema).min(1)."
+      >
+        <FormDemo />
+      </Block>
+
       <Block
         label="Single — collect one file (controlled)"
         description="value + onChange, accept images only. Picking a new file replaces the current one; only the File binary is collected (you upload it on save)."
@@ -144,6 +199,13 @@ export function FileUploaderSection() {
         description="Drag-and-drop in works, but the cards can't be reordered."
       >
         <FileUploader multiple allowReorder={false} defaultValue={EXISTING} />
+      </Block>
+
+      <Block
+        label="allowDownload = false"
+        description="The download button (shown by default on each item) is hidden — only remove remains."
+      >
+        <FileUploader multiple allowDownload={false} defaultValue={EXISTING} />
       </Block>
     </Section>
   )
