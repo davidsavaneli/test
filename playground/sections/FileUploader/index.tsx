@@ -151,8 +151,8 @@ export function FileUploaderSection() {
       </Block>
 
       <Block
-        label="Alt text per locale (allowAltText — edit button → modal)"
-        description="Each card gets an edit (pencil) button → a modal with one alt-text input per content locale (en-US / ka-GE here, from ConfigProvider). The text lands in the model as altText keyed by locale — shown live below."
+        label="Edit modals — crop + alt text per locale (allowAltText)"
+        description="Each card has two buttons: crop (pencil) → a crop modal (drag a selection; native-res, lossless — replaces the file), and alt text (Text) → a modal with one field per content locale (en-US / ka-GE). Shown live below."
       >
         <FileUploader multiple allowAltText value={withAlt} onChange={setWithAlt} />
         <Output value={withAlt} />

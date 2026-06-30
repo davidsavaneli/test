@@ -137,8 +137,8 @@ npm i dayjs
 npm i @tanstack/react-router
 # lexical (+ @lexical/* React packages) are OPTIONAL peers (>=0.45) — only for <RichTextEditor>:
 npm i lexical @lexical/react @lexical/rich-text @lexical/list @lexical/link @lexical/html @lexical/markdown @lexical/selection @lexical/utils
-# react-dropzone + @dnd-kit + @formkit/auto-animate are OPTIONAL peers — only for <FileUploader>:
-npm i react-dropzone @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @formkit/auto-animate
+# react-dropzone + @dnd-kit + @formkit/auto-animate + react-image-crop are OPTIONAL peers — only for <FileUploader>:
+npm i react-dropzone @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @formkit/auto-animate react-image-crop
 ```
 
 ## 2. One-time setup (app entry, e.g. main.tsx)
@@ -262,11 +262,12 @@ buttons; reorder by drag or keyboard). Props: `multiple` · `allowDrop` · `allo
 added) and raises a **`toast.error`** — so mount a `<Toaster>` (RootLayout does by default) to surface it.
 **Duplicate picks are skipped by default** (in `multiple` mode — a re-picked file matching an existing item
 by content raises a "Some files are already added" notice; pass `allowDuplicates` to allow stacking
-identical files). Each card gets an **edit** button (**`allowAltText`** is on by default — pass `false` to
-hide it) → a modal for the item's **`altText`** — **per-locale by default** (one input per content locale,
-from `useLocales()` or the `altTextLocales` prop), landing as **`altText: { '<locale>': '…' }`**; pass
-**`localizedAltText={false}`**
-for a single plain input, landing as a **`string`** (`altText: 'some text'`). Controlled (`value` +
+identical files). **Image** items get two edit buttons (**`allowAltText`** is on by default — pass `false`
+to hide both; a video / PDF / doc shows neither, just download + remove): a **crop** button → a crop modal
+(drag a selection; cropped at native resolution, lossless — replaces the item's `file`, dimensions shown
+live), and an **alt-text** button → an alt-text modal — **per-locale by default**, one `TextField` per content locale (from `useLocales()` or the
+`altTextLocales` prop), landing as **`altText: { '<locale>': '…' }`**; pass **`localizedAltText={false}`**
+for a single plain field, landing as a **`string`** (`altText: 'some text'`). Controlled (`value` +
 `onChange`) or uncontrolled (`defaultValue`); binds to a `<Form>` by **`name`** — validate the array with
 `z.array(z.object({ file: z.instanceof(File).optional(), source: z.string().optional(), sortIndex: z.number(), altText: z.record(z.string()).optional() }).refine((i) => i.file || i.source)).min(1, 'Add at least one')`
 (include `altText` in the schema or zod strips it on submit — use `z.string().optional()` for the

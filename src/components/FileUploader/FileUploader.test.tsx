@@ -11,6 +11,7 @@ import {
   type FileUploaderItem,
   type FileUploaderValue,
   formatBytes,
+  isImageItem,
   itemKey,
   labelOf,
   splitName,
@@ -33,6 +34,12 @@ const pick = async (input: HTMLInputElement, ...files: File[]) => {
   fireEvent.change(input, { target: { files } })
   // react-dropzone resolves the files on a microtask before calling onDrop
   await waitFor(() => {})
+}
+
+// Open a card's Alt text modal (the "Edit alt text for …" button) and return the dialog.
+const openAltDialog = async (editName: string | RegExp = /^Edit alt text/) => {
+  fireEvent.click(screen.getByRole('button', { name: editName }))
+  return screen.findByRole('dialog')
 }
 
 describe('FileUploader pure helpers', () => {
@@ -90,6 +97,21 @@ describe('FileUploader pure helpers', () => {
     expect(itemKey({ file: makeFile('a.png'), source: '', sortIndex: 0 })).not.toBe(
       itemKey({ source: 'a.png', sortIndex: 0 }),
     )
+  })
+
+  it('isImageItem detects images (the only items that get crop + alt text)', () => {
+    // Files — by MIME type
+    expect(isImageItem({ file: makeFile('a.png', 'x', 'image/png'), sortIndex: 0 })).toBe(true)
+    expect(isImageItem({ file: makeFile('v.mp4', 'x', 'video/mp4'), sortIndex: 0 })).toBe(false)
+    expect(isImageItem({ file: makeFile('d.pdf', 'x', 'application/pdf'), sortIndex: 0 })).toBe(
+      false,
+    )
+    // sources — by extension / data-URI / image-first default
+    expect(isImageItem({ source: 'https://x/a.jpg', sortIndex: 0 })).toBe(true)
+    expect(isImageItem({ source: 'https://x/clip.mp4', sortIndex: 0 })).toBe(false)
+    expect(isImageItem({ source: 'https://x/report.pdf?v=2', sortIndex: 0 })).toBe(false)
+    expect(isImageItem({ source: 'data:image/png;base64,zz', sortIndex: 0 })).toBe(true)
+    expect(isImageItem({ source: 'https://picsum.photos/seed/x/240/180', sortIndex: 0 })).toBe(true)
   })
 })
 
@@ -229,32 +251,38 @@ describe('FileUploader alt text (allowAltText)', () => {
 
   it('hides the edit button with allowAltText={false}', () => {
     render(<FileUploader multiple allowAltText={false} defaultValue={[itemA]} />)
-    expect(screen.queryByRole('button', { name: /Edit alt text/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Edit / })).toBeNull()
   })
 
   it('shows an edit button per card by default', () => {
     render(<FileUploader multiple defaultValue={[itemA, itemB]} />)
-    expect(screen.getAllByRole('button', { name: /Edit alt text/ })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: /^Edit / })).toHaveLength(2)
   })
 
-  it('opens a modal with one tab per locale and saves per-locale alt text into the model', async () => {
+  it('hides crop + alt-text for a non-image item (still allows download/remove)', () => {
+    const pdf: FileUploaderItem = {
+      file: makeFile('doc.pdf', 'x', 'application/pdf'),
+      source: '',
+      sortIndex: 0,
+    }
+    render(<FileUploader multiple defaultValue={[pdf]} />)
+    expect(screen.queryByRole('button', { name: /^Crop / })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Edit alt text/ })).toBeNull()
+    expect(screen.getByRole('button', { name: /^Download / })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Remove / })).toBeInTheDocument()
+  })
+
+  it('shows one alt-text field per locale (no tabs) and saves them', async () => {
     const onChange = vi.fn()
     render(
-      <FileUploader
-        multiple
-        allowAltText
-        altTextLocales={LOCALES}
-        defaultValue={[itemA]}
-        onChange={onChange}
-      />,
+      <FileUploader multiple altTextLocales={LOCALES} defaultValue={[itemA]} onChange={onChange} />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
-    const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByRole('tab', { name: 'English' })).toBeInTheDocument()
-    expect(within(dialog).getByRole('tab', { name: 'ქართული' })).toBeInTheDocument()
+    const dialog = await openAltDialog()
+    expect(within(dialog).getByLabelText('English')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('ქართული')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('tab')).toBeNull() // separate modals — no tabs at all
 
-    // type into the active (first = en-US) field, then Save
-    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'A red car' } })
+    fireEvent.change(within(dialog).getByLabelText('English'), { target: { value: 'A red car' } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
 
     await waitFor(() =>
@@ -264,7 +292,7 @@ describe('FileUploader alt text (allowAltText)', () => {
     )
   })
 
-  it('renders a single input (no tabs) for one locale and prefills existing alt text', async () => {
+  it('prefills the alt-text field for a single locale', async () => {
     const item: FileUploaderItem = {
       source: 'https://x/a.png',
       sortIndex: 0,
@@ -273,15 +301,21 @@ describe('FileUploader alt text (allowAltText)', () => {
     render(
       <FileUploader
         multiple
-        allowAltText
         altTextLocales={[{ code: 'en-US', label: 'English' }]}
         defaultValue={[item]}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
+    const dialog = await openAltDialog()
+    expect(within(dialog).getByLabelText('English')).toHaveValue('Existing alt')
+    expect(within(dialog).queryByLabelText('ქართული')).toBeNull() // single locale → one field
+  })
+
+  it('opens a separate crop modal with the crop stage for an image item (drag needs a real browser)', async () => {
+    render(<FileUploader multiple defaultValue={[{ source: 'https://x/a.png', sortIndex: 0 }]} />)
+    fireEvent.click(screen.getByRole('button', { name: /^Crop / }))
     const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).queryByRole('tab')).toBeNull() // single locale → no tab strip
-    expect(within(dialog).getByRole('textbox')).toHaveValue('Existing alt')
+    expect(within(dialog).getByText('Drag to select the area to keep')).toBeInTheDocument()
+    expect(within(dialog).queryByLabelText('English')).toBeNull() // crop modal has no alt-text fields
   })
 
   it('prunes empty alt text back to undefined on save', async () => {
@@ -289,15 +323,13 @@ describe('FileUploader alt text (allowAltText)', () => {
     render(
       <FileUploader
         multiple
-        allowAltText
         altTextLocales={[{ code: 'en-US', label: 'English' }]}
         defaultValue={[{ ...itemA, altText: { 'en-US': 'old' } }]}
         onChange={onChange}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
-    const dialog = await screen.findByRole('dialog')
-    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '   ' } })
+    const dialog = await openAltDialog()
+    fireEvent.change(within(dialog).getByLabelText('English'), { target: { value: '   ' } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
     await waitFor(() =>
       expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ altText: undefined })]),
@@ -327,12 +359,11 @@ describe('FileUploader alt text (allowAltText)', () => {
       )
     }
     render(<Harness />)
-    // open the editor on item B (the second card)
-    fireEvent.click(screen.getByRole('button', { name: 'Edit alt text for b.png' }))
-    const dialog = await screen.findByRole('dialog')
+    // open the alt-text editor on item B (the second card)
+    const dialog = await openAltDialog('Edit alt text for b.png')
     // an external change reorders the array under the open modal — B is now first
     fireEvent.click(screen.getByRole('button', { name: 'ext-reorder' }))
-    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'B alt' } })
+    fireEvent.change(within(dialog).getByLabelText('English'), { target: { value: 'B alt' } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
     await waitFor(() => {
       const v = onChange.mock.lastCall?.[0] as FileUploaderItem[]
@@ -341,22 +372,20 @@ describe('FileUploader alt text (allowAltText)', () => {
     })
   })
 
-  it('localizedAltText={false} edits a single string (no locale tabs)', async () => {
+  it('localizedAltText={false} edits a single plain string', async () => {
     const onChange = vi.fn()
     render(
       <FileUploader
         multiple
-        allowAltText
         localizedAltText={false}
         altTextLocales={LOCALES} // ignored when not localized
         defaultValue={[itemA]}
         onChange={onChange}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
-    const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).queryByRole('tab')).toBeNull() // no locale tabs
-    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Plain alt' } })
+    const dialog = await openAltDialog()
+    expect(within(dialog).queryByLabelText('English')).toBeNull() // non-localized → no per-locale fields
+    fireEvent.change(within(dialog).getByLabelText('Alt text'), { target: { value: 'Plain alt' } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
     await waitFor(() =>
       expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ altText: 'Plain alt' })]),
@@ -367,14 +396,12 @@ describe('FileUploader alt text (allowAltText)', () => {
     render(
       <FileUploader
         multiple
-        allowAltText
         localizedAltText={false}
         defaultValue={[{ ...itemA, altText: 'Existing plain' }]}
       />,
     )
-    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
-    const dialog = await screen.findByRole('dialog')
-    expect(within(dialog).getByRole('textbox')).toHaveValue('Existing plain')
+    const dialog = await openAltDialog()
+    expect(within(dialog).getByLabelText('Alt text')).toHaveValue('Existing plain')
   })
 })
 
@@ -417,7 +444,7 @@ describe('FileUploader alt-text modal vs form touched state', () => {
 
   it('does NOT mark the field touched when the alt-text editor is opened', async () => {
     render(<StrictGalleryForm />)
-    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Edit / }))
     await screen.findByRole('dialog')
     // focus left the root into the body-portaled modal — the guard must keep the field untouched
     const root = document.querySelector('[name="gallery"]') as HTMLElement

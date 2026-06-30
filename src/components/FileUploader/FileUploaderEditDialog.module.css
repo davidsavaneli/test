@@ -1,0 +1,39 @@
+/* The FileUploader edit modals (separate crop + alt-text). The crop-box visuals come from
+   react-image-crop's own CSS (bundled into the lib's stylesheet); this module only lays out the stage. */
+
+.cropSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-xs);
+}
+/* prompt on the left, live "W × H px" size on the right */
+.cropHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tz-space-sm);
+}
+.cropStage {
+  display: flex;
+  justify-content: center;
+  padding: var(--tz-space-xs);
+  background-color: var(--tz-color-primary-shade100);
+  border-radius: var(--tz-radius-sm);
+}
+/* cap the height to the viewport (minus the modal chrome) so a tall image fits without overflowing the
+   modal — set on the ReactCrop ROOT because react-image-crop drives the image via `max-height: inherit`
+   (`.ReactCrop__child-wrapper > img`), which would otherwise override a max-height set on the <img>. */
+.crop {
+  max-width: 100%;
+  max-height: calc(100dvh - 360px);
+}
+.cropImg {
+  display: block;
+  max-width: 100%;
+}
+/* one TextField per locale, stacked (the alt-text modal) */
+.altFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-sm);
+}

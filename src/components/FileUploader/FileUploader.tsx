@@ -33,12 +33,9 @@ import { useDropzone, type Accept, type FileRejection } from 'react-dropzone'
 import { useFormContext } from '../../form/formContext'
 import { useLocales, type LocaleConfig } from '../../theme'
 import { toast } from '../Toast/toastStore'
-import { Button } from '../Button'
 import { Icon } from '../Icon'
-import { Modal } from '../Modal'
-import { MultilineTextField } from '../MultilineTextField'
-import { Tabs } from '../Tabs'
 import { Typography } from '../Typography'
+import { FileUploaderEditDialog, type EditDialogResult } from './FileUploaderEditDialog'
 // shared field chrome (wrapper / label / required / helper) — the Slider precedent
 import fieldStyles from '../TextField/TextField.module.css'
 import styles from './FileUploader.module.css'
@@ -217,6 +214,24 @@ export const labelOf = (item: FileUploaderItem): string => {
   return 'File'
 }
 
+/**
+ * Whether an item is an image — the only kind that gets the **crop** + **alt-text** editors (a video / PDF
+ * / doc has nothing to crop or describe). A File is judged by its MIME `type`; a source URL by a known
+ * image extension or a `data:image/…` URI, defaulting to `true` when it carries no recognizable extension
+ * (the image-first assumption — e.g. extensionless CDN URLs).
+ */
+export const isImageItem = (item: FileUploaderItem): boolean => {
+  if (item.file) return item.file.type.startsWith('image/')
+  const src = item.source
+  if (!src) return false
+  if (/^data:image\//i.test(src)) return true
+  if (/^data:/i.test(src)) return false // a non-image data URI
+  return (
+    /\.(png|jpe?g|gif|webp|avif|svg|bmp|ico|heic|heif)(?:[?#]|$)/i.test(src) ||
+    !/\.[a-z0-9]{1,8}(?:[?#]|$)/i.test(src)
+  )
+}
+
 /** Download an item — a File via a fresh object URL, a source URL via a download link. */
 const triggerDownload = (item: FileUploaderItem) => {
   if (typeof document === 'undefined') return
@@ -265,7 +280,8 @@ interface RowProps {
   disabled?: boolean
   error?: string
   onRemove: () => void
-  onEdit?: () => void
+  onCrop?: () => void
+  onAltText?: () => void
   onDownload?: () => void
   onPreviewError?: () => void
 }
@@ -279,7 +295,8 @@ function Row({
   disabled,
   error,
   onRemove,
-  onEdit,
+  onCrop,
+  onAltText,
   onDownload,
   onPreviewError,
 }: RowProps) {
@@ -324,7 +341,15 @@ function Row({
         </span>
       )}
 
+      {/* top scrim: name/meta on the left, the remove × pinned top-right */}
       <div className={styles.tileTop}>
+        <span className={styles.tileText}>
+          <span className={styles.name} title={label}>
+            <span className={styles.nameBase}>{base}</span>
+            {ext && <span className={styles.nameExt}>{ext}</span>}
+          </span>
+          <span className={clsx(styles.tileMeta, error && styles.metaError)}>{error ?? meta}</span>
+        </span>
         {!disabled && (
           <button
             type="button"
@@ -336,36 +361,46 @@ function Row({
             <Icon name="Close" size="sm" />
           </button>
         )}
-        <span className={styles.tileText}>
-          <span className={styles.name} title={label}>
-            <span className={styles.nameBase}>{base}</span>
-            {ext && <span className={styles.nameExt}>{ext}</span>}
-          </span>
-          <span className={clsx(styles.tileMeta, error && styles.metaError)}>{error ?? meta}</span>
-        </span>
-        {onEdit && (
-          <button
-            type="button"
-            className={styles.tileEdit}
-            aria-label={`Edit alt text for ${label}`}
-            onClick={onEdit}
-            onPointerDown={(e) => e.stopPropagation()} // don't start a drag from the edit button
-          >
-            <Icon name="Edit2" size="sm" />
-          </button>
-        )}
-        {onDownload && (
-          <button
-            type="button"
-            className={styles.tileDownload}
-            aria-label={`Download ${label}`}
-            onClick={onDownload}
-            onPointerDown={(e) => e.stopPropagation()} // don't start a drag from the download button
-          >
-            <Icon name="DocumentDownload" size="sm" />
-          </button>
-        )}
       </div>
+
+      {/* bottom scrim: crop (Crop) + alt text (Text) + download actions */}
+      {(onCrop || onAltText || onDownload) && (
+        <div className={styles.tileBottom}>
+          {onCrop && (
+            <button
+              type="button"
+              className={styles.tileAction}
+              aria-label={`Crop ${label}`}
+              onClick={onCrop}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              <Icon name="Crop" size="sm" />
+            </button>
+          )}
+          {onAltText && (
+            <button
+              type="button"
+              className={styles.tileAction}
+              aria-label={`Edit alt text for ${label}`}
+              onClick={onAltText}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              <Icon name="Text" size="sm" />
+            </button>
+          )}
+          {onDownload && (
+            <button
+              type="button"
+              className={styles.tileAction}
+              aria-label={`Download ${label}`}
+              onClick={onDownload}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              <Icon name="DocumentDownload" size="sm" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -537,46 +572,65 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   // mark the bound form field touched (the impl ignores the event — it just flips the touched flag)
   const markTouched = () => bound?.onBlur({} as FocusEvent<HTMLInputElement>)
 
-  // ── alt-text editor (per-locale; opened from a card's edit button) ───────────────────────────────
+  // ── edit dialogs (separate Crop and Alt-text modals, opened from a card's two buttons) ────────────
   const configLocales = useLocales()
   const altLocales = altTextLocales ?? configLocales
-  // per-locale (default): one input/tab per locale (falling back to a single field if none configured);
-  // non-localized: always a single untabbed field, keyed under '' (the value is a plain string)
+  // per-locale (default): one field per locale (falling back to a single field if none configured);
+  // non-localized: always a single field, keyed under '' (the value is a plain string)
   const editLocales = localizedAltText && altLocales.length > 0 ? altLocales : [{ code: '' }]
-  // track the edited item by its STABLE id (not its index) so an external value change while the modal is
+  // track the edited item by its STABLE id (not its index) so an external value change while a dialog is
   // open — reorder/remove/refetch — can't retarget the save onto the wrong item
   const [editId, setEditId] = useState<string | null>(null)
-  const [altDraft, setAltDraft] = useState<Record<string, string>>({})
+  const [editMode, setEditMode] = useState<'crop' | 'altText'>('altText')
   const editPos = editId != null ? ids.indexOf(editId) : -1
   const editingItem = editPos !== -1 ? items[editPos] : null
-  const openAltEditor = (index: number) => {
-    const existing = items[index].altText
-    setAltDraft(
-      localizedAltText
-        ? existing && typeof existing === 'object'
-          ? { ...existing }
-          : {}
-        : { '': typeof existing === 'string' ? existing : '' },
-    )
+  const openCropEditor = (index: number) => {
+    setEditMode('crop')
     setEditId(ids[index] ?? null)
   }
-  const closeAltEditor = () => setEditId(null)
-  const saveAltText = () => {
-    if (editPos === -1) return closeAltEditor() // the item went away under us — bail
-    let altText: Record<string, string> | string | undefined
-    if (localizedAltText) {
-      // prune empty/whitespace entries so the model isn't littered with blank locales
-      const cleaned = Object.fromEntries(
-        Object.entries(altDraft)
-          .map(([code, text]) => [code, text.trim()] as [string, string])
-          .filter(([, text]) => text !== ''),
-      )
-      altText = Object.keys(cleaned).length > 0 ? cleaned : undefined
-    } else {
-      altText = (altDraft[''] ?? '').trim() || undefined
-    }
-    commit(items.map((it, i) => (ids[i] === editId ? { ...it, altText } : it)))
-    closeAltEditor()
+  const openAltEditor = (index: number) => {
+    setEditMode('altText')
+    setEditId(ids[index] ?? null)
+  }
+  const closeEditor = () => setEditId(null)
+  // seed the alt-text dialog's draft from the item's current value (record vs single string)
+  const editInitialDraft: Record<string, string> = editingItem
+    ? localizedAltText
+      ? editingItem.altText && typeof editingItem.altText === 'object'
+        ? { ...editingItem.altText }
+        : {}
+      : { '': typeof editingItem.altText === 'string' ? editingItem.altText : '' }
+    : {}
+  const saveEdit = ({ draft, croppedFile }: EditDialogResult) => {
+    if (editPos === -1) return closeEditor() // the item went away under us — bail
+    commit(
+      items.map((it, i) => {
+        if (ids[i] !== editId) return it
+        const next: FileUploaderItem = { ...it }
+        // alt-text dialog → rebuild altText from the draft (localized record / single string)
+        if (draft !== undefined) {
+          if (localizedAltText) {
+            // prune empty/whitespace entries so the model isn't littered with blank locales
+            const cleaned = Object.fromEntries(
+              Object.entries(draft)
+                .map(([code, text]) => [code, text.trim()] as [string, string])
+                .filter(([, text]) => text !== ''),
+            )
+            next.altText = Object.keys(cleaned).length > 0 ? cleaned : undefined
+          } else {
+            next.altText = (draft[''] ?? '').trim() || undefined
+          }
+        }
+        // crop dialog → replace the image with the cropped File (native-res, lossless); a source item
+        // becomes a fresh pick (the cropped version uploads on save)
+        if (croppedFile) {
+          next.file = croppedFile
+          next.source = ''
+        }
+        return next
+      }),
+    )
+    closeEditor()
   }
 
   const addFiles = (accepted: File[], rejections: FileRejection[] = []) => {
@@ -793,7 +847,17 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
                     : undefined
                 }
                 onRemove={() => removeAt(index)}
-                onEdit={allowAltText && !disabled ? () => openAltEditor(index) : undefined}
+                // crop + alt text are image-only — a video / PDF / doc has nothing to crop or describe
+                onCrop={
+                  allowAltText && !disabled && isImageItem(item)
+                    ? () => openCropEditor(index)
+                    : undefined
+                }
+                onAltText={
+                  allowAltText && !disabled && isImageItem(item)
+                    ? () => openAltEditor(index)
+                    : undefined
+                }
                 onDownload={allowDownload && !disabled ? () => triggerDownload(item) : undefined}
                 onPreviewError={
                   !item.file && item.source ? () => markSourceFailed(item.source!) : undefined
@@ -819,52 +883,17 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
       )}
 
       {editingItem && (
-        <Modal
-          open
-          onClose={closeAltEditor}
-          size="sm"
-          icon="Edit2"
-          title="Alt text"
-          description={labelOf(editingItem)}
-          footer={
-            <>
-              <Button variant="text" color="dark" onClick={closeAltEditor}>
-                Cancel
-              </Button>
-              <Button onClick={saveAltText}>Save</Button>
-            </>
-          }
-        >
-          {editLocales.length > 1 ? (
-            <Tabs
-              queryKey={null}
-              items={editLocales.map((l) => ({
-                value: l.code,
-                label: l.label ?? l.code,
-                icon: 'Global',
-                content: (
-                  <MultilineTextField
-                    label="Alt text"
-                    placeholder="Describe the image for screen readers…"
-                    value={altDraft[l.code] ?? ''}
-                    onChange={(e) => setAltDraft((d) => ({ ...d, [l.code]: e.target.value }))}
-                    minRows={2}
-                  />
-                ),
-              }))}
-            />
-          ) : (
-            <MultilineTextField
-              label="Alt text"
-              placeholder="Describe the image for screen readers…"
-              value={altDraft[editLocales[0]?.code ?? ''] ?? ''}
-              onChange={(e) =>
-                setAltDraft((d) => ({ ...d, [editLocales[0]?.code ?? '']: e.target.value }))
-              }
-              minRows={2}
-            />
-          )}
-        </Modal>
+        <FileUploaderEditDialog
+          key={`${editId}:${editMode}`}
+          mode={editMode}
+          name={labelOf(editingItem)}
+          imageUrl={previewOf(editingItem)}
+          mimeType={editingItem.file?.type || 'image/png'}
+          editLocales={editLocales}
+          initialDraft={editInitialDraft}
+          onClose={closeEditor}
+          onSave={saveEdit}
+        />
       )}
     </div>
   )

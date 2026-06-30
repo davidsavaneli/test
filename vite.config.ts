@@ -43,6 +43,8 @@ export default defineConfig({
         /^react($|\/)/,
         /^react-dom($|\/)/,
         /^react-dropzone($|\/)/,
+        // bare module only — externalize the JS but let `react-image-crop/dist/ReactCrop.css` bundle in
+        /^react-image-crop$/,
         /^zod($|\/)/,
         /^dayjs($|\/)/,
         /^@tanstack\/react-router($|\/)/,

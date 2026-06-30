@@ -25,9 +25,9 @@ change only what differs.
   `Sidebar` / `FirstRouteRedirect`), **`dayjs`** (`>=1.11`) powers the date components
   (`DatePicker`, …), **`lexical`** (`>=0.45`) + its `@lexical/*` React packages power the
   **`RichTextEditor`**, and **`react-dropzone`** (`>=14`) + **`@dnd-kit/*`** (`core`/`sortable`/`utilities`)
-  - **`@formkit/auto-animate`** (`>=0.8`) power the **`FileUploader`** (file picking/drop, drag reorder,
-    list animation). Prefer React Context + hooks for internal state; reach for a
-    dependency when it clearly earns its place.
+  - **`@formkit/auto-animate`** (`>=0.8`) + **`react-image-crop`** (`>=11`) power the **`FileUploader`**
+    (file picking/drop, drag reorder, list animation, per-item image crop). Prefer React Context + hooks
+    for internal state; reach for a dependency when it clearly earns its place.
 
 ---
 
@@ -549,9 +549,11 @@ sync with the visual order on every change. An optional **`altText`** holds alt 
 the `allowAltText` edit-button → modal — **per-locale** by default (`Record<localeCode, string>`), or a
 single **`string`** with `localizedAltText={false}` (see below). **`FileUploaderValue`** is one item (or
 `null`) in single mode, an **array** when `multiple`. Built on
-three **optional peers** (all `external`/never bundled, like
+four **optional peers** (all `external`/never bundled, like
 `lexical`): **`react-dropzone`** (click-to-browse + OS drag-drop), **`@dnd-kit`** (`core` / `sortable` /
-`utilities` — drag + keyboard reorder), and **`@formkit/auto-animate`** (card add / remove / shift).
+`utilities` — drag + keyboard reorder), **`@formkit/auto-animate`** (card add / remove / shift), and
+**`react-image-crop`** (the per-item crop editor — its CSS is **bundled into the lib's stylesheet**, so no
+extra consumer import; the JS stays external).
 
 Shares **TextField's field chrome** — it imports `TextField.module.css` for the label / required /
 helper / error styling (the `Slider`/`NumberField` precedent) — so `label` · `required` · `error` +
@@ -561,11 +563,14 @@ helper / error styling (the `Slider`/`NumberField` precedent) — so `label` · 
 cards** (`aspect-ratio: 4/3`). The dropzone shows while `multiple` (or, in single mode, until a file is
 picked — `showDropzone = multiple || items.length === 0`); a static `hint` inside it spells out the
 constraints (`"Up to 5 files · Max 5 MB each"`). Each card shows the image preview (a File's object URL,
-or the `source` URL — a non-image / failed load falls back to a centered `Document` icon) under a top
-scrim overlay holding a **remove** (`Close`) button, the **name** (middle-truncated as `name….ext` so the
-extension always stays visible) + a **meta** line (`formatBytes(size)` for a File, `"Uploaded"` for a
-source, or the error note), an **edit** (`Edit2`) button (on by default — hidden with `allowAltText={false}`), and a
-**download** (`DocumentDownload`) button. The scrim + white text are
+or the `source` URL — a non-image / failed load falls back to a centered `Document` icon) with **two
+scrim overlays**: a **top** one holding the **name** (middle-truncated as `name….ext` so the extension
+always stays visible) + a **meta** line (`formatBytes(size)` for a File, `"Uploaded"` for a source, or the
+error note) on the left and the **remove** (`Close`) button pinned **top-right**; and a **bottom** one
+holding the action buttons — **crop** (`Edit2`), **alt text** (`Text`), and **download**
+(`DocumentDownload`). The crop + alt-text buttons are gated by `allowAltText` (on by default — pass
+`allowAltText={false}` to hide both) **and shown only for image items** (`isImageItem` — a video / PDF /
+doc has nothing to crop or describe; those keep just download + remove). The scrims + white text are
 **literal black/white** (the image behind doesn't flip with the theme — the same justified exception the
 `Modal` backdrop makes).
 
@@ -595,13 +600,26 @@ File keyed by **name + size + last-modified** (`fileKey`), a source by its URL (
 check would miss; pass **`allowDuplicates`** to let identical files stack (single mode always replaces, so
 it can't stack).
 
-**Alt text (`allowAltText`).** Each card gets an **edit** (`Edit2`) button that opens a `Modal`
-(`size="sm"`, `Edit2` header icon, the file name as the description) holding one **`MultilineTextField`**.
-**Per-locale by default** (`localizedAltText` defaults `true`): one field per content locale — a `Tabs`
-strip (`queryKey={null}`, globe-iconed, exactly the `TranslatedFields` look) when there are several, or a
-single field for one locale; locales resolve **`altTextLocales` prop → `useLocales()`**, falling back to a
-single untabbed field if none, and the value is a `Record<localeCode, string>`. With
-**`localizedAltText={false}`** it's a **single plain input** (no tabs, no locales) and the value is a
+**Edit modals — crop + alt text (`allowAltText`).** Each card has **two** buttons opening **separate**
+modals (one internal **`FileUploaderEditDialog`** with a `mode` prop): the **crop** button (`Edit2`) → a
+crop modal (`size="lg"`); the **alt-text** button (`Text`) → an alt-text modal (`size="sm"`). **Crop** (via
+**`react-image-crop`**): the image with a draggable selection rectangle ("Drag to select the area to keep"),
+the selection's **native pixel size shown live** (`W × H px`) — or the image's **original size** before a
+selection is drawn. The crop is kept in **native coords** (converted on every drag) so Save doesn't depend
+on the displayed size. The crop image is capped to `max-height: calc(100dvh - 360px)` (on the `ReactCrop`
+root, since react-image-crop drives the `<img>` via `max-height: inherit`) so a tall image fits the screen. On **Save** the crop is exported by
+a **canvas at the image's native resolution** — `drawImage` copies the selected region **1:1**
+(`imageSmoothingEnabled = false`, no resample → **no quality loss, no resize**) and `toBlob(mimeType, 1)`
+(the original MIME; **PNG ⇒ lossless**) yields a new `File` that **replaces the item's `file`** (`source`
+cleared — a cropped source item becomes a fresh pick that uploads on save). A tainted (cross-origin,
+no-CORS) canvas makes `toBlob` throw → caught, shown as a dialog error (File-object-URL picks +
+same-origin/`data:` sources always work). Both the crop **and** alt-text buttons appear only for **image**
+items (`isImageItem` — File by MIME, source by extension / `data:image`); a video / PDF / doc shows neither.
+**Alt text**
+(the other modal): **per-locale by default** (`localizedAltText` defaults `true`) — **one `TextField` per
+content locale, stacked** (labelled by locale; no tabs), locales resolving **`altTextLocales` prop →
+`useLocales()`** (a single untabbed field if none), and the value is a `Record<localeCode, string>`. With
+**`localizedAltText={false}`** it's a **single plain `TextField`** (no locales) and the value is a
 **`string`**. A working **draft** is seeded from the item's `altText` on open; **Save** trims (localized:
 prunes empty locales, an all-empty result clears `altText` to `undefined`; non-localized: empty → `undefined`)
 and commits via the normal `commit` path (so `altText` rides through `reindex` / controlled value / the
@@ -632,14 +650,18 @@ but **not** when focus only leaves because the alt-text `Modal` or the **native 
 (opening the picker would otherwise flash a `required` error before a pick); the picker instead marks touched
 on **cancel** (react-dropzone's `onFileDialogCancel` — opened and chose nothing), via `onFileDialogOpen` +
 a one-shot suppress flag.
-**Note:** the OS-drag drop + dnd-kit drag rely on trusted browser events (verified in a real browser, not
-jsdom), but the **click-to-browse picker path works in jsdom** (`react-dropzone`'s input change; auto-animate
-is a no-op there since it gates on `ResizeObserver`), so the tests cover the pure helpers (`toBytes` /
-`formatBytes` / `splitName` / `labelOf` / `fileKey` / `itemKey`), render / structure / a11y, the **dedup
-behavior** (re-picking the same file is skipped + notice; `allowDuplicates` stacks), the **rejection toasts**
-(an oversized / wrong-type pick is rejected + `toast.error`, asserted via a spy), the **alt-text editor**
-(`allowAltText` → modal → per-locale `altText` saved/pruned), and the `<Form>` binding.
-Own CSS module. _A progress/upload mode and an inline (row) layout are natural next iterations._
+**Note:** the OS-drag drop + dnd-kit drag + the **crop drag** (`react-image-crop`'s pointer drag) + the
+canvas crop export rely on trusted browser events / canvas (verified in a real browser, not jsdom), but the
+**click-to-browse picker path works in jsdom** (`react-dropzone`'s input change; auto-animate is a no-op
+there since it gates on `ResizeObserver`; `react-image-crop` renders fine — it only reads
+`getBoundingClientRect`), so the tests cover the pure helpers (`toBytes` / `formatBytes` / `splitName` /
+`labelOf` / `fileKey` / `itemKey`), render / structure / a11y, the **dedup behavior** (re-picking the same
+file is skipped + notice; `allowDuplicates` stacks), the **rejection toasts** (an oversized / wrong-type
+pick is rejected + `toast.error`, asserted via a spy), the **edit modals** (`allowAltText` → separate crop /
+alt-text modals; the crop modal's stage renders + per-locale / single `altText` saved/pruned), and the
+`<Form>` binding. Own CSS module
+(plus an internal `FileUploaderEditDialog.module.css`). _A progress/upload mode and an inline (row) layout
+are natural next iterations._
 
 ### TagsField
 

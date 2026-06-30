@@ -118,7 +118,7 @@
 .tile {
   position: relative;
   aspect-ratio: 4 / 3;
-  border-radius: var(--tz-radius-md);
+  border-radius: var(--tz-radius-sm);
   overflow: hidden;
   background-color: var(--tz-color-primary-shade100);
   outline: none;
@@ -162,21 +162,31 @@
   color: var(--tz-color-primary-shade600);
 }
 
-/* top overlay — × + name/size over a dark scrim so they read on any image. The scrim/white text are
-   literal black/white (the image behind doesn't change with the theme, so a brand-token tint would be
-   wrong in one mode) — the same justified exception the Modal backdrop makes. */
+/* overlays — name/size + × on a top scrim, the action buttons on a bottom scrim, over dark gradients so
+   they read on any image. The scrim/white text are literal black/white (the image behind doesn't change
+   with the theme, so a brand-token tint would be wrong in one mode) — the Modal-backdrop exception. */
 .tileTop {
   position: absolute;
   inset: 0 0 auto 0;
   display: flex;
   align-items: flex-start;
-  gap: var(--tz-space-xs);
-  padding: var(--tz-space-xs);
+  gap: calc(var(--tz-space-sm) / 1.5);
+  padding: calc(var(--tz-space-sm) / 1.5);
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
 }
+/* bottom scrim — crop / alt-text / download actions, pinned bottom-right */
+.tileBottom {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--tz-space-xs);
+  padding: calc(var(--tz-space-sm) / 1.5);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+}
 .tileRemove,
-.tileEdit,
-.tileDownload {
+.tileAction {
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -191,16 +201,15 @@
   cursor: pointer;
   transition: background-color var(--tz-duration);
 }
+/* remove is destructive → reddens on hover */
 .tileRemove:hover,
 .tileRemove:focus-visible {
   background-color: rgb(var(--tz-color-error-rgb));
   outline: none;
 }
-/* edit + download — neutral darken on hover (they're not destructive like remove) */
-.tileEdit:hover,
-.tileEdit:focus-visible,
-.tileDownload:hover,
-.tileDownload:focus-visible {
+/* crop / alt-text / download — neutral darken on hover */
+.tileAction:hover,
+.tileAction:focus-visible {
   background-color: rgba(0, 0, 0, 0.7);
   outline: none;
 }

@@ -126,6 +126,7 @@
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
     "react-dropzone": ">=14.0.0",
+    "react-image-crop": ">=11.0.0",
     "zod": ">=3.23.0"
   },
   "peerDependenciesMeta": {
@@ -142,6 +143,9 @@
       "optional": true
     },
     "react-dropzone": {
+      "optional": true
+    },
+    "react-image-crop": {
       "optional": true
     },
     "@tanstack/react-router": {
@@ -208,6 +212,7 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-dropzone": "^15.0.0",
+    "react-image-crop": "^11.1.2",
     "typescript": "^6.0.3",
     "vite": "^6.4.3",
     "vitest": "^4.1.8",
