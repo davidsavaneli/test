@@ -16,6 +16,7 @@ const fileItemSchema = z
     file: z.instanceof(File).optional(),
     source: z.string().optional(),
     sortIndex: z.number(),
+    altText: z.union([z.string(), z.record(z.string())]).optional(), // string OR per-locale map
   })
   .refine((it) => Boolean(it.file) || Boolean(it.source), 'Missing file')
 
@@ -89,6 +90,7 @@ function Output({ value }: { value: FileUploaderValue }) {
     file: it.file?.name,
     source: it.source || undefined,
     sortIndex: it.sortIndex,
+    altText: it.altText,
   }))
   return (
     <pre
@@ -113,6 +115,8 @@ export function FileUploaderSection() {
   const [single, setSingle] = useState<FileUploaderValue>(null)
   const [gallery, setGallery] = useState<FileUploaderValue>([])
   const [edit, setEdit] = useState<FileUploaderValue>(EXISTING)
+  const [withAlt, setWithAlt] = useState<FileUploaderValue>(EXISTING)
+  const [plainAlt, setPlainAlt] = useState<FileUploaderValue>(EXISTING)
 
   return (
     <Section>
@@ -131,11 +135,41 @@ export function FileUploaderSection() {
       </Block>
 
       <Block
-        label="Multiple — controlled, with the emitted value"
-        description="onChange fires the { file, source, sortIndex } model on every add / remove / reorder — shown live below."
+        label="Create — empty start, collecting new files (the model below)"
+        description="Starts empty; pick a few images. Each new pick is { file: <File binary>, source: '', sortIndex } — on save you upload the file binaries. (A File can't be JSON-stringified, so file shows below as its name.)"
       >
         <FileUploader multiple value={gallery} onChange={setGallery} accept={{ 'image/*': [] }} />
         <Output value={gallery} />
+      </Block>
+
+      <Block
+        label="Edit — returned from the backend (the model below)"
+        description="Seeded with already-uploaded items: each is { source: <url>, sortIndex } with no file. Reorder/remove them, or add a new pick — it appears as a { file, source: '' } item alongside. On save you upload only the new file items and keep the existing source URLs."
+      >
+        <FileUploader multiple value={edit} onChange={setEdit} />
+        <Output value={edit} />
+      </Block>
+
+      <Block
+        label="Alt text per locale (allowAltText — edit button → modal)"
+        description="Each card gets an edit (pencil) button → a modal with one alt-text input per content locale (en-US / ka-GE here, from ConfigProvider). The text lands in the model as altText keyed by locale — shown live below."
+      >
+        <FileUploader multiple allowAltText value={withAlt} onChange={setWithAlt} />
+        <Output value={withAlt} />
+      </Block>
+
+      <Block
+        label="Alt text — single string (localizedAltText={false})"
+        description="The edit modal shows one plain alt-text input (no locale tabs); the model's altText is a string, not a per-locale map."
+      >
+        <FileUploader
+          multiple
+          allowAltText
+          localizedAltText={false}
+          value={plainAlt}
+          onChange={setPlainAlt}
+        />
+        <Output value={plainAlt} />
       </Block>
 
       <Block
@@ -150,13 +184,6 @@ export function FileUploaderSection() {
         description="A newly added file lands at the top of the list instead of the bottom (default is 'end')."
       >
         <FileUploader multiple itemInsertLocation="start" defaultValue={EXISTING} />
-      </Block>
-
-      <Block
-        label="Edit mode — already-uploaded files (source URLs)"
-        description="Controlled value with source items (no binary). Remove or reorder them, or add new picks alongside."
-      >
-        <FileUploader multiple value={edit} onChange={setEdit} />
       </Block>
 
       <Block

@@ -1,6 +1,6 @@
-import { createRef } from 'react'
+import { createRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { z } from 'zod'
 import { Form } from '../../form/Form'
 import { useForm } from '../../form/useForm'
@@ -9,6 +9,7 @@ import {
   fileKey,
   FileUploader,
   type FileUploaderItem,
+  type FileUploaderValue,
   formatBytes,
   itemKey,
   labelOf,
@@ -218,6 +219,232 @@ describe('FileUploader rejections → toast (not added)', () => {
   })
 })
 
+describe('FileUploader alt text (allowAltText)', () => {
+  const LOCALES = [
+    { code: 'en-US', label: 'English' },
+    { code: 'ka-GE', label: 'ქართული' },
+  ]
+  const itemA: FileUploaderItem = { file: makeFile('a.png'), source: '', sortIndex: 0 }
+  const itemB: FileUploaderItem = { file: makeFile('b.png'), source: '', sortIndex: 1 }
+
+  it('hides the edit button with allowAltText={false}', () => {
+    render(<FileUploader multiple allowAltText={false} defaultValue={[itemA]} />)
+    expect(screen.queryByRole('button', { name: /Edit alt text/ })).toBeNull()
+  })
+
+  it('shows an edit button per card by default', () => {
+    render(<FileUploader multiple defaultValue={[itemA, itemB]} />)
+    expect(screen.getAllByRole('button', { name: /Edit alt text/ })).toHaveLength(2)
+  })
+
+  it('opens a modal with one tab per locale and saves per-locale alt text into the model', async () => {
+    const onChange = vi.fn()
+    render(
+      <FileUploader
+        multiple
+        allowAltText
+        altTextLocales={LOCALES}
+        defaultValue={[itemA]}
+        onChange={onChange}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('tab', { name: 'English' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'ქართული' })).toBeInTheDocument()
+
+    // type into the active (first = en-US) field, then Save
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'A red car' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith([
+        expect.objectContaining({ altText: { 'en-US': 'A red car' } }),
+      ]),
+    )
+  })
+
+  it('renders a single input (no tabs) for one locale and prefills existing alt text', async () => {
+    const item: FileUploaderItem = {
+      source: 'https://x/a.png',
+      sortIndex: 0,
+      altText: { 'en-US': 'Existing alt' },
+    }
+    render(
+      <FileUploader
+        multiple
+        allowAltText
+        altTextLocales={[{ code: 'en-US', label: 'English' }]}
+        defaultValue={[item]}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).queryByRole('tab')).toBeNull() // single locale → no tab strip
+    expect(within(dialog).getByRole('textbox')).toHaveValue('Existing alt')
+  })
+
+  it('prunes empty alt text back to undefined on save', async () => {
+    const onChange = vi.fn()
+    render(
+      <FileUploader
+        multiple
+        allowAltText
+        altTextLocales={[{ code: 'en-US', label: 'English' }]}
+        defaultValue={[{ ...itemA, altText: { 'en-US': 'old' } }]}
+        onChange={onChange}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: '   ' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ altText: undefined })]),
+    )
+  })
+
+  it('saves onto the originally-opened item even if the value reorders externally mid-edit', async () => {
+    const onChange = vi.fn()
+    function Harness() {
+      const [value, setValue] = useState<FileUploaderValue>([itemA, itemB])
+      return (
+        <>
+          <button type="button" onClick={() => setValue([itemB, itemA])}>
+            ext-reorder
+          </button>
+          <FileUploader
+            multiple
+            allowAltText
+            altTextLocales={[{ code: 'en-US', label: 'English' }]}
+            value={value}
+            onChange={(v) => {
+              onChange(v)
+              setValue(v)
+            }}
+          />
+        </>
+      )
+    }
+    render(<Harness />)
+    // open the editor on item B (the second card)
+    fireEvent.click(screen.getByRole('button', { name: 'Edit alt text for b.png' }))
+    const dialog = await screen.findByRole('dialog')
+    // an external change reorders the array under the open modal — B is now first
+    fireEvent.click(screen.getByRole('button', { name: 'ext-reorder' }))
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'B alt' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    await waitFor(() => {
+      const v = onChange.mock.lastCall?.[0] as FileUploaderItem[]
+      expect(v.find((it) => it.file?.name === 'b.png')?.altText).toEqual({ 'en-US': 'B alt' })
+      expect(v.find((it) => it.file?.name === 'a.png')?.altText).toBeUndefined()
+    })
+  })
+
+  it('localizedAltText={false} edits a single string (no locale tabs)', async () => {
+    const onChange = vi.fn()
+    render(
+      <FileUploader
+        multiple
+        allowAltText
+        localizedAltText={false}
+        altTextLocales={LOCALES} // ignored when not localized
+        defaultValue={[itemA]}
+        onChange={onChange}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).queryByRole('tab')).toBeNull() // no locale tabs
+    fireEvent.change(within(dialog).getByRole('textbox'), { target: { value: 'Plain alt' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ altText: 'Plain alt' })]),
+    )
+  })
+
+  it('prefills a string altText in non-localized mode', async () => {
+    render(
+      <FileUploader
+        multiple
+        allowAltText
+        localizedAltText={false}
+        defaultValue={[{ ...itemA, altText: 'Existing plain' }]}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('textbox')).toHaveValue('Existing plain')
+  })
+})
+
+// a <Form> with a too-strict rule (min 2) so a 1-item gallery is invalid while an edit button still shows
+const STRICT_ITEM = z
+  .object({
+    file: z.instanceof(File).optional(),
+    source: z.string().optional(),
+    sortIndex: z.number(),
+    altText: z.record(z.string()).optional(),
+  })
+  .refine((i) => Boolean(i.file) || Boolean(i.source))
+
+function StrictGalleryForm() {
+  const form = useForm({
+    schema: z.object({ gallery: z.array(STRICT_ITEM).min(2, 'Add at least two') }),
+    defaultValues: { gallery: [{ file: makeFile('a.png'), source: '', sortIndex: 0 }] },
+    onSubmit: vi.fn(),
+  })
+  return (
+    <Form form={form}>
+      <FileUploader
+        name="gallery"
+        multiple
+        allowAltText
+        altTextLocales={[{ code: 'en-US', label: 'English' }]}
+        label="Gallery"
+      />
+    </Form>
+  )
+}
+
+describe('FileUploader alt-text modal vs form touched state', () => {
+  it('reveals the bound error on a real blur out of the widget (control)', async () => {
+    render(<StrictGalleryForm />)
+    const root = document.querySelector('[name="gallery"]') as HTMLElement
+    fireEvent.blur(root, { relatedTarget: document.body })
+    expect(await screen.findByText('Add at least two')).toBeInTheDocument()
+  })
+
+  it('does NOT mark the field touched when the alt-text editor is opened', async () => {
+    render(<StrictGalleryForm />)
+    fireEvent.click(screen.getByRole('button', { name: /Edit alt text/ }))
+    await screen.findByRole('dialog')
+    // focus left the root into the body-portaled modal — the guard must keep the field untouched
+    const root = document.querySelector('[name="gallery"]') as HTMLElement
+    fireEvent.blur(root, { relatedTarget: document.body })
+    expect(screen.queryByText('Add at least two')).toBeNull()
+  })
+
+  it('reveals the required error after the last file is removed', async () => {
+    function Harness() {
+      const form = useForm({
+        schema: z.object({ gallery: z.array(STRICT_ITEM).min(1, 'Add at least one image') }),
+        defaultValues: { gallery: [{ file: makeFile('a.png'), source: '', sortIndex: 0 }] },
+        onSubmit: vi.fn(),
+      })
+      return (
+        <Form form={form}>
+          <FileUploader name="gallery" multiple label="Gallery" />
+        </Form>
+      )
+    }
+    render(<Harness />)
+    expect(screen.queryByText('Add at least one image')).toBeNull() // valid + untouched
+    fireEvent.click(screen.getByRole('button', { name: /^Remove / }))
+    expect(await screen.findByText('Add at least one image')).toBeInTheDocument()
+  })
+})
+
 describe('FileUploader <Form> binding', () => {
   function Harness({ onSubmit }: { onSubmit: () => void }) {
     const form = useForm({
@@ -262,5 +489,40 @@ describe('FileUploader <Form> binding', () => {
     const submitted = onSubmit.mock.lastCall?.[0] as { gallery: FileUploaderItem[] }
     expect(submitted.gallery).toHaveLength(1)
     expect(submitted.gallery[0].file?.name).toBe('a.png')
+  })
+
+  it('keeps altText through submit when the item schema declares it', async () => {
+    const onSubmit = vi.fn()
+    function AltHarness() {
+      const form = useForm({
+        schema: z.object({
+          gallery: z
+            .array(
+              z.object({
+                file: z.instanceof(File).optional(),
+                source: z.string().optional(),
+                sortIndex: z.number(),
+                altText: z.record(z.string()).optional(),
+              }),
+            )
+            .min(1),
+        }),
+        defaultValues: {
+          gallery: [{ source: 'https://x/a.png', sortIndex: 0, altText: { 'en-US': 'A' } }],
+        },
+        onSubmit,
+      })
+      return (
+        <Form form={form}>
+          <FileUploader name="gallery" multiple allowAltText label="Gallery" />
+          <button type="submit">Submit</button>
+        </Form>
+      )
+    }
+    render(<AltHarness />)
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }))
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1))
+    const submitted = onSubmit.mock.lastCall?.[0] as { gallery: FileUploaderItem[] }
+    expect(submitted.gallery[0].altText).toEqual({ 'en-US': 'A' })
   })
 })

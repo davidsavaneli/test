@@ -175,6 +175,7 @@
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
 }
 .tileRemove,
+.tileEdit,
 .tileDownload {
   flex: none;
   display: inline-flex;
@@ -195,7 +196,9 @@
   background-color: rgb(var(--tz-color-error-rgb));
   outline: none;
 }
-/* download — neutral darken on hover (it's not destructive like remove) */
+/* edit + download — neutral darken on hover (they're not destructive like remove) */
+.tileEdit:hover,
+.tileEdit:focus-visible,
 .tileDownload:hover,
 .tileDownload:focus-visible {
   background-color: rgba(0, 0, 0, 0.7);

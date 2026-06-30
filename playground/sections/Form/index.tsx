@@ -59,6 +59,7 @@ const fileItemSchema = z
     file: z.instanceof(File).optional(),
     source: z.string().optional(),
     sortIndex: z.number(),
+    altText: z.union([z.string(), z.record(z.string())]).optional(), // string OR per-locale map
   })
   .refine((it) => Boolean(it.file) || Boolean(it.source), 'Missing file')
 
@@ -108,6 +109,7 @@ function Fields() {
         name="gallery"
         required
         multiple
+        allowAltText
         label="Gallery"
         accept={{ 'image/*': [] }}
         maxFiles={5}

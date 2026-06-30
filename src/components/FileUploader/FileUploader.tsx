@@ -31,8 +31,13 @@ import type { AutoAnimationPlugin } from '@formkit/auto-animate'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { useDropzone, type Accept, type FileRejection } from 'react-dropzone'
 import { useFormContext } from '../../form/formContext'
+import { useLocales, type LocaleConfig } from '../../theme'
 import { toast } from '../Toast/toastStore'
+import { Button } from '../Button'
 import { Icon } from '../Icon'
+import { Modal } from '../Modal'
+import { MultilineTextField } from '../MultilineTextField'
+import { Tabs } from '../Tabs'
 import { Typography } from '../Typography'
 // shared field chrome (wrapper / label / required / helper) — the Slider precedent
 import fieldStyles from '../TextField/TextField.module.css'
@@ -49,6 +54,12 @@ export interface FileUploaderItem {
   source?: string
   /** Position in the list (0-based) — kept in sync with the visual order on every change. */
   sortIndex: number
+  /**
+   * Optional alt text, edited per card via the `allowAltText` modal. **Per-locale by default** —
+   * `Record<localeCode, string>` (e.g. `{ 'en-US': 'A red car', 'ka-GE': '…' }`); with
+   * **`localizedAltText={false}`** it's a single **`string`**. Absent until something is typed.
+   */
+  altText?: Record<string, string> | string
 }
 
 /** Single mode → one item (or `null`); `multiple` mode → an array. */
@@ -66,6 +77,25 @@ export interface FileUploaderProps extends Omit<
   allowReorder?: boolean
   /** Show a download button on each item (downloads the File / source). Defaults to `true`. */
   allowDownload?: boolean
+  /**
+   * Show a per-card **edit** button that opens a modal for editing the item's `altText`. Defaults to
+   * `true` — pass `false` to hide it. The modal renders one input per content locale (a tab strip when
+   * there are several), so the edited value lands in `item.altText` keyed by locale code (or a single
+   * string with `localizedAltText={false}`).
+   */
+  allowAltText?: boolean
+  /**
+   * Locales for the `allowAltText` editor (one input/tab each). Defaults to the app's `ConfigProvider`
+   * locales (`useLocales()`); pass this to override — mirrors `<TranslatedFields locales>`. Ignored when
+   * `localizedAltText` is `false`.
+   */
+  altTextLocales?: LocaleConfig[]
+  /**
+   * Whether the `allowAltText` editor is **per-locale**. Defaults to `true` — `altText` is a
+   * `Record<localeCode, string>` with one input/tab per locale. Pass **`false`** for a single plain input
+   * (no locales), so `altText` is just a **`string`**.
+   */
+  localizedAltText?: boolean
   /**
    * Allow the same file to be added more than once. By default (`false`) a pick that matches an
    * already-present item by content (a File by name + size + last-modified, a source by URL) is skipped
@@ -235,6 +265,7 @@ interface RowProps {
   disabled?: boolean
   error?: string
   onRemove: () => void
+  onEdit?: () => void
   onDownload?: () => void
   onPreviewError?: () => void
 }
@@ -248,6 +279,7 @@ function Row({
   disabled,
   error,
   onRemove,
+  onEdit,
   onDownload,
   onPreviewError,
 }: RowProps) {
@@ -311,6 +343,17 @@ function Row({
           </span>
           <span className={clsx(styles.tileMeta, error && styles.metaError)}>{error ?? meta}</span>
         </span>
+        {onEdit && (
+          <button
+            type="button"
+            className={styles.tileEdit}
+            aria-label={`Edit alt text for ${label}`}
+            onClick={onEdit}
+            onPointerDown={(e) => e.stopPropagation()} // don't start a drag from the edit button
+          >
+            <Icon name="Edit2" size="sm" />
+          </button>
+        )}
         {onDownload && (
           <button
             type="button"
@@ -344,6 +387,9 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     allowDrop = true,
     allowReorder = true,
     allowDownload = true,
+    allowAltText = true,
+    altTextLocales,
+    localizedAltText = true,
     allowDuplicates = false,
     disabled = false,
     accept,
@@ -488,6 +534,51 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     onChange?.(out)
   }
 
+  // mark the bound form field touched (the impl ignores the event — it just flips the touched flag)
+  const markTouched = () => bound?.onBlur({} as FocusEvent<HTMLInputElement>)
+
+  // ── alt-text editor (per-locale; opened from a card's edit button) ───────────────────────────────
+  const configLocales = useLocales()
+  const altLocales = altTextLocales ?? configLocales
+  // per-locale (default): one input/tab per locale (falling back to a single field if none configured);
+  // non-localized: always a single untabbed field, keyed under '' (the value is a plain string)
+  const editLocales = localizedAltText && altLocales.length > 0 ? altLocales : [{ code: '' }]
+  // track the edited item by its STABLE id (not its index) so an external value change while the modal is
+  // open — reorder/remove/refetch — can't retarget the save onto the wrong item
+  const [editId, setEditId] = useState<string | null>(null)
+  const [altDraft, setAltDraft] = useState<Record<string, string>>({})
+  const editPos = editId != null ? ids.indexOf(editId) : -1
+  const editingItem = editPos !== -1 ? items[editPos] : null
+  const openAltEditor = (index: number) => {
+    const existing = items[index].altText
+    setAltDraft(
+      localizedAltText
+        ? existing && typeof existing === 'object'
+          ? { ...existing }
+          : {}
+        : { '': typeof existing === 'string' ? existing : '' },
+    )
+    setEditId(ids[index] ?? null)
+  }
+  const closeAltEditor = () => setEditId(null)
+  const saveAltText = () => {
+    if (editPos === -1) return closeAltEditor() // the item went away under us — bail
+    let altText: Record<string, string> | string | undefined
+    if (localizedAltText) {
+      // prune empty/whitespace entries so the model isn't littered with blank locales
+      const cleaned = Object.fromEntries(
+        Object.entries(altDraft)
+          .map(([code, text]) => [code, text.trim()] as [string, string])
+          .filter(([, text]) => text !== ''),
+      )
+      altText = Object.keys(cleaned).length > 0 ? cleaned : undefined
+    } else {
+      altText = (altDraft[''] ?? '').trim() || undefined
+    }
+    commit(items.map((it, i) => (ids[i] === editId ? { ...it, altText } : it)))
+    closeAltEditor()
+  }
+
   const addFiles = (accepted: File[], rejections: FileRejection[] = []) => {
     // Hard rejections (the file is invalid: wrong type, or over `maxFileSize` — react-dropzone rejects
     // both, so they never reach `accepted`) surface as a Toast error and are not added.
@@ -542,6 +633,8 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   const removeAt = (index: number) => {
     setNotice(null)
     commit(items.filter((_, i) => i !== index))
+    // removing is an explicit interaction — mark touched so an emptied required field reveals its error
+    markTouched()
   }
 
   // auto-animate handles add / remove / shift on the list; it's paused during a dnd-kit drag so the two
@@ -569,6 +662,11 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
+  // opening the native file dialog blurs the window, which would otherwise mark the field touched and flash
+  // a "required" error before the user picks anything; suppress that one blur and only mark touched when the
+  // dialog is *canceled* with no selection (the real "engaged, added nothing" signal)
+  const fileDialogOpen = useRef(false)
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple,
     accept,
@@ -577,7 +675,17 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     disabled,
     noKeyboard: false,
     noDrag: !allowDrop,
-    onDrop: (accepted, rejections) => addFiles(accepted, rejections),
+    onFileDialogOpen: () => {
+      fileDialogOpen.current = true
+    },
+    onFileDialogCancel: () => {
+      fileDialogOpen.current = false
+      markTouched()
+    },
+    onDrop: (accepted, rejections) => {
+      fileDialogOpen.current = false
+      addFiles(accepted, rejections)
+    },
   })
 
   const showDropzone = multiple || items.length === 0
@@ -601,7 +709,16 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   const onRootBlur = (event: FocusEvent<HTMLDivElement>) => {
     onBlur?.(event)
     if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
-    bound?.onBlur(event as unknown as FocusEvent<HTMLInputElement>)
+    // opening the alt-text editor moves focus into the body-portaled Modal (outside the root); that's not
+    // focus leaving the widget, so don't mark touched (mirrors Select's portaled-popover guard)
+    if (editId != null) return
+    // the native file-dialog blur isn't "leaving the widget" either — consume it (touched is set instead on
+    // dialog cancel); only a genuine blur-away marks touched
+    if (fileDialogOpen.current) {
+      fileDialogOpen.current = false
+      return
+    }
+    markTouched()
   }
 
   return (
@@ -676,6 +793,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
                     : undefined
                 }
                 onRemove={() => removeAt(index)}
+                onEdit={allowAltText && !disabled ? () => openAltEditor(index) : undefined}
                 onDownload={allowDownload && !disabled ? () => triggerDownload(item) : undefined}
                 onPreviewError={
                   !item.file && item.source ? () => markSourceFailed(item.source!) : undefined
@@ -698,6 +816,55 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
         >
           {shownHelper}
         </Typography>
+      )}
+
+      {editingItem && (
+        <Modal
+          open
+          onClose={closeAltEditor}
+          size="sm"
+          icon="Edit2"
+          title="Alt text"
+          description={labelOf(editingItem)}
+          footer={
+            <>
+              <Button variant="text" color="dark" onClick={closeAltEditor}>
+                Cancel
+              </Button>
+              <Button onClick={saveAltText}>Save</Button>
+            </>
+          }
+        >
+          {editLocales.length > 1 ? (
+            <Tabs
+              queryKey={null}
+              items={editLocales.map((l) => ({
+                value: l.code,
+                label: l.label ?? l.code,
+                icon: 'Global',
+                content: (
+                  <MultilineTextField
+                    label="Alt text"
+                    placeholder="Describe the image for screen readers…"
+                    value={altDraft[l.code] ?? ''}
+                    onChange={(e) => setAltDraft((d) => ({ ...d, [l.code]: e.target.value }))}
+                    minRows={2}
+                  />
+                ),
+              }))}
+            />
+          ) : (
+            <MultilineTextField
+              label="Alt text"
+              placeholder="Describe the image for screen readers…"
+              value={altDraft[editLocales[0]?.code ?? ''] ?? ''}
+              onChange={(e) =>
+                setAltDraft((d) => ({ ...d, [editLocales[0]?.code ?? '']: e.target.value }))
+              }
+              minRows={2}
+            />
+          )}
+        </Modal>
       )}
     </div>
   )
