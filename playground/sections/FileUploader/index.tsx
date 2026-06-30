@@ -73,7 +73,7 @@ const MIXED: FileUploaderItem[] = [
   { source: swatch('#056472', 'Img'), sortIndex: 1 },
 ]
 
-// A file larger than the block's maxFileSize → kept, but shown in an error state.
+// An oversized file supplied via the value (not a pick — picks over the limit are rejected) → flagged.
 const OVERSIZED: FileUploaderItem[] = [
   {
     file: new File([new Uint8Array(1_200_000)], 'big-report.pdf', { type: 'application/pdf' }),
@@ -161,21 +161,21 @@ export function FileUploaderSection() {
 
       <Block
         label="Accepted types — images + PDF"
-        description="accept (react-dropzone format) restricts the picker and rejects non-matching drops."
+        description="accept restricts the picker; a non-matching pick/drop is rejected and shows a toast error (needs a mounted Toaster — RootLayout has one)."
       >
         <FileUploader multiple accept={{ 'image/*': [], 'application/pdf': ['.pdf'] }} />
       </Block>
 
       <Block
         label="Limits — maxFiles 4, maxFileSize 5 MB"
-        description="The dropzone shows the constraints; over-limit picks raise a notice that auto-dismisses (below the cards)."
+        description="The dropzone shows the constraints. An over-5MB pick is rejected with a toast error; hitting the 4-file cap raises an inline notice (below the cards)."
       >
         <FileUploader multiple accept={{ 'image/*': [] }} maxFiles={4} maxFileSize="5MB" />
       </Block>
 
       <Block
-        label="Validation — oversized file shown in an error state"
-        description='maxFileSize="1MB"; a larger file is kept but flagged (red ring + "Exceeds 1.0 MB limit").'
+        label="Validation — a value-supplied oversized file is flagged"
+        description='maxFileSize="1MB"; picks over the limit are rejected (toast), but an oversized file already in the value (here via defaultValue) is rendered and flagged (red ring + "Exceeds 1.0 MB limit").'
       >
         <FileUploader multiple defaultValue={OVERSIZED} maxFileSize="1MB" />
       </Block>
@@ -206,6 +206,20 @@ export function FileUploaderSection() {
         description="The download button (shown by default on each item) is hidden — only remove remains."
       >
         <FileUploader multiple allowDownload={false} defaultValue={EXISTING} />
+      </Block>
+
+      <Block
+        label="Duplicate picks — skipped by default"
+        description="Pick the same image twice: the re-pick is skipped (dedup by name + size + lastModified) and a 'Some files are already added' notice shows below."
+      >
+        <FileUploader multiple accept={{ 'image/*': [] }} />
+      </Block>
+
+      <Block
+        label="allowDuplicates — stacking the same file"
+        description="With allowDuplicates, picking the same image twice keeps both copies (no dedup)."
+      >
+        <FileUploader multiple allowDuplicates accept={{ 'image/*': [] }} />
       </Block>
 
       <Block

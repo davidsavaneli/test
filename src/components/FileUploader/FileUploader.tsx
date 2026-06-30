@@ -31,6 +31,7 @@ import type { AutoAnimationPlugin } from '@formkit/auto-animate'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { useDropzone, type Accept, type FileRejection } from 'react-dropzone'
 import { useFormContext } from '../../form/formContext'
+import { toast } from '../Toast/toastStore'
 import { Icon } from '../Icon'
 import { Typography } from '../Typography'
 // shared field chrome (wrapper / label / required / helper) — the Slider precedent
@@ -65,17 +66,28 @@ export interface FileUploaderProps extends Omit<
   allowReorder?: boolean
   /** Show a download button on each item (downloads the File / source). Defaults to `true`. */
   allowDownload?: boolean
+  /**
+   * Allow the same file to be added more than once. By default (`false`) a pick that matches an
+   * already-present item by content (a File by name + size + last-modified, a source by URL) is skipped
+   * and a notice is shown. Only meaningful with `multiple` (single mode replaces, so it can't stack).
+   */
+  allowDuplicates?: boolean
   /** Disables the whole control — no adding, removing, reordering, or downloading; dimmed + inert. */
   disabled?: boolean
   /**
    * Accepted file types (react-dropzone's format: a MIME type → file-extensions map) — restricts the file
-   * picker and rejects non-matching drops. E.g. `{ 'image/*': [] }` or
-   * `{ 'image/*': [], 'application/pdf': ['.pdf'] }`. Omit to accept any type.
+   * picker and rejects non-matching picks/drops (a rejection raises a `toast.error`). E.g. `{ 'image/*': [] }`
+   * or `{ 'image/*': [], 'application/pdf': ['.pdf'] }`. Omit to accept any type.
    */
   accept?: Accept
   /** Maximum number of files (only meaningful with `multiple`). Picks beyond it are rejected with a notice. */
   maxFiles?: number
-  /** Maximum size per file — a bytes `number`, or a human string like `"5MB"` / `"500KB"`. Larger picks are rejected. */
+  /**
+   * Maximum size per file — a bytes `number`, or a human string like `"5MB"` / `"500KB"`. A picked file
+   * over the limit is **rejected** (not added) and raises a **`toast.error`** (so a `<Toaster>` — mounted
+   * by `RootLayout` by default — must be present to see it). A file supplied via `value`/`defaultValue`
+   * that exceeds the limit is still rendered but flagged in an error state (red ring + `"Exceeds … limit"`).
+   */
   maxFileSize?: number | string
   /** Where a newly added file lands in the list (`multiple` only): `'start'` (top) or `'end'` (bottom). Defaults to `'end'`. */
   itemInsertLocation?: 'start' | 'end'
@@ -128,8 +140,8 @@ const listAnimation: AutoAnimationPlugin = (el, action, oldCoords, newCoords) =>
   return new KeyframeEffect(el, keyframes, { duration, easing: 'ease-out' })
 }
 
-/** Human-readable byte size, e.g. `2.4 MB`. */
-const formatBytes = (bytes: number): string => {
+/** Human-readable byte size, e.g. `2.4 MB`. (Exported for unit tests; not part of the public surface.) */
+export const formatBytes = (bytes: number): string => {
   if (bytes < 1024) return `${bytes} B`
   const units = ['KB', 'MB', 'GB', 'TB']
   let value = bytes / 1024
@@ -142,7 +154,7 @@ const formatBytes = (bytes: number): string => {
 }
 
 /** Coerce a `maxFileSize` (a bytes number, or a human string like `"5MB"` / `"500 KB"`) to bytes. */
-const toBytes = (size: number | string): number | undefined => {
+export const toBytes = (size: number | string): number | undefined => {
   if (typeof size === 'number') return size
   const match = /^\s*([\d.]+)\s*(b|kb|mb|gb|tb)?\s*$/i.exec(size)
   if (!match) return undefined
@@ -156,8 +168,17 @@ const toBytes = (size: number | string): number | undefined => {
   return parseFloat(match[1]) * (units[(match[2] || 'b').toLowerCase()] ?? 1)
 }
 
+/**
+ * A content-identity key for de-duplication. The same file picked twice arrives as two distinct `File`
+ * objects (so a `WeakMap`/reference check can't catch it), but its name + size + last-modified match.
+ */
+export const fileKey = (file: File): string => `f:${file.name}:${file.size}:${file.lastModified}`
+/** The dedup key for an existing item — a File by its content, an already-uploaded one by its URL. */
+export const itemKey = (item: FileUploaderItem): string =>
+  item.file ? fileKey(item.file) : `s:${item.source ?? ''}`
+
 /** Display name — the File's name or the last path segment of a source URL. */
-const labelOf = (item: FileUploaderItem): string => {
+export const labelOf = (item: FileUploaderItem): string => {
   if (item.file) return item.file.name
   if (item.source) {
     if (/^(data|blob):/i.test(item.source)) return 'File'
@@ -195,7 +216,7 @@ const triggerDownload = (item: FileUploaderItem) => {
  * Split a name into the part that may truncate and a short trailing extension that should always stay
  * visible — so a long name middle-ellipses as `name….ext` instead of overflowing or losing the type.
  */
-const splitName = (name: string): { base: string; ext: string } => {
+export const splitName = (name: string): { base: string; ext: string } => {
   const dot = name.lastIndexOf('.')
   // only peel off a real, short extension (".png", ".jpeg") — not a dot buried in a long hash
   return dot > 0 && name.length - dot <= 7
@@ -311,10 +332,11 @@ function Row({
 /**
  * A small, clean file field that **collects** files for the consumer to upload on save — it never
  * uploads itself. New picks carry their binary in `file`; already-uploaded files arrive with a
- * `source` URL. A soft dropzone panel sits above a list of file rows (icon/thumbnail + name + size +
- * remove). `allowDrop` enables drag-from-OS (via `react-dropzone`); `allowReorder` enables drag +
- * keyboard reordering (via `@dnd-kit`). New rows animate in. Controlled (`value` + `onChange`) or
- * uncontrolled (`defaultValue`). The forwarded ref points at the root.
+ * `source` URL. A soft dropzone panel sits above a grid of image cards (thumbnail/file-icon + name +
+ * size, with overlaid remove + download buttons). `allowDrop` enables drag-from-OS (via
+ * `react-dropzone`); `allowReorder` enables drag + keyboard reordering (via `@dnd-kit`); cards animate
+ * in/out (via `@formkit/auto-animate`). Controlled (`value` + `onChange`) or uncontrolled
+ * (`defaultValue`); binds to a `<Form>` by `name`. The forwarded ref points at the root.
  */
 export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(function FileUploader(
   {
@@ -322,6 +344,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     allowDrop = true,
     allowReorder = true,
     allowDownload = true,
+    allowDuplicates = false,
     disabled = false,
     accept,
     maxFiles,
@@ -466,16 +489,43 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   }
 
   const addFiles = (accepted: File[], rejections: FileRejection[] = []) => {
-    const reasons: string[] = []
-    // oversized files are NOT rejected here — they're added and flagged in an error state (see `error` below)
-    if (rejections.some((r) => r.errors.some((e) => e.code === 'file-invalid-type')))
-      reasons.push('Some files have an unsupported type')
+    // Hard rejections (the file is invalid: wrong type, or over `maxFileSize` — react-dropzone rejects
+    // both, so they never reach `accepted`) surface as a Toast error and are not added.
+    const wrongType = rejections.filter((r) => r.errors.some((e) => e.code === 'file-invalid-type'))
+    const tooLarge = rejections.filter((r) => r.errors.some((e) => e.code === 'file-too-large'))
+    if (wrongType.length > 0)
+      toast.error(
+        wrongType.length === 1
+          ? `"${wrongType[0].file.name}" has an unsupported file type`
+          : `${wrongType.length} files have an unsupported type`,
+      )
+    if (tooLarge.length > 0 && maxBytes != null)
+      toast.error(
+        tooLarge.length === 1
+          ? `"${tooLarge[0].file.name}" exceeds the ${formatBytes(maxBytes)} limit`
+          : `${tooLarge.length} files exceed the ${formatBytes(maxBytes)} limit`,
+      )
 
+    // Soft notices (the file is valid, just not added now) stay in the inline helper slot + auto-dismiss.
+    const reasons: string[] = []
     let taken = accepted
+    // drop files already present (same content) + intra-batch dupes, unless explicitly allowed
+    if (multiple && !allowDuplicates) {
+      const seen = new Set(items.map(itemKey))
+      const unique: File[] = []
+      for (const file of taken) {
+        const key = fileKey(file)
+        if (seen.has(key)) continue
+        seen.add(key)
+        unique.push(file)
+      }
+      if (unique.length < taken.length) reasons.push('Some files are already added')
+      taken = unique
+    }
     if (multiple && maxFiles != null) {
       const room = Math.max(0, maxFiles - items.length)
-      if (accepted.length > room) {
-        taken = accepted.slice(0, room)
+      if (taken.length > room) {
+        taken = taken.slice(0, room)
         reasons.push(`Up to ${maxFiles} ${maxFiles === 1 ? 'file' : 'files'}`)
       }
     }
@@ -522,8 +572,9 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple,
     accept,
+    // reject oversized picks here so they never get added; the rejection surfaces as a Toast in addFiles
+    maxSize: maxBytes,
     disabled,
-    // note: maxSize is NOT passed — oversized files are still added but flagged in an error state below
     noKeyboard: false,
     noDrag: !allowDrop,
     onDrop: (accepted, rejections) => addFiles(accepted, rejections),

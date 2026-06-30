@@ -23,9 +23,11 @@ change only what differs.
   `external` (never bundled, used via the consumer's own instance): **`zod`** powers the form layer
   (`useForm`), **`@tanstack/react-router`** (`>=1`) powers the admin shell (`RootLayout` /
   `Sidebar` / `FirstRouteRedirect`), **`dayjs`** (`>=1.11`) powers the date components
-  (`DatePicker`, …), and **`lexical`** (`>=0.45`) + its `@lexical/*` React packages power the
-  **`RichTextEditor`**. Prefer React Context + hooks for internal state; reach for a
-  dependency when it clearly earns its place.
+  (`DatePicker`, …), **`lexical`** (`>=0.45`) + its `@lexical/*` React packages power the
+  **`RichTextEditor`**, and **`react-dropzone`** (`>=14`) + **`@dnd-kit/*`** (`core`/`sortable`/`utilities`)
+  - **`@formkit/auto-animate`** (`>=0.8`) power the **`FileUploader`** (file picking/drop, drag reorder,
+    list animation). Prefer React Context + hooks for internal state; reach for a
+    dependency when it clearly earns its place.
 
 ---
 
@@ -536,6 +538,79 @@ our own last emit). a11y: the editable region is a `role="textbox"` `ContentEdit
 relies on trusted browser events, so it's verified in a real browser, not jsdom/automated harnesses (the
 tests cover render/structure/a11y/options + the pure `toVideoEmbedSrc` URL normalization). Own CSS module.
 _Code blocks and tables are out of v1 scope; video upload is the natural next iteration._
+
+### FileUploader
+
+A **file field that collects files for the consumer to upload on save — it never uploads itself** (the
+product rule). **Value model — `FileUploaderItem = { file?: File; source?: string; sortIndex: number }`:**
+a freshly **picked** file carries its binary in `file` (`source: ''`); an **already-uploaded** one (a
+backend response — edit mode) carries only its `source` URL and **no `file`**. `sortIndex` is kept in
+sync with the visual order on every change. **`FileUploaderValue`** is one item (or `null`) in single
+mode, an **array** when `multiple`. Built on three **optional peers** (all `external`/never bundled, like
+`lexical`): **`react-dropzone`** (click-to-browse + OS drag-drop), **`@dnd-kit`** (`core` / `sortable` /
+`utilities` — drag + keyboard reorder), and **`@formkit/auto-animate`** (card add / remove / shift).
+
+Shares **TextField's field chrome** — it imports `TextField.module.css` for the label / required /
+helper / error styling (the `Slider`/`NumberField` precedent) — so `label` · `required` · `error` +
+`helperText` · `fullWidth` (**default `true`**) behave like the rest of the field family. A soft
+**dropzone** bar (compact, horizontal, dashed `medium` border, `DocumentUpload` icon, the
+`"Choose a file or drag & drop it here"` prompt) sits above a **wrapping grid of fixed-width 240px image
+cards** (`aspect-ratio: 4/3`). The dropzone shows while `multiple` (or, in single mode, until a file is
+picked — `showDropzone = multiple || items.length === 0`); a static `hint` inside it spells out the
+constraints (`"Up to 5 files · Max 5 MB each"`). Each card shows the image preview (a File's object URL,
+or the `source` URL — a non-image / failed load falls back to a centered `Document` icon) under a top
+scrim overlay holding a **remove** (`Close`) button, the **name** (middle-truncated as `name….ext` so the
+extension always stays visible) + a **meta** line (`formatBytes(size)` for a File, `"Uploaded"` for a
+source, or the error note), and a **download** (`DocumentDownload`) button. The scrim + white text are
+**literal black/white** (the image behind doesn't flip with the theme — the same justified exception the
+`Modal` backdrop makes).
+
+Props: **`multiple`** (`false` — value becomes an array) · **`allowDrop`** (`true` — OS drag-drop; `false`
+= click-to-browse only) · **`allowReorder`** (`true` — drag + keyboard reorder, only meaningful with
+`multiple`) · **`allowDownload`** (`true` — the per-card download button) · **`allowDuplicates`** (`false`
+— by default a re-picked file matching an existing item is skipped; see the dedup note below) ·
+**`disabled`** (`false` — dims to `0.6` and inerts everything: the dropzone is `react-dropzone`-disabled,
+and remove / download / reorder drop out) · **`accept`** (react-dropzone's `{ MIME: ext[] }` map —
+restricts the picker + rejects non-matching picks/drops, e.g. `{ 'image/*': [] }`) · **`maxFiles`** (cap,
+`multiple` only — extra picks are dropped) · **`maxFileSize`** (bytes `number`, or a string like `"5MB"` /
+`"500KB"` — **passed to react-dropzone as `maxSize`**, so an over-limit pick is **rejected** (not added);
+a file supplied via `value`/`defaultValue` that exceeds it is still rendered but flagged in an error state,
+red ring + `"Exceeds … limit"`) · **`itemInsertLocation`** (`'start'` / `'end'`, default `'end'` — where a
+new pick lands). **Two feedback channels for a failed pick.** A **hard rejection — wrong type (`accept`)
+or over `maxFileSize`** — never enters the value and fires a **`toast.error`** (so a `<Toaster>` — mounted
+by `RootLayout` by default — must be present to see it; imported from `../Toast/toastStore`). The **soft
+notices** — hit the `maxFiles` cap, or a skipped duplicate — stay in the inline helper slot **below the
+cards** and **auto-dismiss** after 4s (the file is valid, just not added). **Duplicate picks are
+de-duplicated by default** (in `multiple` mode): a pick matching an already-present item by content — a
+File keyed by **name + size + last-modified** (`fileKey`), a source by its URL (`itemKey`) — is skipped
+(intra-batch dupes too), since the same OS file re-picked is a **new `File` object** a reference/`WeakMap`
+check would miss; pass **`allowDuplicates`** to let identical files stack (single mode always replaces, so
+it can't stack).
+
+**Reorder** is whole-card drag (no grip — the tile _is_ the handle) via `@dnd-kit` (`PointerSensor`
+distance 5 + `KeyboardSensor`: Space to pick up, Arrows to move); auto-animate is **paused during a drag**
+(dnd-kit owns the drag visuals) and rAF-re-enabled after. A **genuinely new** card drops in via a CSS
+`.entering` animation **JS-gated** by an `enteredIds` set, so a reorder (which re-inserts the moved node)
+never restarts the entrance on shifted cards; auto-animate handles remove (lift + fade) + remain (slide to
+fill). Stable per-item ids (a `WeakMap<File>` for picks, `s:<url>` for sources) keep a card's identity +
+focus across reorders. Object URLs for File previews are revoked when the File leaves the value / on
+unmount.
+
+Controlled (`value` + `onChange` — fires the item/array on every add / remove / reorder) or uncontrolled
+(`defaultValue`). Binds to a surrounding `<Form>` by **`name`**, reading the **raw** `form.values[name]`
+(not `field().value`, which would coerce the object/array) and writing via `setValue` — validate the array
+with e.g. `z.array(fileItemSchema).min(1, 'Add at least one image')`, where `fileItemSchema` refines that
+`file || source` is present; error/touched come from `field()` and the root carries `name` +
+`tabIndex={-1}` so the form's **scroll-to-error** can focus it. a11y: root `aria-invalid` +
+`aria-describedby` → the helper (`role="status"` `aria-live="polite"`); the remove/download buttons are
+`aria-label`led; the fallback icon is `aria-hidden`; touched fires on blur outside the whole widget.
+**Note:** the OS-drag drop + dnd-kit drag rely on trusted browser events (verified in a real browser, not
+jsdom), but the **click-to-browse picker path works in jsdom** (`react-dropzone`'s input change; auto-animate
+is a no-op there since it gates on `ResizeObserver`), so the tests cover the pure helpers (`toBytes` /
+`formatBytes` / `splitName` / `labelOf` / `fileKey` / `itemKey`), render / structure / a11y, the **dedup
+behavior** (re-picking the same file is skipped + notice; `allowDuplicates` stacks), the **rejection toasts**
+(an oversized / wrong-type pick is rejected + `toast.error`, asserted via a spy), and the `<Form>` binding.
+Own CSS module. _A progress/upload mode and an inline (row) layout are natural next iterations._
 
 ### TagsField
 

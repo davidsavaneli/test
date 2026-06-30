@@ -137,6 +137,8 @@ npm i dayjs
 npm i @tanstack/react-router
 # lexical (+ @lexical/* React packages) are OPTIONAL peers (>=0.45) — only for <RichTextEditor>:
 npm i lexical @lexical/react @lexical/rich-text @lexical/list @lexical/link @lexical/html @lexical/markdown @lexical/selection @lexical/utils
+# react-dropzone + @dnd-kit + @formkit/auto-animate are OPTIONAL peers — only for <FileUploader>:
+npm i react-dropzone @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @formkit/auto-animate
 ```
 
 ## 2. One-time setup (app entry, e.g. main.tsx)
@@ -245,6 +247,26 @@ uncontrolled (`defaultValue`). **Image upload** embeds the file inline as a base
 (no backend); pass **`onImageUpload={(file) => uploadAndReturnUrl(file)}`** to upload instead and insert
 the returned URL. Exported HTML is clean, class-free markup (`<h2>`, `<strong>`, `<ul>`, `<img>`,
 `<iframe>`). `<RichTextEditor name="body" label="Content" placeholder="Write…" />`.
+
+**FileUploader** — **collects files for you to upload on save — it never uploads itself.** Needs the
+**react-dropzone + @dnd-kit + @formkit/auto-animate optional peers** (see §1). **Value model:
+`{ file?: File; source?: string; sortIndex: number }`** — a new pick carries its binary in `file`; an
+already-uploaded file (edit mode) carries only its `source` URL (no `file`). Single mode → one item (or
+`null`); **`multiple`** → an array. A dropzone (click-to-browse + OS drag-drop) sits above a grid of
+fixed-width 240px image cards (thumbnail/file-icon + name + size, with overlaid remove + download buttons;
+reorder by drag or keyboard). Props: `multiple` · `allowDrop` · `allowReorder` · `allowDownload` ·
+`allowDuplicates` · `disabled` · `accept` (react-dropzone's `{ 'image/*': [] }` map) · `maxFiles` ·
+`maxFileSize` (`"5MB"` / `"500KB"` / bytes) · `itemInsertLocation` (`'start'`/`'end'`, default `'end'`) +
+the field chrome (`label` · `error` + `helperText` · `required` · `fullWidth` default true). A **wrong-type
+(`accept`) or oversized (`maxFileSize`) pick is rejected** (not added) and raises a **`toast.error`** — so
+mount a `<Toaster>` (RootLayout does by default) to surface it. **Duplicate picks are skipped by default**
+(in `multiple` mode — a re-picked file matching an existing item by content raises a "Some files are
+already added" notice; pass `allowDuplicates` to allow stacking identical files). Controlled (`value` +
+`onChange`) or uncontrolled (`defaultValue`); binds to a
+`<Form>` by **`name`** — validate the array with `z.array(z.object({ file: z.instanceof(File).optional(),
+source: z.string().optional(), sortIndex: z.number() }).refine((i) => i.file || i.source)).min(1, 'Add at
+least one')`. On save, POST each item's `file` (new picks) and keep its `source` (already-uploaded).
+`<FileUploader name="gallery" multiple label="Gallery" accept={{ 'image/*': [] }} maxFiles={5} />`.
 
 **TagsField** — a tags/token input. Type + **Enter** / the **+ button** / the `separator` key adds a tag;
 a chip's delete button (or **Backspace** on the empty input) removes one. `label` · `size` · `error` +

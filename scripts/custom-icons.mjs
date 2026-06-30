@@ -30,11 +30,4 @@ export const customIcons = [
     name: 'ListNumber',
     inner: `<g>${LINES}${num(1, 8.3)}${num(2, 15.3)}${num(3, 22.3)}</g>`,
   },
-  // Drag handle — a 6-dot grip (2 columns × 3 rows). The conventional reorder affordance; used by the
-  // `FileUploader` rows.
-  {
-    name: 'DragHandle',
-    inner:
-      '<g><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></g>',
-  },
 ]
