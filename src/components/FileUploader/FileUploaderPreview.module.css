@@ -1,0 +1,62 @@
+/* Fullscreen media lightbox. The backdrop scrim + close button are literal black/white (they sit over
+   arbitrary media, not a theme surface) — the same justified exception the Modal backdrop makes. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tz-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--tz-space-lg);
+  background-color: rgba(0, 0, 0, 0.85);
+  animation: tz-fu-preview-in var(--tz-duration) ease-out;
+}
+@keyframes tz-fu-preview-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* the image / video at its natural size, only capped to the viewport (never upscaled) */
+.media {
+  display: block;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+/* an SVG's natural size is unreliable — a well-sized one (e.g. 240×180) should show at its REAL size, but
+   a tiny viewBox-only icon (24px) or a sizeless one would be invisible. `min-*` floors the box so a small
+   SVG scales up to a visible minimum, while a larger SVG keeps its intrinsic size (only capped to the
+   viewport); `object-fit: contain` preserves the aspect ratio inside that box, so nothing is distorted or
+   upscaled beyond its natural dimensions. */
+.mediaSvg {
+  min-width: 200px;
+  min-height: 200px;
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+}
+/* close × pinned top-right (40px circle is a one-off literal, like the other icon boxes) */
+.close {
+  position: absolute;
+  top: var(--tz-space-md);
+  right: var(--tz-space-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color var(--tz-duration);
+}
+.close:hover,
+.close:focus-visible {
+  background-color: rgba(0, 0, 0, 0.7);
+  outline: none;
+}

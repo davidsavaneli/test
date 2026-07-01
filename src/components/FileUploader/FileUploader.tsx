@@ -36,6 +36,7 @@ import { toast } from '../Toast/toastStore'
 import { Icon } from '../Icon'
 import { Typography } from '../Typography'
 import { FileUploaderEditDialog, type EditDialogResult } from './FileUploaderEditDialog'
+import { FileUploaderPreview } from './FileUploaderPreview'
 // shared field chrome (wrapper / label / required / helper) — the Slider precedent
 import fieldStyles from '../TextField/TextField.module.css'
 import styles from './FileUploader.module.css'
@@ -74,6 +75,11 @@ export interface FileUploaderProps extends Omit<
   allowReorder?: boolean
   /** Show a download button on each item (downloads the File / source). Defaults to `true`. */
   allowDownload?: boolean
+  /**
+   * Show a per-card **preview** (Eye) button — opens a fullscreen lightbox of the image / video. Defaults
+   * to `true`. Only rendered for **image + video** items (a PDF / doc has nothing to preview).
+   */
+  allowPreview?: boolean
   /**
    * Show a per-card **edit** button that opens a modal for editing the item's `altText`. Defaults to
    * `true` — pass `false` to hide it. The modal renders one input per content locale (a tab strip when
@@ -232,6 +238,14 @@ export const isImageItem = (item: FileUploaderItem): boolean => {
   )
 }
 
+/** Whether an item is a video — rendered as a playable `<video controls>` preview instead of an `<img>`. */
+export const isVideoItem = (item: FileUploaderItem): boolean => {
+  if (item.file) return item.file.type.startsWith('video/')
+  const src = item.source
+  if (!src) return false
+  return /^data:video\//i.test(src) || /\.(mp4|webm|ogg|ogv|mov|m4v|avi|mkv)(?:[?#]|$)/i.test(src)
+}
+
 /** Download an item — a File via a fresh object URL, a source URL via a download link. */
 const triggerDownload = (item: FileUploaderItem) => {
   if (typeof document === 'undefined') return
@@ -283,6 +297,7 @@ interface RowProps {
   onCrop?: () => void
   onAltText?: () => void
   onDownload?: () => void
+  onView?: () => void
   onPreviewError?: () => void
 }
 
@@ -298,6 +313,7 @@ function Row({
   onCrop,
   onAltText,
   onDownload,
+  onView,
   onPreviewError,
 }: RowProps) {
   // the whole tile is the drag handle (no separate grip — matches the image-card visual)
@@ -312,6 +328,19 @@ function Row({
   const label = labelOf(item)
   const { base, ext } = splitName(label)
   const meta = item.file ? formatBytes(item.file.size) : 'Uploaded'
+  const video = isVideoItem(item)
+
+  const downloadBtn = onDownload ? (
+    <button
+      type="button"
+      className={styles.tileAction}
+      aria-label={`Download ${label}`}
+      onClick={onDownload}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <Icon name="DocumentDownload" size="sm" />
+    </button>
+  ) : null
 
   return (
     <div
@@ -328,13 +357,31 @@ function Row({
       {...listeners}
     >
       {preview ? (
-        <img
-          src={preview}
-          alt=""
-          className={styles.tileImg}
-          draggable={false}
-          onError={onPreviewError}
-        />
+        video ? (
+          <>
+            {/* first-frame thumbnail (no controls) + a centred play badge so it reads as a video */}
+            <video
+              src={preview}
+              className={styles.tileImg}
+              muted
+              playsInline
+              preload="metadata"
+              draggable={false}
+              onError={onPreviewError}
+            />
+            <span className={styles.tilePlay} aria-hidden="true">
+              <Icon name="Play" size="lg" />
+            </span>
+          </>
+        ) : (
+          <img
+            src={preview}
+            alt=""
+            className={styles.tileImg}
+            draggable={false}
+            onError={onPreviewError}
+          />
+        )
       ) : (
         <span className={styles.tileFallback} aria-hidden="true">
           <Icon name="Document" size="lg" />
@@ -363,8 +410,9 @@ function Row({
         )}
       </div>
 
-      {/* bottom scrim: crop (Crop) + alt text (Text) + download actions */}
-      {(onCrop || onAltText || onDownload) && (
+      {/* bottom scrim: crop (Crop) + alt text (Text) + download on the left (crop/alt are image-only),
+          the view (Eye) fullscreen-preview button pinned bottom-right */}
+      {(onCrop || onAltText || onDownload || onView) && (
         <div className={styles.tileBottom}>
           {onCrop && (
             <button
@@ -388,15 +436,16 @@ function Row({
               <Icon name="Text" size="sm" />
             </button>
           )}
-          {onDownload && (
+          {downloadBtn}
+          {onView && (
             <button
               type="button"
-              className={styles.tileAction}
-              aria-label={`Download ${label}`}
-              onClick={onDownload}
+              className={clsx(styles.tileAction, styles.tileActionEnd)}
+              aria-label={`Preview ${label}`}
+              onClick={onView}
               onPointerDown={(e) => e.stopPropagation()}
             >
-              <Icon name="DocumentDownload" size="sm" />
+              <Icon name="Eye" size="sm" />
             </button>
           )}
         </div>
@@ -422,6 +471,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     allowDrop = true,
     allowReorder = true,
     allowDownload = true,
+    allowPreview = true,
     allowAltText = true,
     altTextLocales,
     localizedAltText = true,
@@ -517,11 +567,13 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   const markSourceFailed = (src: string) =>
     setFailedSources((prev) => (prev.has(src) ? prev : new Set(prev).add(src)))
 
-  // Object URLs for image File previews, revoked when the File leaves the value / on unmount.
+  // Object URLs for image/video File previews, revoked when the File leaves the value / on unmount.
   const objectUrls = useRef(new Map<File, string>())
   const previewOf = (item: FileUploaderItem): string | null => {
     if (item.file) {
-      if (!item.file.type.startsWith('image/') || !canMakeObjectUrl()) return null
+      const type = item.file.type
+      if ((!type.startsWith('image/') && !type.startsWith('video/')) || !canMakeObjectUrl())
+        return null
       let url = objectUrls.current.get(item.file)
       if (!url) {
         url = URL.createObjectURL(item.file)
@@ -529,8 +581,8 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
       }
       return url
     }
-    // an already-uploaded item is assumed to be an image (this is an image-first uploader); a non-image
-    // URL just falls the row back to the file icon via the <img> onError handler
+    // an already-uploaded item is assumed to be a previewable image/video (image-first uploader); a
+    // non-media URL just falls the row back to the file icon via the <img> onError handler
     if (item.source && !failedSources.has(item.source)) return item.source
     return null
   }
@@ -593,6 +645,23 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     setEditId(ids[index] ?? null)
   }
   const closeEditor = () => setEditId(null)
+
+  // fullscreen preview (Eye) — snapshot the media so the lightbox is self-contained
+  const [preview, setPreview] = useState<{
+    url: string
+    isVideo: boolean
+    isSvg: boolean
+    name: string
+  } | null>(null)
+  const openPreview = (item: FileUploaderItem) => {
+    const url = previewOf(item)
+    if (!url) return
+    // SVGs need an explicit box in the lightbox (they often lack an intrinsic pixel size)
+    const isSvg = item.file
+      ? item.file.type === 'image/svg+xml'
+      : /^data:image\/svg/i.test(item.source ?? '') || /\.svg(?:[?#]|$)/i.test(item.source ?? '')
+    setPreview({ url, isVideo: isVideoItem(item), isSvg, name: labelOf(item) })
+  }
   // seed the alt-text dialog's draft from the item's current value (record vs single string)
   const editInitialDraft: Record<string, string> = editingItem
     ? localizedAltText
@@ -859,6 +928,15 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
                     : undefined
                 }
                 onDownload={allowDownload && !disabled ? () => triggerDownload(item) : undefined}
+                // fullscreen preview — image + video only (a PDF / doc has nothing to preview)
+                onView={
+                  allowPreview &&
+                  !disabled &&
+                  previewOf(item) != null &&
+                  (isImageItem(item) || isVideoItem(item))
+                    ? () => openPreview(item)
+                    : undefined
+                }
                 onPreviewError={
                   !item.file && item.source ? () => markSourceFailed(item.source!) : undefined
                 }
@@ -893,6 +971,16 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
           initialDraft={editInitialDraft}
           onClose={closeEditor}
           onSave={saveEdit}
+        />
+      )}
+
+      {preview && (
+        <FileUploaderPreview
+          url={preview.url}
+          isVideo={preview.isVideo}
+          isSvg={preview.isSvg}
+          name={preview.name}
+          onClose={() => setPreview(null)}
         />
       )}
     </div>

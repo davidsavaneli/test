@@ -164,6 +164,23 @@
   height: 100%;
   color: var(--tz-color-primary-shade600);
 }
+/* video play badge — a centered circle over the first-frame thumbnail so it reads as a video (the 48px
+   circle is a one-off literal, like the dropzone icon box). Decorative → clicks fall through to the tile. */
+.tilePlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  pointer-events: none;
+}
 
 /* overlays — name/size + × on a top scrim, the action buttons on a bottom scrim, over dark gradients so
    they read on any image. The scrim/white text are literal black/white (the image behind doesn't change
@@ -194,8 +211,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   padding: 0;
   border: none;
   border-radius: var(--tz-radius-xs);
@@ -203,6 +220,13 @@
   color: #fff;
   cursor: pointer;
   transition: background-color var(--tz-duration);
+}
+/* compact 14px glyph in the 26px box (the `.tile` prefix outranks Icon's own `.icon.sm` 16px rule) —
+   the same context-resize precedent as the RichTextEditor toolbar */
+.tile .tileRemove svg,
+.tile .tileAction svg {
+  width: 14px;
+  height: 14px;
 }
 /* remove is destructive → reddens on hover */
 .tileRemove:hover,
@@ -215,6 +239,10 @@
 .tileAction:focus-visible {
   background-color: rgba(0, 0, 0, 0.7);
   outline: none;
+}
+/* pushes the view (Eye) button to the far right of the bottom scrim */
+.tileActionEnd {
+  margin-left: auto;
 }
 .tileText {
   display: flex;

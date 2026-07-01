@@ -12,6 +12,7 @@ import {
   type FileUploaderValue,
   formatBytes,
   isImageItem,
+  isVideoItem,
   itemKey,
   labelOf,
   splitName,
@@ -112,6 +113,15 @@ describe('FileUploader pure helpers', () => {
     expect(isImageItem({ source: 'https://x/report.pdf?v=2', sortIndex: 0 })).toBe(false)
     expect(isImageItem({ source: 'data:image/png;base64,zz', sortIndex: 0 })).toBe(true)
     expect(isImageItem({ source: 'https://picsum.photos/seed/x/240/180', sortIndex: 0 })).toBe(true)
+  })
+
+  it('isVideoItem detects videos (rendered as a <video> preview)', () => {
+    expect(isVideoItem({ file: makeFile('v.mp4', 'x', 'video/mp4'), sortIndex: 0 })).toBe(true)
+    expect(isVideoItem({ file: makeFile('a.png', 'x', 'image/png'), sortIndex: 0 })).toBe(false)
+    expect(isVideoItem({ source: 'https://x/clip.webm', sortIndex: 0 })).toBe(true)
+    expect(isVideoItem({ source: 'https://x/movie.mov?token=1', sortIndex: 0 })).toBe(true)
+    expect(isVideoItem({ source: 'https://x/a.jpg', sortIndex: 0 })).toBe(false)
+    expect(isVideoItem({ source: 'data:video/mp4;base64,zz', sortIndex: 0 })).toBe(true)
   })
 })
 
@@ -268,8 +278,56 @@ describe('FileUploader alt text (allowAltText)', () => {
     render(<FileUploader multiple defaultValue={[pdf]} />)
     expect(screen.queryByRole('button', { name: /^Crop / })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Edit alt text/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Preview / })).toBeNull() // no fullscreen preview
     expect(screen.getByRole('button', { name: /^Download / })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^Remove / })).toBeInTheDocument()
+  })
+
+  it('renders a <video> preview for a video item (no crop/alt; download + preview + remove remain)', () => {
+    const clip: FileUploaderItem = {
+      file: makeFile('clip.mp4', 'x', 'video/mp4'),
+      source: '',
+      sortIndex: 0,
+    }
+    const { container } = render(<FileUploader multiple defaultValue={[clip]} />)
+    expect(container.querySelector('video')).not.toBeNull() // playable preview, not the file icon
+    expect(screen.queryByRole('button', { name: /^Crop / })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Edit alt text/ })).toBeNull()
+    expect(screen.getByRole('button', { name: /^Preview / })).toBeInTheDocument() // Eye — image + video
+    expect(screen.getByRole('button', { name: /^Download / })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Remove / })).toBeInTheDocument()
+  })
+
+  it('opens a fullscreen preview lightbox from the Eye button; Escape closes it', async () => {
+    render(<FileUploader multiple defaultValue={[{ source: 'https://x/a.png', sortIndex: 0 }]} />)
+    fireEvent.click(screen.getByRole('button', { name: /^Preview / }))
+    const overlay = await screen.findByRole('dialog', { name: /^Preview:/ })
+    expect(within(overlay).getByRole('img')).toHaveAttribute('src', 'https://x/a.png')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: /^Preview:/ })).toBeNull())
+  })
+
+  it('opens the lightbox for an SVG image item with the bounded SVG box', async () => {
+    render(
+      <FileUploader multiple defaultValue={[{ source: 'https://x/logo.svg', sortIndex: 0 }]} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /^Preview / }))
+    const overlay = await screen.findByRole('dialog', { name: /^Preview:/ })
+    const img = within(overlay).getByRole('img')
+    expect(img).toHaveAttribute('src', 'https://x/logo.svg')
+    // an SVG always gets the bounded box (its natural size is unreliable), applied deterministically
+    expect(img).toHaveClass('mediaSvg')
+  })
+
+  it('hides the Eye button with allowPreview={false}', () => {
+    render(
+      <FileUploader
+        multiple
+        allowPreview={false}
+        defaultValue={[{ source: 'https://x/a.png', sortIndex: 0 }]}
+      />,
+    )
+    expect(screen.queryByRole('button', { name: /^Preview / })).toBeNull()
   })
 
   it('shows one alt-text field per locale (no tabs) and saves them', async () => {

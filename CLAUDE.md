@@ -563,21 +563,27 @@ helper / error styling (the `Slider`/`NumberField` precedent) — so `label` · 
 **≥200px wide and stretching to fill the row** (`repeat(auto-fit, minmax(min(100%, 200px), 1fr))`, so a row
 reaches the right edge and wraps once another 200px won't fit), a fixed **200px tall**. The dropzone shows while `multiple` (or, in single mode, until a file is
 picked — `showDropzone = multiple || items.length === 0`); a static `hint` inside it spells out the
-constraints (`"Up to 5 files · Max 5 MB each"`). Each card shows the image preview (a File's object URL,
-or the `source` URL — a non-image / failed load falls back to a centered `Document` icon) with **two
-scrim overlays**: a **top** one holding the **name** (middle-truncated as `name….ext` so the extension
-always stays visible) + a **meta** line (`formatBytes(size)` for a File, `"Uploaded"` for a source, or the
-error note) on the left and the **remove** (`Close`) button pinned **top-right**; and a **bottom** one
-holding the action buttons — **crop** (`Edit2`), **alt text** (`Text`), and **download**
-(`DocumentDownload`). The crop + alt-text buttons are gated by `allowAltText` (on by default — pass
-`allowAltText={false}` to hide both) **and shown only for image items** (`isImageItem` — a video / PDF /
-doc has nothing to crop or describe; those keep just download + remove). The scrims + white text are
-**literal black/white** (the image behind doesn't flip with the theme — the same justified exception the
-`Modal` backdrop makes).
+constraints (`"Up to 5 files · Max 5 MB each"`). Each card shows a **preview** — an image renders as an
+`<img>`, a **video** as a first-frame **`<video>`** thumbnail (no controls) with a centered **`PlayCircle`
+badge** so it reads as a video (`isVideoItem` — File by MIME, source by extension / `data:video`), and any
+non-media / failed load falls back to a centered `Document` icon — with **two scrim overlays**: a **top**
+one holding the **name** (middle-truncated as `name….ext` so the extension always stays visible) + a
+**meta** line (`formatBytes(size)` for a File, `"Uploaded"` for a source, or the error note) on the left and
+the **remove** (`Close`) button pinned **top-right**; and a **bottom** one holding the action buttons —
+**crop** (`Crop`), **alt text** (`Text`), **download** (`DocumentDownload`) on the left, and a **view**
+(`Eye`) button pinned **bottom-right**. The crop + alt-text buttons are gated by `allowAltText` (on by
+default — pass `allowAltText={false}` to hide both) **and shown only for image items** (`isImageItem` — a
+video / PDF / doc has nothing to crop or describe; those keep just download + preview + remove); the **view**
+button (`allowPreview`, default on) shows for **image + video** items and opens a **fullscreen lightbox**
+(the internal **`FileUploaderPreview`** — a `<body>`-portaled dark backdrop with the image / a
+`<video controls>` centered; scroll-locked, closes on backdrop-click / Escape / the × button). The scrims +
+white text are **literal black/white** (the image behind doesn't flip with the theme — the same justified
+exception the `Modal` backdrop makes).
 
 Props: **`multiple`** (`false` — value becomes an array) · **`allowDrop`** (`true` — OS drag-drop; `false`
 = click-to-browse only) · **`allowReorder`** (`true` — drag + keyboard reorder, only meaningful with
-`multiple`) · **`allowDownload`** (`true` — the per-card download button) · **`allowAltText`** (`true` —
+`multiple`) · **`allowDownload`** (`true` — the per-card download button) · **`allowPreview`** (`true` —
+the per-card **view** (Eye) button → fullscreen lightbox; image + video items only) · **`allowAltText`** (`true` —
 a per-card **edit** button → modal for the item's `altText`; pass `false` to hide it; see the alt-text note below) ·
 **`altTextLocales`** (the locales for that editor — defaults to `useLocales()`; override like
 `<TranslatedFields locales>`) · **`localizedAltText`** (`true` — set `false` for a single-`string` `altText`,
@@ -659,10 +665,11 @@ there since it gates on `ResizeObserver`; `react-image-crop` renders fine — it
 `labelOf` / `fileKey` / `itemKey`), render / structure / a11y, the **dedup behavior** (re-picking the same
 file is skipped + notice; `allowDuplicates` stacks), the **rejection toasts** (an oversized / wrong-type
 pick is rejected + `toast.error`, asserted via a spy), the **edit modals** (`allowAltText` → separate crop /
-alt-text modals; the crop modal's stage renders + per-locale / single `altText` saved/pruned), and the
-`<Form>` binding. Own CSS module
-(plus an internal `FileUploaderEditDialog.module.css`). _A progress/upload mode and an inline (row) layout
-are natural next iterations._
+alt-text modals; the crop modal's stage renders + per-locale / single `altText` saved/pruned), the
+**media kind** (image → `<img>`, video → `<video>` + Eye, PDF/doc → no crop/alt/preview) + the **preview
+lightbox** (Eye → a `role="dialog"` overlay with the media, Escape-closes), and the `<Form>` binding. Own CSS
+module (plus internal `FileUploaderEditDialog.module.css` + `FileUploaderPreview.module.css`). _A
+progress/upload mode and an inline (row) layout are natural next iterations._
 
 ### TagsField
 
