@@ -1,22 +1,10 @@
-/* ── overlay (backdrop) ───────────────────────────────────────────────────────
-   Fixed full-viewport scrim that centers the dialog and dims the page. The scrim color is a literal
-   black-alpha (an unavoidable exception to the token rule — a brand-token tint would invert in dark
-   mode; a constant dark scrim reads correctly under both themes). */
+/* ── overlay layout ───────────────────────────────────────────────────────────
+   The fixed scrim, centering, dim, scroll-lock and fade are provided by the shared `<Overlay>`; this
+   only layers the Modal-specific inset + scroll behavior on top (the `.overlay` class is passed to
+   `<Overlay>`, so these selectors and the `data-*` attrs resolve against the same scrim element). */
 .overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--tz-z-modal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: var(--tz-space-md);
   overflow-y: auto;
-  background: rgba(0, 0, 0, 0.45);
-  opacity: 0;
-  transition: opacity var(--tz-duration);
-}
-.overlay[data-open='true'] {
-  opacity: 1;
 }
 .overlay[data-size='fullScreen'] {
   padding: 0;
@@ -40,7 +28,7 @@
     opacity var(--tz-duration),
     transform var(--tz-duration);
 }
-.modal[data-open='true'] {
+.overlay[data-open='true'] .modal {
   opacity: 1;
   transform: none;
 }
@@ -188,7 +176,7 @@
 .overlay[data-placement='right'] .modal {
   transform: translateX(100%);
 }
-.overlay[data-placement='left'] .modal[data-open='true'],
-.overlay[data-placement='right'] .modal[data-open='true'] {
+.overlay[data-placement='left'][data-open='true'] .modal,
+.overlay[data-placement='right'][data-open='true'] .modal {
   transform: none;
 }

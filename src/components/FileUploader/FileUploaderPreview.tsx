@@ -1,8 +1,6 @@
-import { useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { clsx } from 'clsx'
-import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 import { Icon } from '../Icon'
+import { Overlay } from '../Overlay/Overlay'
 import styles from './FileUploaderPreview.module.css'
 
 export interface FileUploaderPreviewProps {
@@ -24,8 +22,9 @@ export interface FileUploaderPreviewProps {
 
 /**
  * A fullscreen media lightbox for the FileUploader — a dark backdrop with the image (or a `<video>` with
- * controls) centered. Portaled to `<body>`, locks page scroll, and dismisses on backdrop-click / Escape /
- * the close button. Opened from a card's **Eye** button (image + video items only). Internal — not exported.
+ * controls) centered. Built on the shared `<Overlay>` (portal to `<body>`, scroll-lock, fade-in, backdrop
+ * / Escape dismissal); a darker scrim (`dim={0.85}`) than a Modal since media reads over black. Opened
+ * from a card's **Eye** button (image + video items only). Internal — not exported.
  */
 export function FileUploaderPreview({
   url,
@@ -34,27 +33,15 @@ export function FileUploaderPreview({
   name,
   onClose,
 }: FileUploaderPreviewProps) {
-  useLockBodyScroll(true)
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [onClose])
-
-  if (typeof document === 'undefined') return null
-
-  return createPortal(
-    <div
+  return (
+    <Overlay
+      open
+      onClose={onClose}
+      dim={0.85}
       className={styles.backdrop}
       role="dialog"
       aria-modal="true"
       aria-label={`Preview: ${name}`}
-      // close only when the backdrop itself is clicked (not the media or the close button)
-      onPointerDown={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
     >
       <button
         type="button"
@@ -68,11 +55,10 @@ export function FileUploaderPreview({
       {isVideo ? (
         <video src={url} className={styles.media} controls playsInline />
       ) : (
-        // an SVG's natural size is unreliable, so it always gets the bounded box (`.mediaSvg`); a raster
+        // an SVG's natural size is unreliable, so it always gets the floored box (`.mediaSvg`); a raster
         // keeps its natural size, only capped to the viewport (`.media`)
         <img src={url} alt={name} className={clsx(styles.media, isSvg && styles.mediaSvg)} />
       )}
-    </div>,
-    document.body,
+    </Overlay>
   )
 }

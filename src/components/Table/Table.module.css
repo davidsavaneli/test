@@ -1,0 +1,196 @@
+/* Table — a token-styled shell around the headless TanStack engine. Tokens only; the loading scrim uses
+   the secondary triplet so it reads under both themes. */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-sm);
+  width: 100%;
+  /* never let the table's content widen the root past its container (flex/grid parents otherwise grow to
+     the intrinsic content width) — the wide table scrolls inside `.scroll` instead */
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--tz-font-family);
+  color: var(--tz-color-text);
+}
+
+/* ── toolbar (title + search) ─────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tz-space-sm);
+  flex-wrap: wrap;
+}
+.title {
+  font-weight: var(--tz-font-weight-bold);
+}
+.toolbarEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+  margin-left: auto;
+}
+.search {
+  width: 260px;
+  max-width: 100%;
+}
+
+/* ── table surface ────────────────────────────────────────────────────────────── */
+.scroll {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-sm);
+  background-color: var(--tz-color-secondary);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--tz-font-size-md);
+}
+
+/* header */
+.th {
+  text-align: left;
+  font-weight: var(--tz-font-weight-medium);
+  color: var(--tz-color-primary-shade600);
+  background-color: var(--tz-color-secondary);
+  border-bottom: 1px solid var(--tz-color-border);
+  padding: var(--tz-space-sm);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.sticky .th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+/* a sortable header is a button so keyboard + click both toggle the sort */
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tz-space-xxs);
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color var(--tz-duration);
+}
+.sortButton:hover,
+.sortButton:focus-visible {
+  color: var(--tz-color-text);
+  outline: none;
+}
+.sortIcon {
+  flex: none;
+  color: var(--tz-color-text);
+}
+/* the neutral (unsorted) sort glyph is faint until the column is active */
+.sortIconIdle {
+  opacity: 0.35;
+}
+
+/* body */
+.td {
+  padding: var(--tz-space-sm);
+  border-bottom: 1px solid var(--tz-color-border);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.tr:last-child .td {
+  border-bottom: none;
+}
+.hoverable .tr:hover {
+  background-color: var(--tz-color-primary-shade100);
+}
+.striped .tr:nth-child(even) {
+  background-color: var(--tz-color-primary-shade100);
+}
+.clickable {
+  cursor: pointer;
+}
+
+/* pinned columns — stick to an edge while the body scrolls horizontally; an opaque background keeps the
+   horizontally-scrolled cells from showing through. The separating edge is a soft shadow shown ONLY while
+   content is actually hidden under the column (see the `data-pin-*` rules) — so a pinned column that isn't
+   overlapping anything (table fits, or scrolled to that edge) reads as an ordinary column, not a hard cut. */
+.pinnedLeft,
+.pinnedRight {
+  position: sticky;
+  z-index: 2;
+  background-color: var(--tz-color-secondary);
+}
+.pinnedLeft {
+  left: 0;
+}
+.pinnedRight {
+  right: 0;
+}
+/* a pinned header cell sits above the body's pinned cells (and the sticky-header row) */
+.th.pinnedLeft,
+.th.pinnedRight {
+  z-index: 3;
+}
+/* the pin's floating shadow — a literal black-alpha (a directional elevation shadow, like the Modal/loading
+   scrims; no `--tz-shadow-*` token maps to a single-edge shadow). Only while content is hidden under it. */
+.scroll[data-pin-start='true'] .pinnedLeft {
+  box-shadow: 6px 0 8px -6px rgba(0, 0, 0, 0.18);
+}
+.scroll[data-pin-end='true'] .pinnedRight {
+  box-shadow: -6px 0 8px -6px rgba(0, 0, 0, 0.18);
+}
+/* keep the stripe / hover tint on pinned cells — layer the translucent shade over the opaque base so it
+   matches the row instead of showing a plain surface patch */
+.striped .tr:nth-child(even) .pinnedLeft,
+.striped .tr:nth-child(even) .pinnedRight,
+.hoverable .tr:hover .pinnedLeft,
+.hoverable .tr:hover .pinnedRight {
+  background-image: linear-gradient(
+    var(--tz-color-primary-shade100),
+    var(--tz-color-primary-shade100)
+  );
+}
+
+/* empty + loading — the empty cell hosts a full EmptyState, which brings its own vertical rhythm */
+.emptyCell {
+  padding: var(--tz-space-md);
+  text-align: center;
+}
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(var(--tz-color-secondary-rgb), 0.6);
+}
+
+/* ── footer (rows per page + range + pagination) ────────────────────────────────── */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tz-space-sm);
+  flex-wrap: wrap;
+}
+.footerStart {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+}
+.pageSize {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  white-space: nowrap;
+}
+.pageSizeSelect {
+  width: 92px;
+}
+.rangeText {
+  white-space: nowrap;
+}

@@ -303,7 +303,8 @@ describe('FileUploader alt text (allowAltText)', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Preview / }))
     const overlay = await screen.findByRole('dialog', { name: /^Preview:/ })
     expect(within(overlay).getByRole('img')).toHaveAttribute('src', 'https://x/a.png')
-    fireEvent.keyDown(document, { key: 'Escape' })
+    // Escape is handled on the overlay (shared <Overlay>), reached from the focused close button
+    fireEvent.keyDown(overlay, { key: 'Escape' })
     await waitFor(() => expect(screen.queryByRole('dialog', { name: /^Preview:/ })).toBeNull())
   })
 

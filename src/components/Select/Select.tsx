@@ -92,6 +92,8 @@ export interface SelectProps {
    * while it's empty vs a "No results" message after typing.
    */
   noOptionsText?: ReactNode | ((query: string) => ReactNode)
+  /** Show the trailing tick on the selected option. Defaults to `true` (the row still gets its tint). */
+  showSelectedTick?: boolean
   /** Form field name — auto-binds to a surrounding `<Form>` (value is the option's `value`). */
   name?: string
   /** Id for the trigger (label association). */
@@ -136,6 +138,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
     loading = false,
     loadingText = 'Loading…',
     noOptionsText = 'No options',
+    showSelectedTick = true,
     name,
     id: idProp,
     className,
@@ -517,7 +520,11 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
                   disabled={opt.disabled}
                   icon={opt.icon}
                   className={clsx(index === highlightedIndex && styles.active)}
-                  trailing={isSelected ? <Icon name="TickCircle" size="sm" /> : undefined}
+                  trailing={
+                    isSelected && showSelectedTick ? (
+                      <Icon name="TickCircle" size="sm" />
+                    ) : undefined
+                  }
                   onMouseEnter={() => !opt.disabled && setHighlightedIndex(index)}
                   onClick={() => selectOption(opt)}
                 >

@@ -120,7 +120,7 @@
 .tile {
   position: relative;
   /* aspect-ratio: 4 / 3; */
-  height: 180px;
+  height: 170px;
   border-radius: var(--tz-radius-sm);
   overflow: hidden;
   background-color: var(--tz-color-primary-shade100);
@@ -174,8 +174,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background-color: rgba(0, 0, 0, 0.5);
   color: #fff;

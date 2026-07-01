@@ -3,20 +3,17 @@ import {
   useEffect,
   useId,
   useRef,
-  useState,
   type CSSProperties,
   type HTMLAttributes,
   type KeyboardEvent,
-  type MouseEvent,
   type ReactNode,
 } from 'react'
-import { createPortal } from 'react-dom'
 import { clsx } from 'clsx'
-import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 import { ICON_NAMES, type IconName } from '../../icons/names'
 import type { ThemeColor } from '../../theme'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
+import { Overlay } from '../Overlay/Overlay'
 import styles from './Modal.module.css'
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'fullScreen'
@@ -112,22 +109,10 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
   const panelRef = useRef<HTMLDivElement | null>(null)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const footerRef = useRef<HTMLDivElement | null>(null)
-  const mouseDownTarget = useRef<EventTarget | null>(null)
-  const [visible, setVisible] = useState(false)
   const titleId = useId()
   const descId = useId()
 
-  useLockBodyScroll(open)
-
-  // enter animation: flip `visible` on the next frame after mount (opacity + translate transition)
-  useEffect(() => {
-    if (!open) {
-      setVisible(false)
-      return
-    }
-    const raf = requestAnimationFrame(() => setVisible(true))
-    return () => cancelAnimationFrame(raf)
-  }, [open])
+  // portal + scrim + scroll-lock + fade-in + backdrop-dismiss are handled by the shared `<Overlay>`
 
   // focus management: move focus into the dialog on open — prefer a body field (form modals land on
   // their first input), else the first footer action (confirm dialogs land on Cancel/Confirm, not the
@@ -155,15 +140,9 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
     else if (forwardedRef) forwardedRef.current = node
   }
 
-  // Escape to close + trap Tab within the dialog so focus can't strand on the locked page behind it
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape') {
-      // an aria-modal dialog owns the page — swallow Escape so it can't reach React-tree ancestors
-      // (e.g. an outer Modal) even when this modal isn't Escape-dismissible
-      event.stopPropagation()
-      if (closeOnEscape) onClose()
-      return
-    }
+  // trap Tab within the dialog so focus can't strand on the locked page behind it (Escape + backdrop
+  // dismissal live in `<Overlay>`; this fires after the overlay's own handler)
+  const handleTabTrap = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== 'Tab') return
     const panel = panelRef.current
     if (!panel) return
@@ -187,18 +166,6 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
     }
   }
 
-  // backdrop dismiss — only when both the pointer-down AND the click landed on the overlay itself
-  // (so a text-selection drag that ends on the backdrop doesn't close the dialog)
-  const handleOverlayMouseDown = (event: MouseEvent<HTMLDivElement>) => {
-    mouseDownTarget.current = event.target
-  }
-  const handleOverlayClick = (event: MouseEvent<HTMLDivElement>) => {
-    if (!closeOnBackdrop) return
-    if (event.target === event.currentTarget && mouseDownTarget.current === event.currentTarget) {
-      onClose()
-    }
-  }
-
   if (!open) return null
 
   // a side drawer (left/right) is always full-height with the body scrolling inside (header/footer pinned)
@@ -215,16 +182,17 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
   // a divider sets the header apart from the body/footer, like Card
   const headerDivided = children != null || footer != null
 
-  return createPortal(
-    <div
+  return (
+    <Overlay
+      open={open}
+      onClose={onClose}
+      closeOnBackdrop={closeOnBackdrop}
+      closeOnEscape={closeOnEscape}
+      onKeyDown={handleTabTrap}
       className={styles.overlay}
-      data-open={visible ? 'true' : 'false'}
       data-size={size}
       data-placement={placement}
       data-scroll={isDrawer ? 'inside' : scrollBehavior}
-      onMouseDown={handleOverlayMouseDown}
-      onClick={handleOverlayClick}
-      onKeyDown={handleKeyDown}
     >
       <div
         ref={setPanelRef}
@@ -234,7 +202,6 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
         aria-labelledby={title != null ? titleId : undefined}
         aria-label={title == null ? ariaLabel : undefined}
         aria-describedby={description != null ? descId : undefined}
-        data-open={visible ? 'true' : 'false'}
         tabIndex={-1}
         style={style as CSSProperties}
         {...props}
@@ -294,7 +261,6 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
           </div>
         )}
       </div>
-    </div>,
-    document.body,
+    </Overlay>
   )
 })

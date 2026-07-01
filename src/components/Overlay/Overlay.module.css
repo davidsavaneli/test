@@ -1,0 +1,19 @@
+/* The shared page-blocking backdrop behind every dimmed surface (Modal, the FileUploader lightbox). A
+   fixed full-viewport scrim that centers its content and dims the page. The scrim color is a literal
+   black-alpha (an unavoidable exception to the token rule — a brand-token tint would invert in dark mode;
+   a constant dark scrim reads correctly under both themes); its darkness is set per consumer via the
+   inline `--tz-overlay-dim` var. Consumers layer their own padding / scroll / placement via `className`. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--tz-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, var(--tz-overlay-dim, 0.45));
+  opacity: 0;
+  transition: opacity var(--tz-duration);
+}
+.overlay[data-open='true'] {
+  opacity: 1;
+}

@@ -48,6 +48,7 @@ export default defineConfig({
         /^zod($|\/)/,
         /^dayjs($|\/)/,
         /^@tanstack\/react-router($|\/)/,
+        /^@tanstack\/react-table($|\/)/,
         /^@dnd-kit\/[^/]+($|\/)/,
         /^@formkit\/auto-animate($|\/)/,
         /^lexical($|\/)/,

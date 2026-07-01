@@ -22,7 +22,8 @@ change only what differs.
   rule.) Today the only **bundled** runtime dep is `clsx`. The **optional peer dependencies** are
   `external` (never bundled, used via the consumer's own instance): **`zod`** powers the form layer
   (`useForm`), **`@tanstack/react-router`** (`>=1`) powers the admin shell (`RootLayout` /
-  `Sidebar` / `FirstRouteRedirect`), **`dayjs`** (`>=1.11`) powers the date components
+  `Sidebar` / `FirstRouteRedirect`), **`@tanstack/react-table`** (`>=8`, headless) powers the
+  **`Table`**, **`dayjs`** (`>=1.11`) powers the date components
   (`DatePicker`, …), **`lexical`** (`>=0.45`) + its `@lexical/*` React packages power the
   **`RichTextEditor`**, and **`react-dropzone`** (`>=14`) + **`@dnd-kit/*`** (`core`/`sortable`/`utilities`)
   - **`@formkit/auto-animate`** (`>=0.8`) + **`react-image-crop`** (`>=11`) power the **`FileUploader`**
@@ -294,7 +295,7 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   **`useLocales()`** (lenient — returns `[]` outside a provider, since a `<TranslatedFields locales>`
   prop can override). It's not theming per se, but it's the app-level config the provider already owns.
 - **`keys`** (`KeysConfig`): the configurable key / query-param **names** the components read, grouped in
-  one place (grows over time — e.g. `page` / `size` for paginated tables ⇒ `?page=1&size=10`). Today:
+  one place (grows over time). Today:
   - **`keys.tabQueryKey`** (default `'tab'`): the URL query param a **top-level** **`Tabs`** syncs its
     active tab to — resolves **`queryKey` prop → `config.keys.tabQueryKey` → `DEFAULT_TABS_QUERY_KEY`
     (`'tab'`)**, so every strip is URL-synced out of the box (pass `queryKey={null}` on a strip to opt
@@ -309,7 +310,13 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
     word — field names resolve **`namespace` prop → `config.keys.translationsNamespace` →
     `DEFAULT_TRANSLATIONS_NAMESPACE` (`'translations'`)**. Read via **`useTranslationsNamespace()`** —
     pass it to the helpers to match, e.g. `buildTranslations(codes, fields, useTranslationsNamespace())`.
-  - All three hooks return the resolved string and are lenient outside a provider.
+  - **`keys.pageQueryKey`** (default `'page'`) / **`keys.sizeQueryKey`** (default `'size'`): the URL query
+    params a **`Table`** syncs its 1-based page + rows-per-page to (`?page=1&size=10`) — resolve
+    **`pageQueryKey`/`sizeQueryKey` prop → `config.keys.*` → `DEFAULT_PAGE_QUERY_KEY` (`'page'`) /
+    `DEFAULT_SIZE_QUERY_KEY` (`'size'`)**, so a table URL-syncs out of the box (pass `urlSync={false}`, or a
+    per-param `null`, to opt out). Read via **`usePageQueryKey()`** / **`useSizeQueryKey()`**. (Multiple
+    URL-synced tables on one page need distinct keys, like multiple `Tabs` strips.)
+  - All the key hooks return the resolved string and are lenient outside a provider.
 - **Light merge**: `{ ...DEFAULT_LIGHT_COLORS, ...config.colors.light }` — built-in defaults as base,
   the app's light overrides win.
 - **Dark merge**: `{ ...light, ...DEFAULT_DARK_COLORS, ...config.colors.dark }` — the merged light
@@ -575,10 +582,11 @@ the **remove** (`Close`) button pinned **top-right**; and a **bottom** one holdi
 default — pass `allowAltText={false}` to hide both) **and shown only for image items** (`isImageItem` — a
 video / PDF / doc has nothing to crop or describe; those keep just download + preview + remove); the **view**
 button (`allowPreview`, default on) shows for **image + video** items and opens a **fullscreen lightbox**
-(the internal **`FileUploaderPreview`** — a `<body>`-portaled dark backdrop with the image / a
-`<video controls>` centered; scroll-locked, closes on backdrop-click / Escape / the × button). The scrims +
-white text are **literal black/white** (the image behind doesn't flip with the theme — the same justified
-exception the `Modal` backdrop makes).
+(the internal **`FileUploaderPreview`**, built on the shared **`Overlay`** like `Modal` — a `<body>`-portaled
+dark backdrop with the image / a `<video controls>` centered; scroll-locked, fades in, closes on
+backdrop-click / Escape / the × button, with a darker `dim={0.85}` scrim since media reads over black). The
+scrims + white text are **literal black/white** (the image behind doesn't flip with the theme — the same
+justified exception the `Modal` backdrop makes).
 
 Props: **`multiple`** (`false` — value becomes an array) · **`allowDrop`** (`true` — OS drag-drop; `false`
 = click-to-browse only) · **`allowReorder`** (`true` — drag + keyboard reorder, only meaningful with
@@ -783,7 +791,8 @@ closes on outside-pointerdown/`Escape`/select, and enters with the shared opacit
 (`--tz-space-xs`) matches Dropdown's panel inset. Options are
 data-driven (**`options: { value, label, disabled?, icon? }[]`**) rendered as **`ListItem`s** (with
 `role="option"`, `tabIndex={-1}`) inside a `role="listbox"` **`List`**; the chosen option shows a
-`selected` tint + a trailing `TickCircle`, disabled options are inert. **Keyboard:** Arrow up/down
+`selected` tint + a trailing `TickCircle` (drop just the tick with **`showSelectedTick={false}`** — the
+tint stays; used by `Table`'s compact rows-per-page picker), disabled options are inert. **Keyboard:** Arrow up/down
 (skipping disabled), Home/End, Enter/Space to select, Escape to close, and **type-ahead** (buffer with
 a 500ms reset) when not searchable; the focused element carries `aria-activedescendant` →
 the highlighted option (a `.active` row gets the same light hover tint as a selected row).
@@ -1289,19 +1298,24 @@ when it fits and top-aligns + scrolls when it doesn't) or **`inside`** (the body
   there's no `title`. The close button is a **`filled` `IconButton`** (neutral `primary` tint, so it
   doesn't clash with an `error`/`warning` modal `color`). The header is omitted entirely when there's no
   title/description/icon/close button.
-  **Behavior:** `createPortal` to `<body>`, **locks page scroll** (`useLockBodyScroll`), **traps Tab focus**
-  inside (Shift+Tab cycles; wraps at both ends) and **restores focus to the previously-focused element on
-  close** (guarded by `isConnected` so an unmounted trigger doesn't strand focus), moves focus on open to
-  **the first body field → else the first footer action (so confirm dialogs land on Cancel, not the ×) →
-  else any control → else the dialog** (all with `preventScroll` so an `outside`-scroll modal doesn't jump
-  to a below-fold control), and **enters with the shared opacity + translate animation** (keyed off
-  `data-open` via a rAF `visible` flag — same idiom as `Dropdown`/`FloatingPanel`, enter-only/unmount on
-  close; `fullScreen` fades only). `role="dialog"` + `aria-modal` + `aria-describedby` (when `description`);
-  `--tz-z-modal`, `--tz-shadow-xl`, `--tz-radius-md`. The **backdrop scrim is a literal `rgba(0,0,0,0.45)`**
-  (an unavoidable exception — a brand-token tint would invert in dark mode), Escape is always swallowed at
-  the overlay (so it can't reach React-tree ancestors), and the **backdrop dismiss is gated on the
-  pointer-down AND the click both landing on the overlay** (so a text-selection drag ending on the scrim
-  doesn't close it). **A footer Submit button can drive a `<Form>` in the body via the `form` attribute**
+  **Behavior:** the portal, **page-scroll lock**, **scrim + fade-in**, **Escape swallow** and **backdrop
+  dismiss** all come from the shared internal **`Overlay`** (see its section) — Modal passes it its
+  `.overlay` class + `data-size`/`data-placement`/`data-scroll` attrs (its scroll/drawer layout selectors
+  and the box's enter transform key off `.overlay[data-open]` on that shared scrim) and its own `onKeyDown`
+  for the **Tab focus-trap** (which Overlay calls after its Escape handling). Modal itself keeps the
+  dialog-specific bits: it **traps Tab focus** inside (Shift+Tab cycles; wraps at both ends) and **restores
+  focus to the previously-focused element on close** (guarded by `isConnected` so an unmounted trigger
+  doesn't strand focus), moves focus on open to **the first body field → else the first footer action (so
+  confirm dialogs land on Cancel, not the ×) → else any control → else the dialog** (all with
+  `preventScroll` so an `outside`-scroll modal doesn't jump to a below-fold control), and **enters with the
+  shared opacity + translate animation** (keyed off the Overlay's `data-open` — same idiom as
+  `Dropdown`/`FloatingPanel`, enter-only/unmount on close; `fullScreen` fades only). `role="dialog"` +
+  `aria-modal` + `aria-describedby` (when `description`); `--tz-z-modal`, `--tz-shadow-xl`, `--tz-radius-md`.
+  The **backdrop scrim is a literal `rgba(0,0,0,0.45)`** (an unavoidable exception — a brand-token tint
+  would invert in dark mode; Overlay's default `dim`), Escape is always swallowed at the overlay (so it
+  can't reach React-tree ancestors), and the **backdrop dismiss is gated on the pointer-down AND the click
+  both landing on the overlay** (so a text-selection drag ending on the scrim doesn't close it). **A footer
+  Submit button can drive a `<Form>` in the body via the `form` attribute**
   (`<Button type="submit" form="…">` + `<Form id="…">`) — it works **across the portal** since both live in
   the same document, and the form's **scroll-to-error** focuses the first invalid field inside the body.
   The forwarded ref points at the dialog element. Own CSS
@@ -1386,7 +1400,61 @@ symmetry. Ellipses render a non-interactive muted `…`. a11y: a `<nav>` with a 
 (default `"Pagination"`) wrapping a `<ul>`; the current page carries **`aria-current="page"`** and each
 button an `aria-label` (`"Go to page N"` / `"Go to previous page"` / …). Own CSS module. _A `<Form>`
 binding isn't relevant (it's navigation, not a field); a `count`-from-`total`+`pageSize` convenience prop
-and URL-sync (the planned `keys.page` / `keys.size`) are natural next iterations._
+is a natural next iteration (URL-sync via `keys.page` / `keys.size` now lives in `Table`)._
+
+### Table
+
+A data table built on **TanStack Table** (`@tanstack/react-table` `>=8`, **headless** — an optional peer,
+`external`/never bundled, like `zod`/`dayjs`). TanStack ships **zero markup/CSS** — it's the state engine
+(sort / filter / pagination); the library renders its **own** `<table>` styled entirely with `--tz-*`
+tokens and **composes the existing components**: **`TextField`** (search, `SearchNormal` adornment),
+**`Select`** (rows-per-page), **`Pagination`** (footer nav), **`EmptyState`** (no rows), **`Loader`**
+(loading overlay). **Column API — deliberately simple** (`TableColumn<T>`, hides TanStack): `{ key,
+header, cell?, sortable?, width?, align?, pinned? }[]` — `key` is the field accessor + column id +
+sort/search key; `cell?: (row, index) => ReactNode` for custom renders (a `Chip`, `Avatar`, formatted
+date), else the `key` value stringified; **`pinned: 'left' | 'right'`** sticks the column to that edge
+(`position: sticky` + an opaque bg + a **soft edge shadow shown only while content is actually hidden under
+it** — a `data-pin-start`/`data-pin-end` scroll flag drives it, so a pin that isn't overlapping reads as an
+ordinary column, not a hard cut; the stripe/hover tint is layered over the pinned bg) so it stays put while
+the rest scrolls — e.g. an actions column pinned `'right'` (one column per edge). **Two data modes, one flag:** **local** (default — pass the full `data`; the
+table searches / sorts / paginates client-side via TanStack's row models) or **server**
+(**`manualPagination`** — pass only the current page in `data` + the total in `rowCount`; TanStack tracks
+state but slices nothing, and you fetch in **`onChange`**). **`onChange(state)`** fires on mount + every
+change with the full **`TableChangeState`** `{ page (1-based), size, search, sort: { key, direction } |
+null }` — the server-mode fetch driver (search changes are **debounced** by **`debounceMs`**, default
+`300`). **Search** (`searchable`) is a debounced global substring filter (`globalFilterFn:
+'includesString'`) in local mode, or emitted in `onChange` for server mode. **Sorting** is per-column
+(`sortable`) — a header button toggles asc → desc → none (`sortDescFirst: false`, so the first click is
+always ascending), reflected as `aria-sort`; local sorts client-side, server emits it. **Pagination**
+reuses the `Pagination` component with its **first/last jump arrows on by default** (**`showFirstButton`** /
+**`showLastButton`**); the footer also shows a rows-per-page `Select` (**`pageSizeOptions`**, default
+`[10, 20, 50, 100, 200]`; **`showPageSize`**; the Select passes **`showSelectedTick={false}`** for a
+compact look) plus an **"All"** choice (**`allowAllRows`**, default `true` — pass `false` to hide it for
+large datasets) that puts every row on one page, and a `"1–10 of N"` range. "All" is a **sentinel page
+size** (`Number.MAX_SAFE_INTEGER`) — it serializes to `?size=all` and is emitted verbatim in `onChange`
+(server consumers treat it as unbounded). Changing size / sort resets to page 1; the page clamps if the
+row count shrinks beneath it. **URL sync — ON by default:** page + size mirror to the query
+(`?page=1&size=10`) via the native History API (`replaceState`, like `Tabs`), reading the initial page/size
+on mount and restoring on `popstate`; the param names resolve **`pageQueryKey` / `sizeQueryKey` prop →
+`config.keys.pageQueryKey` / `sizeQueryKey` → `'page'` / `'size'`** — pass **`urlSync={false}`** (or a
+per-param `null`) to opt out (**multiple URL-synced tables on one page need distinct keys**, like `Tabs`
+strips). The table renders at a single (md) density — no `size` prop. Other props: **`title`** +
+**`toolbar`** (extra toolbar content, e.g. a future filters slot), **`getRowId`** (stable row id, defaults
+to index), **`onRowClick`**, **`loading`** (a token-scrim overlay + `Loader`), **`empty`** (custom empty
+node — the default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
+(default `true`). Because the component is
+**generic** (`Table<T>`) it uses the standard `forwardRef(...) as <T>(props) => ReactElement` cast (the one
+sanctioned deviation from the plain `forwardRef` anatomy — generics don't survive `forwardRef`'s typing).
+**Responsive:** cells are `white-space: nowrap` and the surface (`.scroll`) is `overflow-x: auto` with
+`min-width: 0` (+ the root's `max-width: 100%`), so when the columns exceed the width the **table scrolls
+horizontally inside its container** instead of squeezing/wrapping or widening the page (the flex-parent
+overflow guard). a11y: a real `<table>`/`<thead>`/`<tbody>`, `scope="col"` + `aria-sort` on sortable
+headers, the search box `aria-label`led, the `Loader` `role="status"`. **Note:** the tests run in jsdom
+(TanStack needs no DOM measurement) — they cover render / columns / custom cell, local search (debounced) /
+sort / pagination, the pinned-column class, server-mode `onChange`, empty + loading, URL sync
+(canonicalize / read / write / opt-out), and
+`onRowClick`. Own CSS module. _Row selection (checkboxes), column filters (the planned `toolbar` slot),
+column resize/pinning, and virtualization are natural next iterations._
 
 ### TranslatedFields
 
@@ -1460,6 +1528,28 @@ no `index.ts`, so the build glob never exposes it as a `sava-test/components/*` 
 import it via `../FloatingPanel/FloatingPanel`. **`Dropdown` is deliberately NOT built on it** — it
 keeps its own placement variants + collision-flip + roving-menu keyboard nav + `closeOnSelect` +
 cloned-trigger logic.
+
+### Overlay (internal)
+
+The single shared **backdrop** behind every dimmed, page-blocking surface — **`Modal`** (and thus
+`RemoveDialog`) and the FileUploader **lightbox** (`FileUploaderPreview`) both render it, so the portal +
+fixed scrim + scroll-lock + fade-in + dismissal aren't written per component. It's the backdrop analog of
+`FloatingPanel` (which is for anchored, non-dimmed popovers — the two never overlap: `Overlay` dims + blocks
+the page, `FloatingPanel` floats beside a trigger). Props: `open` (gates the portal + drives the fade) ·
+`onClose?` · `closeOnBackdrop?` (default `true`) · `closeOnEscape?` (default `true`) · `lockScroll?`
+(default `true`, via `useLockBodyScroll`) · `dim?` (scrim alpha, default `0.45`; fed to the CSS as an inline
+`--tz-overlay-dim` var — the FileUploader lightbox passes `0.85`) · plus any `HTMLAttributes` (`className`,
+`role`, `aria-*`, `data-*`). It `createPortal`s a fixed full-viewport scrim to `<body>` (literal black-alpha —
+a brand tint would invert in dark mode), **centers its children** (flex), fades in via a rAF `visible` flag →
+**`data-open`** on the scrim (consumers read that for their own box's enter transform), and dismisses on
+**Escape** (`stopPropagation`-swallowed so a nested overlay's Escape can't reach an outer one — kept as a
+React `onKeyDown` on the scrim, not a document listener, precisely to preserve that React-tree swallow) and
+**backdrop-click** (gated on the pointer-down AND click both landing on the scrim, so a text-selection drag
+ending on it doesn't close). A consumer `onKeyDown` still fires **after** the Escape handling (Modal adds its
+Tab focus-trap that way). The base scrim/center/z-index/fade live once in `Overlay.module.css` `.overlay`;
+each consumer's own class adds only its layout (Modal's padding + scroll/drawer variants keyed off
+`.overlay[data-*]`; the lightbox's inset). **Internal** — no `index.ts`, so the build glob never exposes it
+as a `sava-test/components/*` subpath; import it via `../Overlay/Overlay`. The ref points at the scrim div.
 
 ### Form — `useForm` (Zod-powered)
 
@@ -1701,7 +1791,7 @@ define each surface; the root `src/index.ts` re-exports them all. `package.json`
 | `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                            |
 | `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                     |
 | `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                            |
-| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `applyTheme`                                             |
+| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `usePageQueryKey`, `useSizeQueryKey`, `applyTheme`       |
 | `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                   |
 | `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) |
 | `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                         |

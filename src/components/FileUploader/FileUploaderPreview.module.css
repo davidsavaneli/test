@@ -1,23 +1,9 @@
-/* Fullscreen media lightbox. The backdrop scrim + close button are literal black/white (they sit over
-   arbitrary media, not a theme surface) — the same justified exception the Modal backdrop makes. */
+/* Fullscreen media lightbox. The fixed scrim / centering / scroll-lock / fade / dismissal come from the
+   shared `<Overlay>` (a darker `dim={0.85}` since media reads over black); this only adds the inset so
+   the media doesn't touch the viewport edge. The close × is literal black/white — it sits over arbitrary
+   media, not a theme surface (the same justified exception the Modal backdrop makes). */
 .backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: var(--tz-z-modal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   padding: var(--tz-space-lg);
-  background-color: rgba(0, 0, 0, 0.85);
-  animation: tz-fu-preview-in var(--tz-duration) ease-out;
-}
-@keyframes tz-fu-preview-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 /* the image / video at its natural size, only capped to the viewport (never upscaled) */
 .media {

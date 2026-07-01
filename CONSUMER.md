@@ -139,6 +139,8 @@ npm i @tanstack/react-router
 npm i lexical @lexical/react @lexical/rich-text @lexical/list @lexical/link @lexical/html @lexical/markdown @lexical/selection @lexical/utils
 # react-dropzone + @dnd-kit + @formkit/auto-animate + react-image-crop are OPTIONAL peers — only for <FileUploader>:
 npm i react-dropzone @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @formkit/auto-animate react-image-crop
+# @tanstack/react-table is an OPTIONAL peer (>=8, headless) — only for <Table>:
+npm i @tanstack/react-table
 ```
 
 ## 2. One-time setup (app entry, e.g. main.tsx)
@@ -444,6 +446,36 @@ mount — handy inside a popover). The strip **scrolls horizontally**
 Home / End) + `role="tablist"`/`tab`/`tabpanel` a11y (name the tablist with `aria-label`); items with
 `content` render the active panel.
 `<Tabs items={[{ value: 'general', label: 'General', icon: 'Setting2' }, …]} />` (auto-syncs to `?tab=`).
+
+**Table** — a data table built on **TanStack Table** (headless). **Needs the `@tanstack/react-table` peer**
+(`npm i @tanstack/react-table`, see §1). Pass `data` + a simple **`columns`** array — `{ key, header,
+cell?, sortable?, width?, align?, pinned? }[]` — where `key` is the field accessor and `cell?: (row, index)
+=> node` renders anything custom (a `Chip`, `Avatar`, formatted date). **`pinned: 'right' | 'left'`** sticks
+a column to that edge (e.g. an actions column) so it stays visible while the rest scrolls. It renders a
+token-styled `<table>` and composes `TextField` (search), `Select` (rows per page), `Pagination`,
+`EmptyState`, `Loader`. When the columns exceed the width the table **scrolls horizontally** inside its
+container (cells don't wrap) rather than overflowing the page.
+
+- **Local mode** (default): hand it the **full** dataset — it searches (`searchable`), sorts (per-column
+  `sortable`), and paginates client-side.
+  `<Table data={users} columns={cols} searchable />`
+- **Server mode** (**`manualPagination`**): pass **only the current page** in `data` + the total in
+  **`rowCount`**, and fetch in **`onChange`** — it fires on mount + every change with
+  `{ page, size, search, sort }` (search is debounced by **`debounceMs`**, default `300`). Show a
+  **`loading`** overlay while you fetch.
+  `<Table manualPagination data={rows} rowCount={total} loading={loading} onChange={({ page, size, search, sort }) => fetch(...)} columns={cols} searchable />`
+
+**Page + rows-per-page sync to the URL by default** (`?page=1&size=10`) — the param names resolve
+**`pageQueryKey`/`sizeQueryKey` prop → `ConfigProvider`'s `keys.pageQueryKey`/`sizeQueryKey` → `'page'` /
+`'size'`**; pass **`urlSync={false}`** (or a per-param `null`) to opt out. **Multiple URL-synced tables on
+one page need distinct keys** (like `Tabs`). The footer's rows-per-page `Select` offers `pageSizeOptions`
+(default `[10, 20, 50, 100, 200]`) plus an **All** choice (`allowAllRows`, default `true` — shows every row
+on one page; pass `false` to hide it for large datasets), and the pagination shows **first/last jump
+arrows** by default (`showFirstButton` / `showLastButton`). Other props: `showPageSize`, `title`, `toolbar`
+(extra toolbar content, e.g. right-aligned row actions live in a column's `cell`), `getRowId` (stable row
+id, defaults to index), `onRowClick`, `empty` (custom empty node — default is a patterned `EmptyState`),
+`stickyHeader`, `striped`, `hoverable` (default `true`), `defaultPage` / `defaultPageSize` /
+`defaultSearch` / `defaultSort`. (Renders at a single md density — no `size` prop.)
 
 **TranslatedFields** — a tabbed group of **per-locale** form fields (one tab per content locale). You
 write the fields **once** via a render function `(name, locale) => …`; `name(field)` returns the

@@ -29,6 +29,13 @@ import { AlertSection } from '../Alert'
 import { DropdownSection } from '../Dropdown'
 import { FileUploaderSection } from '../FileUploader'
 import { TabsSection } from '../Tabs'
+import {
+  TableLocalPage,
+  TableStripedPage,
+  TableHideAllPage,
+  TableServerPage,
+  TableEmptyPage,
+} from '../Table'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
 import { CheckboxSection } from '../Checkbox'
@@ -182,6 +189,44 @@ const userEditRoute = createRoute({
   getParentRoute: () => usersRoute,
   path: '$userId/edit',
   component: inPage(UserFormBody),
+})
+
+// `/table` — a top-level EXPANDABLE group: one page per Table example (Local / Striped / …).
+const tableGroupRoute = createRoute({
+  getParentRoute: () => shellRoot,
+  path: 'table',
+  staticData: { name: 'Table', icon: 'Grid', order: 3 },
+  component: () => <Outlet />,
+})
+const tableLocalRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'local',
+  staticData: { name: 'Local', order: 0 },
+  component: inPage(TableLocalPage),
+})
+const tableStripedRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'striped',
+  staticData: { name: 'Striped + Clickable', order: 1 },
+  component: inPage(TableStripedPage),
+})
+const tableHideAllRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'hide-all',
+  staticData: { name: 'Hide All', order: 2 },
+  component: inPage(TableHideAllPage),
+})
+const tableServerRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'server',
+  staticData: { name: 'Server', order: 3 },
+  component: inPage(TableServerPage),
+})
+const tableEmptyRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'empty',
+  staticData: { name: 'Empty', order: 4 },
+  component: inPage(TableEmptyPage),
 })
 
 // `/components` — a module container (renders its child pages; not a page itself).
@@ -491,6 +536,13 @@ const shellRouter = createRouter({
     shellIndexRoute,
     iconsRoute,
     usersRoute.addChildren([usersIndexRoute, userNewRoute, userDetailRoute, userEditRoute]),
+    tableGroupRoute.addChildren([
+      tableLocalRoute,
+      tableStripedRoute,
+      tableHideAllRoute,
+      tableServerRoute,
+      tableEmptyRoute,
+    ]),
     componentsRoute.addChildren([
       layoutsRoute.addChildren([layoutRoute, cardRoute, dividerRoute, accordionRoute]),
       formsRoute.addChildren([
