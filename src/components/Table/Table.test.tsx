@@ -61,6 +61,12 @@ describe('Table', () => {
     expect(screen.getByText(/11.20 of 25/)).toBeInTheDocument()
   })
 
+  it('hides the pagination nav when everything fits on one page (keeps the range + size select)', () => {
+    render(<Table data={makeData(5)} columns={columns} getRowId={(r) => r.id} />)
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument() // no page navigator
+    expect(screen.getByText(/1.5 of 5/)).toBeInTheDocument() // range still shown
+  })
+
   it('shows the first / last jump buttons by default', () => {
     render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
     expect(screen.getByRole('button', { name: 'Go to first page' })).toBeInTheDocument()

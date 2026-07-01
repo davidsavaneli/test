@@ -101,6 +101,10 @@
 }
 .collapsibleInner {
   min-height: 0;
+  /* also allow shrinking below the content's min-content width — otherwise a wide, non-wrapping child
+     (e.g. a `Table` with an internal horizontal scroll) forces this grid item wider than the card and
+     overflows the page. With `min-width: 0` such a child scrolls inside itself instead. */
+  min-width: 0;
 }
 /* clip only while the card can fold — otherwise it would cut off tooltips/popovers
    escaping the body or footer (the fold animation is the only thing that needs the clip) */

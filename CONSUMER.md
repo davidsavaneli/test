@@ -471,7 +471,8 @@ container (cells don't wrap) rather than overflowing the page.
 one page need distinct keys** (like `Tabs`). The footer's rows-per-page `Select` offers `pageSizeOptions`
 (default `[10, 20, 50, 100, 200]`) plus an **All** choice (`allowAllRows`, default `true` — shows every row
 on one page; pass `false` to hide it for large datasets), and the pagination shows **first/last jump
-arrows** by default (`showFirstButton` / `showLastButton`). Other props: `showPageSize`, `title`, `toolbar`
+arrows** by default (`showFirstButton` / `showLastButton`) — the **page navigator auto-hides when
+everything fits on one page** (e.g. All, or few rows). Other props: `showPageSize`, `title`, `toolbar`
 (extra toolbar content, e.g. right-aligned row actions live in a column's `cell`), `getRowId` (stable row
 id, defaults to index), `onRowClick`, `empty` (custom empty node — default is a patterned `EmptyState`),
 `stickyHeader`, `striped`, `hoverable` (default `true`), `defaultPage` / `defaultPageSize` /

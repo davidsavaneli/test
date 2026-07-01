@@ -124,24 +124,34 @@
   z-index: 2;
   background-color: var(--tz-color-secondary);
 }
+/* a persistent hairline delineates the pinned column from the scrolling body — drawn as an INSET
+   box-shadow (not a `border`, which renders unreliably on a sticky cell under `border-collapse: collapse`,
+   disappearing while scrolled). The scroll shadow below adds a second (outset) layer for depth once
+   content actually slides under. */
 .pinnedLeft {
   left: 0;
+  box-shadow: inset -1px 0 0 var(--tz-color-border);
 }
 .pinnedRight {
   right: 0;
+  box-shadow: inset 1px 0 0 var(--tz-color-border);
 }
 /* a pinned header cell sits above the body's pinned cells (and the sticky-header row) */
 .th.pinnedLeft,
 .th.pinnedRight {
   z-index: 3;
 }
-/* the pin's floating shadow — a literal black-alpha (a directional elevation shadow, like the Modal/loading
-   scrims; no `--tz-shadow-*` token maps to a single-edge shadow). Only while content is hidden under it. */
+/* + the floating elevation shadow while content is hidden under the pin (the outset layer is a literal
+   black-alpha directional shadow — like the Modal/loading scrims; no `--tz-shadow-*` maps to one edge) */
 .scroll[data-pin-start='true'] .pinnedLeft {
-  box-shadow: 6px 0 8px -6px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    inset -1px 0 0 var(--tz-color-border),
+    6px 0 8px -6px rgba(0, 0, 0, 0.18);
 }
 .scroll[data-pin-end='true'] .pinnedRight {
-  box-shadow: -6px 0 8px -6px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    inset 1px 0 0 var(--tz-color-border),
+    -6px 0 8px -6px rgba(0, 0, 0, 0.18);
 }
 /* keep the stripe / hover tint on pinned cells — layer the translucent shade over the opaque base so it
    matches the row instead of showing a plain surface patch */

@@ -1134,7 +1134,10 @@ the same row, so the row reads left-vs-right via `space-between`). A subtle **da
 sets the header apart from the body while expanded. `collapsible` adds an `ArrowUp3` chevron `IconButton` that folds the body
 **and** footer via a smooth `grid-template-rows: 1fr → 0fr` transition; while collapsed the header
 **actions hide** (only the chevron stays) and the header divider fades out. Controlled (`collapsed` +
-`onCollapsedChange`) or uncontrolled (`defaultCollapsed`). `icon` (an `IconName` or a node) renders in
+`onCollapsedChange`) or uncontrolled (`defaultCollapsed`). The fold wrapper (`.collapsibleInner`, a grid
+item) carries **`min-width: 0`** as well as `min-height: 0` — so a wide, non-wrapping child (e.g. a `Table`
+with its own horizontal scroll) shrinks and scrolls **inside the card** instead of forcing the card (and
+the whole page) wider than the viewport. `icon` (an `IconName` or a node) renders in
 a leading **filled, non-clickable `IconButton`** box (decorative → `aria-hidden`), tinted by `color`
 (brand token, default `medium`). `subtitle` is a muted description line under the `title`; both `title`
 and `subtitle` clamp to **two lines** then ellipsis (`-webkit-line-clamp`).
@@ -1413,10 +1416,13 @@ tokens and **composes the existing components**: **`TextField`** (search, `Searc
 header, cell?, sortable?, width?, align?, pinned? }[]` — `key` is the field accessor + column id +
 sort/search key; `cell?: (row, index) => ReactNode` for custom renders (a `Chip`, `Avatar`, formatted
 date), else the `key` value stringified; **`pinned: 'left' | 'right'`** sticks the column to that edge
-(`position: sticky` + an opaque bg + a **soft edge shadow shown only while content is actually hidden under
-it** — a `data-pin-start`/`data-pin-end` scroll flag drives it, so a pin that isn't overlapping reads as an
-ordinary column, not a hard cut; the stripe/hover tint is layered over the pinned bg) so it stays put while
-the rest scrolls — e.g. an actions column pinned `'right'` (one column per edge). **Two data modes, one flag:** **local** (default — pass the full `data`; the
+(`position: sticky` + an opaque bg + a **persistent hairline separator** — an **inset** `box-shadow`, not a
+`border`, which renders unreliably on a sticky cell under `border-collapse: collapse` and vanishes while
+scrolled — **plus** an outset edge shadow layered on for depth only while content is hidden under it, driven
+by a `data-pin-start`/`data-pin-end` scroll flag; the stripe/hover tint is layered over the pinned bg). A
+pinned column with **no `width`** defaults to **content-width** (the `width: 1px` min-content trick) so an
+actions column fits its buttons instead of absorbing the table's spare width — set `width` to override. So
+it stays put while the rest scrolls — e.g. an actions column pinned `'right'` (one column per edge). **Two data modes, one flag:** **local** (default — pass the full `data`; the
 table searches / sorts / paginates client-side via TanStack's row models) or **server**
 (**`manualPagination`** — pass only the current page in `data` + the total in `rowCount`; TanStack tracks
 state but slices nothing, and you fetch in **`onChange`**). **`onChange(state)`** fires on mount + every
@@ -1433,7 +1439,8 @@ compact look) plus an **"All"** choice (**`allowAllRows`**, default `true` — p
 large datasets) that puts every row on one page, and a `"1–10 of N"` range. "All" is a **sentinel page
 size** (`Number.MAX_SAFE_INTEGER`) — it serializes to `?size=all` and is emitted verbatim in `onChange`
 (server consumers treat it as unbounded). Changing size / sort resets to page 1; the page clamps if the
-row count shrinks beneath it. **URL sync — ON by default:** page + size mirror to the query
+row count shrinks beneath it. The **page navigator hides entirely when everything fits on one page**
+(`pageCount ≤ 1` — e.g. the "All" size or few rows); the rows-per-page select + `"1–N of N"` range stay. **URL sync — ON by default:** page + size mirror to the query
 (`?page=1&size=10`) via the native History API (`replaceState`, like `Tabs`), reading the initial page/size
 on mount and restoring on `popstate`; the param names resolve **`pageQueryKey` / `sizeQueryKey` prop →
 `config.keys.pageQueryKey` / `sizeQueryKey` → `'page'` / `'size'`** — pass **`urlSync={false}`** (or a

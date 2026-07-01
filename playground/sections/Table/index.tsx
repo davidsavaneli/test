@@ -47,7 +47,7 @@ const columns: TableColumn<User>[] = [
     header: 'Status',
     cell: (u) => <Chip color={statusColor(u.status)}>{u.status}</Chip>,
   },
-  { key: 'joined', header: 'Joined', sortable: true, align: 'right' },
+  { key: 'joined', header: 'Joined', sortable: true },
   {
     // a synthetic (no data field) right-aligned actions column, pinned so it stays visible while the
     // rest scrolls; its buttons stopPropagation so they don't trigger a row's onClick

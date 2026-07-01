@@ -56,7 +56,9 @@ export interface TableColumn<T> {
   align?: TableAlign
   /**
    * Pin the column to an edge so it stays visible while the rest scrolls horizontally (e.g. an actions
-   * column pinned `'right'`). One column per edge; a hairline separates it from the scrolling body.
+   * column pinned `'right'`). One column per edge; a hairline separates it from the scrolling body. A
+   * pinned column with **no `width`** shrinks to its content (so an actions column fits its buttons); set
+   * `width` to override.
    */
   pinned?: 'left' | 'right'
 }
@@ -481,7 +483,15 @@ export const Table = forwardRef(function Table<T>(
                       col.pinned === 'left' && styles.pinnedLeft,
                       col.pinned === 'right' && styles.pinnedRight,
                     )}
-                    style={{ width: col.width, textAlign: col.align } as CSSProperties}
+                    style={
+                      {
+                        // a pinned column with no explicit width shrinks to its content (the `width: 1px`
+                        // min-content trick), so an actions column fits its buttons instead of absorbing
+                        // the table's spare width
+                        width: col.width ?? (col.pinned ? 1 : undefined),
+                        textAlign: col.align,
+                      } as CSSProperties
+                    }
                     aria-sort={
                       col.sortable
                         ? sorted === 'asc'
@@ -535,7 +545,12 @@ export const Table = forwardRef(function Table<T>(
                           col.pinned === 'left' && styles.pinnedLeft,
                           col.pinned === 'right' && styles.pinnedRight,
                         )}
-                        style={{ textAlign: col.align } as CSSProperties}
+                        style={
+                          {
+                            width: col.width ?? (col.pinned ? 1 : undefined),
+                            textAlign: col.align,
+                          } as CSSProperties
+                        }
                       >
                         {col.cell
                           ? col.cell(row.original, row.index)
@@ -588,14 +603,18 @@ export const Table = forwardRef(function Table<T>(
               {rangeStart}–{rangeEnd} of {totalRows}
             </Typography>
           </div>
-          <Pagination
-            count={pageCount}
-            page={currentPage}
-            onChange={(page) => setPagination((p) => ({ ...p, pageIndex: page - 1 }))}
-            showFirstButton={showFirstButton}
-            showLastButton={showLastButton}
-            disabled={loading}
-          />
+          {/* the page navigator is pointless with a single page (few rows, or the "All" size) — hide it,
+              keeping the rows-per-page select + range count */}
+          {pageCount > 1 && (
+            <Pagination
+              count={pageCount}
+              page={currentPage}
+              onChange={(page) => setPagination((p) => ({ ...p, pageIndex: page - 1 }))}
+              showFirstButton={showFirstButton}
+              showLastButton={showLastButton}
+              disabled={loading}
+            />
+          )}
         </div>
       )}
     </div>
