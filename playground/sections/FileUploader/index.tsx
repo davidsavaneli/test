@@ -103,7 +103,8 @@ function Output({ value }: { value: FileUploaderValue }) {
         fontSize: 'var(--tz-font-size-sm)',
         color: 'var(--tz-color-text)',
         whiteSpace: 'pre-wrap',
-        overflowX: 'auto',
+        overflow: 'auto',
+        maxWidth: '50vw',
       }}
     >
       {`value = ${JSON.stringify(view, null, 2)}`}

@@ -252,28 +252,29 @@ the returned URL. Exported HTML is clean, class-free markup (`<h2>`, `<strong>`,
 **react-dropzone + @dnd-kit + @formkit/auto-animate optional peers** (see §1). **Value model:
 `{ file?: File; source?: string; sortIndex: number }`** — a new pick carries its binary in `file`; an
 already-uploaded file (edit mode) carries only its `source` URL (no `file`). Single mode → one item (or
-`null`); **`multiple`** → an array. A dropzone (click-to-browse + OS drag-drop) sits above a grid of
-fixed-width 240px image cards (thumbnail/file-icon + name + size, with overlaid remove, edit, and download
-buttons; reorder by drag or keyboard). Props: `multiple` · `allowDrop` · `allowReorder` · `allowDownload` ·
-`allowAltText` · `altTextLocales` · `localizedAltText` · `allowDuplicates` · `disabled` · `accept` (react-dropzone's
-`{ 'image/*': [] }` map) · `maxFiles` · `maxFileSize` (`"5MB"` / `"500KB"` / bytes) · `itemInsertLocation`
-(`'start'`/`'end'`, default `'end'`) + the field chrome (`label` · `error` + `helperText` · `required` ·
-`fullWidth` default true). A **wrong-type (`accept`) or oversized (`maxFileSize`) pick is rejected** (not
-added) and raises a **`toast.error`** — so mount a `<Toaster>` (RootLayout does by default) to surface it.
-**Duplicate picks are skipped by default** (in `multiple` mode — a re-picked file matching an existing item
-by content raises a "Some files are already added" notice; pass `allowDuplicates` to allow stacking
-identical files). **Image** items get two edit buttons (**`allowAltText`** is on by default — pass `false`
-to hide both; a video / PDF / doc shows neither, just download + remove): a **crop** button → a crop modal
-(drag a selection; cropped at native resolution, lossless — replaces the item's `file`, dimensions shown
-live), and an **alt-text** button → an alt-text modal — **per-locale by default**, one `TextField` per content locale (from `useLocales()` or the
-`altTextLocales` prop), landing as **`altText: { '<locale>': '…' }`**; pass **`localizedAltText={false}`**
-for a single plain field, landing as a **`string`** (`altText: 'some text'`). Controlled (`value` +
-`onChange`) or uncontrolled (`defaultValue`); binds to a `<Form>` by **`name`** — validate the array with
-`z.array(z.object({ file: z.instanceof(File).optional(), source: z.string().optional(), sortIndex: z.number(), altText: z.record(z.string()).optional() }).refine((i) => i.file || i.source)).min(1, 'Add at least one')`
-(include `altText` in the schema or zod strips it on submit — use `z.string().optional()` for the
-non-localized string mode). On save, POST each item's `file` (new picks), keep its `source`
-(already-uploaded), and its `altText`.
-`<FileUploader name="gallery" multiple allowAltText label="Gallery" accept={{ 'image/*': [] }} maxFiles={5} />`.
+`null`); **`multiple`** → an array. A dropzone (click-to-browse + OS drag-drop) sits above a responsive grid
+of image cards (≥200px wide, stretching to fill the row and wrapping when there are many; thumbnail/file-icon
+
+- name + size, with overlaid remove, edit, and download buttons; reorder by drag or keyboard). Props: `multiple` · `allowDrop` · `allowReorder` · `allowDownload` ·
+  `allowAltText` · `altTextLocales` · `localizedAltText` · `allowDuplicates` · `disabled` · `accept` (react-dropzone's
+  `{ 'image/*': [] }` map) · `maxFiles` · `maxFileSize` (`"5MB"` / `"500KB"` / bytes) · `itemInsertLocation`
+  (`'start'`/`'end'`, default `'end'`) + the field chrome (`label` · `error` + `helperText` · `required` ·
+  `fullWidth` default true). A **wrong-type (`accept`) or oversized (`maxFileSize`) pick is rejected** (not
+  added) and raises a **`toast.error`** — so mount a `<Toaster>` (RootLayout does by default) to surface it.
+  **Duplicate picks are skipped by default** (in `multiple` mode — a re-picked file matching an existing item
+  by content raises a "Some files are already added" notice; pass `allowDuplicates` to allow stacking
+  identical files). **Image** items get two edit buttons (**`allowAltText`** is on by default — pass `false`
+  to hide both; a video / PDF / doc shows neither, just download + remove): a **crop** button → a crop modal
+  (drag a selection; cropped at native resolution, lossless — replaces the item's `file`, dimensions shown
+  live), and an **alt-text** button → an alt-text modal — **per-locale by default**, one `TextField` per content locale (from `useLocales()` or the
+  `altTextLocales` prop), landing as **`altText: { '<locale>': '…' }`**; pass **`localizedAltText={false}`**
+  for a single plain field, landing as a **`string`** (`altText: 'some text'`). Controlled (`value` +
+  `onChange`) or uncontrolled (`defaultValue`); binds to a `<Form>` by **`name`** — validate the array with
+  `z.array(z.object({ file: z.instanceof(File).optional(), source: z.string().optional(), sortIndex: z.number(), altText: z.record(z.string()).optional() }).refine((i) => i.file || i.source)).min(1, 'Add at least one')`
+  (include `altText` in the schema or zod strips it on submit — use `z.string().optional()` for the
+  non-localized string mode). On save, POST each item's `file` (new picks), keep its `source`
+  (already-uploaded), and its `altText`.
+  `<FileUploader name="gallery" multiple allowAltText label="Gallery" accept={{ 'image/*': [] }} maxFiles={5} />`.
 
 **TagsField** — a tags/token input. Type + **Enter** / the **+ button** / the `separator` key adds a tag;
 a chip's delete button (or **Backspace** on the empty input) removes one. `label` · `size` · `error` +

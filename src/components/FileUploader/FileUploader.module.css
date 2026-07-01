@@ -89,11 +89,13 @@
   color: var(--tz-color-primary-shade500);
 }
 
-/* ── uploaded items — a wrapping grid of fixed 240px image cards ─────────────────── */
+/* ── uploaded items — a responsive grid of ≥200px cards that stretch to fill the row ─────────────── */
 .list {
   display: grid;
-  /* fixed 240px cards that wrap; min(100%, 240px) keeps a lone card from overflowing a narrow container */
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 240px));
+  /* each card is ≥200px and stretches (1fr) so a row fills to the right edge; auto-fit collapses empty
+     tracks (so few items still fill the width) and wraps to the next row once another 200px won't fit.
+     min(100%, 200px) keeps a lone card from overflowing a container narrower than 200px */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: var(--tz-space-sm);
 }
 /* space below the dropzone only while there are rows (keeps an empty list from leaving a gap) */
@@ -117,7 +119,8 @@
 /* an uploaded item — an image-forward card; the image fills it, controls overlay the top */
 .tile {
   position: relative;
-  aspect-ratio: 4 / 3;
+  /* aspect-ratio: 4 / 3; */
+  height: 180px;
   border-radius: var(--tz-radius-sm);
   overflow: hidden;
   background-color: var(--tz-color-primary-shade100);
