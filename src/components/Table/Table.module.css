@@ -55,7 +55,7 @@
 .th {
   text-align: left;
   font-weight: var(--tz-font-weight-medium);
-  color: var(--tz-color-primary-shade600);
+  color: var(--tz-color-text);
   background-color: var(--tz-color-secondary);
   border-bottom: 1px solid var(--tz-color-border);
   padding: var(--tz-space-sm);
@@ -67,42 +67,28 @@
   top: 0;
   z-index: 1;
 }
-/* a sortable header is a button so keyboard + click both toggle the sort */
-.sortButton {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--tz-space-xxs);
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  transition: color var(--tz-duration);
-}
-.sortButton:hover,
-.sortButton:focus-visible {
-  color: var(--tz-color-text);
-  outline: none;
-}
-.sortIcon {
-  flex: none;
-  color: var(--tz-color-text);
-}
-/* the neutral (unsorted) sort glyph is faint until the column is active */
-.sortIconIdle {
-  opacity: 0.35;
-}
 
 /* body */
 .td {
-  padding: var(--tz-space-sm);
+  /* `height` on a table cell acts as a MINIMUM (the cell grows if its content is taller) — `min-height`
+     is ignored on table cells; 51px is a one-off literal (a fixed row rhythm, like the other Table
+     literals — no token maps to it) */
+  height: 51px;
+  padding: var(--tz-space-xs) var(--tz-space-sm);
   border-bottom: 1px solid var(--tz-color-border);
   white-space: nowrap;
   vertical-align: middle;
 }
 .tr:last-child .td {
   border-bottom: none;
+}
+/* a column opted into wrapping (`wrap` / `maxWidth`) — overrides the default nowrap so long content flows
+   onto 2+ lines (growing the row past its min height). The cell also carries an inline `width` = its cap, so
+   it sits at that width and wraps within it. `break-word` (not `anywhere`) breaks only an over-long token,
+   keeping min-content = the longest word so a narrow viewport can't starve it into per-character breaks. */
+.wrapCell {
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 .hoverable .tr:hover {
   background-color: var(--tz-color-primary-shade100);
@@ -112,6 +98,27 @@
 }
 .clickable {
   cursor: pointer;
+}
+/* empty-cell placeholder — a muted "—" for a blank value, so an empty cell reads as "no value" */
+.empty {
+  color: var(--tz-color-primary-shade400);
+}
+
+/* sort menu header — a "Sort By" section label above the entries; its horizontal inset matches the
+   `ListItem` label padding (--tz-space-sm) so the title lines up with the option text below it */
+.sortTitle {
+  padding: var(--tz-space-xs) var(--tz-space-sm) var(--tz-space-xxs);
+}
+.sortDivider {
+  margin-bottom: var(--tz-space-xxs);
+}
+
+/* the auto-built actions column's button row (from the `actions` prop) */
+.rowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--tz-space-xxs) / 2);
 }
 
 /* pinned columns — stick to an edge while the body scrolls horizontally; an opaque background keeps the
@@ -135,6 +142,7 @@
 .pinnedRight {
   right: 0;
   box-shadow: inset 1px 0 0 var(--tz-color-border);
+  padding: var(--tz-space-xs);
 }
 /* a pinned header cell sits above the body's pinned cells (and the sticky-header row) */
 .th.pinnedLeft,
@@ -165,10 +173,22 @@
   );
 }
 
-/* empty + loading — the empty cell hosts a full EmptyState, which brings its own vertical rhythm */
-.emptyCell {
+/* the no-rows placeholder cell — hosts the empty state (its own vertical rhythm) or the loading state */
+.stateCell {
   padding: var(--tz-space-md);
   text-align: center;
+}
+/* loading placeholder — a centered loader + caption occupying a generous area, so it reads like the
+   empty state instead of a lone tiny spinner (the 220px min-height is a one-off literal — like the
+   EmptyState circle / Pagination box sizes — no token maps to it) */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tz-space-sm);
+  min-height: 220px;
+  color: var(--tz-color-primary-shade600);
 }
 .loadingOverlay {
   position: absolute;
@@ -199,7 +219,7 @@
   white-space: nowrap;
 }
 .pageSizeSelect {
-  width: 92px;
+  width: 78px;
 }
 .rangeText {
   white-space: nowrap;

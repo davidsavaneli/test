@@ -449,15 +449,24 @@ Home / End) + `role="tablist"`/`tab`/`tabpanel` a11y (name the tablist with `ari
 
 **Table** — a data table built on **TanStack Table** (headless). **Needs the `@tanstack/react-table` peer**
 (`npm i @tanstack/react-table`, see §1). Pass `data` + a simple **`columns`** array — `{ key, header,
-cell?, sortable?, width?, align?, pinned? }[]` — where `key` is the field accessor and `cell?: (row, index)
-=> node` renders anything custom (a `Chip`, `Avatar`, formatted date). **`pinned: 'right' | 'left'`** sticks
-a column to that edge (e.g. an actions column) so it stays visible while the rest scrolls. It renders a
-token-styled `<table>` and composes `TextField` (search), `Select` (rows per page), `Pagination`,
-`EmptyState`, `Loader`. When the columns exceed the width the table **scrolls horizontally** inside its
-container (cells don't wrap) rather than overflowing the page.
+cell?, sortable?, width?, maxWidth?, wrap?, align?, pinned? }[]` — where `key` is the field accessor and
+`cell?: (row, index) => node` renders anything custom (a `Chip`, `Avatar`, formatted date). **`pinned:
+'right' | 'left'`** sticks a column to that edge (e.g. an actions column) so it stays visible while the rest
+scrolls. It renders a token-styled `<table>` and composes `TextField` (search), `Select` (rows per page),
+`Pagination`, `EmptyState`, `Loader`. Cells are **single-line by default** — when the columns exceed the
+width the table **scrolls horizontally** rather than squeezing/wrapping. For a **long free-text** column,
+just add **`wrap`**: `{ key: 'note', header: 'Note', wrap: true }` — it flows onto 2–3 lines and grows the
+row (min 51px tall), capped at a readable **280px** by default. Pass **`maxWidth`** only to change that cap
+(e.g. `maxWidth: 400`).
 
-- **Local mode** (default): hand it the **full** dataset — it searches (`searchable`), sorts (per-column
-  `sortable`), and paginates client-side.
+**Row actions:** for edit/delete buttons, don't build a column — pass **`actions={(row) => <JSX>}`** (a
+render function returning your own `IconButton`s / menu) and the table adds a pinned-right column for you.
+The cell swallows clicks, so they won't trigger the row's `onClick` (you don't `stopPropagation` yourself):
+`actions={(u) => (<><IconButton aria-label="Edit" onClick={() => edit(u)}><Icon name="Edit2" /></IconButton><IconButton color="error" aria-label="Delete" onClick={() => del(u)}><Icon name="Trash" /></IconButton></>)}`
+
+- **Local mode** (default): hand it the **full** dataset — it searches (`searchable`), sorts (mark columns
+  `sortable` — sorting is picked from a **sort menu next to the search**, not the header), and paginates
+  client-side.
   `<Table data={users} columns={cols} searchable />`
 - **Server mode** (**`manualPagination`**): pass **only the current page** in `data` + the total in
   **`rowCount`**, and fetch in **`onChange`** — it fires on mount + every change with
@@ -465,14 +474,15 @@ container (cells don't wrap) rather than overflowing the page.
   **`loading`** overlay while you fetch.
   `<Table manualPagination data={rows} rowCount={total} loading={loading} onChange={({ page, size, search, sort }) => fetch(...)} columns={cols} searchable />`
 
-**Page + rows-per-page sync to the URL by default** (`?page=1&size=10`) — the param names resolve
-**`pageQueryKey`/`sizeQueryKey` prop → `ConfigProvider`'s `keys.pageQueryKey`/`sizeQueryKey` → `'page'` /
-`'size'`**; pass **`urlSync={false}`** (or a per-param `null`) to opt out. **Multiple URL-synced tables on
-one page need distinct keys** (like `Tabs`). The footer's rows-per-page `Select` offers `pageSizeOptions`
+**Page + rows-per-page + search + sort sync to the URL by default**
+(`?page=1&size=10&search=phone&sort=-price` — sort is `key` ascending, `-key` descending) — the param names
+resolve **`pageQueryKey`/`sizeQueryKey`/`searchQueryKey`/`sortQueryKey` prop → `ConfigProvider`'s
+`keys.*` → `'page'`/`'size'`/`'search'`/`'sort'`**; pass **`urlSync={false}`** (or a per-param `null`) to
+opt out. **Multiple URL-synced tables on one page need distinct keys** (like `Tabs`). The footer's rows-per-page `Select` offers `pageSizeOptions`
 (default `[10, 20, 50, 100, 200]`) plus an **All** choice (`allowAllRows`, default `true` — shows every row
-on one page; pass `false` to hide it for large datasets), and the pagination shows **first/last jump
-arrows** by default (`showFirstButton` / `showLastButton`) — the **page navigator auto-hides when
-everything fits on one page** (e.g. All, or few rows). Other props: `showPageSize`, `title`, `toolbar`
+on one page; pass `false` to hide it for large datasets); optional **first/last jump arrows**
+(`showFirstButton` / `showLastButton`, off by default) and the **page navigator auto-hides when everything
+fits on one page** (e.g. All, or few rows). Other props: `showPageSize`, `title`, `toolbar`
 (extra toolbar content, e.g. right-aligned row actions live in a column's `cell`), `getRowId` (stable row
 id, defaults to index), `onRowClick`, `empty` (custom empty node — default is a patterned `EmptyState`),
 `stickyHeader`, `striped`, `hoverable` (default `true`), `defaultPage` / `defaultPageSize` /

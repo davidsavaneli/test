@@ -32,6 +32,7 @@ import { TabsSection } from '../Tabs'
 import {
   TableLocalPage,
   TableStripedPage,
+  TableWrapPage,
   TableHideAllPage,
   TableServerPage,
   TableEmptyPage,
@@ -191,11 +192,12 @@ const userEditRoute = createRoute({
   component: inPage(UserFormBody),
 })
 
-// `/table` — a top-level EXPANDABLE group: one page per Table example (Local / Striped / …).
+// `/components/table` — an EXPANDABLE group inside Components (like Forms / Data Display): one page per
+// Table example (Local / Striped / …). (`componentsRoute` is referenced lazily, resolved at tree build.)
 const tableGroupRoute = createRoute({
-  getParentRoute: () => shellRoot,
+  getParentRoute: () => componentsRoute,
   path: 'table',
-  staticData: { name: 'Table', icon: 'Grid', order: 3 },
+  staticData: { name: 'Table', icon: 'Grid', order: 6 },
   component: () => <Outlet />,
 })
 const tableLocalRoute = createRoute({
@@ -210,22 +212,28 @@ const tableStripedRoute = createRoute({
   staticData: { name: 'Striped + Clickable', order: 1 },
   component: inPage(TableStripedPage),
 })
+const tableWrapRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'wrap',
+  staticData: { name: 'Wrapping', order: 2 },
+  component: inPage(TableWrapPage),
+})
 const tableHideAllRoute = createRoute({
   getParentRoute: () => tableGroupRoute,
   path: 'hide-all',
-  staticData: { name: 'Hide All', order: 2 },
+  staticData: { name: 'Hide All', order: 3 },
   component: inPage(TableHideAllPage),
 })
 const tableServerRoute = createRoute({
   getParentRoute: () => tableGroupRoute,
   path: 'server',
-  staticData: { name: 'Server', order: 3 },
+  staticData: { name: 'Server', order: 4 },
   component: inPage(TableServerPage),
 })
 const tableEmptyRoute = createRoute({
   getParentRoute: () => tableGroupRoute,
   path: 'empty',
-  staticData: { name: 'Empty', order: 4 },
+  staticData: { name: 'Empty', order: 5 },
   component: inPage(TableEmptyPage),
 })
 
@@ -536,13 +544,6 @@ const shellRouter = createRouter({
     shellIndexRoute,
     iconsRoute,
     usersRoute.addChildren([usersIndexRoute, userNewRoute, userDetailRoute, userEditRoute]),
-    tableGroupRoute.addChildren([
-      tableLocalRoute,
-      tableStripedRoute,
-      tableHideAllRoute,
-      tableServerRoute,
-      tableEmptyRoute,
-    ]),
     componentsRoute.addChildren([
       layoutsRoute.addChildren([layoutRoute, cardRoute, dividerRoute, accordionRoute]),
       formsRoute.addChildren([
@@ -583,6 +584,14 @@ const shellRouter = createRouter({
         loaderRoute,
       ]),
       otherRoute.addChildren([buttonRoute, iconButtonRoute, popoverRoute]),
+      tableGroupRoute.addChildren([
+        tableLocalRoute,
+        tableStripedRoute,
+        tableWrapRoute,
+        tableHideAllRoute,
+        tableServerRoute,
+        tableEmptyRoute,
+      ]),
     ]),
   ]),
   // Open on the icon gallery so it's visible right away.

@@ -310,12 +310,14 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
     word — field names resolve **`namespace` prop → `config.keys.translationsNamespace` →
     `DEFAULT_TRANSLATIONS_NAMESPACE` (`'translations'`)**. Read via **`useTranslationsNamespace()`** —
     pass it to the helpers to match, e.g. `buildTranslations(codes, fields, useTranslationsNamespace())`.
-  - **`keys.pageQueryKey`** (default `'page'`) / **`keys.sizeQueryKey`** (default `'size'`): the URL query
-    params a **`Table`** syncs its 1-based page + rows-per-page to (`?page=1&size=10`) — resolve
-    **`pageQueryKey`/`sizeQueryKey` prop → `config.keys.*` → `DEFAULT_PAGE_QUERY_KEY` (`'page'`) /
-    `DEFAULT_SIZE_QUERY_KEY` (`'size'`)**, so a table URL-syncs out of the box (pass `urlSync={false}`, or a
-    per-param `null`, to opt out). Read via **`usePageQueryKey()`** / **`useSizeQueryKey()`**. (Multiple
-    URL-synced tables on one page need distinct keys, like multiple `Tabs` strips.)
+  - **`keys.pageQueryKey`** (`'page'`) / **`keys.sizeQueryKey`** (`'size'`) / **`keys.searchQueryKey`**
+    (`'search'`) / **`keys.sortQueryKey`** (`'sort'`): the URL query params a **`Table`** syncs its 1-based
+    page + rows-per-page + search + sort to (`?page=1&size=10&search=phone&sort=-price` — sort is `key`
+    ascending, `-key` descending) — each resolves **`<param>QueryKey` prop → `config.keys.*` →
+    `DEFAULT_*_QUERY_KEY`**, so a table URL-syncs out of the box (pass `urlSync={false}`, or a per-param
+    `null`, to opt out). Read via **`usePageQueryKey()`** / **`useSizeQueryKey()`** /
+    **`useSearchQueryKey()`** / **`useSortQueryKey()`**. (Multiple URL-synced tables on one page need
+    distinct keys, like multiple `Tabs` strips.)
   - All the key hooks return the resolved string and are lenient outside a provider.
 - **Light merge**: `{ ...DEFAULT_LIGHT_COLORS, ...config.colors.light }` — built-in defaults as base,
   the app's light overrides win.
@@ -1413,16 +1415,32 @@ A data table built on **TanStack Table** (`@tanstack/react-table` `>=8`, **headl
 tokens and **composes the existing components**: **`TextField`** (search, `SearchNormal` adornment),
 **`Select`** (rows-per-page), **`Pagination`** (footer nav), **`EmptyState`** (no rows), **`Loader`**
 (loading overlay). **Column API — deliberately simple** (`TableColumn<T>`, hides TanStack): `{ key,
-header, cell?, sortable?, width?, align?, pinned? }[]` — `key` is the field accessor + column id +
-sort/search key; `cell?: (row, index) => ReactNode` for custom renders (a `Chip`, `Avatar`, formatted
-date), else the `key` value stringified; **`pinned: 'left' | 'right'`** sticks the column to that edge
+header, cell?, sortable?, width?, maxWidth?, wrap?, align?, pinned? }[]` — `key` is the field accessor +
+column id + sort/search key; `cell?: (row, index) => ReactNode` for custom renders (a `Chip`, `Avatar`,
+formatted date), else the `key` value stringified. An **empty cell** (a blank value, or a `cell` that
+returns `null`/`''`/`false`) shows a muted **"—" placeholder** so it reads as "no value" — a real `0` is
+kept (not treated as empty). Cells are **single-line by default** (`white-space:
+nowrap` → the table scrolls horizontally instead of squeezing); opt a long-text column in with **`wrap`** —
+content flows onto 2+ lines (the row grows, `overflow-wrap: break-word` breaks a long unbroken token) and it
+caps at a readable **`280px`** on its own (the cell sits at that width via an inline `width`, so it doesn't
+get starved by the unbounded single-line columns), so `wrap` alone is usually enough. **`maxWidth`** overrides that
+cap (and also implies `wrap`) for a wider/narrower column. Rows are a **minimum 51px** tall (a
+table-cell `height`, so a wrapped/multi-line cell grows past it). **`pinned: 'left' | 'right'`** sticks the
+column to that edge
+(`position: sticky` + an opaque bg + a **persistent hairline separator** — an **inset** `box-shadow`, not a **`pinned: 'left' | 'right'`** sticks the column to that edge
 (`position: sticky` + an opaque bg + a **persistent hairline separator** — an **inset** `box-shadow`, not a
 `border`, which renders unreliably on a sticky cell under `border-collapse: collapse` and vanishes while
 scrolled — **plus** an outset edge shadow layered on for depth only while content is hidden under it, driven
 by a `data-pin-start`/`data-pin-end` scroll flag; the stripe/hover tint is layered over the pinned bg). A
 pinned column with **no `width`** defaults to **content-width** (the `width: 1px` min-content trick) so an
 actions column fits its buttons instead of absorbing the table's spare width — set `width` to override. So
-it stays put while the rest scrolls — e.g. an actions column pinned `'right'` (one column per edge). **Two data modes, one flag:** **local** (default — pass the full `data`; the
+it stays put while the rest scrolls — e.g. an actions column pinned `'right'` (one column per edge).
+**Row actions — the shortcut:** rather than hand-building that pinned column, pass
+**`actions: (row, index) => ReactNode`** — return your own action UI (`IconButton`s / a menu / etc.) and the
+table renders it right-aligned in a **pinned-right actions column** it appends for you. The cell is
+`stopPropagation`-wrapped, so clicks inside never fire the row's `onClick` — your handlers don't deal with
+that. (It's just a render slot, so anything goes; use a full `pinned` column in `columns` only if you also
+need it sortable/searchable.) **Two data modes, one flag:** **local** (default — pass the full `data`; the
 table searches / sorts / paginates client-side via TanStack's row models) or **server**
 (**`manualPagination`** — pass only the current page in `data` + the total in `rowCount`; TanStack tracks
 state but slices nothing, and you fetch in **`onChange`**). **`onChange(state)`** fires on mount + every
@@ -1430,25 +1448,33 @@ change with the full **`TableChangeState`** `{ page (1-based), size, search, sor
 null }` — the server-mode fetch driver (search changes are **debounced** by **`debounceMs`**, default
 `300`). **Search** (`searchable`) is a debounced global substring filter (`globalFilterFn:
 'includesString'`) in local mode, or emitted in `onChange` for server mode. **Sorting** is per-column
-(`sortable`) — a header button toggles asc → desc → none (`sortDescFirst: false`, so the first click is
-always ascending), reflected as `aria-sort`; local sorts client-side, server emits it. **Pagination**
-reuses the `Pagination` component with its **first/last jump arrows on by default** (**`showFirstButton`** /
-**`showLastButton`**); the footer also shows a rows-per-page `Select` (**`pageSizeOptions`**, default
+(`sortable`) but **not from the header** — it lives in a **toolbar sort menu**: a `Sort`-icon `Dropdown`
+next to the search that opens a **"Sort By" header + divider** over **an explicit "<Column> ascending" +
+"<Column> descending" entry** for every sortable column (no icons — the active entry is shown by its
+`selected` tint alone). Picking an entry applies
+exactly that key + direction; clicking the **active** entry clears the sort. While a sort is applied the
+trigger reads `filled` **and carries a dot `Badge`**, and the header carries no sort control, only `aria-sort`
+(a11y) reflecting the current sort. Local sorts client-side, server emits it in `onChange`. **Pagination**
+reuses the `Pagination` component (prev/next + numbered pages; the **first/last jump arrows** are opt-in via
+**`showFirstButton`** / **`showLastButton`**, off by default); the footer also shows a rows-per-page `Select` (**`pageSizeOptions`**, default
 `[10, 20, 50, 100, 200]`; **`showPageSize`**; the Select passes **`showSelectedTick={false}`** for a
 compact look) plus an **"All"** choice (**`allowAllRows`**, default `true` — pass `false` to hide it for
 large datasets) that puts every row on one page, and a `"1–10 of N"` range. "All" is a **sentinel page
 size** (`Number.MAX_SAFE_INTEGER`) — it serializes to `?size=all` and is emitted verbatim in `onChange`
 (server consumers treat it as unbounded). Changing size / sort resets to page 1; the page clamps if the
 row count shrinks beneath it. The **page navigator hides entirely when everything fits on one page**
-(`pageCount ≤ 1` — e.g. the "All" size or few rows); the rows-per-page select + `"1–N of N"` range stay. **URL sync — ON by default:** page + size mirror to the query
-(`?page=1&size=10`) via the native History API (`replaceState`, like `Tabs`), reading the initial page/size
-on mount and restoring on `popstate`; the param names resolve **`pageQueryKey` / `sizeQueryKey` prop →
-`config.keys.pageQueryKey` / `sizeQueryKey` → `'page'` / `'size'`** — pass **`urlSync={false}`** (or a
-per-param `null`) to opt out (**multiple URL-synced tables on one page need distinct keys**, like `Tabs`
-strips). The table renders at a single (md) density — no `size` prop. Other props: **`title`** +
+(`pageCount ≤ 1` — e.g. the "All" size or few rows); the rows-per-page select + `"1–N of N"` range stay. **URL sync — ON by default:** page + size + search +
+sort mirror to the query (`?page=1&size=10&search=phone&sort=-price` — sort is `key` asc, `-key` desc; an
+empty search/sort is removed from the URL) via the native History API (`replaceState`, like `Tabs`), reading
+all four on mount (a `?sort=`/`?search=` wins over `defaultSort`/`defaultSearch`) and restoring on `popstate`;
+the param names resolve **`pageQueryKey` / `sizeQueryKey` / `searchQueryKey` / `sortQueryKey` prop →
+`config.keys.*` → `'page'` / `'size'` / `'search'` / `'sort'`** — pass **`urlSync={false}`** (or a per-param
+`null`) to opt out (**multiple URL-synced tables on one page need distinct keys**, like `Tabs` strips). The table renders at a single (md) density — no `size` prop. Other props: **`title`** +
 **`toolbar`** (extra toolbar content, e.g. a future filters slot), **`getRowId`** (stable row id, defaults
-to index), **`onRowClick`**, **`loading`** (a token-scrim overlay + `Loader`), **`empty`** (custom empty
-node — the default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
+to index), **`onRowClick`**, **`loading`** (**with rows already shown** — a token-scrim overlay + `Loader`
+dims them while refetching; **with no rows** — a centered `Loader` + `"Loading…"` caption fills the body,
+mirroring the empty state's presence rather than a lone tiny spinner), **`empty`** (custom empty node — the
+default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
 (default `true`). Because the component is
 **generic** (`Table<T>`) it uses the standard `forwardRef(...) as <T>(props) => ReactElement` cast (the one
 sanctioned deviation from the plain `forwardRef` anatomy — generics don't survive `forwardRef`'s typing).
@@ -1459,7 +1485,7 @@ overflow guard). a11y: a real `<table>`/`<thead>`/`<tbody>`, `scope="col"` + `ar
 headers, the search box `aria-label`led, the `Loader` `role="status"`. **Note:** the tests run in jsdom
 (TanStack needs no DOM measurement) — they cover render / columns / custom cell, local search (debounced) /
 sort / pagination, the pinned-column class, server-mode `onChange`, empty + loading, URL sync
-(canonicalize / read / write / opt-out), and
+(page/size canonicalize + read + write + opt-out, and search/sort read + write), and
 `onRowClick`. Own CSS module. _Row selection (checkboxes), column filters (the planned `toolbar` slot),
 column resize/pinning, and virtualization are natural next iterations._
 
@@ -1792,16 +1818,16 @@ createFileRoute('/dashboard/')({
 The package exposes **scoped subpaths**, not just the root. The aggregator files in `src/entries/`
 define each surface; the root `src/index.ts` re-exports them all. `package.json` `exports` maps:
 
-| subpath                               | source entry                          | what's in it                                                                                                                                                                |
-| ------------------------------------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                                                                                                                               |
-| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                            |
-| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                     |
-| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                            |
-| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `usePageQueryKey`, `useSizeQueryKey`, `applyTheme`       |
-| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                   |
-| `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) |
-| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                         |
+| subpath                               | source entry                          | what's in it                                                                                                                                                                                                  |
+| ------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                                                                                                                                                                 |
+| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                                                              |
+| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                                                       |
+| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                                                              |
+| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `usePageQueryKey`, `useSizeQueryKey`, `useSearchQueryKey`, `useSortQueryKey`, `applyTheme` |
+| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                                                     |
+| `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`)                                   |
+| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                                                           |
 
 Rules when adding/moving public API: keep internal-only symbols **out** of the entry files (e.g.
 `useFormContext`, `usePageTitle`, `useBreadcrumbs`, nav-tree internals); a new top-level group gets a

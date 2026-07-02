@@ -53,6 +53,32 @@ describe('Table', () => {
     expect(screen.getAllByTestId('chip')[0]).toHaveTextContent('Member!')
   })
 
+  it('renders a "—" placeholder for an empty cell, but keeps a real 0', () => {
+    interface Item {
+      id: string
+      name: string
+      brand: string
+      stock: number
+    }
+    const data: Item[] = [
+      { id: '1', name: 'Sofa', brand: 'Acme', stock: 0 },
+      { id: '2', name: 'Apple', brand: '', stock: 5 },
+    ]
+    render(
+      <Table
+        data={data}
+        getRowId={(r) => r.id}
+        columns={[
+          { key: 'name', header: 'Name' },
+          { key: 'brand', header: 'Brand' },
+          { key: 'stock', header: 'Stock' },
+        ]}
+      />,
+    )
+    expect(screen.getByText('—')).toBeInTheDocument() // the empty brand cell
+    expect(screen.getByText('0')).toBeInTheDocument() // 0 stock is a real value, not blank
+  })
+
   it('paginates to the next page', () => {
     render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
     fireEvent.click(screen.getByRole('button', { name: 'Go to page 2' }))
@@ -67,8 +93,21 @@ describe('Table', () => {
     expect(screen.getByText(/1.5 of 5/)).toBeInTheDocument() // range still shown
   })
 
-  it('shows the first / last jump buttons by default', () => {
-    render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
+  it('hides the first / last jump buttons by default, shows them when enabled', () => {
+    const { rerender } = render(
+      <Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />,
+    )
+    expect(screen.queryByRole('button', { name: 'Go to first page' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Go to last page' })).not.toBeInTheDocument()
+    rerender(
+      <Table
+        data={makeData(25)}
+        columns={columns}
+        getRowId={(r) => r.id}
+        showFirstButton
+        showLastButton
+      />,
+    )
     expect(screen.getByRole('button', { name: 'Go to first page' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Go to last page' })).toBeInTheDocument()
   })
@@ -107,16 +146,56 @@ describe('Table', () => {
     expect(bodyRowCount()).toBe(1)
   })
 
-  it('sorts by a sortable column and reflects aria-sort', () => {
+  it('sorts via the toolbar sort menu (explicit asc / desc entries), reflected in aria-sort', () => {
     render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
     const ageHeader = screen.getByRole('columnheader', { name: /Age/ })
-    const ageButton = within(ageHeader).getByRole('button')
-    fireEvent.click(ageButton) // asc
+    // no sort control in the header any more — it lives in the toolbar menu
+    expect(within(ageHeader).queryByRole('button')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // open the sort menu
+    fireEvent.click(within(screen.getByRole('menu')).getByText('Age ascending'))
     expect(ageHeader).toHaveAttribute('aria-sort', 'ascending')
-    fireEvent.click(ageButton) // desc — highest age first, resets to page 1
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // reopen (menu closes on select)
+    fireEvent.click(within(screen.getByRole('menu')).getByText('Age descending')) // resets to page 1
     expect(ageHeader).toHaveAttribute('aria-sort', 'descending')
     expect(screen.getByText('User 25')).toBeInTheDocument() // age 44, now first
     expect(screen.queryByText('User 1')).not.toBeInTheDocument()
+  })
+
+  it('the sort menu lists an ascending + descending entry for each sortable column only', () => {
+    render(<Table data={makeData(3)} columns={columns} getRowId={(r) => r.id} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Sort' }))
+    const menu = screen.getByRole('menu')
+    expect(within(menu).getByText('Name ascending')).toBeInTheDocument()
+    expect(within(menu).getByText('Name descending')).toBeInTheDocument()
+    expect(within(menu).getByText('Age ascending')).toBeInTheDocument()
+    expect(within(menu).getByText('Age descending')).toBeInTheDocument()
+    expect(within(menu).queryByText(/Role/)).toBeNull() // Role isn't sortable
+  })
+
+  it('shows no sort button when no column is sortable', () => {
+    render(
+      <Table
+        data={makeData(3)}
+        getRowId={(r) => r.id}
+        columns={[
+          { key: 'name', header: 'Name' },
+          { key: 'role', header: 'Role' },
+        ]}
+      />,
+    )
+    expect(screen.queryByRole('button', { name: 'Sort' })).toBeNull()
+  })
+
+  it('flags an applied sort with a dot badge on the trigger', () => {
+    const { container } = render(
+      <Table data={makeData(5)} columns={columns} getRowId={(r) => r.id} />,
+    )
+    expect(container.querySelector('.dot')).toBeNull() // no sort yet → no dot
+    fireEvent.click(screen.getByRole('button', { name: 'Sort' }))
+    fireEvent.click(within(screen.getByRole('menu')).getByText('Age ascending'))
+    expect(container.querySelector('.dot')).not.toBeNull() // sorted → dot shown
   })
 
   it('pins a column to the right with the pinnedRight class (header + body cells)', () => {
@@ -136,15 +215,72 @@ describe('Table', () => {
     expect(cells.some((c) => c.classList.contains('pinnedRight'))).toBe(true)
   })
 
+  it('is single-line by default; wrap caps at 280, maxWidth overrides the cap', () => {
+    render(
+      <Table
+        data={makeData(2)}
+        getRowId={(r) => r.id}
+        columns={[
+          { key: 'name', header: 'Name' }, // default: single-line, no cap
+          { key: 'role', header: 'Role', wrap: true }, // wrap alone → the readable 280px default
+          { key: 'age', header: 'Age', wrap: true, maxWidth: 400 }, // own cap wins
+        ]}
+      />,
+    )
+    const nameHeader = screen.getByRole('columnheader', { name: 'Name' })
+    expect(nameHeader).not.toHaveClass('wrapCell')
+    expect(nameHeader.style.maxWidth).toBe('') // no cap — single line, table scrolls
+    const roleHeader = screen.getByRole('columnheader', { name: 'Role' })
+    expect(roleHeader).toHaveClass('wrapCell')
+    // a wrap column sits AT its cap (both width + max-width) so it isn't starved to per-character wrapping
+    expect(roleHeader).toHaveStyle({ width: '280px', maxWidth: '280px' }) // default wrap cap
+    expect(screen.getByRole('columnheader', { name: 'Age' })).toHaveStyle({
+      width: '400px',
+      maxWidth: '400px',
+    })
+  })
+
+  it('renders the actions render-prop in a pinned column; its clicks do not fire onRowClick', () => {
+    const onEdit = vi.fn()
+    const onRowClick = vi.fn()
+    render(
+      <Table
+        data={makeData(3)}
+        columns={columns}
+        getRowId={(r) => r.id}
+        onRowClick={onRowClick}
+        actions={(r) => (
+          <button type="button" aria-label={`Edit ${r.name}`} onClick={() => onEdit(r.name)}>
+            edit
+          </button>
+        )}
+      />,
+    )
+    // the auto-built actions column is pinned right
+    const cells = within(screen.getByRole('table')).getAllByRole('cell')
+    expect(cells.some((c) => c.classList.contains('pinnedRight'))).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Edit User 1' }))
+    expect(onEdit).toHaveBeenCalledWith('User 1')
+    expect(onRowClick).not.toHaveBeenCalled() // the actions cell swallows the click
+  })
+
   it('shows the empty state and no footer when there are no rows', () => {
     render(<Table data={[]} columns={columns} />)
     expect(screen.getByText(/No Results Found/i)).toBeInTheDocument()
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument() // no pagination
   })
 
-  it('renders a loading overlay', () => {
+  it('dims the rows with a loading overlay while refetching (rows already present)', () => {
     render(<Table data={makeData(10)} columns={columns} getRowId={(r) => r.id} loading />)
     expect(screen.getByRole('status', { hidden: true })).toBeInTheDocument() // Loader
+    expect(screen.getByText('User 1')).toBeInTheDocument() // rows stay visible under the overlay
+  })
+
+  it('shows a centered loader placeholder (not the empty state) while loading with no rows', () => {
+    render(<Table data={[]} columns={columns} loading />)
+    expect(screen.getByRole('status', { hidden: true })).toBeInTheDocument() // Loader in the body
+    expect(screen.getByText('Loading…')).toBeInTheDocument()
+    expect(screen.queryByText(/No Results Found/i)).not.toBeInTheDocument() // not the empty state
   })
 
   describe('server mode', () => {
@@ -205,6 +341,51 @@ describe('Table', () => {
     it('does not touch the URL when urlSync is false', () => {
       render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} urlSync={false} />)
       expect(window.location.search).toBe('')
+    })
+
+    it('syncs the search query to ?search= (and removes it when cleared)', async () => {
+      render(
+        <Table
+          data={makeData(25)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          searchable
+          debounceMs={0}
+        />,
+      )
+      const input = screen.getByRole('textbox', { name: 'Search' })
+      fireEvent.change(input, { target: { value: 'User 25' } })
+      await waitFor(() =>
+        expect(new URLSearchParams(window.location.search).get('search')).toBe('User 25'),
+      )
+      fireEvent.change(input, { target: { value: '' } })
+      await waitFor(() =>
+        expect(new URLSearchParams(window.location.search).has('search')).toBe(false),
+      )
+    })
+
+    it('syncs sort to ?sort= (key asc / -key desc)', async () => {
+      render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
+      fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // open the sort menu
+      fireEvent.click(within(screen.getByRole('menu')).getByText('Age ascending'))
+      await waitFor(() =>
+        expect(new URLSearchParams(window.location.search).get('sort')).toBe('age'),
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // reopen (menu closes on select)
+      fireEvent.click(within(screen.getByRole('menu')).getByText('Age descending'))
+      await waitFor(() =>
+        expect(new URLSearchParams(window.location.search).get('sort')).toBe('-age'),
+      )
+    })
+
+    it('reads the initial search + sort from the URL', () => {
+      window.history.replaceState({}, '', '/?search=User+07&sort=-age')
+      render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} searchable />)
+      expect(screen.getByRole('textbox', { name: 'Search' })).toHaveValue('User 07')
+      expect(screen.getByRole('columnheader', { name: /Age/ })).toHaveAttribute(
+        'aria-sort',
+        'descending',
+      )
     })
   })
 

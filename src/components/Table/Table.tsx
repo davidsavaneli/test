@@ -23,9 +23,14 @@ import {
   type SortingState,
   type Updater,
 } from '@tanstack/react-table'
-import { usePageQueryKey, useSizeQueryKey } from '../../theme'
+import { usePageQueryKey, useSizeQueryKey, useSearchQueryKey, useSortQueryKey } from '../../theme'
+import { Badge } from '../Badge'
+import { Divider } from '../Divider'
+import { Dropdown } from '../Dropdown'
 import { EmptyState } from '../EmptyState'
 import { Icon } from '../Icon'
+import { IconButton } from '../IconButton'
+import { ListItem } from '../List'
 import { Loader } from '../Loader'
 import { Pagination } from '../Pagination'
 import { Select } from '../Select'
@@ -40,6 +45,10 @@ export type TableSortDirection = 'asc' | 'desc'
  *  lands on a single page. Emitted verbatim in `onChange` (server consumers should treat it as unbounded). */
 const ALL_ROWS = Number.MAX_SAFE_INTEGER
 
+/** Default max width for a `wrap` column with no explicit `maxWidth` — a readable text width, so `wrap`
+ *  alone caps + wraps without the consumer having to pick a number. */
+const DEFAULT_WRAP_MAX_WIDTH = 280
+
 /** A single column definition — the simple, engine-agnostic shape a consumer writes. */
 export interface TableColumn<T> {
   /** Field key on the row — the column id, the default cell accessor, and the local sort/search key. */
@@ -50,8 +59,21 @@ export interface TableColumn<T> {
   cell?: (row: T, index: number) => ReactNode
   /** Enable sorting on this column (click the header to toggle asc → desc → none). Defaults to `false`. */
   sortable?: boolean
-  /** Fixed column width — a px `number` or any CSS width string. */
+  /** Fixed column width — a px `number` or any CSS width string. Opts the column out of the default cap. */
   width?: number | string
+  /**
+   * Cap the column's width (px `number` or CSS string) — long content **wraps** within it onto 2+ lines
+   * (the row grows) instead of stretching the table. **Implies `wrap`.** Only needed to override the
+   * default wrap cap (`280px`); otherwise plain `wrap` is enough.
+   */
+  maxWidth?: number | string
+  /**
+   * Let this column's content **wrap** onto multiple lines (rows grow) instead of the single-line default —
+   * a long unbroken token breaks too. On its own it caps the column at a readable **`280px`** (set
+   * `maxWidth` for a different cap). Cells are single-line by default (the table scrolls horizontally); opt
+   * a long-text column (name / note / address) in with `wrap`.
+   */
+  wrap?: boolean
   /** Cell + header text alignment. Defaults to `left`. */
   align?: TableAlign
   /**
@@ -117,9 +139,9 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   allowAllRows?: boolean
   /** Show the rows-per-page `Select` in the footer. Defaults to `true`. */
   showPageSize?: boolean
-  /** Show the jump-to-first-page button in the pagination. Defaults to `true`. */
+  /** Show the jump-to-first-page (⏮) button in the pagination. Defaults to `false`. */
   showFirstButton?: boolean
-  /** Show the jump-to-last-page button in the pagination. Defaults to `true`. */
+  /** Show the jump-to-last-page (⏭) button in the pagination. Defaults to `false`. */
   showLastButton?: boolean
   /**
    * **Server mode** — the table doesn't slice / sort / filter the `data` itself; it just tracks state and
@@ -137,16 +159,26 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   onChange?: (state: TableChangeState) => void
   /** Called when a body row is clicked (makes rows interactive). */
   onRowClick?: (row: T, index: number) => void
+  /**
+   * Per-row actions — return the action UI (your own `IconButton`s / menu / etc.) for a row and the table
+   * renders it in a **pinned-right actions column** it adds for you (no column boilerplate). The cell is
+   * `stopPropagation`-wrapped, so clicks inside it never fire the row's `onClick` — you don't handle that.
+   */
+  actions?: (row: T, index: number) => ReactNode
   /** Show a loading overlay over the table (e.g. while fetching a server page). Defaults to `false`. */
   loading?: boolean
   /** Custom content for the empty state (replaces the default `EmptyState`). */
   empty?: ReactNode
-  /** Sync page + rows-per-page to the URL query (`?page=1&size=10`). Defaults to `true`. */
+  /** Sync page + rows-per-page + search + sort to the URL query (`?page=1&size=10&search=…&sort=…`). Defaults to `true`. */
   urlSync?: boolean
   /** URL query key for the page. `null` opts out of syncing the page; omit for the configured default. */
   pageQueryKey?: string | null
   /** URL query key for the rows-per-page. `null` opts out; omit for the configured default. */
   sizeQueryKey?: string | null
+  /** URL query key for the search query (`?search=…`). `null` opts out; omit for the configured default. */
+  searchQueryKey?: string | null
+  /** URL query key for the sort (`?sort=key` asc / `?sort=-key` desc). `null` opts out; omit for the default. */
+  sortQueryKey?: string | null
   /** Pin the header row while the body scrolls. Defaults to `false`. */
   stickyHeader?: boolean
   /** Zebra-stripe alternate rows. Defaults to `false`. */
@@ -160,11 +192,37 @@ function resolveUpdater<S>(updater: Updater<S>, old: S): S {
   return typeof updater === 'function' ? (updater as (o: S) => S)(old) : updater
 }
 
+/**
+ * A wrap column's width cap — its own `maxWidth`, else the readable default when it just sets `wrap`, else
+ * none. Used as BOTH the preferred `width` and the `max-width` so the column sits at that width and its
+ * content wraps within it (without a preferred width, `overflow-wrap` would starve it to near-zero as the
+ * unbounded single-line columns grab the table's spare width).
+ */
+function wrapCap<T>(col: TableColumn<T>): number | string | undefined {
+  return col.maxWidth ?? (col.wrap ? DEFAULT_WRAP_MAX_WIDTH : undefined)
+}
+
 /** Stringify a primitive cell value; complex values should use a column `cell` renderer. */
 function formatCell(value: unknown): ReactNode {
   if (value == null) return ''
   if (typeof value === 'object') return ''
   return String(value)
+}
+
+/**
+ * Wrap a cell's rendered content: a blank cell (`null` / `undefined` / `''` / `false`, from an empty value
+ * or a `cell` renderer that returned nothing) shows a muted "—" placeholder so it reads as "no value" rather
+ * than a rendering glitch. A `0` / `'0'` is a real value and stays as-is (not treated as empty).
+ */
+function renderCellContent(content: ReactNode): ReactNode {
+  if (content == null || content === '' || content === false) {
+    return (
+      <span className={styles.empty} aria-hidden>
+        —
+      </span>
+    )
+  }
+  return content
 }
 
 /** The rows-per-page URL param → a page size: `'all'` → the sentinel, a valid option → itself, else the fallback. */
@@ -182,6 +240,25 @@ function parseUrlSize(
 /** A page size → its URL param: the "All" sentinel serializes as `'all'`, else the plain number. */
 function sizeToParam(size: number): string {
   return size >= ALL_ROWS ? 'all' : String(size)
+}
+
+/** A sort → its URL param: `key` ascending, `-key` descending; `null` → `''` (removed from the query). */
+function sortToParam(sort: SortingState[number] | undefined): string {
+  return sort ? (sort.desc ? `-${sort.id}` : sort.id) : ''
+}
+
+/** The sort URL param → TanStack sorting state: a leading `-` means descending (`-price` → desc by price). */
+function parseSortParam(raw: string | null): SortingState {
+  if (!raw) return []
+  const desc = raw.startsWith('-')
+  const id = desc ? raw.slice(1) : raw
+  return id ? [{ id, desc }] : []
+}
+
+/** Read a single URL query param (null when the key is disabled or off-DOM). */
+function readUrlParam(key: string | undefined): string | null {
+  if (!key || typeof window === 'undefined') return null
+  return new URLSearchParams(window.location.search).get(key)
 }
 
 /**
@@ -214,18 +291,21 @@ export const Table = forwardRef(function Table<T>(
     pageSizeOptions = [10, 20, 50, 100, 200],
     allowAllRows = true,
     showPageSize = true,
-    showFirstButton = true,
-    showLastButton = true,
+    showFirstButton = false,
+    showLastButton = false,
     manualPagination = false,
     rowCount,
     defaultSort = null,
     onChange,
     onRowClick,
+    actions,
     loading = false,
     empty,
     urlSync = true,
     pageQueryKey,
     sizeQueryKey,
+    searchQueryKey,
+    sortQueryKey,
     stickyHeader = false,
     striped = false,
     hoverable = true,
@@ -237,8 +317,13 @@ export const Table = forwardRef(function Table<T>(
   // resolve the URL-sync keys: syncing off, or a `null` per-param, opts that param out
   const configPageKey = usePageQueryKey()
   const configSizeKey = useSizeQueryKey()
+  const configSearchKey = useSearchQueryKey()
+  const configSortKey = useSortQueryKey()
   const pageKey = urlSync && pageQueryKey !== null ? (pageQueryKey ?? configPageKey) : undefined
   const sizeKey = urlSync && sizeQueryKey !== null ? (sizeQueryKey ?? configSizeKey) : undefined
+  const searchKey =
+    urlSync && searchQueryKey !== null ? (searchQueryKey ?? configSearchKey) : undefined
+  const sortKey = urlSync && sortQueryKey !== null ? (sortQueryKey ?? configSortKey) : undefined
 
   // keep the latest options + onChange for the stable effects / popstate listener (avoids re-subscribing)
   const optionsRef = useRef(pageSizeOptions)
@@ -265,12 +350,15 @@ export const Table = forwardRef(function Table<T>(
     const page = Number.isInteger(urlPage) && urlPage > 0 ? urlPage : defaultPage
     return { pageIndex: page - 1, pageSize }
   })
-  // `searchInput` is the immediate input value; `globalFilter` is the committed (debounced) query
-  const [searchInput, setSearchInput] = useState(defaultSearch)
-  const [globalFilter, setGlobalFilter] = useState(defaultSearch)
-  const [sorting, setSorting] = useState<SortingState>(() =>
-    defaultSort ? [{ id: defaultSort.key, desc: defaultSort.direction === 'desc' }] : [],
-  )
+  // `searchInput` is the immediate input value; `globalFilter` is the committed (debounced) query — both
+  // seed from the URL (`?search=`) when synced, else `defaultSearch`
+  const [searchInput, setSearchInput] = useState(() => readUrlParam(searchKey) ?? defaultSearch)
+  const [globalFilter, setGlobalFilter] = useState(() => readUrlParam(searchKey) ?? defaultSearch)
+  const [sorting, setSorting] = useState<SortingState>(() => {
+    const fromUrl = parseSortParam(readUrlParam(sortKey)) // `?sort=` wins over `defaultSort`
+    if (fromUrl.length) return fromUrl
+    return defaultSort ? [{ id: defaultSort.key, desc: defaultSort.direction === 'desc' }] : []
+  })
 
   const manual = manualPagination
 
@@ -290,11 +378,43 @@ export const Table = forwardRef(function Table<T>(
     return allowAllRows ? [...opts, { value: 'all', label: 'All' }] : opts
   }, [pageSizeOptions, allowAllRows])
 
+  // the columns actually rendered — the consumer's, plus an auto-built pinned-right actions column when
+  // `actions` is given (display-only, so it stays out of `tanstackColumns` / sort / filter)
+  const renderColumns = useMemo<TableColumn<T>[]>(() => {
+    if (!actions) return columns
+    const actionsColumn: TableColumn<T> = {
+      key: '__actions',
+      header: '',
+      align: 'right',
+      pinned: 'right',
+      // render the consumer's action UI right-aligned; the wrapper swallows clicks so they never reach
+      // the row's `onClick` — the consumer's own handlers don't need to `stopPropagation`
+      cell: (row, index) => (
+        <div className={styles.rowActions} onClick={(e) => e.stopPropagation()}>
+          {actions(row, index)}
+        </div>
+      ),
+    }
+    return [...columns, actionsColumn]
+  }, [columns, actions])
+
   // sorting resets to the first page (the sorted order changes what "page 1" means)
   const handleSortingChange = useCallback((updater: Updater<SortingState>) => {
     setSorting((old) => resolveUpdater(updater, old))
     setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }))
   }, [])
+
+  // the sortable columns drive the toolbar sort menu — each lists an explicit ascending + descending entry
+  const sortableColumns = useMemo(() => columns.filter((c) => c.sortable), [columns])
+  const setSort = useCallback(
+    (key: string, desc: boolean) =>
+      handleSortingChange((prev) => {
+        const cur = prev[0]
+        // clicking the already-active entry clears the sort; otherwise apply exactly this key + direction
+        return cur && cur.id === key && cur.desc === desc ? [] : [{ id: key, desc }]
+      }),
+    [handleSortingChange],
+  )
 
   const table = useReactTable<T>({
     data,
@@ -360,33 +480,44 @@ export const Table = forwardRef(function Table<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting])
 
-  // mirror page + size into the URL query (replace, so it doesn't spam history); canonicalizes on mount
+  // mirror page + size + search + sort into the URL query (replace, so it doesn't spam history);
+  // canonicalizes on mount. A key set to `undefined` (opted out) is skipped; an empty value is removed.
   const writeQuery = useCallback(
-    (page: number, pageSize: number) => {
-      if (typeof window === 'undefined' || (!pageKey && !sizeKey)) return
+    (page: number, pageSize: number, search: string, sort: SortingState[number] | undefined) => {
+      const anyKey = pageKey || sizeKey || searchKey || sortKey
+      if (typeof window === 'undefined' || !anyKey) return
       const params = new URLSearchParams(window.location.search)
       let changed = false
-      if (pageKey && params.get(pageKey) !== String(page)) {
-        params.set(pageKey, String(page))
-        changed = true
+      const set = (key: string | undefined, value: string) => {
+        if (!key) return
+        if (value) {
+          if (params.get(key) !== value) {
+            params.set(key, value)
+            changed = true
+          }
+        } else if (params.has(key)) {
+          params.delete(key)
+          changed = true
+        }
       }
-      if (sizeKey && params.get(sizeKey) !== sizeToParam(pageSize)) {
-        params.set(sizeKey, sizeToParam(pageSize))
-        changed = true
-      }
+      set(pageKey, String(page))
+      set(sizeKey, sizeToParam(pageSize))
+      set(searchKey, search)
+      set(sortKey, sortToParam(sort))
       if (!changed) return
-      const url = `${window.location.pathname}?${params.toString()}${window.location.hash}`
+      const query = params.toString()
+      const url = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`
       window.history.replaceState(window.history.state, '', url)
     },
-    [pageKey, sizeKey],
+    [pageKey, sizeKey, searchKey, sortKey],
   )
   useEffect(() => {
-    writeQuery(pagination.pageIndex + 1, pagination.pageSize)
-  }, [pagination.pageIndex, pagination.pageSize, writeQuery])
+    writeQuery(pagination.pageIndex + 1, pagination.pageSize, globalFilter, sorting[0])
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting, writeQuery])
 
-  // Back/Forward → restore page + size from the query
+  // Back/Forward → restore page + size + search + sort from the query
   useEffect(() => {
-    if (typeof window === 'undefined' || (!pageKey && !sizeKey)) return
+    if (typeof window === 'undefined' || (!pageKey && !sizeKey && !searchKey && !sortKey)) return
     const onPopState = () => {
       const params = new URLSearchParams(window.location.search)
       const urlPage = pageKey ? Number(params.get(pageKey)) : NaN
@@ -399,10 +530,16 @@ export const Table = forwardRef(function Table<T>(
           p.pageSize,
         ),
       }))
+      if (searchKey) {
+        const s = params.get(searchKey) ?? ''
+        setSearchInput(s)
+        setGlobalFilter(s)
+      }
+      if (sortKey) setSorting(parseSortParam(params.get(sortKey)))
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)
-  }, [pageKey, sizeKey, allowAllRows])
+  }, [pageKey, sizeKey, searchKey, sortKey, allowAllRows])
 
   // track horizontal scroll so a pinned column shows its shadow only while content is hidden under it
   useEffect(() => {
@@ -426,7 +563,7 @@ export const Table = forwardRef(function Table<T>(
     }
   }, [])
 
-  const hasToolbar = title != null || toolbar != null || searchable
+  const hasToolbar = title != null || toolbar != null || searchable || sortableColumns.length > 0
 
   return (
     <div ref={ref} className={clsx(styles.root, className)} {...props}>
@@ -450,6 +587,44 @@ export const Table = forwardRef(function Table<T>(
                 aria-label="Search"
               />
             )}
+            {sortableColumns.length > 0 && (
+              // sort menu — each sortable column lists an explicit "ascending" + "descending" entry; picking
+              // one applies exactly that sort (clicking the active one clears it). The active entry is shown
+              // by its `selected` tint alone (no icons); a dot `Badge` on the trigger flags that a sort is on.
+              <Dropdown
+                placement="bottom-end"
+                trigger={
+                  <Badge dot={sorting.length > 0} color="primary">
+                    <IconButton
+                      variant={sorting.length > 0 ? 'filled' : 'outlined'}
+                      aria-label="Sort"
+                    >
+                      <Icon name="Sort" />
+                    </IconButton>
+                  </Badge>
+                }
+              >
+                <Typography as="div" variant="bodySmall" color="muted" className={styles.sortTitle}>
+                  Sort By:
+                </Typography>
+                <Divider className={styles.sortDivider} />
+                {sortableColumns.flatMap((col) =>
+                  (['asc', 'desc'] as const).map((direction) => {
+                    const active = sortState?.key === col.key && sortState.direction === direction
+                    return (
+                      <ListItem
+                        key={`${col.key}:${direction}`}
+                        clickable
+                        selected={active}
+                        onClick={() => setSort(col.key, direction === 'desc')}
+                      >
+                        {col.header} {direction === 'asc' ? 'ascending' : 'descending'}
+                      </ListItem>
+                    )
+                  }),
+                )}
+              </Dropdown>
+            )}
           </div>
         </div>
       )}
@@ -471,7 +646,7 @@ export const Table = forwardRef(function Table<T>(
         >
           <thead>
             <tr>
-              {columns.map((col) => {
+              {renderColumns.map((col) => {
                 const column = table.getColumn(col.key)
                 const sorted = column?.getIsSorted() || false
                 return (
@@ -482,13 +657,15 @@ export const Table = forwardRef(function Table<T>(
                       styles.th,
                       col.pinned === 'left' && styles.pinnedLeft,
                       col.pinned === 'right' && styles.pinnedRight,
+                      (col.wrap || col.maxWidth != null) && styles.wrapCell,
                     )}
                     style={
                       {
                         // a pinned column with no explicit width shrinks to its content (the `width: 1px`
-                        // min-content trick), so an actions column fits its buttons instead of absorbing
-                        // the table's spare width
-                        width: col.width ?? (col.pinned ? 1 : undefined),
+                        // min-content trick); a wrap column sits at its cap (so it doesn't get starved),
+                        // others size to content
+                        width: col.width ?? (col.pinned ? 1 : wrapCap(col)),
+                        maxWidth: wrapCap(col),
                         textAlign: col.align,
                       } as CSSProperties
                     }
@@ -502,73 +679,71 @@ export const Table = forwardRef(function Table<T>(
                         : undefined
                     }
                   >
-                    {col.sortable ? (
-                      <button
-                        type="button"
-                        className={styles.sortButton}
-                        onClick={column?.getToggleSortingHandler()}
-                      >
-                        <span>{col.header}</span>
-                        <Icon
-                          name={
-                            sorted === 'asc'
-                              ? 'ArrowUp3'
-                              : sorted === 'desc'
-                                ? 'ArrowDown3'
-                                : 'Sort'
-                          }
-                          size="sm"
-                          className={clsx(styles.sortIcon, !sorted && styles.sortIconIdle)}
-                        />
-                      </button>
-                    ) : (
-                      col.header
-                    )}
+                    {/* sorting lives in the toolbar's sort menu, not the header; `aria-sort` above still
+                        reflects the current sort for a11y */}
+                    {col.header}
                   </th>
                 )
               })}
             </tr>
           </thead>
           <tbody>
-            {rows.length > 0
-              ? rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={clsx(styles.tr, onRowClick && styles.clickable)}
-                    onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
-                  >
-                    {columns.map((col) => (
-                      <td
-                        key={col.key}
-                        className={clsx(
-                          styles.td,
-                          col.pinned === 'left' && styles.pinnedLeft,
-                          col.pinned === 'right' && styles.pinnedRight,
-                        )}
-                        style={
-                          {
-                            width: col.width ?? (col.pinned ? 1 : undefined),
-                            textAlign: col.align,
-                          } as CSSProperties
-                        }
-                      >
-                        {col.cell
+            {rows.length > 0 ? (
+              rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className={clsx(styles.tr, onRowClick && styles.clickable)}
+                  onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
+                >
+                  {renderColumns.map((col) => (
+                    <td
+                      key={col.key}
+                      className={clsx(
+                        styles.td,
+                        col.pinned === 'left' && styles.pinnedLeft,
+                        col.pinned === 'right' && styles.pinnedRight,
+                        (col.wrap || col.maxWidth != null) && styles.wrapCell,
+                      )}
+                      style={
+                        {
+                          width: col.width ?? (col.pinned ? 1 : wrapCap(col)),
+                          maxWidth: wrapCap(col),
+                          textAlign: col.align,
+                        } as CSSProperties
+                      }
+                    >
+                      {renderCellContent(
+                        col.cell
                           ? col.cell(row.original, row.index)
-                          : formatCell(row.getValue(col.key))}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              : !loading && (
-                  <tr>
-                    <td colSpan={Math.max(1, columns.length)} className={styles.emptyCell}>
-                      {empty ?? <EmptyState />}
+                          : formatCell(row.getValue(col.key)),
+                      )}
                     </td>
-                  </tr>
-                )}
+                  ))}
+                </tr>
+              ))
+            ) : (
+              // no rows → a centered placeholder cell: the loader while fetching (mirrors the empty
+              // state's presence), otherwise the empty state
+              <tr>
+                <td colSpan={Math.max(1, renderColumns.length)} className={styles.stateCell}>
+                  {loading ? (
+                    <div className={styles.loadingState}>
+                      <Loader size="lg" />
+                      <Typography variant="bodySmall" color="muted" as="span">
+                        Loading…
+                      </Typography>
+                    </div>
+                  ) : (
+                    (empty ?? <EmptyState />)
+                  )}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-        {loading && (
+        {/* while refetching with rows already shown, dim them + spinner; the no-rows case is handled in
+            the body above (a centered loader), not this overlay */}
+        {loading && rows.length > 0 && (
           <div className={styles.loadingOverlay}>
             <Loader size="lg" />
           </div>
