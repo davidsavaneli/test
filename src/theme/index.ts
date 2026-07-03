@@ -11,6 +11,7 @@ export {
   useSizeQueryKey,
   useSearchQueryKey,
   useSortQueryKey,
+  useTableQueryConfig,
   DEFAULT_TABS_QUERY_KEY,
   DEFAULT_NESTED_TAB_QUERY_KEY,
   DEFAULT_PAGE_QUERY_KEY,
@@ -26,4 +27,6 @@ export type {
   ConfigProviderProps,
   LocaleConfig,
   KeysConfig,
+  TableConfig,
+  TableQueryConfig,
 } from './ConfigProvider'

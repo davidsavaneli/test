@@ -285,9 +285,10 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `background
 #1F1F1E`, `surface #2a2a28`, plus a brighter `dark`/`medium`/`light` teal ramp). `theme.css` holds **no** color values — only the structure (solids, shades,
   contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
-- **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; keys?: KeysConfig }`
+- **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; keys?: KeysConfig; table?: TableConfig }`
   — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),
-  the configurable key/param **names** grouped under **`keys`**, and the rest (`locales`, …) at the top.
+  the configurable key/param **names** grouped under **`keys`**, the `<Table>` server-request query mapping
+  under **`table`** (`{ query?: TableQueryConfig }` — see below), and the rest (`locales`, …) at the top.
   Everything optional — omit `config` (or `theme`) to ship the built-in theme; override any **subset** of
   either palette. (Grows over time.)
 - **`locales`** (`LocaleConfig[]` = `{ code: string; label?: string }[]`): the app's content locales —
@@ -319,6 +320,22 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
     **`useSearchQueryKey()`** / **`useSortQueryKey()`**. (Multiple URL-synced tables on one page need
     distinct keys, like multiple `Tabs` strips.)
   - All the key hooks return the resolved string and are lenient outside a provider.
+- **`table.query`** (`TableQueryConfig`): how a **`Table`** builds its **server-request** params — the query
+  it hands the consumer as `state.params` / `state.query` in `onChange`, so a server-mode fetch doesn't
+  hand-map page/size/search/sort every time. **This is the backend-transport layer, distinct from
+  `keys.*QueryKey`** (which is the browser-URL sync — always page-based, for shareable links). Fields (all
+  optional; defaults reproduce the page-based URL shape `?page=1&size=10&search=…&sort=-key`): **`page`** /
+  **`size`** / **`search`** / **`sort`** (param names, e.g. `skip`/`limit`/`q`/`sortBy`), **`pagination`**
+  (`'page'` default emits the 1-based page; `'offset'` emits `(page-1)*size` under the `page` name — a
+  `skip`), **`sortFormat`** (`'field'` default = one `-`-prefixed param `sort=-price`; `'separate'` = key in
+  `sort` + direction in **`sortOrderKey`** default `'order'` → `sortBy=price&order=desc`, with **`ascValue`**
+  / **`descValue`** default `'asc'`/`'desc'`), and **`allValue`** (what the size param emits for the **"All"**
+  rows choice — e.g. `0`; on **"All"** the **page/offset param is dropped entirely** (no meaningful page) and
+  only `allValue` is emitted — with no `allValue`, "All" emits neither). Set once app-wide in `config.table.query`; override
+  per table via the **`queryMapping`** prop (merged over the config). Read via **`useTableQueryConfig()`**;
+  the pure builder is **`buildTableQuery(state, mapping)`** (from `sava-test/helpers`), which `Table` calls
+  internally. Because it's just a param builder, the **endpoint / path / fetch stay the consumer's** (e.g.
+  DummyJSON puts search on a different path) — `Table` never fetches.
 - **Light merge**: `{ ...DEFAULT_LIGHT_COLORS, ...config.colors.light }` — built-in defaults as base,
   the app's light overrides win.
 - **Dark merge**: `{ ...light, ...DEFAULT_DARK_COLORS, ...config.colors.dark }` — the merged light
@@ -1445,8 +1462,14 @@ table searches / sorts / paginates client-side via TanStack's row models) or **s
 (**`manualPagination`** — pass only the current page in `data` + the total in `rowCount`; TanStack tracks
 state but slices nothing, and you fetch in **`onChange`**). **`onChange(state)`** fires on mount + every
 change with the full **`TableChangeState`** `{ page (1-based), size, search, sort: { key, direction } |
-null }` — the server-mode fetch driver (search changes are **debounced** by **`debounceMs`**, default
-`300`). **Search** (`searchable`) is a debounced global substring filter (`globalFilterFn:
+null, params, query }` — the server-mode fetch driver (search changes are **debounced** by **`debounceMs`**,
+default `300`). **`params`** (a `URLSearchParams`) / **`query`** (its string) are the **ready-built
+server-request query** so the fetch doesn't hand-map anything — `fetch(`/x?${state.query}`)`. They're built
+from the **query mapping** (app-wide `config.table.query` merged with the per-table **`queryMapping`** prop —
+see §5's `table.query`): param names + `page`-vs-`offset` (`skip`) + sort format (`sort=-price` vs
+`sortBy=price&order=desc`), so e.g. DummyJSON needs only `queryMapping={{ page: 'skip', size: 'limit', search:
+'q', sort: 'sortBy', pagination: 'offset', sortFormat: 'separate' }}`. The **endpoint/path/fetch stay yours**
+(Table never fetches); the pure builder is exported as **`buildTableQuery`** (`sava-test/helpers`). **Search** (`searchable`) is a debounced global substring filter (`globalFilterFn:
 'includesString'`) in local mode, or emitted in `onChange` for server mode. **Sorting** is per-column
 (`sortable`) but **not from the header** — it lives in a **toolbar sort menu**: a `Sort`-icon `Dropdown`
 next to the search that opens a **"Sort By" header + divider** over **an explicit "<Column> ascending" +
@@ -1465,7 +1488,8 @@ size** (`Number.MAX_SAFE_INTEGER`) — it serializes to `?size=all` and is emitt
 row count shrinks beneath it. The **page navigator hides entirely when everything fits on one page**
 (`pageCount ≤ 1` — e.g. the "All" size or few rows); the rows-per-page select + `"1–N of N"` range stay. **URL sync — ON by default:** page + size + search +
 sort mirror to the query (`?page=1&size=10&search=phone&sort=-price` — sort is `key` asc, `-key` desc; an
-empty search/sort is removed from the URL) via the native History API (`replaceState`, like `Tabs`), reading
+empty search/sort is removed from the URL, and on the **"All"** size the `page` param is dropped too —
+`?size=all` — since there's no meaningful page) via the native History API (`replaceState`, like `Tabs`), reading
 all four on mount (a `?sort=`/`?search=` wins over `defaultSort`/`defaultSearch`) and restoring on `popstate`;
 the param names resolve **`pageQueryKey` / `sizeQueryKey` / `searchQueryKey` / `sortQueryKey` prop →
 `config.keys.*` → `'page'` / `'size'` / `'search'` / `'sort'`** — pass **`urlSync={false}`** (or a per-param
@@ -1818,16 +1842,16 @@ createFileRoute('/dashboard/')({
 The package exposes **scoped subpaths**, not just the root. The aggregator files in `src/entries/`
 define each surface; the root `src/index.ts` re-exports them all. `package.json` `exports` maps:
 
-| subpath                               | source entry                          | what's in it                                                                                                                                                                                                  |
-| ------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                                                                                                                                                                 |
-| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                                                              |
-| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                                                       |
-| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                                                              |
-| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `usePageQueryKey`, `useSizeQueryKey`, `useSearchQueryKey`, `useSortQueryKey`, `applyTheme` |
-| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                                                     |
-| `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`)                                   |
-| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                                                           |
+| subpath                               | source entry                          | what's in it                                                                                                                                                                                                                         |
+| ------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                                                                                                                                                                                        |
+| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                                                                                     |
+| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                                                                              |
+| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                                                                                     |
+| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `usePageQueryKey`, `useSizeQueryKey`, `useSearchQueryKey`, `useSortQueryKey`, `useTableQueryConfig`, `applyTheme` |
+| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                                                                            |
+| `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) + the `Table` query builder (`buildTableQuery`)          |
+| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                                                                                  |
 
 Rules when adding/moving public API: keep internal-only symbols **out** of the entry files (e.g.
 `useFormContext`, `usePageTitle`, `useBreadcrumbs`, nav-tree internals); a new top-level group gets a

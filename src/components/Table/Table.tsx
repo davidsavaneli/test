@@ -23,7 +23,15 @@ import {
   type SortingState,
   type Updater,
 } from '@tanstack/react-table'
-import { usePageQueryKey, useSizeQueryKey, useSearchQueryKey, useSortQueryKey } from '../../theme'
+import {
+  usePageQueryKey,
+  useSizeQueryKey,
+  useSearchQueryKey,
+  useSortQueryKey,
+  useTableQueryConfig,
+  type TableQueryConfig,
+} from '../../theme'
+import { buildTableQuery } from '../../helpers/table'
 import { Badge } from '../Badge'
 import { Divider } from '../Divider'
 import { Dropdown } from '../Dropdown'
@@ -101,6 +109,14 @@ export interface TableChangeState {
   search: string
   /** Active sort, or `null`. */
   sort: TableSortState | null
+  /**
+   * The **built server-request params** for this state, from the query mapping (`config.table.query`
+   * merged with the `queryMapping` prop) — ready to append to your endpoint, so you don't hand-map
+   * page/size/search/sort. E.g. `fetch(`/products?${state.query}`)`.
+   */
+  params: URLSearchParams
+  /** `params.toString()` — e.g. `"skip=0&limit=10&q=phone&sortBy=price&order=desc"`. */
+  query: string
 }
 
 export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange' | 'title'> {
@@ -153,10 +169,17 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   /** Initial sort. */
   defaultSort?: TableSortState | null
   /**
-   * Fires with the full `{ page, size, search, sort }` state on mount and whenever it changes — wire this
-   * to your fetch in server mode. Search changes are debounced (`debounceMs`).
+   * Fires with the full `{ page, size, search, sort, params, query }` state on mount and whenever it
+   * changes — wire this to your fetch in server mode (append `state.query` to your endpoint). Search
+   * changes are debounced (`debounceMs`).
    */
   onChange?: (state: TableChangeState) => void
+  /**
+   * Per-table override for how `state.params` / `state.query` are built (param names, `page` vs `offset`
+   * pagination, sort format) — merged over the app-wide `config.table.query`. Use it when one table hits a
+   * differently-shaped endpoint (e.g. `{ page: 'skip', size: 'limit', search: 'q', pagination: 'offset' }`).
+   */
+  queryMapping?: TableQueryConfig
   /** Called when a body row is clicked (makes rows interactive). */
   onRowClick?: (row: T, index: number) => void
   /**
@@ -297,6 +320,7 @@ export const Table = forwardRef(function Table<T>(
     rowCount,
     defaultSort = null,
     onChange,
+    queryMapping,
     onRowClick,
     actions,
     loading = false,
@@ -324,6 +348,11 @@ export const Table = forwardRef(function Table<T>(
   const searchKey =
     urlSync && searchQueryKey !== null ? (searchQueryKey ?? configSearchKey) : undefined
   const sortKey = urlSync && sortQueryKey !== null ? (sortQueryKey ?? configSortKey) : undefined
+
+  // the server-request query mapping — the app-wide `config.table.query` merged with this table's override
+  const configQueryMapping = useTableQueryConfig()
+  const queryMappingRef = useRef<TableQueryConfig>({})
+  queryMappingRef.current = { ...configQueryMapping, ...queryMapping }
 
   // keep the latest options + onChange for the stable effects / popstate listener (avoids re-subscribing)
   const optionsRef = useRef(pageSizeOptions)
@@ -471,11 +500,21 @@ export const Table = forwardRef(function Table<T>(
     ? { key: sorting[0].id, direction: sorting[0].desc ? 'desc' : 'asc' }
     : null
   useEffect(() => {
+    const page = pagination.pageIndex + 1
+    const size = pagination.pageSize
+    // build the ready-to-use server-request params from the query mapping so the consumer's fetch is a
+    // one-liner (`fetch(`/x?${state.query}`)`) — no hand-mapping of page/size/search/sort
+    const params = buildTableQuery(
+      { page, size, search: globalFilter, sort: sortState },
+      queryMappingRef.current,
+    )
     onChangeRef.current?.({
-      page: pagination.pageIndex + 1,
-      size: pagination.pageSize,
+      page,
+      size,
       search: globalFilter,
       sort: sortState,
+      params,
+      query: params.toString(),
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting])
@@ -500,7 +539,8 @@ export const Table = forwardRef(function Table<T>(
           changed = true
         }
       }
-      set(pageKey, String(page))
+      // on "All" (everything on one page) there's no meaningful page → drop it, leaving just `?size=all`
+      set(pageKey, pageSize >= ALL_ROWS ? '' : String(page))
       set(sizeKey, sizeToParam(pageSize))
       set(searchKey, search)
       set(sortKey, sortToParam(sort))

@@ -470,9 +470,13 @@ The cell swallows clicks, so they won't trigger the row's `onClick` (you don't `
   `<Table data={users} columns={cols} searchable />`
 - **Server mode** (**`manualPagination`**): pass **only the current page** in `data` + the total in
   **`rowCount`**, and fetch in **`onChange`** — it fires on mount + every change with
-  `{ page, size, search, sort }` (search is debounced by **`debounceMs`**, default `300`). Show a
-  **`loading`** overlay while you fetch.
-  `<Table manualPagination data={rows} rowCount={total} loading={loading} onChange={({ page, size, search, sort }) => fetch(...)} columns={cols} searchable />`
+  `{ page, size, search, sort, params, query }` (search is debounced by **`debounceMs`**, default `300`).
+  You don't hand-map the params: **`state.query`** is the ready-built query string — just append it
+  (`fetch(`/x?${state.query}`)`). Shape it to your backend with **`queryMapping`** (or app-wide
+  `config.table.query`): param names + `page`-vs-`offset` (`skip`) + sort format (`sort=-price` vs
+  `sortBy=price&order=desc`). Show a **`loading`** overlay while you fetch. The endpoint/path/fetch stay
+  yours — the table only builds the params (exported standalone as **`buildTableQuery`**).
+  `<Table manualPagination data={rows} rowCount={total} loading={loading} queryMapping={{ page: 'skip', size: 'limit', search: 'q', sort: 'sortBy', pagination: 'offset', sortFormat: 'separate' }} onChange={(s) => fetch(`/products?${s.query}`)} columns={cols} searchable />`
 
 **Page + rows-per-page + search + sort sync to the URL by default**
 (`?page=1&size=10&search=phone&sort=-price` — sort is `key` ascending, `-key` descending) — the param names

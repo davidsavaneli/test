@@ -80,6 +80,57 @@ export interface KeysConfig {
 }
 
 /**
+ * How a `<Table>` builds its **server-request** params — the query it hands the consumer (as `params` /
+ * `query`) in `onChange`, so a server-mode fetch doesn't hand-map page/size/search/sort every time. This is
+ * the **backend transport** layer, distinct from `keys.*QueryKey` (the browser-URL sync, always page-based
+ * for shareable links). Set once in `config.table.query`, override per table via the `queryMapping` prop.
+ * Every field is optional; the defaults reproduce the browser-URL shape (`?page=1&size=10&search=…&sort=-key`).
+ */
+export interface TableQueryConfig {
+  /** Param name for the page / offset. Defaults to `'page'` (e.g. `'skip'` for an offset API). */
+  page?: string
+  /** Param name for the page size. Defaults to `'size'` (e.g. `'limit'`). */
+  size?: string
+  /** Param name for the search query (omitted when the search is empty). Defaults to `'search'` (e.g. `'q'`). */
+  search?: string
+  /**
+   * Param name holding the sort **key**. Defaults to `'sort'` (e.g. `'sortBy'`). With `sortFormat: 'field'`
+   * this single param also carries the direction (`-key` = desc); with `'separate'` the direction goes to
+   * `sortOrderKey`.
+   */
+  sort?: string
+  /**
+   * Pagination style. `'page'` (default) emits the **1-based page number** as-is (`page=2`); `'offset'`
+   * emits a **zero-based offset** `(page - 1) * size` instead (`skip=10`), for skip/offset APIs.
+   */
+  pagination?: 'page' | 'offset'
+  /**
+   * Sort encoding. `'field'` (default) is a single param with a `-` prefix for descending (`sort=-price`);
+   * `'separate'` splits into two params — the key in `sort` + the direction in `sortOrderKey`
+   * (`sortBy=price&order=desc`).
+   */
+  sortFormat?: 'field' | 'separate'
+  /** Direction param name when `sortFormat: 'separate'`. Defaults to `'order'`. */
+  sortOrderKey?: string
+  /** Value emitted for an ascending sort when `sortFormat: 'separate'`. Defaults to `'asc'`. */
+  ascValue?: string
+  /** Value emitted for a descending sort when `sortFormat: 'separate'`. Defaults to `'desc'`. */
+  descValue?: string
+  /**
+   * What to emit for the size param when the **"All"** rows-per-page choice is active. A `string`/`number`
+   * sets `size=<allValue>` (e.g. `0` for APIs where `limit=0` means "all"); omit it (default) to drop the
+   * size param entirely (many APIs treat a missing limit as unbounded).
+   */
+  allValue?: string | number
+}
+
+/** `<Table>`-specific configuration. Grows over time; today just the server-request query mapping. */
+export interface TableConfig {
+  /** How `<Table>` builds its server-request params (emitted as `params` / `query` in `onChange`). */
+  query?: TableQueryConfig
+}
+
+/**
  * App-level configuration passed to `<ConfigProvider config={…}>`. Groups theming under `theme`,
  * the configurable key/param names under `keys`, and keeps the rest (`locales`, …) at the top — a
  * single place to grow.
@@ -95,6 +146,8 @@ export interface Config {
    * (`translationsNamespace`). Grows over time (`page`, `size`, …).
    */
   keys?: KeysConfig
+  /** `<Table>` config — today the server-request query mapping (`table.query`) shared by every table. */
+  table?: TableConfig
 }
 
 interface ThemeContextValue {
@@ -116,6 +169,8 @@ interface ThemeContextValue {
   searchQueryKey: string
   /** Resolved `<Table>` sort query key (`config.keys.sortQueryKey` ?? the built-in default). */
   sortQueryKey: string
+  /** The `<Table>` server-request query mapping (`config.table.query` ?? `{}`). Defaults applied by `buildTableQuery`. */
+  tableQuery: TableQueryConfig
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
@@ -134,6 +189,8 @@ export const DEFAULT_SEARCH_QUERY_KEY = 'search'
 export const DEFAULT_SORT_QUERY_KEY = 'sort'
 /** Stable empty-locales fallback so the context value memo doesn't churn when no locales are configured. */
 const EMPTY_LOCALES: LocaleConfig[] = []
+/** Stable empty table-query fallback so the context memo doesn't churn when no `table.query` is configured. */
+const EMPTY_TABLE_QUERY: TableQueryConfig = {}
 
 /**
  * The library's built-in light palette — the single source of truth for every brand color's default
@@ -216,6 +273,7 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
   const sizeQueryKey = config?.keys?.sizeQueryKey ?? DEFAULT_SIZE_QUERY_KEY
   const searchQueryKey = config?.keys?.searchQueryKey ?? DEFAULT_SEARCH_QUERY_KEY
   const sortQueryKey = config?.keys?.sortQueryKey ?? DEFAULT_SORT_QUERY_KEY
+  const tableQuery = config?.table?.query ?? EMPTY_TABLE_QUERY
 
   const value = useMemo<ThemeContextValue>(
     () => ({
@@ -230,6 +288,7 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       sizeQueryKey,
       searchQueryKey,
       sortQueryKey,
+      tableQuery,
     }),
     [
       mode,
@@ -243,6 +302,7 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       sizeQueryKey,
       searchQueryKey,
       sortQueryKey,
+      tableQuery,
     ],
   )
 
@@ -327,4 +387,14 @@ export function useSearchQueryKey(): string {
  */
 export function useSortQueryKey(): string {
   return useContext(ThemeContext)?.sortQueryKey ?? DEFAULT_SORT_QUERY_KEY
+}
+
+/**
+ * The `<Table>` server-request query mapping configured on `<ConfigProvider config={{ table: { query } }}>`
+ * (`{}` when unset / outside a provider). `<Table>` merges its own `queryMapping` prop over this, then feeds
+ * the result to `buildTableQuery`, which applies the field defaults — so an unconfigured table emits the
+ * default page-based `?page=…&size=…&search=…&sort=…` shape.
+ */
+export function useTableQueryConfig(): TableQueryConfig {
+  return useContext(ThemeContext)?.tableQuery ?? EMPTY_TABLE_QUERY
 }

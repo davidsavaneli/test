@@ -296,11 +296,51 @@ describe('Table', () => {
           onChange={onChange}
         />,
       )
-      expect(onChange).toHaveBeenCalledWith({ page: 1, size: 10, search: '', sort: null })
+      // the emitted state also carries the built `params`/`query` (default page-based mapping)
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          page: 1,
+          size: 10,
+          search: '',
+          sort: null,
+          query: 'page=1&size=10',
+        }),
+      )
       expect(screen.getByText(/1.10 of 100/)).toBeInTheDocument()
       onChange.mockClear()
       fireEvent.click(screen.getByRole('button', { name: 'Go to page 2' }))
-      expect(onChange).toHaveBeenCalledWith({ page: 2, size: 10, search: '', sort: null })
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 2, query: 'page=2&size=10' }),
+      )
+    })
+
+    it('builds state.query from queryMapping (offset + separate sort, renamed params)', () => {
+      const onChange = vi.fn()
+      render(
+        <Table
+          data={makeData(10)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          manualPagination
+          rowCount={100}
+          defaultSort={{ key: 'age', direction: 'desc' }}
+          onChange={onChange}
+          queryMapping={{
+            page: 'skip',
+            size: 'limit',
+            search: 'q',
+            sort: 'sortBy',
+            pagination: 'offset',
+            sortFormat: 'separate',
+          }}
+        />,
+      )
+      // page 1 @ size 10 → skip=0; desc age sort → sortBy=age&order=desc
+      const state = onChange.mock.calls[0][0] as { params: URLSearchParams; query: string }
+      expect(state.params.get('skip')).toBe('0')
+      expect(state.params.get('limit')).toBe('10')
+      expect(state.params.get('sortBy')).toBe('age')
+      expect(state.params.get('order')).toBe('desc')
     })
 
     it('does not slice the data in server mode (shows exactly what it is given)', () => {
@@ -336,6 +376,17 @@ describe('Table', () => {
       render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
       fireEvent.click(screen.getByRole('button', { name: 'Go to page 3' }))
       await waitFor(() => expect(new URLSearchParams(window.location.search).get('page')).toBe('3'))
+    })
+
+    it('drops page from the URL on the "All" rows-per-page (leaves just ?size=all)', async () => {
+      render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
+      fireEvent.click(screen.getByRole('combobox')) // open the rows-per-page select
+      fireEvent.click(screen.getByRole('option', { name: 'All' }))
+      await waitFor(() => {
+        const params = new URLSearchParams(window.location.search)
+        expect(params.get('size')).toBe('all')
+        expect(params.has('page')).toBe(false) // no meaningful page on "All"
+      })
     })
 
     it('does not touch the URL when urlSync is false', () => {

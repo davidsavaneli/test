@@ -17,6 +17,21 @@ const config: Config = {
     nestedTabQueryKey: 'nestedTab', // a <Tabs> nested in another tab's panel, e.g. ?nestedTab=…
     translationsNamespace: 'translations', // <TranslatedFields> namespace, e.g. translations[en-US].title (try 'languages')
   },
+  // how a <Table> builds its SERVER-REQUEST query (state.params/query) — the backend-transport names,
+  // separate from the URL keys above. App-wide default; a table can override via its queryMapping prop
+  // (e.g. TableServerPage passes DummyJSON's shape, which wins over this).
+  table: {
+    query: {
+      page: 'page', // page / offset param (try 'skip' together with pagination: 'offset')
+      size: 'size', // page-size param (try 'limit')
+      search: 'search', // search param (try 'q')
+      sort: 'sort', // sort-key param (try 'sortBy' together with sortFormat: 'separate')
+      pagination: 'page', // 'page' → page=2  |  'offset' → skip=(page-1)*size
+      sortFormat: 'field', // 'field' → sort=-price  |  'separate' → sortBy=price&order=desc
+      // sortOrderKey: 'order', ascValue: 'asc', descValue: 'desc',  // only for sortFormat: 'separate'
+      // allValue: 0,  // size param on "All" (e.g. limit=0); page/offset is dropped on "All" either way
+    },
+  },
   theme: {
     mode: 'light',
     colors: {

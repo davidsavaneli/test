@@ -2,12 +2,25 @@ import { useCallback, useRef, useState } from 'react'
 import { Chip, Table, type TableChangeState, type TableColumn, type ThemeColor } from '../../../src'
 import { Block, Section } from '../../shared'
 
-/* Server mode against a REAL free API — https://dummyjson.com (no key, CORS-enabled). The table's
-   `onChange({ page, size, search, sort })` maps straight to DummyJSON's query params:
-     • list:   /products?limit=<size>&skip=<(page-1)*size>&sortBy=<key>&order=<asc|desc>
-     • search: /products/search?q=<search>&limit=…&skip=…
+/* Server mode against a REAL free API — https://dummyjson.com (no key, CORS-enabled). Instead of
+   hand-mapping page/size/search/sort, we let the Table build DummyJSON's exact query via `queryMapping`
+   (offset + separate sort key/order, renamed params) and just append `state.query`:
+     • list:   /products?skip=<(page-1)*size>&limit=<size>&sortBy=<key>&order=<asc|desc>
+     • search: /products/search?q=<search>&skip=…&limit=…
    Each response is { products, total, skip, limit } → we feed `products` to `data` and `total` to
-   `rowCount`. `manualPagination` means the table renders exactly what we pass and never slices. */
+   `rowCount`. `manualPagination` means the table renders exactly what we pass and never slices. The same
+   mapping can live app-wide in `<ConfigProvider config={{ table: { query } }}>` instead of per-table. */
+
+// DummyJSON's query shape: skip/limit offset pagination, `q` search, sortBy + order sort, limit=0 = all
+const dummyJsonQuery = {
+  page: 'skip',
+  size: 'limit',
+  search: 'q',
+  sort: 'sortBy',
+  pagination: 'offset',
+  sortFormat: 'separate',
+  allValue: 0,
+} as const
 
 interface Product {
   id: number
@@ -55,21 +68,10 @@ export function TableServerPage() {
     abortRef.current = controller
     setLoading(true)
 
-    // the table's "All" size is a huge sentinel → DummyJSON's limit=0 means "return everything"
-    const limit = state.size > 10000 ? 0 : state.size
-    const skip = (state.page - 1) * state.size
-    const params = new URLSearchParams({ limit: String(limit), skip: String(skip) })
-    if (state.sort) {
-      params.set('sortBy', state.sort.key)
-      params.set('order', state.sort.direction)
-    }
-    let path = 'products'
-    if (state.search) {
-      path = 'products/search'
-      params.set('q', state.search)
-    }
-
-    fetch(`https://dummyjson.com/${path}?${params}`, { signal: controller.signal })
+    // the query (skip/limit/q/sortBy/order) is already built by the table from `queryMapping` — we only
+    // pick the endpoint (DummyJSON puts search on a different path) and append `state.query`
+    const path = state.search ? 'products/search' : 'products'
+    fetch(`https://dummyjson.com/${path}?${state.query}`, { signal: controller.signal })
       .then((res) => res.json())
       .then((data: { products?: Product[]; total?: number }) => {
         setRows(data.products ?? [])
@@ -86,7 +88,7 @@ export function TableServerPage() {
     <Section>
       <Block
         label="Server — real API (dummyjson.com)"
-        description="manualPagination: the table drives the state and onChange fires the fetch against dummyjson.com. page/size → limit + skip, search → /products/search?q=, sort → sortBy + order. It renders exactly the page the API returns (total drives the pager); search is debounced."
+        description="manualPagination: the table builds DummyJSON's query (skip/limit/q/sortBy+order) from queryMapping, so onChange just appends state.query to the endpoint. It renders exactly the page the API returns (total drives the pager); search is debounced."
       >
         <Table
           manualPagination
@@ -94,6 +96,7 @@ export function TableServerPage() {
           rowCount={total}
           loading={loading}
           onChange={fetchPage}
+          queryMapping={dummyJsonQuery}
           columns={columns}
           getRowId={(p) => String(p.id)}
           searchable
