@@ -34,7 +34,16 @@ import {
   TableStripedPage,
   TableWrapPage,
   TableHideAllPage,
-  TableServerPage,
+  TableSortFieldPage,
+  TableSortSeparatePage,
+  TableSortSuffixPage,
+  TableSortOrderPage,
+  TablePagePaginationPage,
+  TableOffsetPaginationPage,
+  TableAllValuePage,
+  TableAllValueDefaultPage,
+  TableRealApiPage,
+  TableExportPage,
   TableEmptyPage,
 } from '../Table'
 import { ButtonSection } from '../Button'
@@ -224,16 +233,70 @@ const tableHideAllRoute = createRoute({
   staticData: { name: 'Hide All', order: 3 },
   component: inPage(TableHideAllPage),
 })
-const tableServerRoute = createRoute({
+const tableSortFieldRoute = createRoute({
   getParentRoute: () => tableGroupRoute,
-  path: 'server',
-  staticData: { name: 'Server', order: 4 },
-  component: inPage(TableServerPage),
+  path: 'sort-field',
+  staticData: { name: 'Sort (field)', order: 4 },
+  component: inPage(TableSortFieldPage),
+})
+const tableSortSeparateRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'sort-separate',
+  staticData: { name: 'Sort (separate)', order: 5 },
+  component: inPage(TableSortSeparatePage),
+})
+const tableSortSuffixRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'sort-suffix',
+  staticData: { name: 'Sort (suffix)', order: 6 },
+  component: inPage(TableSortSuffixPage),
+})
+const tableSortOrderRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'sort-order',
+  staticData: { name: 'Sort (custom order)', order: 7 },
+  component: inPage(TableSortOrderPage),
+})
+const tablePagePaginationRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'pagination-page',
+  staticData: { name: 'Pagination (page-based)', order: 8 },
+  component: inPage(TablePagePaginationPage),
+})
+const tableOffsetPaginationRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'pagination-offset',
+  staticData: { name: 'Pagination (offset)', order: 9 },
+  component: inPage(TableOffsetPaginationPage),
+})
+const tableAllValueRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'all-value',
+  staticData: { name: 'All value (allValue: 0)', order: 10 },
+  component: inPage(TableAllValuePage),
+})
+const tableAllValueDefaultRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'all-value-default',
+  staticData: { name: 'All value (default)', order: 11 },
+  component: inPage(TableAllValueDefaultPage),
+})
+const tableRealApiRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'real-api',
+  staticData: { name: 'Real API (DummyJSON)', order: 12 },
+  component: inPage(TableRealApiPage),
+})
+const tableExportRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'export',
+  staticData: { name: 'Export (CSV + action)', order: 13 },
+  component: inPage(TableExportPage),
 })
 const tableEmptyRoute = createRoute({
   getParentRoute: () => tableGroupRoute,
   path: 'empty',
-  staticData: { name: 'Empty', order: 5 },
+  staticData: { name: 'Empty', order: 14 },
   component: inPage(TableEmptyPage),
 })
 
@@ -589,7 +652,16 @@ const shellRouter = createRouter({
         tableStripedRoute,
         tableWrapRoute,
         tableHideAllRoute,
-        tableServerRoute,
+        tableSortFieldRoute,
+        tableSortSeparateRoute,
+        tableSortSuffixRoute,
+        tableSortOrderRoute,
+        tablePagePaginationRoute,
+        tableOffsetPaginationRoute,
+        tableAllValueRoute,
+        tableAllValueDefaultRoute,
+        tableRealApiRoute,
+        tableExportRoute,
         tableEmptyRoute,
       ]),
     ]),

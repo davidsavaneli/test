@@ -107,14 +107,21 @@ export interface TableQueryConfig {
   /**
    * Sort encoding. `'field'` (default) is a single param with a `-` prefix for descending (`sort=-price`);
    * `'separate'` splits into two params — the key in `sort` + the direction in `sortOrderKey`
-   * (`sortBy=price&order=desc`).
+   * (`sortBy=price&order=desc`); `'suffix'` appends the direction value to the key in a single param
+   * (`sort=priceAsc` / `sort=priceDesc` with `ascValue: 'Asc'` / `descValue: 'Desc'`).
    */
-  sortFormat?: 'field' | 'separate'
+  sortFormat?: 'field' | 'separate' | 'suffix'
   /** Direction param name when `sortFormat: 'separate'`. Defaults to `'order'`. */
   sortOrderKey?: string
-  /** Value emitted for an ascending sort when `sortFormat: 'separate'`. Defaults to `'asc'`. */
+  /**
+   * Value emitted for an ascending sort — the `sortOrderKey` value when `sortFormat: 'separate'`, or the
+   * suffix appended to the key when `sortFormat: 'suffix'`. Defaults to `'asc'`.
+   */
   ascValue?: string
-  /** Value emitted for a descending sort when `sortFormat: 'separate'`. Defaults to `'desc'`. */
+  /**
+   * Value emitted for a descending sort — the `sortOrderKey` value when `sortFormat: 'separate'`, or the
+   * suffix appended to the key when `sortFormat: 'suffix'`. Defaults to `'desc'`.
+   */
   descValue?: string
   /**
    * What to emit for the size param when the **"All"** rows-per-page choice is active. A `string`/`number`

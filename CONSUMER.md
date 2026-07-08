@@ -492,6 +492,14 @@ id, defaults to index), `onRowClick`, `empty` (custom empty node — default is 
 `stickyHeader`, `striped`, `hoverable` (default `true`), `defaultPage` / `defaultPageSize` /
 `defaultSearch` / `defaultSort`. (Renders at a single md density — no `size` prop.)
 
+**Export** (`exportable`) adds a toolbar export menu with a **built-in client-side CSV**: **"Export This
+Page"** (the rows shown) + **"Export All"** (all data, local mode only). The CSV comes from your `columns`
+— set a column's **`exportValue: (row) => …`** when its `cell` renders a node (a `Chip`, a formatted date)
+so the file holds text, and **`exportHeader`** to override the header. For a **server export** or **"Send On
+Email"**, add **`exportActions={[{ label, icon?, onClick(state) }]}`** — each fires with the current state,
+so you POST `state.query` to your endpoint. `exportFileName` sets the download name.
+`<Table exportable exportFileName="products" exportActions={[{ label: 'Send On Email', icon: 'Sms', onClick: (s) => sendExport(s.query) }]} data={rows} columns={cols} />`
+
 **TranslatedFields** — a tabbed group of **per-locale** form fields (one tab per content locale). You
 write the fields **once** via a render function `(name, locale) => …`; `name(field)` returns the
 locale-namespaced form name, so a `<Form>` submits `translations[en-US].title` / `translations[ka-GE].title`.

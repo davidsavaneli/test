@@ -45,6 +45,16 @@ describe('buildTableQuery', () => {
     expect(q.get('order')).toBe('asc')
   })
 
+  it('appends the direction to the key for sortFormat: "suffix" (priceAsc / priceDesc)', () => {
+    const mapping = { sortFormat: 'suffix' as const, ascValue: 'Asc', descValue: 'Desc' }
+    expect(
+      buildTableQuery(state({ sort: { key: 'price', direction: 'asc' } }), mapping).get('sort'),
+    ).toBe('priceAsc')
+    expect(
+      buildTableQuery(state({ sort: { key: 'price', direction: 'desc' } }), mapping).get('sort'),
+    ).toBe('priceDesc')
+  })
+
   it('honors sortOrderKey + asc/desc value overrides', () => {
     const q = buildTableQuery(state({ sort: { key: 'price', direction: 'desc' } }), {
       sortFormat: 'separate',

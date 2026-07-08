@@ -32,6 +32,8 @@ import {
   type TableQueryConfig,
 } from '../../theme'
 import { buildTableQuery } from '../../helpers/table'
+import type { IconName } from '../../icons/names'
+import { toCsv, downloadCsv } from './tableExport'
 import { Badge } from '../Badge'
 import { Divider } from '../Divider'
 import { Dropdown } from '../Dropdown'
@@ -91,6 +93,23 @@ export interface TableColumn<T> {
    * `width` to override.
    */
   pinned?: 'left' | 'right'
+  /**
+   * Value written for this column in a CSV **export** (`exportable`). Defaults to the raw `key` value —
+   * override for a formatted / derived string when the visible `cell` renders a node (e.g. a `Chip`).
+   */
+  exportValue?: (row: T, index: number) => string | number | null | undefined
+  /** Header text for this column in the export CSV. Defaults to `header` when it's a string, else `key`. */
+  exportHeader?: string
+}
+
+/** An extra item in the Table's export menu — e.g. "Send On Email" or a server-side export. */
+export interface TableExportAction {
+  /** Menu label. */
+  label: ReactNode
+  /** Optional leading icon (an `IconName` or a node). */
+  icon?: IconName | ReactNode
+  /** Click handler — receives the current table state (incl. `query`) so a server export/email can use it. */
+  onClick: (state: TableChangeState) => void
 }
 
 /** The current sort — the column `key` + direction, or `null` when unsorted. */
@@ -132,7 +151,7 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   getRowId?: (row: T, index: number) => string
   /** Optional heading shown at the top-left of the toolbar. */
   title?: ReactNode
-  /** Extra toolbar content (e.g. future filter controls), rendered left of the search box. */
+  /** Extra toolbar content (e.g. future filter controls), rendered in the right group before sort/export. */
   toolbar?: ReactNode
   /** Show the search box in the toolbar. Defaults to `false`. */
   searchable?: boolean
@@ -180,6 +199,19 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
    * differently-shaped endpoint (e.g. `{ page: 'skip', size: 'limit', search: 'q', pagination: 'offset' }`).
    */
   queryMapping?: TableQueryConfig
+  /**
+   * Show an **export** menu in the toolbar with a built-in client-side **CSV** of the current page
+   * ("Export This Page") — plus "Export All" in local mode (all `data`). The CSV is built from `columns`
+   * (`exportHeader` / `exportValue` per column). Defaults to `false`.
+   */
+  exportable?: boolean
+  /** Base filename for the CSV download (no extension needed). Defaults to `title` (if a string), else `'export'`. */
+  exportFileName?: string
+  /**
+   * Extra export-menu items appended after the built-in CSV ones — e.g. "Send On Email" or a **server**
+   * export. Each `onClick` gets the current `TableChangeState` (incl. `query`), so it can hit your endpoint.
+   */
+  exportActions?: TableExportAction[]
   /** Called when a body row is clicked (makes rows interactive). */
   onRowClick?: (row: T, index: number) => void
   /**
@@ -321,6 +353,9 @@ export const Table = forwardRef(function Table<T>(
     defaultSort = null,
     onChange,
     queryMapping,
+    exportable = false,
+    exportFileName,
+    exportActions,
     onRowClick,
     actions,
     loading = false,
@@ -495,29 +530,40 @@ export const Table = forwardRef(function Table<T>(
     }
   }, [pageCount, pagination.pageIndex])
 
-  // emit the full state on mount + whenever it changes — the server-mode fetch driver
   const sortState: TableSortState | null = sorting[0]
     ? { key: sorting[0].id, direction: sorting[0].desc ? 'desc' : 'asc' }
     : null
-  useEffect(() => {
+  // the current table state, with the ready-to-use server-request params built from the query mapping (so a
+  // consumer fetch / export is a one-liner). Rebuilt on demand — the emit effect + the export actions share it.
+  const getTableState = (): TableChangeState => {
     const page = pagination.pageIndex + 1
     const size = pagination.pageSize
-    // build the ready-to-use server-request params from the query mapping so the consumer's fetch is a
-    // one-liner (`fetch(`/x?${state.query}`)`) — no hand-mapping of page/size/search/sort
     const params = buildTableQuery(
       { page, size, search: globalFilter, sort: sortState },
       queryMappingRef.current,
     )
-    onChangeRef.current?.({
-      page,
-      size,
-      search: globalFilter,
-      sort: sortState,
-      params,
-      query: params.toString(),
-    })
+    return { page, size, search: globalFilter, sort: sortState, params, query: params.toString() }
+  }
+  // emit the full state on mount + whenever it changes — the server-mode fetch driver
+  useEffect(() => {
+    onChangeRef.current?.(getTableState())
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting])
+
+  // built-in CSV export — `'page'` exports the rows currently shown (the displayed page in both modes),
+  // `'all'` exports the full local `data`. Columns come from `columns` (the synthetic actions column isn't
+  // there), each cell using `exportValue` if given, else the raw `key` value.
+  const resolvedExportName = exportFileName ?? (typeof title === 'string' ? title : 'export')
+  const doExport = (scope: 'page' | 'all') => {
+    const rows = scope === 'all' ? data : table.getRowModel().rows.map((r) => r.original)
+    const csvColumns = columns.map((col) => ({
+      header: col.exportHeader ?? (typeof col.header === 'string' ? col.header : col.key),
+      value: (row: T, i: number) =>
+        col.exportValue ? col.exportValue(row, i) : (row as Record<string, unknown>)[col.key],
+    }))
+    downloadCsv(resolvedExportName, toCsv(rows, csvColumns))
+  }
+  const hasExport = exportable || (exportActions != null && exportActions.length > 0)
 
   // mirror page + size + search + sort into the URL query (replace, so it doesn't spam history);
   // canonicalizes on mount. A key set to `undefined` (opted out) is skipped; an empty value is removed.
@@ -603,19 +649,20 @@ export const Table = forwardRef(function Table<T>(
     }
   }, [])
 
-  const hasToolbar = title != null || toolbar != null || searchable || sortableColumns.length > 0
+  const hasToolbar =
+    title != null || toolbar != null || searchable || sortableColumns.length > 0 || hasExport
 
   return (
     <div ref={ref} className={clsx(styles.root, className)} {...props}>
       {hasToolbar && (
         <div className={styles.toolbar}>
-          {title != null && (
-            <Typography variant="h4" as="div" className={styles.title}>
-              {title}
-            </Typography>
-          )}
-          <div className={styles.toolbarEnd}>
-            {toolbar}
+          {/* left group — title + search */}
+          <div className={styles.toolbarStart}>
+            {title != null && (
+              <Typography variant="h4" as="div" className={styles.title}>
+                {title}
+              </Typography>
+            )}
             {searchable && (
               <TextField
                 className={styles.search}
@@ -627,6 +674,10 @@ export const Table = forwardRef(function Table<T>(
                 aria-label="Search"
               />
             )}
+          </div>
+          {/* right group — custom toolbar content + sort + export */}
+          <div className={styles.toolbarEnd}>
+            {toolbar}
             {sortableColumns.length > 0 && (
               // sort menu — each sortable column lists an explicit "ascending" + "descending" entry; picking
               // one applies exactly that sort (clicking the active one clears it). The active entry is shown
@@ -635,10 +686,7 @@ export const Table = forwardRef(function Table<T>(
                 placement="bottom-end"
                 trigger={
                   <Badge dot={sorting.length > 0} color="primary">
-                    <IconButton
-                      variant={sorting.length > 0 ? 'filled' : 'outlined'}
-                      aria-label="Sort"
-                    >
+                    <IconButton variant="filled" size="sm" aria-label="Sort">
                       <Icon name="Sort" />
                     </IconButton>
                   </Badge>
@@ -663,6 +711,39 @@ export const Table = forwardRef(function Table<T>(
                     )
                   }),
                 )}
+              </Dropdown>
+            )}
+            {hasExport && (
+              // export menu — built-in client-side CSV ("Export This Page" + "Export All" in local mode),
+              // then any consumer `exportActions` (e.g. "Send On Email" / a server export)
+              <Dropdown
+                placement="bottom-end"
+                trigger={
+                  <IconButton variant="filled" size="sm" aria-label="Export">
+                    <Icon name="DocumentDownload" />
+                  </IconButton>
+                }
+              >
+                {exportable && (
+                  <ListItem clickable icon="DocumentDownload" onClick={() => doExport('page')}>
+                    Export This Page
+                  </ListItem>
+                )}
+                {exportable && !manualPagination && (
+                  <ListItem clickable icon="DocumentCopy" onClick={() => doExport('all')}>
+                    Export All
+                  </ListItem>
+                )}
+                {exportActions?.map((action, i) => (
+                  <ListItem
+                    key={i}
+                    clickable
+                    icon={action.icon}
+                    onClick={() => action.onClick(getTableState())}
+                  >
+                    {action.label}
+                  </ListItem>
+                ))}
               </Dropdown>
             )}
           </div>

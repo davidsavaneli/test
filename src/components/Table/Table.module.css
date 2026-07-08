@@ -24,10 +24,18 @@
 .title {
   font-weight: var(--tz-font-weight-bold);
 }
+/* left group — title + search */
+.toolbarStart {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  flex-wrap: wrap;
+}
+/* right group — custom toolbar content + sort + export (pinned right) */
 .toolbarEnd {
   display: flex;
   align-items: center;
-  gap: var(--tz-space-sm);
+  gap: var(--tz-space-xs);
   margin-left: auto;
 }
 .search {

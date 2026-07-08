@@ -1,8 +1,18 @@
 // Table playground — one file per example, each with its own dataset so it reads as a standalone
-// reference for how to use the component.
+// reference for how to use the component. The Sort / Pagination / All-value / Real-API pages each isolate
+// one `queryMapping` (server-request) config knob, showing the live query it builds.
 export { TableLocalPage } from './TableLocalPage'
 export { TableStripedPage } from './TableStripedPage'
 export { TableWrapPage } from './TableWrapPage'
 export { TableHideAllPage } from './TableHideAllPage'
-export { TableServerPage } from './TableServerPage'
+export { TableSortFieldPage } from './TableSortFieldPage'
+export { TableSortSeparatePage } from './TableSortSeparatePage'
+export { TableSortSuffixPage } from './TableSortSuffixPage'
+export { TableSortOrderPage } from './TableSortOrderPage'
+export { TablePagePaginationPage } from './TablePagePaginationPage'
+export { TableOffsetPaginationPage } from './TableOffsetPaginationPage'
+export { TableAllValuePage } from './TableAllValuePage'
+export { TableAllValueDefaultPage } from './TableAllValueDefaultPage'
+export { TableRealApiPage } from './TableRealApiPage'
+export { TableExportPage } from './TableExportPage'
 export { TableEmptyPage } from './TableEmptyPage'

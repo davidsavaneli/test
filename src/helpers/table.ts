@@ -39,7 +39,8 @@ const DEFAULTS: Required<Omit<TableQueryConfig, 'allValue'>> = {
  *   `allValue` is set (e.g. `limit=0` = all); with no `allValue`, "All" emits no page and no size.
  * - **search** — omitted when empty.
  * - **sort** — `'field'` emits a single `-`-prefixed param (`sort=-price`); `'separate'` emits the key in
- *   `sort` + the direction (`ascValue`/`descValue`) in `sortOrderKey` (`sortBy=price&order=desc`).
+ *   `sort` + the direction (`ascValue`/`descValue`) in `sortOrderKey` (`sortBy=price&order=desc`);
+ *   `'suffix'` appends the direction value to the key in one param (`sort=priceAsc` / `sort=priceDesc`).
  */
 export function buildTableQuery(
   state: TableQueryState,
@@ -67,11 +68,14 @@ export function buildTableQuery(
   // search — only when present
   if (state.search) params.set(m.search, state.search)
 
-  // sort — a single `-`-prefixed field, or a separate key + direction pair
+  // sort — a `-`-prefixed field, a separate key + direction pair, or the direction appended to the key
   if (state.sort) {
+    const dirValue = state.sort.direction === 'desc' ? m.descValue : m.ascValue
     if (m.sortFormat === 'separate') {
       params.set(m.sort, state.sort.key)
-      params.set(m.sortOrderKey, state.sort.direction === 'desc' ? m.descValue : m.ascValue)
+      params.set(m.sortOrderKey, dirValue)
+    } else if (m.sortFormat === 'suffix') {
+      params.set(m.sort, state.sort.key + dirValue) // e.g. priceAsc / priceDesc
     } else {
       params.set(m.sort, (state.sort.direction === 'desc' ? '-' : '') + state.sort.key)
     }

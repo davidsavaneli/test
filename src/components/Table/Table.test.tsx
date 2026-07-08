@@ -357,6 +357,75 @@ describe('Table', () => {
     })
   })
 
+  describe('export', () => {
+    it('exports the current page to CSV and offers "Export All" in local mode', () => {
+      // jsdom's Blob lacks .text(), so capture the CSV via a Blob mock; stub URL + anchor click (download)
+      const parts: string[] = []
+      class MockBlob {
+        type: string
+        constructor(chunks: string[], opts?: { type?: string }) {
+          parts.push(chunks.join(''))
+          this.type = opts?.type ?? ''
+        }
+      }
+      vi.stubGlobal('Blob', MockBlob)
+      vi.stubGlobal('URL', {
+        ...URL,
+        createObjectURL: vi.fn(() => 'blob:x'),
+        revokeObjectURL: vi.fn(),
+      })
+      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+      render(<Table data={makeData(3)} columns={columns} getRowId={(r) => r.id} exportable />)
+      fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+      const menu = screen.getByRole('menu')
+      expect(within(menu).getByText('Export All')).toBeInTheDocument() // local only
+      fireEvent.click(within(menu).getByText('Export This Page'))
+
+      expect(click).toHaveBeenCalled() // a download was triggered
+      const csv = parts[parts.length - 1] ?? ''
+      expect(csv).toContain('Name,Role,Age') // header row from the column headers
+      expect(csv).toContain('User 1,Member,20') // first data row (raw key values)
+
+      click.mockRestore()
+      vi.unstubAllGlobals()
+    })
+
+    it('hides "Export All" in server mode (only the current page is available)', () => {
+      render(
+        <Table
+          data={makeData(3)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          manualPagination
+          rowCount={50}
+          exportable
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+      const menu = screen.getByRole('menu')
+      expect(within(menu).getByText('Export This Page')).toBeInTheDocument()
+      expect(within(menu).queryByText('Export All')).toBeNull()
+    })
+
+    it('runs a custom export action with the current table state (query)', () => {
+      const onClick = vi.fn()
+      render(
+        <Table
+          data={makeData(3)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          exportActions={[{ label: 'Send On Email', onClick }]}
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Export' }))
+      fireEvent.click(within(screen.getByRole('menu')).getByText('Send On Email'))
+      expect(onClick).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1, size: 10, query: 'page=1&size=10' }),
+      )
+    })
+  })
+
   describe('URL sync', () => {
     it('canonicalizes page + size into the query on mount', () => {
       render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)

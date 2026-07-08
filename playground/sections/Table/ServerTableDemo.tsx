@@ -1,26 +1,19 @@
 import { useCallback, useRef, useState } from 'react'
-import { Chip, Table, type TableChangeState, type TableColumn, type ThemeColor } from '../../../src'
+import {
+  Chip,
+  Table,
+  type TableChangeState,
+  type TableColumn,
+  type TableQueryConfig,
+  type ThemeColor,
+} from '../../../src'
 import { Block, Section } from '../../shared'
+import { QueryPreview } from './QueryPreview'
 
-/* Server mode against a REAL free API — https://dummyjson.com (no key, CORS-enabled). Instead of
-   hand-mapping page/size/search/sort, we let the Table build DummyJSON's exact query via `queryMapping`
-   (offset + separate sort key/order, renamed params) and just append `state.query`:
-     • list:   /products?skip=<(page-1)*size>&limit=<size>&sortBy=<key>&order=<asc|desc>
-     • search: /products/search?q=<search>&skip=…&limit=…
-   Each response is { products, total, skip, limit } → we feed `products` to `data` and `total` to
-   `rowCount`. `manualPagination` means the table renders exactly what we pass and never slices. The same
-   mapping can live app-wide in `<ConfigProvider config={{ table: { query } }}>` instead of per-table. */
-
-// DummyJSON's query shape: skip/limit offset pagination, `q` search, sortBy + order sort, limit=0 = all
-const dummyJsonQuery = {
-  page: 'skip',
-  size: 'limit',
-  search: 'q',
-  sort: 'sortBy',
-  pagination: 'offset',
-  sortFormat: 'separate',
-  allValue: 0,
-} as const
+/* Shared server-mode demo against a REAL free API — https://dummyjson.com (no key, CORS-enabled). The two
+   Server pages reuse this and differ ONLY in the `queryMapping.sortFormat`, so the built `state.query`
+   (shown live below) reads either `sort=-price` (field) or `sortBy=price&order=desc` (separate). Pagination
+   + search always work (skip/limit/q); DummyJSON sorts natively only in the `separate` (sortBy+order) shape. */
 
 interface Product {
   id: number
@@ -55,10 +48,18 @@ const columns: TableColumn<Product>[] = [
   { key: 'stock', header: 'Stock', align: 'right', sortable: true },
 ]
 
-export function TableServerPage() {
+interface ServerTableDemoProps {
+  label: string
+  description: string
+  /** The per-table query mapping — the only thing that differs between the two Server pages. */
+  queryMapping: TableQueryConfig
+}
+
+export function ServerTableDemo({ label, description, queryMapping }: ServerTableDemoProps) {
   const [rows, setRows] = useState<Product[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [query, setQuery] = useState('') // the last built query string — shown live so the format is visible
   // abort the in-flight request when a newer one starts, so a slow response can't overwrite a newer page
   const abortRef = useRef<AbortController | null>(null)
 
@@ -67,9 +68,10 @@ export function TableServerPage() {
     const controller = new AbortController()
     abortRef.current = controller
     setLoading(true)
+    setQuery(state.query)
 
-    // the query (skip/limit/q/sortBy/order) is already built by the table from `queryMapping` — we only
-    // pick the endpoint (DummyJSON puts search on a different path) and append `state.query`
+    // the query is already built by the table from `queryMapping` — we only pick the endpoint (DummyJSON
+    // puts search on a different path) and append `state.query`
     const path = state.search ? 'products/search' : 'products'
     fetch(`https://dummyjson.com/${path}?${state.query}`, { signal: controller.signal })
       .then((res) => res.json())
@@ -86,17 +88,16 @@ export function TableServerPage() {
 
   return (
     <Section>
-      <Block
-        label="Server — real API (dummyjson.com)"
-        description="manualPagination: the table builds DummyJSON's query (skip/limit/q/sortBy+order) from queryMapping, so onChange just appends state.query to the endpoint. It renders exactly the page the API returns (total drives the pager); search is debounced."
-      >
+      <Block label={label} description={description}>
+        {/* live preview of the query the table builds from `queryMapping` — the point of these pages */}
+        <QueryPreview path="/products" query={query} />
         <Table
           manualPagination
           data={rows}
           rowCount={total}
           loading={loading}
           onChange={fetchPage}
-          queryMapping={dummyJsonQuery}
+          queryMapping={queryMapping}
           columns={columns}
           getRowId={(p) => String(p.id)}
           searchable

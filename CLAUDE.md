@@ -328,7 +328,8 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   **`size`** / **`search`** / **`sort`** (param names, e.g. `skip`/`limit`/`q`/`sortBy`), **`pagination`**
   (`'page'` default emits the 1-based page; `'offset'` emits `(page-1)*size` under the `page` name — a
   `skip`), **`sortFormat`** (`'field'` default = one `-`-prefixed param `sort=-price`; `'separate'` = key in
-  `sort` + direction in **`sortOrderKey`** default `'order'` → `sortBy=price&order=desc`, with **`ascValue`**
+  `sort` + direction in **`sortOrderKey`** default `'order'` → `sortBy=price&order=desc`; `'suffix'` = the
+  direction appended to the key in one param → `sort=priceAsc`/`sort=priceDesc`; the last two use **`ascValue`**
   / **`descValue`** default `'asc'`/`'desc'`), and **`allValue`** (what the size param emits for the **"All"**
   rows choice — e.g. `0`; on **"All"** the **page/offset param is dropped entirely** (no meaningful page) and
   only `allValue` is emitted — with no `allValue`, "All" emits neither). Set once app-wide in `config.table.query`; override
@@ -1499,7 +1500,18 @@ to index), **`onRowClick`**, **`loading`** (**with rows already shown** — a to
 dims them while refetching; **with no rows** — a centered `Loader` + `"Loading…"` caption fills the body,
 mirroring the empty state's presence rather than a lone tiny spinner), **`empty`** (custom empty node — the
 default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
-(default `true`). Because the component is
+(default `true`). **Export** (**`exportable`**): a toolbar export `Dropdown` (a `DocumentDownload`-icon
+trigger next to sort) with a **built-in client-side CSV** — **"Export This Page"** (the rows currently
+shown, both modes) + **"Export All"** (all `data`, **local mode only** — server mode lacks the other pages).
+The CSV is built from `columns` (in-house — no dependency; `\r\n` rows, RFC-4180 quoting, a UTF-8 BOM for
+Excel) using each column's **`exportHeader`** (defaults to `header` when it's a string, else `key`) +
+**`exportValue(row, i)`** (defaults to the raw `key` value — set it when the visible `cell` renders a node,
+e.g. a `Chip`, so the CSV holds text). Add custom items — e.g. **"Send On Email"** or a **server export** —
+via **`exportActions`** (`TableExportAction[]` = `{ label, icon?, onClick(state) }[]`, appended after the
+built-in items); each `onClick` gets the current `TableChangeState`, so a server export/email hits your
+endpoint with `state.query`. **`exportFileName`** sets the download name (defaults to `title` if a string,
+else `'export'`). The pure serializer (`toCsv`) + `downloadCsv` live in the internal `tableExport.ts`.
+Because the component is
 **generic** (`Table<T>`) it uses the standard `forwardRef(...) as <T>(props) => ReactElement` cast (the one
 sanctioned deviation from the plain `forwardRef` anatomy — generics don't survive `forwardRef`'s typing).
 **Responsive:** cells are `white-space: nowrap` and the surface (`.scroll`) is `overflow-x: auto` with
@@ -1508,8 +1520,11 @@ horizontally inside its container** instead of squeezing/wrapping or widening th
 overflow guard). a11y: a real `<table>`/`<thead>`/`<tbody>`, `scope="col"` + `aria-sort` on sortable
 headers, the search box `aria-label`led, the `Loader` `role="status"`. **Note:** the tests run in jsdom
 (TanStack needs no DOM measurement) — they cover render / columns / custom cell, local search (debounced) /
-sort / pagination, the pinned-column class, server-mode `onChange`, empty + loading, URL sync
-(page/size canonicalize + read + write + opt-out, and search/sort read + write), and
+sort / pagination, the pinned-column class, the empty-cell "—" placeholder, server-mode `onChange` (+ the
+`queryMapping`-built `query`), the toolbar sort menu, empty + loading, URL sync (page/size canonicalize +
+read + write + opt-out — incl. dropping `page` on "All" — and search/sort read + write), the query builder
+(`buildTableQuery` variants) + the CSV serializer (`toCsv`), the **export** menu (built-in CSV of the
+current page, "Export All" local-only, a custom `exportActions` item firing with the state), and
 `onRowClick`. Own CSS module. _Row selection (checkboxes), column filters (the planned `toolbar` slot),
 column resize/pinning, and virtualization are natural next iterations._
 
