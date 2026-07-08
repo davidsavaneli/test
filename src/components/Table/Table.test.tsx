@@ -146,32 +146,31 @@ describe('Table', () => {
     expect(bodyRowCount()).toBe(1)
   })
 
-  it('sorts via the toolbar sort menu (explicit asc / desc entries), reflected in aria-sort', () => {
+  it('sorts via the toolbar sort menu (one row per column, cycles asc → desc), reflected in aria-sort', () => {
     render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
     const ageHeader = screen.getByRole('columnheader', { name: /Age/ })
     // no sort control in the header any more — it lives in the toolbar menu
     expect(within(ageHeader).queryByRole('button')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // open the sort menu
-    fireEvent.click(within(screen.getByRole('menu')).getByText('Age ascending'))
+    fireEvent.click(within(screen.getByRole('menu')).getByText('Age')) // → ascending
     expect(ageHeader).toHaveAttribute('aria-sort', 'ascending')
 
     fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // reopen (menu closes on select)
-    fireEvent.click(within(screen.getByRole('menu')).getByText('Age descending')) // resets to page 1
+    fireEvent.click(within(screen.getByRole('menu')).getByText('Age')) // ascending → descending, resets to page 1
     expect(ageHeader).toHaveAttribute('aria-sort', 'descending')
     expect(screen.getByText('User 25')).toBeInTheDocument() // age 44, now first
     expect(screen.queryByText('User 1')).not.toBeInTheDocument()
   })
 
-  it('the sort menu lists an ascending + descending entry for each sortable column only', () => {
+  it('lists one row per sortable column (not two), excluding non-sortable ones', () => {
     render(<Table data={makeData(3)} columns={columns} getRowId={(r) => r.id} />)
     fireEvent.click(screen.getByRole('button', { name: 'Sort' }))
     const menu = screen.getByRole('menu')
-    expect(within(menu).getByText('Name ascending')).toBeInTheDocument()
-    expect(within(menu).getByText('Name descending')).toBeInTheDocument()
-    expect(within(menu).getByText('Age ascending')).toBeInTheDocument()
-    expect(within(menu).getByText('Age descending')).toBeInTheDocument()
-    expect(within(menu).queryByText(/Role/)).toBeNull() // Role isn't sortable
+    expect(within(menu).getByText('Name')).toBeInTheDocument()
+    expect(within(menu).getByText('Age')).toBeInTheDocument()
+    expect(within(menu).queryByText('Role')).toBeNull() // Role isn't sortable
+    expect(within(menu).queryByText('Age ascending')).toBeNull() // one row per column, not asc + desc
   })
 
   it('shows no sort button when no column is sortable', () => {
@@ -194,7 +193,7 @@ describe('Table', () => {
     )
     expect(container.querySelector('.dot')).toBeNull() // no sort yet → no dot
     fireEvent.click(screen.getByRole('button', { name: 'Sort' }))
-    fireEvent.click(within(screen.getByRole('menu')).getByText('Age ascending'))
+    fireEvent.click(within(screen.getByRole('menu')).getByText('Age'))
     expect(container.querySelector('.dot')).not.toBeNull() // sorted → dot shown
   })
 
@@ -358,7 +357,7 @@ describe('Table', () => {
   })
 
   describe('export', () => {
-    it('exports the current page to CSV and offers "Export All" in local mode', () => {
+    it('exports the current page to CSV via the export menu', () => {
       // jsdom's Blob lacks .text(), so capture the CSV via a Blob mock; stub URL + anchor click (download)
       const parts: string[] = []
       class MockBlob {
@@ -379,8 +378,8 @@ describe('Table', () => {
       render(<Table data={makeData(3)} columns={columns} getRowId={(r) => r.id} exportable />)
       fireEvent.click(screen.getByRole('button', { name: 'Export' }))
       const menu = screen.getByRole('menu')
-      expect(within(menu).getByText('Export All')).toBeInTheDocument() // local only
-      fireEvent.click(within(menu).getByText('Export This Page'))
+      expect(within(menu).queryByText('Export All')).toBeNull() // removed — current page only
+      fireEvent.click(within(menu).getByText('This Page'))
 
       expect(click).toHaveBeenCalled() // a download was triggered
       const csv = parts[parts.length - 1] ?? ''
@@ -389,23 +388,6 @@ describe('Table', () => {
 
       click.mockRestore()
       vi.unstubAllGlobals()
-    })
-
-    it('hides "Export All" in server mode (only the current page is available)', () => {
-      render(
-        <Table
-          data={makeData(3)}
-          columns={columns}
-          getRowId={(r) => r.id}
-          manualPagination
-          rowCount={50}
-          exportable
-        />,
-      )
-      fireEvent.click(screen.getByRole('button', { name: 'Export' }))
-      const menu = screen.getByRole('menu')
-      expect(within(menu).getByText('Export This Page')).toBeInTheDocument()
-      expect(within(menu).queryByText('Export All')).toBeNull()
     })
 
     it('runs a custom export action with the current table state (query)', () => {
@@ -487,12 +469,12 @@ describe('Table', () => {
     it('syncs sort to ?sort= (key asc / -key desc)', async () => {
       render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
       fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // open the sort menu
-      fireEvent.click(within(screen.getByRole('menu')).getByText('Age ascending'))
+      fireEvent.click(within(screen.getByRole('menu')).getByText('Age')) // → ascending
       await waitFor(() =>
         expect(new URLSearchParams(window.location.search).get('sort')).toBe('age'),
       )
       fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // reopen (menu closes on select)
-      fireEvent.click(within(screen.getByRole('menu')).getByText('Age descending'))
+      fireEvent.click(within(screen.getByRole('menu')).getByText('Age')) // ascending → descending
       await waitFor(() =>
         expect(new URLSearchParams(window.location.search).get('sort')).toBe('-age'),
       )

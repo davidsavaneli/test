@@ -35,7 +35,6 @@ import { buildTableQuery } from '../../helpers/table'
 import type { IconName } from '../../icons/names'
 import { toCsv, downloadCsv } from './tableExport'
 import { Badge } from '../Badge'
-import { Divider } from '../Divider'
 import { Dropdown } from '../Dropdown'
 import { EmptyState } from '../EmptyState'
 import { Icon } from '../Icon'
@@ -201,8 +200,8 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   queryMapping?: TableQueryConfig
   /**
    * Show an **export** menu in the toolbar with a built-in client-side **CSV** of the current page
-   * ("Export This Page") — plus "Export All" in local mode (all `data`). The CSV is built from `columns`
-   * (`exportHeader` / `exportValue` per column). Defaults to `false`.
+   * ("This Page"). The CSV is built from `columns` (`exportHeader` / `exportValue` per column).
+   * Defaults to `false`.
    */
   exportable?: boolean
   /** Base filename for the CSV download (no extension needed). Defaults to `title` (if a string), else `'export'`. */
@@ -470,12 +469,14 @@ export const Table = forwardRef(function Table<T>(
 
   // the sortable columns drive the toolbar sort menu — each lists an explicit ascending + descending entry
   const sortableColumns = useMemo(() => columns.filter((c) => c.sortable), [columns])
-  const setSort = useCallback(
-    (key: string, desc: boolean) =>
+  // one row per sortable column; clicking cycles that column through ascending → descending → unsorted
+  const cycleSort = useCallback(
+    (key: string) =>
       handleSortingChange((prev) => {
         const cur = prev[0]
-        // clicking the already-active entry clears the sort; otherwise apply exactly this key + direction
-        return cur && cur.id === key && cur.desc === desc ? [] : [{ id: key, desc }]
+        if (!cur || cur.id !== key) return [{ id: key, desc: false }] // → ascending
+        if (!cur.desc) return [{ id: key, desc: true }] // ascending → descending
+        return [] // descending → unsorted
       }),
     [handleSortingChange],
   )
@@ -550,12 +551,12 @@ export const Table = forwardRef(function Table<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting])
 
-  // built-in CSV export — `'page'` exports the rows currently shown (the displayed page in both modes),
-  // `'all'` exports the full local `data`. Columns come from `columns` (the synthetic actions column isn't
-  // there), each cell using `exportValue` if given, else the raw `key` value.
+  // built-in CSV export — the rows currently shown (the displayed page in both modes). Columns come from
+  // `columns` (the synthetic actions column isn't there), each cell using `exportValue` if given, else the
+  // raw `key` value.
   const resolvedExportName = exportFileName ?? (typeof title === 'string' ? title : 'export')
-  const doExport = (scope: 'page' | 'all') => {
-    const rows = scope === 'all' ? data : table.getRowModel().rows.map((r) => r.original)
+  const exportCsv = () => {
+    const rows = table.getRowModel().rows.map((r) => r.original)
     const csvColumns = columns.map((col) => ({
       header: col.exportHeader ?? (typeof col.header === 'string' ? col.header : col.key),
       value: (row: T, i: number) =>
@@ -692,46 +693,47 @@ export const Table = forwardRef(function Table<T>(
                   </Badge>
                 }
               >
-                <Typography as="div" variant="bodySmall" color="muted" className={styles.sortTitle}>
-                  Sort By:
+                <Typography as="div" variant="caption" color="muted" className={styles.menuTitle}>
+                  Sort By
                 </Typography>
-                <Divider className={styles.sortDivider} />
-                {sortableColumns.flatMap((col) =>
-                  (['asc', 'desc'] as const).map((direction) => {
-                    const active = sortState?.key === col.key && sortState.direction === direction
-                    return (
-                      <ListItem
-                        key={`${col.key}:${direction}`}
-                        clickable
-                        selected={active}
-                        onClick={() => setSort(col.key, direction === 'desc')}
-                      >
-                        {col.header} {direction === 'asc' ? 'ascending' : 'descending'}
-                      </ListItem>
-                    )
-                  }),
-                )}
+                {sortableColumns.map((col) => {
+                  const active = sortState?.key === col.key
+                  return (
+                    <ListItem
+                      key={col.key}
+                      clickable
+                      selected={active}
+                      // active column shows its direction (↑ asc / ↓ desc); clicking cycles asc → desc → off
+                      trailing={
+                        active ? (
+                          <Icon name={sortState?.direction === 'desc' ? 'ArrowDown' : 'ArrowUp2'} />
+                        ) : undefined
+                      }
+                      onClick={() => cycleSort(col.key)}
+                    >
+                      {col.header}
+                    </ListItem>
+                  )
+                })}
               </Dropdown>
             )}
             {hasExport && (
-              // export menu — built-in client-side CSV ("Export This Page" + "Export All" in local mode),
-              // then any consumer `exportActions` (e.g. "Send On Email" / a server export)
+              // export menu — built-in client-side CSV of the current page ("This Page"), then any
+              // consumer `exportActions` (e.g. "Send On Email" / a server export)
               <Dropdown
                 placement="bottom-end"
                 trigger={
                   <IconButton variant="filled" size="sm" aria-label="Export">
-                    <Icon name="DocumentDownload" />
+                    <Icon name="ExportArrow" />
                   </IconButton>
                 }
               >
+                <Typography as="div" variant="caption" color="muted" className={styles.menuTitle}>
+                  Export
+                </Typography>
                 {exportable && (
-                  <ListItem clickable icon="DocumentDownload" onClick={() => doExport('page')}>
-                    Export This Page
-                  </ListItem>
-                )}
-                {exportable && !manualPagination && (
-                  <ListItem clickable icon="DocumentCopy" onClick={() => doExport('all')}>
-                    Export All
+                  <ListItem clickable icon="DocumentDownload" onClick={exportCsv}>
+                    This Page
                   </ListItem>
                 )}
                 {exportActions?.map((action, i) => (

@@ -3,7 +3,7 @@
 .item {
   display: flex;
   align-items: center;
-  gap: var(--tz-space-sm);
+  gap: calc(var(--tz-space-sm) / 1.25);
   width: 100%;
   box-sizing: border-box;
   margin: 0;

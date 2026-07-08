@@ -1473,12 +1473,11 @@ see §5's `table.query`): param names + `page`-vs-`offset` (`skip`) + sort forma
 (Table never fetches); the pure builder is exported as **`buildTableQuery`** (`sava-test/helpers`). **Search** (`searchable`) is a debounced global substring filter (`globalFilterFn:
 'includesString'`) in local mode, or emitted in `onChange` for server mode. **Sorting** is per-column
 (`sortable`) but **not from the header** — it lives in a **toolbar sort menu**: a `Sort`-icon `Dropdown`
-next to the search that opens a **"Sort By" header + divider** over **an explicit "<Column> ascending" +
-"<Column> descending" entry** for every sortable column (no icons — the active entry is shown by its
-`selected` tint alone). Picking an entry applies
-exactly that key + direction; clicking the **active** entry clears the sort. While a sort is applied the
-trigger reads `filled` **and carries a dot `Badge`**, and the header carries no sort control, only `aria-sort`
-(a11y) reflecting the current sort. Local sorts client-side, server emits it in `onChange`. **Pagination**
+next to the search that opens a quiet uppercase **"Sort By" label** over **one row per sortable column** (the
+column header as the label). Clicking a row **cycles that column asc → desc → unsorted**; the **active** row
+gets the `selected` tint + a trailing direction arrow (`ArrowUp2` asc / `ArrowDown` desc). While a sort is
+applied the trigger reads `filled` **and carries a dot `Badge`**, and the header carries no sort control,
+only `aria-sort` (a11y) reflecting the current sort. Local sorts client-side, server emits it in `onChange`. **Pagination**
 reuses the `Pagination` component (prev/next + numbered pages; the **first/last jump arrows** are opt-in via
 **`showFirstButton`** / **`showLastButton`**, off by default); the footer also shows a rows-per-page `Select` (**`pageSizeOptions`**, default
 `[10, 20, 50, 100, 200]`; **`showPageSize`**; the Select passes **`showSelectedTick={false}`** for a
@@ -1500,10 +1499,9 @@ to index), **`onRowClick`**, **`loading`** (**with rows already shown** — a to
 dims them while refetching; **with no rows** — a centered `Loader` + `"Loading…"` caption fills the body,
 mirroring the empty state's presence rather than a lone tiny spinner), **`empty`** (custom empty node — the
 default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
-(default `true`). **Export** (**`exportable`**): a toolbar export `Dropdown` (a `DocumentDownload`-icon
-trigger next to sort) with a **built-in client-side CSV** — **"Export This Page"** (the rows currently
-shown, both modes) + **"Export All"** (all `data`, **local mode only** — server mode lacks the other pages).
-The CSV is built from `columns` (in-house — no dependency; `\r\n` rows, RFC-4180 quoting, a UTF-8 BOM for
+(default `true`). **Export** (**`exportable`**): a toolbar export `Dropdown` (an export-icon trigger next to
+sort) opening an uppercase **"Export" label** over a **built-in client-side CSV** item — **"This Page"**
+(the rows currently shown, both modes). The CSV is built from `columns` (in-house — no dependency; `\r\n` rows, RFC-4180 quoting, a UTF-8 BOM for
 Excel) using each column's **`exportHeader`** (defaults to `header` when it's a string, else `key`) +
 **`exportValue(row, i)`** (defaults to the raw `key` value — set it when the visible `cell` renders a node,
 e.g. a `Chip`, so the CSV holds text). Add custom items — e.g. **"Send On Email"** or a **server export** —
@@ -1524,7 +1522,7 @@ sort / pagination, the pinned-column class, the empty-cell "—" placeholder, se
 `queryMapping`-built `query`), the toolbar sort menu, empty + loading, URL sync (page/size canonicalize +
 read + write + opt-out — incl. dropping `page` on "All" — and search/sort read + write), the query builder
 (`buildTableQuery` variants) + the CSV serializer (`toCsv`), the **export** menu (built-in CSV of the
-current page, "Export All" local-only, a custom `exportActions` item firing with the state), and
+current page, a custom `exportActions` item firing with the state), and
 `onRowClick`. Own CSS module. _Row selection (checkboxes), column filters (the planned `toolbar` slot),
 column resize/pinning, and virtualization are natural next iterations._
 

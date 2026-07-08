@@ -112,13 +112,15 @@
   color: var(--tz-color-primary-shade400);
 }
 
-/* sort menu header — a "Sort By" section label above the entries; its horizontal inset matches the
-   `ListItem` label padding (--tz-space-sm) so the title lines up with the option text below it */
-.sortTitle {
-  padding: var(--tz-space-xs) var(--tz-space-sm) var(--tz-space-xxs);
-}
-.sortDivider {
-  margin-bottom: var(--tz-space-xxs);
+/* sort / export menu header — an uppercase section label above the entries (no divider); bumped a step +
+   medium weight + letter-spacing so it reads as a header, with a gap below to set it apart from the first
+   option. Its horizontal inset matches the `ListItem` label padding (--tz-space-sm) so the label lines up. */
+.menuTitle {
+  padding: var(--tz-space-xs) var(--tz-space-sm) 0;
+  margin-bottom: var(--tz-space-xs);
+  font-weight: var(--tz-font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* the auto-built actions column's button row (from the `actions` prop) */

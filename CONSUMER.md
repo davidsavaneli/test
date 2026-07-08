@@ -492,8 +492,8 @@ id, defaults to index), `onRowClick`, `empty` (custom empty node — default is 
 `stickyHeader`, `striped`, `hoverable` (default `true`), `defaultPage` / `defaultPageSize` /
 `defaultSearch` / `defaultSort`. (Renders at a single md density — no `size` prop.)
 
-**Export** (`exportable`) adds a toolbar export menu with a **built-in client-side CSV**: **"Export This
-Page"** (the rows shown) + **"Export All"** (all data, local mode only). The CSV comes from your `columns`
+**Export** (`exportable`) adds a toolbar export menu (an "Export" header) with a **built-in client-side
+CSV** item — **"This Page"** (the rows shown). The CSV comes from your `columns`
 — set a column's **`exportValue: (row) => …`** when its `cell` renders a node (a `Chip`, a formatted date)
 so the file holds text, and **`exportHeader`** to override the header. For a **server export** or **"Send On
 Email"**, add **`exportActions={[{ label, icon?, onClick(state) }]}`** — each fires with the current state,

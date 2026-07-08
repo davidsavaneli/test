@@ -1,11 +1,11 @@
 import { Chip, Table, toast, type TableColumn, type ThemeColor } from '../../../src'
 import { Block, Section } from '../../shared'
 
-/* Export demo. `exportable` adds a toolbar export menu with a built-in client-side CSV — "Export This
-   Page" (the rows shown) + "Export All" (all data, local mode). `exportActions` appends custom items like
-   "Send On Email" / a server export; each gets the current table state, so it can hit your endpoint with
-   `state.query` (e.g. `fetch('/products/export?' + state.query)`). Columns that render a node (the Price /
-   Rating cells) give an `exportValue` so the CSV holds the raw value, not the JSX. */
+/* Export demo. `exportable` adds a toolbar export menu with a built-in client-side CSV — "This Page" (the
+   rows shown). `exportActions` appends custom items like "Send On Email" / a server export; each gets the
+   current table state, so it can hit your endpoint with `state.query` (e.g. `fetch('/products/export?' +
+   state.query)`). Columns that render a node (the Price / Rating cells) give an `exportValue` so the CSV
+   holds the raw value, not the JSX. */
 
 interface Product {
   id: number
@@ -56,7 +56,7 @@ export function TableExportPage() {
     <Section>
       <Block
         label="Export — CSV + custom action"
-        description="Open the export menu (top-right). 'Export This Page' / 'Export All' download a client-side CSV built from the columns (Price & Rating export their raw value via exportValue). 'Send On Email' is a custom exportActions item — it receives the current table state; a real app would POST state.query to a server-export endpoint. Sort / search first to see it reflected in the exported rows + the emitted query."
+        description="Open the export menu (top-right). 'This Page' downloads a client-side CSV built from the columns (Price & Rating export their raw value via exportValue). 'Send On Email' is a custom exportActions item — it receives the current table state; a real app would POST state.query to a server-export endpoint. Sort / search first to see it reflected in the exported rows + the emitted query."
       >
         <Table
           data={DATA}
