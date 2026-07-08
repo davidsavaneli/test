@@ -652,4 +652,94 @@ describe('Table', () => {
     fireEvent.click(screen.getByText('User 2'))
     expect(onRowClick).toHaveBeenCalledWith(expect.objectContaining({ name: 'User 2' }), 1)
   })
+
+  describe('controlled mode', () => {
+    it('controlled page: paging fires onPageChange without self-advancing (the parent owns it)', () => {
+      const onPageChange = vi.fn()
+      render(
+        <Table
+          data={makeData(25)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          page={2}
+          onPageChange={onPageChange}
+        />,
+      )
+      expect(screen.getByText('User 11')).toBeInTheDocument() // page 2, from the controlled prop
+      fireEvent.click(screen.getByRole('button', { name: 'Go to page 3' }))
+      expect(onPageChange).toHaveBeenCalledWith(3)
+      expect(screen.getByText('User 11')).toBeInTheDocument() // still page 2 — the parent hasn't updated it
+    })
+
+    it('controlled sort: reflects the prop and cycling fires onSortChange without self-updating', () => {
+      const onSortChange = vi.fn()
+      render(
+        <Table
+          data={makeData(25)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          sort={{ key: 'age', direction: 'asc' }}
+          onSortChange={onSortChange}
+        />,
+      )
+      const ageHeader = screen.getByRole('columnheader', { name: /Age/ })
+      expect(ageHeader).toHaveAttribute('aria-sort', 'ascending') // controlled sort reflected
+      fireEvent.click(screen.getByRole('button', { name: 'Sort' }))
+      fireEvent.click(within(screen.getByRole('menu')).getByText('Age')) // asc → desc
+      expect(onSortChange).toHaveBeenCalledWith({ key: 'age', direction: 'desc' })
+      expect(ageHeader).toHaveAttribute('aria-sort', 'ascending') // unchanged — the parent controls it
+    })
+
+    it('controlled search: typing fires onSearchChange but does not filter until the prop updates', async () => {
+      const onSearchChange = vi.fn()
+      render(
+        <Table
+          data={makeData(25)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          searchable
+          debounceMs={0}
+          search=""
+          onSearchChange={onSearchChange}
+        />,
+      )
+      fireEvent.change(screen.getByRole('textbox', { name: 'Search' }), {
+        target: { value: 'User 25' },
+      })
+      await waitFor(() => expect(onSearchChange).toHaveBeenCalledWith('User 25'))
+      expect(bodyRowCount()).toBe(10) // unfiltered — search is controlled and the parent hasn't applied it
+    })
+
+    it('controlled filterValues: applies the controlled filter to local data with no interaction', () => {
+      render(
+        <Table
+          data={makeData(6)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          filters={[
+            {
+              key: 'role',
+              label: 'Role',
+              type: 'select',
+              options: [
+                { value: 'Admin', label: 'Admin' },
+                { value: 'Member', label: 'Member' },
+              ],
+            },
+          ]}
+          filterValues={{ role: 'Admin' }}
+        />,
+      )
+      // makeData: role = i % 2 ? 'Admin' : 'Member' → Users 2, 4, 6 are Admin
+      expect(screen.getByText('User 2')).toBeInTheDocument()
+      expect(screen.queryByText('User 1')).not.toBeInTheDocument() // Member filtered out
+      expect(bodyRowCount()).toBe(3)
+    })
+
+    it('requires rowCount in server mode (type-level)', () => {
+      // @ts-expect-error — `manualPagination` requires `rowCount` (the server-mode contract)
+      render(<Table data={makeData(3)} columns={columns} getRowId={(r) => r.id} manualPagination />)
+      expect(screen.getByRole('table')).toBeInTheDocument()
+    })
+  })
 })

@@ -1466,7 +1466,9 @@ that. (It's just a render slot, so anything goes; use a full `pinned` column in 
 need it sortable/searchable.) **Two data modes, one flag:** **local** (default — pass the full `data`; the
 table searches / sorts / paginates client-side via TanStack's row models) or **server**
 (**`manualPagination`** — pass only the current page in `data` + the total in `rowCount`; TanStack tracks
-state but slices nothing, and you fetch in **`onChange`**). **`onChange(state)`** fires on mount + every
+state but slices nothing, and you fetch in **`onChange`**). `TableProps` is a **discriminated union on
+`manualPagination`**, so the type **requires `rowCount` in server mode** (it can't be derived from a single
+fetched page) and treats it as optional/ignored in local mode. **`onChange(state)`** fires on mount + every
 change with the full **`TableChangeState`** `{ page (1-based), size, search, sort: { key, direction } |
 null, params, query }` — the server-mode fetch driver (search changes are **debounced** by **`debounceMs`**,
 default `300`). **`params`** (a `URLSearchParams`) / **`query`** (its string) are the **ready-built
@@ -1490,7 +1492,13 @@ compact look) plus an **"All"** choice (**`allowAllRows`**, default `true` — p
 large datasets) that puts every row on one page, and a `"1–10 of N"` range. "All" is a **sentinel page
 size** (`Number.MAX_SAFE_INTEGER`) — it serializes to `?size=all` and is emitted verbatim in `onChange`
 (server consumers treat it as unbounded). Changing size / sort resets to page 1; the page clamps if the
-row count shrinks beneath it. The **page navigator hides entirely when everything fits on one page**
+row count shrinks beneath it. **Controlled or uncontrolled, per piece** (like the rest of the library):
+each of **`page`** / **`pageSize`** / **`search`** / **`sort`** / **`filterValues`** may be passed with its
+**`onPageChange`** / **`onPageSizeChange`** / **`onSearchChange`** / **`onSortChange`** / **`onFiltersChange`**
+callback to own that state from outside (e.g. reset filters from an external button, or drive the page from
+a parent) — omit it to let the table manage that piece internally (seeded from the matching `default*`). Mix
+freely; each is resolved as `controlled ?? internal`, and every mutation still fires the aggregate `onChange`
+too. (These granular callbacks are the controlled channel; `onChange` stays the full-state fetch driver.) The **page navigator hides entirely when everything fits on one page**
 (`pageCount ≤ 1` — e.g. the "All" size or few rows); the rows-per-page select + `"1–N of N"` range stay. **URL sync — ON by default:** page + size + search +
 sort mirror to the query (`?page=1&size=10&search=phone&sort=-price` — sort is `key` asc, `-key` desc; an
 empty search/sort is removed from the URL, and on the **"All"** size the `page` param is dropped too —
@@ -1504,8 +1512,11 @@ the param names resolve **`pageQueryKey` / `sizeQueryKey` / `searchQueryKey` / `
 `,`) and parsed back by the filter's **type** on read (`decodeFilterValue`), so it round-trips; the URL wins
 over `defaultFilters` on mount, and restores on `popstate`. (Filter keys shouldn't collide with the
 page/size/search/sort param names.) The table renders at a single (md) density — no `size` prop. Other props: **`title`** +
-**`toolbar`** (extra toolbar content, e.g. a future filters slot), **`getRowId`** (stable row id, defaults
-to index), **`onRowClick`**, **`loading`** (**with rows already shown** — a token-scrim overlay + `Loader`
+**`toolbar`** (extra toolbar content, e.g. a future filters slot), **`getRowId`** (stable row id — the React
+key; defaults to the row **index**, fine for static data but reuses DOM by position when rows reorder or a
+server page swaps in, so pass a real id like `(row) => row.id` for any interactive/changing table; a
+**dev-only `console.warn`** nudges this when `onRowClick`/`actions` is set without `getRowId`),
+**`onRowClick`**, **`loading`** (**with rows already shown** — a token-scrim overlay + `Loader`
 dims them while refetching; **with no rows** — a centered `Loader` + `"Loading…"` caption fills the body,
 mirroring the empty state's presence rather than a lone tiny spinner), **`empty`** (custom empty node — the
 default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**

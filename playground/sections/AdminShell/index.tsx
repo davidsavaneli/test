@@ -47,6 +47,7 @@ import {
   TableFiltersPage,
   TableServerFiltersPage,
   TableEmptyPage,
+  TableControlledPage,
 } from '../Table'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
@@ -312,6 +313,12 @@ const tableEmptyRoute = createRoute({
   path: 'empty',
   staticData: { name: 'Empty', order: 16 },
   component: inPage(TableEmptyPage),
+})
+const tableControlledRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'controlled',
+  staticData: { name: 'Controlled', order: 17 },
+  component: inPage(TableControlledPage),
 })
 
 // `/components` — a module container (renders its child pages; not a page itself).
@@ -679,6 +686,7 @@ const shellRouter = createRouter({
         tableFiltersRoute,
         tableServerFiltersRoute,
         tableEmptyRoute,
+        tableControlledRoute,
       ]),
     ]),
   ]),

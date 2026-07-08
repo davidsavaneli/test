@@ -469,7 +469,7 @@ The cell swallows clicks, so they won't trigger the row's `onClick` (you don't `
   client-side.
   `<Table data={users} columns={cols} searchable />`
 - **Server mode** (**`manualPagination`**): pass **only the current page** in `data` + the total in
-  **`rowCount`**, and fetch in **`onChange`** — it fires on mount + every change with
+  **`rowCount`** (the type **requires** it in this mode), and fetch in **`onChange`** — it fires on mount + every change with
   `{ page, size, search, sort, params, query }` (search is debounced by **`debounceMs`**, default `300`).
   You don't hand-map the params: **`state.query`** is the ready-built query string — just append it
   (`fetch(`/x?${state.query}`)`). Shape it to your backend with **`queryMapping`** (or app-wide
@@ -488,9 +488,15 @@ on one page; pass `false` to hide it for large datasets); optional **first/last 
 (`showFirstButton` / `showLastButton`, off by default) and the **page navigator auto-hides when everything
 fits on one page** (e.g. All, or few rows). Other props: `showPageSize`, `title`, `toolbar`
 (extra toolbar content, e.g. right-aligned row actions live in a column's `cell`), `getRowId` (stable row
-id, defaults to index), `onRowClick`, `empty` (custom empty node — default is a patterned `EmptyState`),
-`stickyHeader`, `striped`, `hoverable` (default `true`), `defaultPage` / `defaultPageSize` /
-`defaultSearch` / `defaultSort`. (Renders at a single md density — no `size` prop.)
+id — the React key; defaults to the row index, but pass a real id like `(row) => row.id` for any
+interactive / changing table so rows keep their identity across sort / filter / refetch — a dev warning
+nudges this when you use `onRowClick`/`actions` without it), `onRowClick`, `empty` (custom empty node —
+default is a patterned `EmptyState`), `stickyHeader`, `striped`, `hoverable` (default `true`). **State is
+controlled or uncontrolled, per piece:** pass **`defaultPage` / `defaultPageSize` / `defaultSearch` /
+`defaultSort` / `defaultFilters`** for uncontrolled, **or** the controlled **`page` / `pageSize` / `search`
+/ `sort` / `filterValues`** with their **`onPageChange` / `onPageSizeChange` / `onSearchChange` /
+`onSortChange` / `onFiltersChange`** callbacks to own that piece from outside (e.g. clear filters from your
+own button). (Renders at a single md density — no `size` prop.)
 
 **Export** (`exportable`) adds a toolbar export menu (an "Export" header) with a **built-in client-side
 CSV** item — **"This Page"** (the rows shown). The CSV comes from your `columns`

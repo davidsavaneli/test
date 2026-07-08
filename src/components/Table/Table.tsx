@@ -56,6 +56,10 @@ import { TextField } from '../TextField'
 import { Typography } from '../Typography'
 import styles from './Table.module.css'
 
+// Stripped from production builds: `process.env.NODE_ENV` is inlined by every consumer bundler (React's own
+// convention). Declared locally since the library ships without `@types/node`.
+declare const process: { env: { NODE_ENV?: string } } | undefined
+
 export type TableAlign = 'left' | 'center' | 'right'
 export type TableSortDirection = 'asc' | 'desc'
 
@@ -148,7 +152,8 @@ export interface TableChangeState {
   query: string
 }
 
-export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange' | 'title'> {
+/** Props shared by both table modes (everything except the mode-specific `manualPagination` / `rowCount`). */
+interface TableBaseProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange' | 'title'> {
   /** Column definitions — keep them simple: a `key` + `header`, plus an optional `cell` renderer. */
   columns: TableColumn<T>[]
   /**
@@ -157,7 +162,12 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
    * `onChange` and pass `rowCount` for the total.
    */
   data: T[]
-  /** Stable row id from a row (for React keys + selection). Defaults to the row index. */
+  /**
+   * Stable row id from a row — used as the React key, so a row keeps its DOM identity (and any focus /
+   * in-cell state) across sort / filter / refetch. Defaults to the row **index**, which is fine for static
+   * data but reuses DOM by position when rows reorder or a server page swaps in — pass a real id (e.g.
+   * `(row) => row.id`) for any table with row interactions or changing data.
+   */
   getRowId?: (row: T, index: number) => string
   /** Optional heading shown at the top-left of the toolbar. */
   title?: ReactNode
@@ -188,13 +198,6 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   showFirstButton?: boolean
   /** Show the jump-to-last-page (⏭) button in the pagination. Defaults to `false`. */
   showLastButton?: boolean
-  /**
-   * **Server mode** — the table doesn't slice / sort / filter the `data` itself; it just tracks state and
-   * fires `onChange`. Pass the current page in `data` + the total in `rowCount`. Defaults to `false`.
-   */
-  manualPagination?: boolean
-  /** Total row count across all pages — **required in server mode** to compute the page count. */
-  rowCount?: number
   /** Initial sort. */
   defaultSort?: TableSortState | null
   /**
@@ -253,6 +256,30 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   searchQueryKey?: string | null
   /** URL query key for the sort (`?sort=key` asc / `?sort=-key` desc). `null` opts out; omit for the default. */
   sortQueryKey?: string | null
+  // ── Controlled state ─────────────────────────────────────────────────────────
+  // Each pairs with its `default*` counterpart: pass the controlled prop (with its `on*Change`) to own the
+  // state from outside; omit it to let the table manage that piece internally (seeded from `default*`). Mix
+  // freely — e.g. control only `filterValues` while page/sort stay uncontrolled. Pass **stable** values.
+  /** Controlled 1-based page (pair with `onPageChange`); omit for uncontrolled (`defaultPage`). */
+  page?: number
+  /** Fired with the new 1-based page — on user paging, or a reset to page 1 from a size/sort/search/filter change. */
+  onPageChange?: (page: number) => void
+  /** Controlled rows-per-page (pair with `onPageSizeChange`); omit for uncontrolled (`defaultPageSize`). */
+  pageSize?: number
+  /** Fired with the new rows-per-page. */
+  onPageSizeChange?: (size: number) => void
+  /** Controlled (committed, debounced) search query (pair with `onSearchChange`); omit for uncontrolled (`defaultSearch`). */
+  search?: string
+  /** Fired with the committed (debounced) search query. */
+  onSearchChange?: (search: string) => void
+  /** Controlled sort, or `null` (pair with `onSortChange`); omit for uncontrolled (`defaultSort`). */
+  sort?: TableSortState | null
+  /** Fired with the new sort (or `null` when cleared). */
+  onSortChange?: (sort: TableSortState | null) => void
+  /** Controlled filter values, keyed by filter `key` (pair with `onFiltersChange`); omit for uncontrolled (`defaultFilters`). */
+  filterValues?: TableFilterState
+  /** Fired with the filter values on Apply / Clear. */
+  onFiltersChange?: (filters: TableFilterState) => void
   /** Pin the header row while the body scrolls. Defaults to `false`. */
   stickyHeader?: boolean
   /** Zebra-stripe alternate rows. Defaults to `false`. */
@@ -260,6 +287,28 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   /** Highlight rows on hover. Defaults to `true`. */
   hoverable?: boolean
 }
+
+/**
+ * `Table` props. A discriminated union on `manualPagination` so the type enforces the server-mode contract:
+ * **local mode** (default) needs no `rowCount`; **server mode** (`manualPagination`) **requires** it (the
+ * table can't derive the total page count from a single fetched page).
+ */
+export type TableProps<T> =
+  | (TableBaseProps<T> & {
+      /** Local mode (default) — the table slices / sorts / filters `data` itself. */
+      manualPagination?: false
+      /** Ignored in local mode (the table knows the full count from `data`). */
+      rowCount?: number
+    })
+  | (TableBaseProps<T> & {
+      /**
+       * **Server mode** — the table doesn't slice / sort / filter `data`; it tracks state and fires
+       * `onChange`. Pass the current page's rows in `data` and the total in `rowCount`.
+       */
+      manualPagination: true
+      /** Total row count across all pages — **required** in server mode to compute the page count. */
+      rowCount: number
+    })
 
 /** Resolve a TanStack `Updater` (a value or an `(old) => next` function) against the current value. */
 function resolveUpdater<S>(updater: Updater<S>, old: S): S {
@@ -401,6 +450,16 @@ export const Table = forwardRef(function Table<T>(
     sizeQueryKey,
     searchQueryKey,
     sortQueryKey,
+    page,
+    onPageChange,
+    pageSize,
+    onPageSizeChange,
+    search,
+    onSearchChange,
+    sort,
+    onSortChange,
+    filterValues,
+    onFiltersChange,
     stickyHeader = false,
     striped = false,
     hoverable = true,
@@ -477,18 +536,75 @@ export const Table = forwardRef(function Table<T>(
 
   const manual = manualPagination
 
+  // ── controlled-or-uncontrolled resolution ──────────────────────────────────────
+  // Each piece reads its controlled prop when provided, else the internal state above. Every mutation goes
+  // through a `commit*` helper, which fires the `on*Change` callback AND updates the internal fallback (only
+  // for the pieces that aren't controlled) — so controlled + uncontrolled behave identically downstream.
+  const pageControlled = page !== undefined
+  const sizeControlled = pageSize !== undefined
+  const searchControlled = search !== undefined
+  const sortControlled = sort !== undefined
+  const filtersControlled = filterValues !== undefined
+
+  const resolvedPagination: PaginationState = {
+    pageIndex: pageControlled ? page - 1 : pagination.pageIndex,
+    pageSize: sizeControlled ? pageSize : pagination.pageSize,
+  }
+  const resolvedGlobalFilter = searchControlled ? search : globalFilter
+  const resolvedSorting = useMemo<SortingState>(
+    () =>
+      sortControlled ? (sort ? [{ id: sort.key, desc: sort.direction === 'desc' }] : []) : sorting,
+    [sortControlled, sort, sorting],
+  )
+  const resolvedFilterState = useMemo<TableFilterState>(
+    () => (filtersControlled ? filterValues : filterState),
+    [filtersControlled, filterValues, filterState],
+  )
+
+  // commit a pagination change: notify the controlled page/size callbacks + update the internal fallback for
+  // whichever piece is uncontrolled. A pagination change never resets the page (that's the point of paging).
+  const commitPagination = (updater: Updater<PaginationState>) => {
+    const cur = resolvedPagination
+    const next = resolveUpdater(updater, cur)
+    if (next.pageIndex !== cur.pageIndex) onPageChange?.(next.pageIndex + 1)
+    if (next.pageSize !== cur.pageSize) onPageSizeChange?.(next.pageSize)
+    setPagination((p) => ({
+      pageIndex: pageControlled ? p.pageIndex : next.pageIndex,
+      pageSize: sizeControlled ? p.pageSize : next.pageSize,
+    }))
+  }
+  // resetting to the first page is the shared side effect of a size / search / sort / filter change
+  const resetToFirstPage = () =>
+    commitPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }))
+
+  const commitSearch = (value: string, resetPage = true) => {
+    if (!searchControlled) setGlobalFilter(value)
+    onSearchChange?.(value)
+    if (resetPage) resetToFirstPage()
+  }
+  const commitSorting = (updater: Updater<SortingState>, resetPage = true) => {
+    const next = resolveUpdater(updater, resolvedSorting)
+    if (!sortControlled) setSorting(next)
+    onSortChange?.(next[0] ? { key: next[0].id, direction: next[0].desc ? 'desc' : 'asc' } : null)
+    if (resetPage) resetToFirstPage()
+  }
+  const commitFilters = (next: TableFilterState, resetPage = true) => {
+    if (!filtersControlled) setFilterState(next)
+    onFiltersChange?.(next)
+    if (resetPage) resetToFirstPage()
+  }
+
   // local mode: filter `data` client-side before TanStack (search / sort / paginate then run on the result);
   // server mode: pass it through — the consumer fetches per the emitted `state.filters`
   const filteredData = useMemo(
     () =>
-      filters && filters.length > 0 && !manual ? applyFilters(data, filters, filterState) : data,
-    [filters, manual, data, filterState],
+      filters && filters.length > 0 && !manual
+        ? applyFilters(data, filters, resolvedFilterState)
+        : data,
+    [filters, manual, data, resolvedFilterState],
   )
   // applying / clearing filters resets to the first page (the filtered set changes what "page 1" means)
-  const handleFiltersChange = useCallback((next: TableFilterState) => {
-    setFilterState(next)
-    setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }))
-  }, [])
+  const handleFiltersChange = commitFilters
 
   const tanstackColumns = useMemo<ColumnDef<T>[]>(
     () =>
@@ -526,33 +642,29 @@ export const Table = forwardRef(function Table<T>(
     return [...columns, actionsColumn]
   }, [columns, actions])
 
-  // sorting resets to the first page (the sorted order changes what "page 1" means)
-  const handleSortingChange = useCallback((updater: Updater<SortingState>) => {
-    setSorting((old) => resolveUpdater(updater, old))
-    setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }))
-  }, [])
-
   // the sortable columns drive the toolbar sort menu — each lists an explicit ascending + descending entry
   const sortableColumns = useMemo(() => columns.filter((c) => c.sortable), [columns])
   // one row per sortable column; clicking cycles that column through ascending → descending → unsorted
-  const cycleSort = useCallback(
-    (key: string) =>
-      handleSortingChange((prev) => {
-        const cur = prev[0]
-        if (!cur || cur.id !== key) return [{ id: key, desc: false }] // → ascending
-        if (!cur.desc) return [{ id: key, desc: true }] // ascending → descending
-        return [] // descending → unsorted
-      }),
-    [handleSortingChange],
-  )
+  const cycleSort = (key: string) =>
+    commitSorting((prev) => {
+      const cur = prev[0]
+      if (!cur || cur.id !== key) return [{ id: key, desc: false }] // → ascending
+      if (!cur.desc) return [{ id: key, desc: true }] // ascending → descending
+      return [] // descending → unsorted
+    })
 
   const table = useReactTable<T>({
     data: filteredData,
     columns: tanstackColumns,
-    state: { pagination, globalFilter, sorting },
-    onPaginationChange: (updater) => setPagination((old) => resolveUpdater(updater, old)),
-    onGlobalFilterChange: setGlobalFilter,
-    onSortingChange: handleSortingChange,
+    state: {
+      pagination: resolvedPagination,
+      globalFilter: resolvedGlobalFilter,
+      sorting: resolvedSorting,
+    },
+    onPaginationChange: commitPagination,
+    onGlobalFilterChange: (updater) =>
+      commitSearch(resolveUpdater(updater as Updater<string>, resolvedGlobalFilter)),
+    onSortingChange: commitSorting,
     globalFilterFn: 'includesString',
     // first click always sorts ascending (A→Z / 0→9), for every column type — the intuitive default
     sortDescFirst: false,
@@ -572,54 +684,59 @@ export const Table = forwardRef(function Table<T>(
 
   const rows = table.getRowModel().rows
   const totalRows = manual ? (rowCount ?? data.length) : table.getFilteredRowModel().rows.length
-  const pageCount = Math.max(1, Math.ceil(totalRows / pagination.pageSize))
-  const currentPage = pagination.pageIndex + 1
-  const rangeStart = totalRows === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1
+  const { pageIndex, pageSize: resolvedPageSize } = resolvedPagination
+  const pageCount = Math.max(1, Math.ceil(totalRows / resolvedPageSize))
+  const currentPage = pageIndex + 1
+  const rangeStart = totalRows === 0 ? 0 : pageIndex * resolvedPageSize + 1
   const rangeEnd = manual
-    ? Math.min(totalRows, pagination.pageIndex * pagination.pageSize + rows.length)
-    : Math.min(totalRows, currentPage * pagination.pageSize)
+    ? Math.min(totalRows, pageIndex * resolvedPageSize + rows.length)
+    : Math.min(totalRows, currentPage * resolvedPageSize)
 
-  // debounce a typed search into the committed filter, resetting to the first page when it actually changes
+  // keep the search box in sync when `search` is controlled externally (e.g. cleared from a parent button)
   useEffect(() => {
-    if (searchInput === globalFilter) return
-    const handle = setTimeout(() => {
-      setGlobalFilter(searchInput)
-      setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }))
-    }, debounceMs)
+    if (search !== undefined) setSearchInput(search)
+  }, [search])
+
+  // debounce a typed search into the committed query, resetting to the first page when it actually changes
+  useEffect(() => {
+    if (searchInput === resolvedGlobalFilter) return
+    const handle = setTimeout(() => commitSearch(searchInput), debounceMs)
     return () => clearTimeout(handle)
-  }, [searchInput, globalFilter, debounceMs])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput, resolvedGlobalFilter, debounceMs])
 
   // clamp the page if the row count shrank beneath it (e.g. a local search filtered rows away)
   useEffect(() => {
-    if (pagination.pageIndex > 0 && pagination.pageIndex >= pageCount) {
-      setPagination((p) => ({ ...p, pageIndex: pageCount - 1 }))
+    if (pageIndex > 0 && pageIndex >= pageCount) {
+      commitPagination((p) => ({ ...p, pageIndex: pageCount - 1 }))
     }
-  }, [pageCount, pagination.pageIndex])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageCount, pageIndex])
 
-  const sortState: TableSortState | null = sorting[0]
-    ? { key: sorting[0].id, direction: sorting[0].desc ? 'desc' : 'asc' }
+  const sortState: TableSortState | null = resolvedSorting[0]
+    ? { key: resolvedSorting[0].id, direction: resolvedSorting[0].desc ? 'desc' : 'asc' }
     : null
   // the current table state, with the ready-to-use server-request params built from the query mapping (so a
   // consumer fetch / export is a one-liner). Rebuilt on demand — the emit effect + the export actions share it.
   const getTableState = (): TableChangeState => {
-    const page = pagination.pageIndex + 1
-    const size = pagination.pageSize
+    const currentPageNum = pageIndex + 1
+    const size = resolvedPageSize
     const params = buildTableQuery(
-      { page, size, search: globalFilter, sort: sortState },
+      { page: currentPageNum, size, search: resolvedGlobalFilter, sort: sortState },
       queryMappingRef.current,
     )
     // fold the active filters into the same server-request query (config-driven param names/format)
     if (filters?.length) {
-      buildFilterQuery(filters, filterState, queryMappingRef.current).forEach((v, k) =>
+      buildFilterQuery(filters, resolvedFilterState, queryMappingRef.current).forEach((v, k) =>
         params.append(k, v),
       )
     }
     return {
-      page,
+      page: currentPageNum,
       size,
-      search: globalFilter,
+      search: resolvedGlobalFilter,
       sort: sortState,
-      filters: filterState,
+      filters: resolvedFilterState,
       params,
       query: prettyQuery(params),
     }
@@ -628,7 +745,7 @@ export const Table = forwardRef(function Table<T>(
   useEffect(() => {
     onChangeRef.current?.(getTableState())
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting, filterState])
+  }, [pageIndex, resolvedPageSize, resolvedGlobalFilter, resolvedSorting, resolvedFilterState])
 
   // built-in CSV export — the rows currently shown (the displayed page in both modes). Columns come from
   // `columns` (the synthetic actions column isn't there), each cell using `exportValue` if given, else the
@@ -689,43 +806,80 @@ export const Table = forwardRef(function Table<T>(
     [pageKey, sizeKey, searchKey, sortKey],
   )
   useEffect(() => {
-    writeQuery(pagination.pageIndex + 1, pagination.pageSize, globalFilter, sorting[0], filterState)
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting, filterState, writeQuery])
+    writeQuery(
+      pageIndex + 1,
+      resolvedPageSize,
+      resolvedGlobalFilter,
+      resolvedSorting[0],
+      resolvedFilterState,
+    )
+  }, [
+    pageIndex,
+    resolvedPageSize,
+    resolvedGlobalFilter,
+    resolvedSorting,
+    resolvedFilterState,
+    writeQuery,
+  ])
 
-  // Back/Forward → restore page + size + search + sort from the query
+  // Back/Forward → restore page + size + search + sort + filters from the query. Kept fresh behind a stable
+  // ref (the commit* helpers + resolved values change each render), so the listener never re-subscribes. It
+  // restores WITHOUT resetting the page (the URL carries the intended page) and routes through the commit*
+  // helpers so a controlled parent is notified of the Back/Forward navigation too.
+  const popStateRef = useRef<() => void>(() => {})
+  popStateRef.current = () => {
+    const params = new URLSearchParams(window.location.search)
+    if (pageKey || sizeKey) {
+      const urlPage = pageKey ? Number(params.get(pageKey)) : NaN
+      const nextIndex = Number.isInteger(urlPage) && urlPage > 0 ? urlPage - 1 : pageIndex
+      const nextSize = parseUrlSize(
+        sizeKey ? params.get(sizeKey) : null,
+        optionsRef.current,
+        allowAllRows,
+        resolvedPageSize,
+      )
+      commitPagination(() => ({ pageIndex: nextIndex, pageSize: nextSize }))
+    }
+    if (searchKey) {
+      const s = params.get(searchKey) ?? ''
+      setSearchInput(s)
+      commitSearch(s, false)
+    }
+    if (sortKey) commitSorting(() => parseSortParam(params.get(sortKey)), false)
+    const defs = filtersRef.current
+    if (defs?.length) {
+      const next: TableFilterState = {}
+      for (const f of defs) {
+        const raw = params.get(f.key)
+        if (raw != null) next[f.key] = decodeFilterValue(f.type, raw)
+      }
+      commitFilters(next, false)
+    }
+  }
   useEffect(() => {
     if (typeof window === 'undefined' || (!pageKey && !sizeKey && !searchKey && !sortKey)) return
-    const onPopState = () => {
-      const params = new URLSearchParams(window.location.search)
-      const urlPage = pageKey ? Number(params.get(pageKey)) : NaN
-      setPagination((p) => ({
-        pageIndex: Number.isInteger(urlPage) && urlPage > 0 ? urlPage - 1 : p.pageIndex,
-        pageSize: parseUrlSize(
-          sizeKey ? params.get(sizeKey) : null,
-          optionsRef.current,
-          allowAllRows,
-          p.pageSize,
-        ),
-      }))
-      if (searchKey) {
-        const s = params.get(searchKey) ?? ''
-        setSearchInput(s)
-        setGlobalFilter(s)
-      }
-      if (sortKey) setSorting(parseSortParam(params.get(sortKey)))
-      const defs = filtersRef.current
-      if (defs?.length) {
-        const next: TableFilterState = {}
-        for (const f of defs) {
-          const raw = params.get(f.key)
-          if (raw != null) next[f.key] = decodeFilterValue(f.type, raw)
-        }
-        setFilterState(next)
-      }
+    const handler = () => popStateRef.current()
+    window.addEventListener('popstate', handler)
+    return () => window.removeEventListener('popstate', handler)
+  }, [pageKey, sizeKey, searchKey, sortKey])
+
+  // dev-only: a row-interactive table that relies on the index as its React key can misplace row DOM (and
+  // in-cell focus / state) when rows reorder or a server page swaps in — hint to pass `getRowId`. Fires once.
+  useEffect(() => {
+    if (
+      typeof process !== 'undefined' &&
+      process.env.NODE_ENV !== 'production' &&
+      !getRowId &&
+      (onRowClick != null || actions != null)
+    ) {
+      console.warn(
+        '[Table] No `getRowId` provided, so the row index is used as the React key. For a table with row ' +
+          'interactions or changing / paged data, pass `getRowId` (e.g. `(row) => row.id`) so each row keeps ' +
+          'its identity across sort / filter / refetch.',
+      )
     }
-    window.addEventListener('popstate', onPopState)
-    return () => window.removeEventListener('popstate', onPopState)
-  }, [pageKey, sizeKey, searchKey, sortKey, allowAllRows])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // track horizontal scroll so a pinned column shows its shadow only while content is hidden under it
   useEffect(() => {
@@ -993,12 +1147,12 @@ export const Table = forwardRef(function Table<T>(
                   fullWidth={false}
                   clearable={false}
                   showSelectedTick={false}
-                  value={pagination.pageSize >= ALL_ROWS ? 'all' : String(pagination.pageSize)}
+                  value={resolvedPageSize >= ALL_ROWS ? 'all' : String(resolvedPageSize)}
                   onChange={(value) =>
-                    setPagination({
+                    commitPagination(() => ({
                       pageIndex: 0,
                       pageSize: value === 'all' ? ALL_ROWS : Number(value),
-                    })
+                    }))
                   }
                   options={pageSizeChoices}
                 />
@@ -1014,7 +1168,7 @@ export const Table = forwardRef(function Table<T>(
             <Pagination
               count={pageCount}
               page={currentPage}
-              onChange={(page) => setPagination((p) => ({ ...p, pageIndex: page - 1 }))}
+              onChange={(nextPage) => commitPagination((p) => ({ ...p, pageIndex: nextPage - 1 }))}
               showFirstButton={showFirstButton}
               showLastButton={showLastButton}
               disabled={loading}
