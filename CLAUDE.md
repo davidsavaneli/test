@@ -324,11 +324,11 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   it hands the consumer as `state.params` / `state.query` in `onChange`, so a server-mode fetch doesn't
   hand-map page/size/search/sort every time. **This is the backend-transport layer, distinct from
   `keys.*QueryKey`** (which is the browser-URL sync — always page-based, for shareable links). Fields (all
-  optional; defaults reproduce the page-based URL shape `?page=1&size=10&search=…&sort=-key`): **`page`** /
-  **`size`** / **`search`** / **`sort`** (param names, e.g. `skip`/`limit`/`q`/`sortBy`), **`pagination`**
-  (`'page'` default emits the 1-based page; `'offset'` emits `(page-1)*size` under the `page` name — a
+  optional; defaults reproduce the page-based URL shape `?page=1&size=10&search=…&sort=-key`): **`pageParam`** /
+  **`sizeParam`** / **`searchParam`** / **`sortParam`** (request-param names, e.g. `skip`/`limit`/`q`/`sortBy`), **`pagination`**
+  (`'page'` default emits the 1-based page; `'offset'` emits `(page-1)*size` under the `pageParam` name — a
   `skip`), **`sortFormat`** (`'field'` default = one `-`-prefixed param `sort=-price`; `'separate'` = key in
-  `sort` + direction in **`sortOrderKey`** default `'order'` → `sortBy=price&order=desc`; `'suffix'` = the
+  `sortParam` + direction in **`sortOrderParam`** default `'order'` → `sortBy=price&order=desc`; `'suffix'` = the
   direction appended to the key in one param → `sort=priceAsc`/`sort=priceDesc`; the last two use **`ascValue`**
   / **`descValue`** default `'asc'`/`'desc'`), and **`allValue`** (what the size param emits for the **"All"**
   rows choice — e.g. `0`; on **"All"** the **page/offset param is dropped entirely** (no meaningful page) and
@@ -1473,8 +1473,8 @@ default `300`). **`params`** (a `URLSearchParams`) / **`query`** (its string) ar
 server-request query** so the fetch doesn't hand-map anything — `fetch(`/x?${state.query}`)`. They're built
 from the **query mapping** (app-wide `config.table.query` merged with the per-table **`queryMapping`** prop —
 see §5's `table.query`): param names + `page`-vs-`offset` (`skip`) + sort format (`sort=-price` vs
-`sortBy=price&order=desc`), so e.g. DummyJSON needs only `queryMapping={{ page: 'skip', size: 'limit', search:
-'q', sort: 'sortBy', pagination: 'offset', sortFormat: 'separate' }}`. The **endpoint/path/fetch stay yours**
+`sortBy=price&order=desc`), so e.g. DummyJSON needs only `queryMapping={{ pageParam: 'skip', sizeParam: 'limit', searchParam:
+'q', sortParam: 'sortBy', pagination: 'offset', sortFormat: 'separate' }}`. The **endpoint/path/fetch stay yours**
 (Table never fetches); the pure builder is exported as **`buildTableQuery`** (`sava-test/helpers`). **Search** (`searchable`) is a debounced global substring filter (`globalFilterFn:
 'includesString'`) in local mode, or emitted in `onChange` for server mode. **Sorting** is per-column
 (`sortable`) but **not from the header** — it lives in a **toolbar sort menu**: a `Sort`-icon `Dropdown`

@@ -9,10 +9,10 @@ import { ServerTableDemo } from './ServerTableDemo'
 
 // DummyJSON shape + how filters serialize: CSV multiSelect, ranges as `<key>_gte` / `<key>_lte`
 const dummyJsonQuery: TableQueryConfig = {
-  // page: 'skip',
-  // size: 'limit',
-  // search: 'q',
-  // sort: 'sortBy',
+  // pageParam: 'skip',
+  // sizeParam: 'limit',
+  // searchParam: 'q',
+  // sortParam: 'sortBy',
   // pagination: 'offset',
   // sortFormat: 'separate',
   // allValue: 0,

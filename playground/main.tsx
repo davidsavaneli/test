@@ -23,21 +23,21 @@ const config: Config = {
   table: {
     query: {
       // each field shows its active default, with a commented alternative under it
-      page: 'page', // page / offset param name
-      // page: 'skip',
-      size: 'size', // page-size param name
-      // size: 'limit',
-      search: 'search', // search param name
-      // search: 'q',
-      sort: 'sort', // sort-key param name
-      // sort: 'sortBy',
+      pageParam: 'page', // page / offset request-param name
+      // pageParam: 'skip',
+      sizeParam: 'size', // page-size request-param name
+      // sizeParam: 'limit',
+      searchParam: 'search', // search request-param name
+      // searchParam: 'q',
+      sortParam: 'sort', // sort-key request-param name
+      // sortParam: 'sortBy',
       pagination: 'page', // page=2
       // pagination: 'offset', // skip=(page-1)*size
       sortFormat: 'field', // sort=-price
       // sortFormat: 'separate', // sortBy=price&order=desc
       // sortFormat: 'suffix', // sort=priceAsc / sort=priceDesc
-      sortOrderKey: 'order', // direction param (sortFormat: 'separate')
-      // sortOrderKey: 'direction',
+      sortOrderParam: 'order', // direction request-param (sortFormat: 'separate')
+      // sortOrderParam: 'direction',
       ascValue: 'asc', // asc value (sortFormat: 'separate' / 'suffix')
       // ascValue: 'ASC',
       descValue: 'desc', // desc value (sortFormat: 'separate' / 'suffix')

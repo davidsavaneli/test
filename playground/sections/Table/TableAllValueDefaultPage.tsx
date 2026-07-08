@@ -5,8 +5,8 @@ import { QueryFormatDemo } from './QueryFormatDemo'
    dropped too), so the query collapses to nothing. For backends that treat a missing limit as unbounded.
    Same mapping as the "All value — allValue: 0" page, minus `allValue`, to isolate the difference. */
 const defaultAllQuery: TableQueryConfig = {
-  page: 'skip',
-  size: 'limit',
+  pageParam: 'skip',
+  sizeParam: 'limit',
   pagination: 'offset',
   // no allValue → "All" emits neither the page nor the size param
 }

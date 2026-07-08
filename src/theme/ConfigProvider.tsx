@@ -114,12 +114,12 @@ export interface TableQueryConfig {
   /** Direction param name when `sortFormat: 'separate'`. Defaults to `'order'`. */
   sortOrderParam?: string
   /**
-   * Value emitted for an ascending sort — the `sortOrderKey` value when `sortFormat: 'separate'`, or the
+   * Value emitted for an ascending sort — the `sortOrderParam` value when `sortFormat: 'separate'`, or the
    * suffix appended to the key when `sortFormat: 'suffix'`. Defaults to `'asc'`.
    */
   ascValue?: string
   /**
-   * Value emitted for a descending sort — the `sortOrderKey` value when `sortFormat: 'separate'`, or the
+   * Value emitted for a descending sort — the `sortOrderParam` value when `sortFormat: 'separate'`, or the
    * suffix appended to the key when `sortFormat: 'suffix'`. Defaults to `'desc'`.
    */
   descValue?: string

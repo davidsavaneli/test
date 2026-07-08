@@ -5,8 +5,8 @@ import { QueryFormatDemo } from './QueryFormatDemo'
    offset `(page - 1) * size` instead of the page number (`skip=10&limit=10`). Compare with the sibling
    "Pagination — page-based" page. Only `pagination` (and the renamed params) differ. */
 const offsetQuery: TableQueryConfig = {
-  page: 'skip',
-  size: 'limit',
+  pageParam: 'skip',
+  sizeParam: 'limit',
   pagination: 'offset', // → skip=(page-1)*size (zero-based offset)
 }
 

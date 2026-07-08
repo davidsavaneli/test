@@ -5,10 +5,10 @@ import { ServerTableDemo } from './ServerTableDemo'
    (page/size/search/sort → skip/limit/q/sortBy), offset pagination, separate sort, and allValue: 0. This
    is real server mode — onChange fetches the API by appending state.query. */
 const dummyJsonQuery: TableQueryConfig = {
-  page: 'skip',
-  size: 'limit',
-  search: 'q',
-  sort: 'sortBy',
+  pageParam: 'skip',
+  sizeParam: 'limit',
+  searchParam: 'q',
+  sortParam: 'sortBy',
   pagination: 'offset',
   sortFormat: 'separate',
   allValue: 0,

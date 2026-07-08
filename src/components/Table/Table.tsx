@@ -206,7 +206,7 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
   /**
    * Per-table override for how `state.params` / `state.query` are built (param names, `page` vs `offset`
    * pagination, sort format) — merged over the app-wide `config.table.query`. Use it when one table hits a
-   * differently-shaped endpoint (e.g. `{ page: 'skip', size: 'limit', search: 'q', pagination: 'offset' }`).
+   * differently-shaped endpoint (e.g. `{ pageParam: 'skip', sizeParam: 'limit', searchParam: 'q', pagination: 'offset' }`).
    */
   queryMapping?: TableQueryConfig
   /**

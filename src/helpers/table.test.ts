@@ -26,10 +26,10 @@ describe('buildTableQuery', () => {
 
   it('renames params + emits an offset + a separate sort key/order (DummyJSON style)', () => {
     const mapping = {
-      page: 'skip',
-      size: 'limit',
-      search: 'q',
-      sort: 'sortBy',
+      pageParam: 'skip',
+      sizeParam: 'limit',
+      searchParam: 'q',
+      sortParam: 'sortBy',
       pagination: 'offset' as const,
       sortFormat: 'separate' as const,
     }
@@ -55,10 +55,10 @@ describe('buildTableQuery', () => {
     ).toBe('priceDesc')
   })
 
-  it('honors sortOrderKey + asc/desc value overrides', () => {
+  it('honors sortOrderParam + asc/desc value overrides', () => {
     const q = buildTableQuery(state({ sort: { key: 'price', direction: 'desc' } }), {
       sortFormat: 'separate',
-      sortOrderKey: 'direction',
+      sortOrderParam: 'direction',
       ascValue: 'ASC',
       descValue: 'DESC',
     })
@@ -70,8 +70,8 @@ describe('buildTableQuery', () => {
     const all = state({ page: 1, size: Number.MAX_SAFE_INTEGER })
     // "All" has no meaningful page → the page/offset param is dropped; only allValue is emitted
     const withAll = buildTableQuery(all, {
-      page: 'skip',
-      size: 'limit',
+      pageParam: 'skip',
+      sizeParam: 'limit',
       pagination: 'offset',
       allValue: 0,
     })

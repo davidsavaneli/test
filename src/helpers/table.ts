@@ -20,13 +20,13 @@ export interface TableQueryState {
 const DEFAULTS: Required<
   Omit<TableQueryConfig, 'allValue' | 'multiSelectFormat' | 'rangeMinSuffix' | 'rangeMaxSuffix'>
 > = {
-  page: 'page',
-  size: 'size',
-  search: 'search',
-  sort: 'sort',
+  pageParam: 'page',
+  sizeParam: 'size',
+  searchParam: 'search',
+  sortParam: 'sort',
   pagination: 'page',
   sortFormat: 'field',
-  sortOrderKey: 'order',
+  sortOrderParam: 'order',
   ascValue: 'asc',
   descValue: 'desc',
 }
@@ -35,13 +35,13 @@ const DEFAULTS: Required<
  * Build the server-request params for a table's `{ page, size, search, sort }` state, applying a
  * `TableQueryConfig` mapping (defaults reproduce `?page=1&size=10&search=…&sort=-key`):
  * - **pagination** — `'page'` emits the 1-based page; `'offset'` emits `(page - 1) * size` under the
- *   `page` name (e.g. `skip`).
+ *   `pageParam` name (e.g. `skip`).
  * - **size** — the page size. When the **"All"** sentinel is active there's no meaningful page, so the
  *   **page/offset param is dropped entirely** and only the size param is emitted — and only when
  *   `allValue` is set (e.g. `limit=0` = all); with no `allValue`, "All" emits no page and no size.
  * - **search** — omitted when empty.
  * - **sort** — `'field'` emits a single `-`-prefixed param (`sort=-price`); `'separate'` emits the key in
- *   `sort` + the direction (`ascValue`/`descValue`) in `sortOrderKey` (`sortBy=price&order=desc`);
+ *   `sortParam` + the direction (`ascValue`/`descValue`) in `sortOrderParam` (`sortBy=price&order=desc`);
  *   `'suffix'` appends the direction value to the key in one param (`sort=priceAsc` / `sort=priceDesc`).
  */
 export function buildTableQuery(
@@ -56,30 +56,30 @@ export function buildTableQuery(
   if (isAll) {
     // "All" = everything on one page → there's no meaningful page/offset, so the page param is dropped
     // entirely; only the size param is emitted, and only when `allValue` is set (e.g. `limit=0` = all).
-    if (mapping.allValue !== undefined) params.set(m.size, String(mapping.allValue))
+    if (mapping.allValue !== undefined) params.set(m.sizeParam, String(mapping.allValue))
   } else {
     // pagination — a page number, or a zero-based offset for skip/offset APIs
     if (m.pagination === 'offset') {
-      params.set(m.page, String((state.page - 1) * state.size))
+      params.set(m.pageParam, String((state.page - 1) * state.size))
     } else {
-      params.set(m.page, String(state.page))
+      params.set(m.pageParam, String(state.page))
     }
-    params.set(m.size, String(state.size))
+    params.set(m.sizeParam, String(state.size))
   }
 
   // search — only when present
-  if (state.search) params.set(m.search, state.search)
+  if (state.search) params.set(m.searchParam, state.search)
 
   // sort — a `-`-prefixed field, a separate key + direction pair, or the direction appended to the key
   if (state.sort) {
     const dirValue = state.sort.direction === 'desc' ? m.descValue : m.ascValue
     if (m.sortFormat === 'separate') {
-      params.set(m.sort, state.sort.key)
-      params.set(m.sortOrderKey, dirValue)
+      params.set(m.sortParam, state.sort.key)
+      params.set(m.sortOrderParam, dirValue)
     } else if (m.sortFormat === 'suffix') {
-      params.set(m.sort, state.sort.key + dirValue) // e.g. priceAsc / priceDesc
+      params.set(m.sortParam, state.sort.key + dirValue) // e.g. priceAsc / priceDesc
     } else {
-      params.set(m.sort, (state.sort.direction === 'desc' ? '-' : '') + state.sort.key)
+      params.set(m.sortParam, (state.sort.direction === 'desc' ? '-' : '') + state.sort.key)
     }
   }
 

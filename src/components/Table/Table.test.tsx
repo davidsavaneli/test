@@ -325,10 +325,10 @@ describe('Table', () => {
           defaultSort={{ key: 'age', direction: 'desc' }}
           onChange={onChange}
           queryMapping={{
-            page: 'skip',
-            size: 'limit',
-            search: 'q',
-            sort: 'sortBy',
+            pageParam: 'skip',
+            sizeParam: 'limit',
+            searchParam: 'q',
+            sortParam: 'sortBy',
             pagination: 'offset',
             sortFormat: 'separate',
           }}

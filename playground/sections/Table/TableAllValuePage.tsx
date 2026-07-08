@@ -4,8 +4,8 @@ import { QueryFormatDemo } from './QueryFormatDemo'
 /* allValue — what the size param emits when "All" is picked. Here `limit=0` (DummyJSON-style "all"); on
    "All" the page/offset param is dropped too, so the query collapses to just `limit=0`. */
 const allValueQuery: TableQueryConfig = {
-  page: 'skip',
-  size: 'limit',
+  pageParam: 'skip',
+  sizeParam: 'limit',
   pagination: 'offset',
   allValue: 0, // "All" → limit=0 (else the size param would be omitted on "All")
 }

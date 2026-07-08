@@ -476,7 +476,7 @@ The cell swallows clicks, so they won't trigger the row's `onClick` (you don't `
   `config.table.query`): param names + `page`-vs-`offset` (`skip`) + sort format (`sort=-price` vs
   `sortBy=price&order=desc`). Show a **`loading`** overlay while you fetch. The endpoint/path/fetch stay
   yours — the table only builds the params (exported standalone as **`buildTableQuery`**).
-  `<Table manualPagination data={rows} rowCount={total} loading={loading} queryMapping={{ page: 'skip', size: 'limit', search: 'q', sort: 'sortBy', pagination: 'offset', sortFormat: 'separate' }} onChange={(s) => fetch(`/products?${s.query}`)} columns={cols} searchable />`
+  `<Table manualPagination data={rows} rowCount={total} loading={loading} queryMapping={{ pageParam: 'skip', sizeParam: 'limit', searchParam: 'q', sortParam: 'sortBy', pagination: 'offset', sortFormat: 'separate' }} onChange={(s) => fetch(`/products?${s.query}`)} columns={cols} searchable />`
 
 **Page + rows-per-page + search + sort sync to the URL by default**
 (`?page=1&size=10&search=phone&sort=-price` — sort is `key` ascending, `-key` descending) — the param names
