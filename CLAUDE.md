@@ -1509,7 +1509,27 @@ via **`exportActions`** (`TableExportAction[]` = `{ label, icon?, onClick(state)
 built-in items); each `onClick` gets the current `TableChangeState`, so a server export/email hits your
 endpoint with `state.query`. **`exportFileName`** sets the download name (defaults to `title` if a string,
 else `'export'`). The pure serializer (`toCsv`) + `downloadCsv` live in the internal `tableExport.ts`.
-Because the component is
+**Filters** (**`filters`**): declarative filter defs (`TableFilter[]` = `{ key, label, type, options?,
+placeholder? }`) render a toolbar **Filters** button (a `Filter` icon with a **count `Badge`**) opening a
+**`Modal`** — a `Modal`, not a popover, so the nested `Select` / `DatePicker` popovers work inside it (the
+`FloatingPanel` outside-pointerdown would otherwise close a popover-based panel). The modal shows one field
+per def + a **Clear** / **Apply** footer; it edits a **draft** committed only on Apply (Clear commits
+empty). Core types: **`text`** (contains) · **`number`** (=) · **`numberRange`** (two open-bounded Min/Max
+`NumberField`s — either can be empty) · **`numberRangeSlider`** (same value shape, but a two-thumb `Slider`
+— bounds via **`min`**/**`max`**/**`step`**; a thumb at an extent maps back to an open (`null`) bound so a
+full-range slider is inactive) · **`select`** · **`multiSelect`** (∈) · **`boolean`** (a `RadioGroup` —
+Any/Yes/No → off/`true`/`false`; relabel via **`booleanLabels`** `{ any, yes, no }`) · **`date`** (same
+day) · **`dateRange`** · **`time`** (same `HH:mm`) · **`timeRange`** · **`dateTime`** (same minute) ·
+**`dateTimeRange`** — the temporal types compare ISO substrings at their precision (day / `HH:mm` /
+minute), both bounds sliced the same so lexical compare works; `date`/`dateRange` use `DatePicker`, `time`
+/`timeRange` `TimePicker`, `dateTime`/`dateTimeRange` `DateTimePicker` (ranges = a From/To pair).
+`select`/`multiSelect` take `options` (`SelectOption[]`). **Local mode** filters `data` client-side (the pure **`applyFilters`** — AND across set
+filters — pre-filters before TanStack search/sort/paginate); **server mode** emits the active values as
+**`state.filters`** in `onChange` (the consumer maps them to their request — filters aren't auto-added to
+`query` in v1). Applying/clearing resets to page 1; initial values via **`defaultFilters`**. The panel is
+the internal `TableFilters`; the model + matcher live in `tableFilter.ts`. _Per-column filters, an operator
+picker (contains vs equals), URL sync + query-mapping for filters, and active-filter chips are natural next
+iterations._ Because the component is
 **generic** (`Table<T>`) it uses the standard `forwardRef(...) as <T>(props) => ReactElement` cast (the one
 sanctioned deviation from the plain `forwardRef` anatomy — generics don't survive `forwardRef`'s typing).
 **Responsive:** cells are `white-space: nowrap` and the surface (`.scroll`) is `overflow-x: auto` with
@@ -1522,9 +1542,10 @@ sort / pagination, the pinned-column class, the empty-cell "—" placeholder, se
 `queryMapping`-built `query`), the toolbar sort menu, empty + loading, URL sync (page/size canonicalize +
 read + write + opt-out — incl. dropping `page` on "All" — and search/sort read + write), the query builder
 (`buildTableQuery` variants) + the CSV serializer (`toCsv`), the **export** menu (built-in CSV of the
-current page, a custom `exportActions` item firing with the state), and
-`onRowClick`. Own CSS module. _Row selection (checkboxes), column filters (the planned `toolbar` slot),
-column resize/pinning, and virtualization are natural next iterations._
+current page, a custom `exportActions` item firing with the state), the **filters** (`applyFilters` per
+type; the Filters panel filtering local data on Apply + emitting `state.filters` in server mode), and
+`onRowClick`. Own CSS module. _Row selection (checkboxes), per-column filters, filter operator pickers +
+URL/query mapping for filters, column resize/pinning, and virtualization are natural next iterations._
 
 ### TranslatedFields
 

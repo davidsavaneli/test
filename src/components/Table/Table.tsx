@@ -34,6 +34,8 @@ import {
 import { buildTableQuery } from '../../helpers/table'
 import type { IconName } from '../../icons/names'
 import { toCsv, downloadCsv } from './tableExport'
+import { applyFilters, type TableFilter, type TableFilterState } from './tableFilter'
+import { TableFilters } from './TableFilters'
 import { Badge } from '../Badge'
 import { Dropdown } from '../Dropdown'
 import { EmptyState } from '../EmptyState'
@@ -127,6 +129,8 @@ export interface TableChangeState {
   search: string
   /** Active sort, or `null`. */
   sort: TableSortState | null
+  /** Active filter values, keyed by filter `key` (empty when none set). */
+  filters: TableFilterState
   /**
    * The **built server-request params** for this state, from the query mapping (`config.table.query`
    * merged with the `queryMapping` prop) — ready to append to your endpoint, so you don't hand-map
@@ -211,6 +215,15 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onC
    * export. Each `onClick` gets the current `TableChangeState` (incl. `query`), so it can hit your endpoint.
    */
   exportActions?: TableExportAction[]
+  /**
+   * Declarative filters — each renders a field in a toolbar **Filters** panel (a `Modal`). In **local**
+   * mode the table filters `data` client-side; in **server** mode the active values ride in `onChange`
+   * (`state.filters`). Core types: `text` / `number` / `numberRange` / `select` / `multiSelect` /
+   * `boolean` / `date` / `dateRange` (`select` / `multiSelect` take `options`).
+   */
+  filters?: TableFilter[]
+  /** Initial filter values, keyed by filter `key`. */
+  defaultFilters?: TableFilterState
   /** Called when a body row is clicked (makes rows interactive). */
   onRowClick?: (row: T, index: number) => void
   /**
@@ -355,6 +368,8 @@ export const Table = forwardRef(function Table<T>(
     exportable = false,
     exportFileName,
     exportActions,
+    filters,
+    defaultFilters,
     onRowClick,
     actions,
     loading = false,
@@ -422,8 +437,22 @@ export const Table = forwardRef(function Table<T>(
     if (fromUrl.length) return fromUrl
     return defaultSort ? [{ id: defaultSort.key, desc: defaultSort.direction === 'desc' }] : []
   })
+  const [filterState, setFilterState] = useState<TableFilterState>(defaultFilters ?? {})
 
   const manual = manualPagination
+
+  // local mode: filter `data` client-side before TanStack (search / sort / paginate then run on the result);
+  // server mode: pass it through — the consumer fetches per the emitted `state.filters`
+  const filteredData = useMemo(
+    () =>
+      filters && filters.length > 0 && !manual ? applyFilters(data, filters, filterState) : data,
+    [filters, manual, data, filterState],
+  )
+  // applying / clearing filters resets to the first page (the filtered set changes what "page 1" means)
+  const handleFiltersChange = useCallback((next: TableFilterState) => {
+    setFilterState(next)
+    setPagination((p) => (p.pageIndex === 0 ? p : { ...p, pageIndex: 0 }))
+  }, [])
 
   const tanstackColumns = useMemo<ColumnDef<T>[]>(
     () =>
@@ -482,7 +511,7 @@ export const Table = forwardRef(function Table<T>(
   )
 
   const table = useReactTable<T>({
-    data,
+    data: filteredData,
     columns: tanstackColumns,
     state: { pagination, globalFilter, sorting },
     onPaginationChange: (updater) => setPagination((old) => resolveUpdater(updater, old)),
@@ -543,13 +572,21 @@ export const Table = forwardRef(function Table<T>(
       { page, size, search: globalFilter, sort: sortState },
       queryMappingRef.current,
     )
-    return { page, size, search: globalFilter, sort: sortState, params, query: params.toString() }
+    return {
+      page,
+      size,
+      search: globalFilter,
+      sort: sortState,
+      filters: filterState,
+      params,
+      query: params.toString(),
+    }
   }
   // emit the full state on mount + whenever it changes — the server-mode fetch driver
   useEffect(() => {
     onChangeRef.current?.(getTableState())
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting])
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting, filterState])
 
   // built-in CSV export — the rows currently shown (the displayed page in both modes). Columns come from
   // `columns` (the synthetic actions column isn't there), each cell using `exportValue` if given, else the
@@ -565,6 +602,7 @@ export const Table = forwardRef(function Table<T>(
     downloadCsv(resolvedExportName, toCsv(rows, csvColumns))
   }
   const hasExport = exportable || (exportActions != null && exportActions.length > 0)
+  const hasFilters = filters != null && filters.length > 0
 
   // mirror page + size + search + sort into the URL query (replace, so it doesn't spam history);
   // canonicalizes on mount. A key set to `undefined` (opted out) is skipped; an empty value is removed.
@@ -651,7 +689,12 @@ export const Table = forwardRef(function Table<T>(
   }, [])
 
   const hasToolbar =
-    title != null || toolbar != null || searchable || sortableColumns.length > 0 || hasExport
+    title != null ||
+    toolbar != null ||
+    searchable ||
+    hasFilters ||
+    sortableColumns.length > 0 ||
+    hasExport
 
   return (
     <div ref={ref} className={clsx(styles.root, className)} {...props}>
@@ -676,9 +719,12 @@ export const Table = forwardRef(function Table<T>(
               />
             )}
           </div>
-          {/* right group — custom toolbar content + sort + export */}
+          {/* right group — custom toolbar content + filters + sort + export */}
           <div className={styles.toolbarEnd}>
             {toolbar}
+            {hasFilters && (
+              <TableFilters filters={filters} value={filterState} onChange={handleFiltersChange} />
+            )}
             {sortableColumns.length > 0 && (
               // sort menu — each sortable column lists an explicit "ascending" + "descending" entry; picking
               // one applies exactly that sort (clicking the active one clears it). The active entry is shown

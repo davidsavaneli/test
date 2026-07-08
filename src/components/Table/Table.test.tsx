@@ -408,6 +408,48 @@ describe('Table', () => {
     })
   })
 
+  describe('filters', () => {
+    it('filters the data locally via the Filters panel (Apply)', () => {
+      render(
+        <Table
+          data={makeData(25)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          filters={[{ key: 'name', label: 'Name', type: 'text' }]}
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' })) // open the panel (a Modal)
+      fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), {
+        target: { value: 'User 25' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+      expect(screen.getByText('User 25')).toBeInTheDocument()
+      expect(screen.queryByText('User 1')).not.toBeInTheDocument()
+      expect(screen.getByText(/1.1 of 1/)).toBeInTheDocument() // one match
+    })
+
+    it('emits the active filters in onChange (server mode)', () => {
+      const onChange = vi.fn()
+      render(
+        <Table
+          data={makeData(5)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          manualPagination
+          rowCount={5}
+          onChange={onChange}
+          filters={[{ key: 'name', label: 'Name', type: 'text' }]}
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+      fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), { target: { value: 'abc' } })
+      onChange.mockClear()
+      fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+      expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ filters: { name: 'abc' } }))
+    })
+  })
+
   describe('URL sync', () => {
     it('canonicalizes page + size into the query on mount', () => {
       render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)

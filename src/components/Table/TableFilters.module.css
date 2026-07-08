@@ -1,0 +1,40 @@
+/* Filter panel layout (inside the Modal). Fields stack; range types put their two inputs in a wrapping row. */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-sm);
+}
+
+/* a range field — a label above its two inputs */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-xxs);
+}
+/* match the field-family label color (TextField/Select use Typography `muted` = this token) */
+.rangeLabel {
+  color: var(--tz-color-primary-shade600);
+}
+
+/* two inputs side by side (Min/Max, From/To) split by a `–`; the inputs share the width + shrink */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+}
+.row > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* the `–` separator between the two inputs — doesn't grow, muted, vertically centered with the fields */
+.rangeSep {
+  flex: 0 0 auto;
+  color: var(--tz-color-primary-shade600);
+}
+
+/* stacked range — each input on its own line (for wide inputs that don't fit two-up, e.g. dateTimeRange) */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-xs);
+}

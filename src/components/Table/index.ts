@@ -8,3 +8,9 @@ export type {
   TableAlign,
   TableSortDirection,
 } from './Table'
+export type {
+  TableFilter,
+  TableFilterType,
+  TableFilterValue,
+  TableFilterState,
+} from './tableFilter'

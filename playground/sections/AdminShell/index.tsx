@@ -44,6 +44,7 @@ import {
   TableAllValueDefaultPage,
   TableRealApiPage,
   TableExportPage,
+  TableFiltersPage,
   TableEmptyPage,
 } from '../Table'
 import { ButtonSection } from '../Button'
@@ -293,10 +294,16 @@ const tableExportRoute = createRoute({
   staticData: { name: 'Export (CSV + action)', order: 13 },
   component: inPage(TableExportPage),
 })
+const tableFiltersRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'filters',
+  staticData: { name: 'Filters', order: 14 },
+  component: inPage(TableFiltersPage),
+})
 const tableEmptyRoute = createRoute({
   getParentRoute: () => tableGroupRoute,
   path: 'empty',
-  staticData: { name: 'Empty', order: 14 },
+  staticData: { name: 'Empty', order: 15 },
   component: inPage(TableEmptyPage),
 })
 
@@ -662,6 +669,7 @@ const shellRouter = createRouter({
         tableAllValueDefaultRoute,
         tableRealApiRoute,
         tableExportRoute,
+        tableFiltersRoute,
         tableEmptyRoute,
       ]),
     ]),

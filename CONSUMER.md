@@ -500,6 +500,14 @@ Email"**, add **`exportActions={[{ label, icon?, onClick(state) }]}`** — each 
 so you POST `state.query` to your endpoint. `exportFileName` sets the download name.
 `<Table exportable exportFileName="products" exportActions={[{ label: 'Send On Email', icon: 'Sms', onClick: (s) => sendExport(s.query) }]} data={rows} columns={cols} />`
 
+**Filters** (`filters`) is **declarative** — like `columns`: pass `{ key, label, type, options? }[]` and the
+table renders a toolbar **Filters** button (with a count badge) opening a Modal of fields + Clear/Apply.
+Core `type`s: `text` · `number` · `numberRange` · `select` · `multiSelect` · `boolean` · `date` ·
+`dateRange` (`select`/`multiSelect` take `options: { value, label }[]`). In **local** mode the table filters
+`data` client-side (AND across set filters); in **server** mode the active values arrive in `onChange` as
+`state.filters` for you to map to your request. `defaultFilters` seeds initial values.
+`<Table data={rows} columns={cols} filters={[{ key: 'status', label: 'Status', type: 'select', options }, { key: 'price', label: 'Price', type: 'numberRange' }]} />`
+
 **TranslatedFields** — a tabbed group of **per-locale** form fields (one tab per content locale). You
 write the fields **once** via a render function `(name, locale) => …`; `name(field)` returns the
 locale-namespaced form name, so a `<Form>` submits `translations[en-US].title` / `translations[ka-GE].title`.
