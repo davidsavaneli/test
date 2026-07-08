@@ -1511,10 +1511,11 @@ endpoint with `state.query`. **`exportFileName`** sets the download name (defaul
 else `'export'`). The pure serializer (`toCsv`) + `downloadCsv` live in the internal `tableExport.ts`.
 **Filters** (**`filters`**): declarative filter defs (`TableFilter[]` = `{ key, label, type, options?,
 placeholder? }`) render a toolbar **Filters** button (a `Filter` icon with a **count `Badge`**) opening a
-**`Modal`** — a `Modal`, not a popover, so the nested `Select` / `DatePicker` popovers work inside it (the
-`FloatingPanel` outside-pointerdown would otherwise close a popover-based panel). The modal shows one field
-per def + a **Clear** / **Apply** footer; it edits a **draft** committed only on Apply (Clear commits
-empty). Core types: **`text`** (contains) · **`number`** (=) · **`numberRange`** (two open-bounded Min/Max
+right **drawer** (`Modal placement="right"`) — a `Modal`, not a popover, so the nested `Select` /
+`DatePicker` popovers work inside it (the `FloatingPanel` outside-pointerdown would otherwise close a
+popover-based panel). The drawer has a `Filter`-icon header + a footer with **Clear** (`filled`, pinned
+left — resets the draft fields) and **Cancel** / **Apply** (right); it edits a **draft** committed only on
+Apply (Cancel discards). Core types: **`text`** (contains) · **`number`** (=) · **`numberRange`** (two open-bounded Min/Max
 `NumberField`s — either can be empty) · **`numberRangeSlider`** (same value shape, but a two-thumb `Slider`
 — bounds via **`min`**/**`max`**/**`step`**; a thumb at an extent maps back to an open (`null`) bound so a
 full-range slider is inactive) · **`select`** · **`multiSelect`** (∈) · **`boolean`** (a `RadioGroup` —

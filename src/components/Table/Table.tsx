@@ -722,8 +722,36 @@ export const Table = forwardRef(function Table<T>(
           {/* right group — custom toolbar content + filters + sort + export */}
           <div className={styles.toolbarEnd}>
             {toolbar}
-            {hasFilters && (
-              <TableFilters filters={filters} value={filterState} onChange={handleFiltersChange} />
+            {hasExport && (
+              // export menu — built-in client-side CSV of the current page ("This Page"), then any
+              // consumer `exportActions` (e.g. "Send On Email" / a server export)
+              <Dropdown
+                placement="bottom-end"
+                trigger={
+                  <IconButton variant="filled" size="sm" aria-label="Export">
+                    <Icon name="ExportArrow" />
+                  </IconButton>
+                }
+              >
+                <Typography as="div" variant="caption" color="muted" className={styles.menuTitle}>
+                  Export
+                </Typography>
+                {exportable && (
+                  <ListItem clickable icon="DocumentDownload" onClick={exportCsv}>
+                    This Page
+                  </ListItem>
+                )}
+                {exportActions?.map((action, i) => (
+                  <ListItem
+                    key={i}
+                    clickable
+                    icon={action.icon}
+                    onClick={() => action.onClick(getTableState())}
+                  >
+                    {action.label}
+                  </ListItem>
+                ))}
+              </Dropdown>
             )}
             {sortableColumns.length > 0 && (
               // sort menu — each sortable column lists an explicit "ascending" + "descending" entry; picking
@@ -763,36 +791,8 @@ export const Table = forwardRef(function Table<T>(
                 })}
               </Dropdown>
             )}
-            {hasExport && (
-              // export menu — built-in client-side CSV of the current page ("This Page"), then any
-              // consumer `exportActions` (e.g. "Send On Email" / a server export)
-              <Dropdown
-                placement="bottom-end"
-                trigger={
-                  <IconButton variant="filled" size="sm" aria-label="Export">
-                    <Icon name="ExportArrow" />
-                  </IconButton>
-                }
-              >
-                <Typography as="div" variant="caption" color="muted" className={styles.menuTitle}>
-                  Export
-                </Typography>
-                {exportable && (
-                  <ListItem clickable icon="DocumentDownload" onClick={exportCsv}>
-                    This Page
-                  </ListItem>
-                )}
-                {exportActions?.map((action, i) => (
-                  <ListItem
-                    key={i}
-                    clickable
-                    icon={action.icon}
-                    onClick={() => action.onClick(getTableState())}
-                  >
-                    {action.label}
-                  </ListItem>
-                ))}
-              </Dropdown>
+            {hasFilters && (
+              <TableFilters filters={filters} value={filterState} onChange={handleFiltersChange} />
             )}
           </div>
         </div>

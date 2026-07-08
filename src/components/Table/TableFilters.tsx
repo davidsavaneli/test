@@ -259,9 +259,10 @@ export interface TableFiltersProps {
 }
 
 /**
- * The Table's filter control — a toolbar **Filters** button (with a count `Badge`) that opens a `Modal`
- * of fields (one per `filter` def). Edits a **draft** committed only on **Apply**; **Clear** resets. A
- * `Modal` (not a popover) so nested `Select` / `DatePicker` popovers work inside it.
+ * The Table's filter control — a toolbar **Filters** button (with a count `Badge`) that opens a right
+ * **drawer** (`Modal placement="right"`) of fields (one per `filter` def). Edits a **draft** committed only
+ * on **Apply**; **Clear** resets. A `Modal` (not a popover) so nested `Select` / `DatePicker` popovers work
+ * inside it.
  */
 export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
   const [open, setOpen] = useState(false)
@@ -276,40 +277,42 @@ export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
   return (
     <>
       <Badge content={count} color="primary">
-        <IconButton
-          variant={count > 0 ? 'filled' : 'outlined'}
-          size="sm"
-          aria-label="Filters"
-          onClick={openPanel}
-        >
+        <IconButton variant="filled" size="sm" aria-label="Filters" onClick={openPanel}>
           <Icon name="Filter" />
         </IconButton>
       </Badge>
       <Modal
         open={open}
         onClose={() => setOpen(false)}
+        placement="right"
         size="sm"
+        icon="Filter"
         title="Filters"
+        description="Narrow the table by the fields below."
         footer={
-          <>
+          // Clear (reset the draft fields) pinned left; Cancel (discard + close) + Apply (commit) on the right
+          <div className={styles.footer}>
             <Button
-              variant="text"
-              onClick={() => {
-                onChange({})
-                setOpen(false)
-              }}
+              variant="filled"
+              startIcon={<Icon name="FilterRemove" />}
+              onClick={() => setDraft({})}
             >
               Clear
             </Button>
-            <Button
-              onClick={() => {
-                onChange(draft)
-                setOpen(false)
-              }}
-            >
-              Apply
-            </Button>
-          </>
+            <div className={styles.footerEnd}>
+              <Button variant="text" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  onChange(draft)
+                  setOpen(false)
+                }}
+              >
+                Apply
+              </Button>
+            </div>
+          </div>
         }
       >
         <div className={styles.fields}>
