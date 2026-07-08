@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { activeFilterCount, applyFilters, isFilterActive, type TableFilter } from './tableFilter'
+import {
+  activeFilterCount,
+  applyFilters,
+  buildFilterQuery,
+  decodeFilterValue,
+  encodeFilterValue,
+  isFilterActive,
+  type TableFilter,
+  type TableFilterType,
+  type TableFilterValue,
+} from './tableFilter'
 
 interface Row {
   name: string
@@ -141,5 +151,99 @@ describe('applyFilters — time / datetime types (ISO values)', () => {
       at: ['2026-03-01T00:00:00', '2026-03-02T00:00:00'],
     })
     expect(ids(out)).toEqual([1, 2])
+  })
+})
+
+describe('encodeFilterValue / decodeFilterValue (URL round-trip)', () => {
+  const cases: Array<[TableFilterType, TableFilterValue, string]> = [
+    ['text', 'phone', 'phone'],
+    ['number', 5, '5'],
+    ['select', 'furniture', 'furniture'],
+    ['boolean', true, 'true'],
+    ['multiSelect', ['a', 'b'], 'a,b'],
+    ['numberRange', [10, 100], '10,100'],
+    ['numberRange', [null, 40], ',40'],
+    ['dateRange', ['2026-01-01', '2026-02-01'], '2026-01-01,2026-02-01'],
+    [
+      'dateTimeRange',
+      ['2026-01-01T09:00:00', '2026-01-02T10:00:00'],
+      '2026-01-01T09:00:00,2026-01-02T10:00:00',
+    ],
+  ]
+
+  it('encodes to the expected URL string', () => {
+    for (const [type, value, encoded] of cases) expect(encodeFilterValue(type, value)).toBe(encoded)
+  })
+
+  it('round-trips encode → decode by type', () => {
+    for (const [type, value] of cases) {
+      const enc = encodeFilterValue(type, value)!
+      expect(decodeFilterValue(type, enc)).toEqual(value)
+    }
+  })
+
+  it('returns null for an inactive value (so it is omitted from the URL)', () => {
+    expect(encodeFilterValue('text', '')).toBeNull()
+    expect(encodeFilterValue('multiSelect', [])).toBeNull()
+    expect(encodeFilterValue('numberRange', [null, null])).toBeNull()
+  })
+})
+
+describe('buildFilterQuery (server-request query)', () => {
+  const defs: TableFilter[] = [
+    { key: 'name', label: '', type: 'text' },
+    { key: 'category', label: '', type: 'select' },
+    { key: 'brand', label: '', type: 'multiSelect' },
+    { key: 'price', label: '', type: 'numberRange' },
+    { key: 'inStock', label: '', type: 'boolean' },
+  ]
+
+  it('serializes scalars + multiSelect (repeat) + range (Min/Max) by default', () => {
+    const q = buildFilterQuery(defs, {
+      name: 'phone',
+      category: 'furniture',
+      brand: ['a', 'b'],
+      price: [10, 100],
+      inStock: true,
+    })
+    expect(q.get('name')).toBe('phone')
+    expect(q.get('category')).toBe('furniture')
+    expect(q.getAll('brand')).toEqual(['a', 'b']) // repeated params
+    expect(q.get('priceMin')).toBe('10')
+    expect(q.get('priceMax')).toBe('100')
+    expect(q.get('inStock')).toBe('true')
+  })
+
+  it('skips inactive filters (empty query)', () => {
+    expect(buildFilterQuery(defs, { name: '', brand: [], price: [null, null] }).toString()).toBe('')
+  })
+
+  it('honors multiSelectFormat: csv + custom range suffixes + queryKey rename', () => {
+    const custom: TableFilter[] = [
+      { key: 'brand', label: '', type: 'multiSelect' },
+      { key: 'price', label: '', type: 'numberRange' },
+      { key: 'name', label: '', type: 'text', queryKey: 'q' },
+    ]
+    const q = buildFilterQuery(
+      custom,
+      { brand: ['a', 'b'], price: [10, null], name: 'x' },
+      { multiSelectFormat: 'csv', rangeMinSuffix: '_gte', rangeMaxSuffix: '_lte' },
+    )
+    expect(q.get('brand')).toBe('a,b') // csv
+    expect(q.get('price_gte')).toBe('10')
+    expect(q.has('price_lte')).toBe(false) // max not set → omitted
+    expect(q.get('q')).toBe('x') // queryKey rename
+  })
+
+  it('multiSelectFormat: indexed → cat[0]=a&cat[1]=b', () => {
+    const q = buildFilterQuery(
+      [{ key: 'brand', label: '', type: 'multiSelect' }],
+      { brand: ['a', 'b'] },
+      {
+        multiSelectFormat: 'indexed',
+      },
+    )
+    expect(q.get('brand[0]')).toBe('a')
+    expect(q.get('brand[1]')).toBe('b')
   })
 })

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { DatePicker } from '../DatePicker'
@@ -268,10 +268,15 @@ export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<TableFilterState>(value)
   const count = activeFilterCount(filters, value)
+  const formId = useId() // links the footer Apply (submit) to the body form, so Enter also applies
 
   const openPanel = () => {
     setDraft(value) // seed the draft from the committed values each time the panel opens
     setOpen(true)
+  }
+  const commit = () => {
+    onChange(draft)
+    setOpen(false)
   }
 
   return (
@@ -303,19 +308,22 @@ export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
               <Button variant="text" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button
-                onClick={() => {
-                  onChange(draft)
-                  setOpen(false)
-                }}
-              >
+              {/* submits the body form (`formId`) — so clicking Apply OR pressing Enter in a field commits */}
+              <Button type="submit" form={formId}>
                 Apply
               </Button>
             </div>
           </div>
         }
       >
-        <div className={styles.fields}>
+        <form
+          id={formId}
+          className={styles.fields}
+          onSubmit={(e) => {
+            e.preventDefault()
+            commit()
+          }}
+        >
           {filters.map((filter) => (
             <FilterField
               key={filter.key}
@@ -324,7 +332,7 @@ export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
               onChange={(v) => setDraft((prev) => ({ ...prev, [filter.key]: v }))}
             />
           ))}
-        </div>
+        </form>
       </Modal>
     </>
   )

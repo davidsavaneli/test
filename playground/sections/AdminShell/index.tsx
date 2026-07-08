@@ -45,6 +45,7 @@ import {
   TableRealApiPage,
   TableExportPage,
   TableFiltersPage,
+  TableServerFiltersPage,
   TableEmptyPage,
 } from '../Table'
 import { ButtonSection } from '../Button'
@@ -297,13 +298,19 @@ const tableExportRoute = createRoute({
 const tableFiltersRoute = createRoute({
   getParentRoute: () => tableGroupRoute,
   path: 'filters',
-  staticData: { name: 'Filters', order: 14 },
+  staticData: { name: 'Filters (Local)', order: 14 },
   component: inPage(TableFiltersPage),
+})
+const tableServerFiltersRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'filters-server',
+  staticData: { name: 'Filters (Server)', order: 15 },
+  component: inPage(TableServerFiltersPage),
 })
 const tableEmptyRoute = createRoute({
   getParentRoute: () => tableGroupRoute,
   path: 'empty',
-  staticData: { name: 'Empty', order: 15 },
+  staticData: { name: 'Empty', order: 16 },
   component: inPage(TableEmptyPage),
 })
 
@@ -670,6 +677,7 @@ const shellRouter = createRouter({
         tableRealApiRoute,
         tableExportRoute,
         tableFiltersRoute,
+        tableServerFiltersRoute,
         tableEmptyRoute,
       ]),
     ]),

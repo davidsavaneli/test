@@ -448,6 +448,84 @@ describe('Table', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
       expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ filters: { name: 'abc' } }))
     })
+
+    it('folds active filters into state.query (server query mapping)', () => {
+      const onChange = vi.fn()
+      render(
+        <Table
+          data={makeData(5)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          manualPagination
+          rowCount={5}
+          onChange={onChange}
+          filters={[
+            {
+              key: 'role',
+              label: 'Role',
+              type: 'select',
+              options: [
+                { value: 'Admin', label: 'Admin' },
+                { value: 'Member', label: 'Member' },
+              ],
+            },
+          ]}
+          urlSync={false}
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+      // pick a value via the Select inside the filter panel
+      fireEvent.click(screen.getByRole('combobox', { name: 'Role' }))
+      fireEvent.click(screen.getByRole('option', { name: 'Admin' }))
+      onChange.mockClear()
+      fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+      const state = onChange.mock.calls[0][0] as { query: string }
+      expect(state.query).toContain('role=Admin') // filter folded into the request query
+    })
+
+    it('applies on form submit — Enter in a field commits (footer Apply drives the body form)', () => {
+      render(
+        <Table
+          data={makeData(25)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          filters={[{ key: 'name', label: 'Name', type: 'text' }]}
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+      fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), {
+        target: { value: 'User 25' },
+      })
+      // pressing Enter in a field submits the panel form (same path Apply uses)
+      fireEvent.submit(document.querySelector('form')!)
+      expect(screen.getByText('User 25')).toBeInTheDocument()
+      expect(screen.queryByText('User 1')).not.toBeInTheDocument()
+    })
+
+    it('leaves `,` and `:` unencoded in state.query (readable, not %2C / %3A)', () => {
+      const onChange = vi.fn()
+      render(
+        <Table
+          data={makeData(3)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          manualPagination
+          rowCount={3}
+          onChange={onChange}
+          filters={[{ key: 'name', label: 'Name', type: 'text' }]}
+          urlSync={false}
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+      fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), {
+        target: { value: 'a:b,c' },
+      })
+      onChange.mockClear()
+      fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+      const state = onChange.mock.calls[0][0] as { query: string; params: URLSearchParams }
+      expect(state.query).toContain('name=a:b,c') // readable
+      expect(state.params.toString()).toContain('name=a%3Ab%2Cc') // params stays strictly encoded
+    })
   })
 
   describe('URL sync', () => {
@@ -530,6 +608,39 @@ describe('Table', () => {
         'aria-sort',
         'descending',
       )
+    })
+
+    it('syncs an applied filter to the URL (under its key)', () => {
+      render(
+        <Table
+          data={makeData(25)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          filters={[{ key: 'name', label: 'Name', type: 'text' }]}
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+      fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), {
+        target: { value: 'User 25' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+      expect(new URLSearchParams(window.location.search).get('name')).toBe('User 25')
+    })
+
+    it('restores filters from the URL on mount (URL wins over defaultFilters)', () => {
+      window.history.replaceState({}, '', '/?name=User+25')
+      render(
+        <Table
+          data={makeData(25)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          filters={[{ key: 'name', label: 'Name', type: 'text' }]}
+          defaultFilters={{ name: 'ignored' }}
+        />,
+      )
+      expect(screen.getByText('User 25')).toBeInTheDocument()
+      expect(screen.queryByText('User 1')).not.toBeInTheDocument()
+      expect(screen.getByText(/1.1 of 1/)).toBeInTheDocument() // one match — the URL filter applied
     })
   })
 

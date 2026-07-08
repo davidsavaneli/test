@@ -1,5 +1,14 @@
-import { Chip, Table, type TableColumn, type TableFilter, type ThemeColor } from '../../../src'
+import { useState } from 'react'
+import {
+  Chip,
+  Table,
+  type TableColumn,
+  type TableFilter,
+  type TableQueryConfig,
+  type ThemeColor,
+} from '../../../src'
 import { Block, Section } from '../../shared'
+import { QueryPreview } from './QueryPreview'
 
 /* Filters demo (local mode) — EVERY filter type at once. `filters` is declarative (like `columns`): the
    table renders a toolbar "Filters" button (count badge) opening a Modal of fields + Clear/Apply. In local
@@ -101,13 +110,23 @@ const filters: TableFilter[] = [
   { key: 'endAt', label: 'Ends between', type: 'dateTimeRange' }, // dateTimeRange
 ]
 
+// server-request query shape: multiSelect as CSV, ranges as `<key>_gte` / `<key>_lte` (config-driven)
+const queryMapping: TableQueryConfig = {
+  multiSelectFormat: 'csv',
+  rangeMinSuffix: '_gte',
+  rangeMaxSuffix: '_lte',
+}
+
 export function TableFiltersPage() {
+  // the query a server would receive — shown live so you can watch filters fold into it on Apply
+  const [query, setQuery] = useState('')
   return (
     <Section>
       <Block
         label="Filters — every type (local)"
-        description="Click Filters (top-right) → a Modal with one field per filter def, covering every core type: text · number · numberRange (Min/Max inputs) · numberRangeSlider (two-thumb slider) · select · multiSelect · boolean · date · dateRange · time · timeRange · dateTime · dateTimeRange. Set some and Apply — data filters client-side (AND) and the button shows a count badge. Clear resets."
+        description="Click Filters (top-right) → a drawer with one field per filter def, covering every core type: text · number · numberRange (Min/Max inputs) · numberRangeSlider (two-thumb slider) · select · multiSelect · boolean · date · dateRange · time · timeRange · dateTime · dateTimeRange. Set some and Apply — data filters client-side (AND), the button shows a count badge, the URL syncs (?category=…), and the query below fills with the server params (filters folded in). Clear resets."
       >
+        <QueryPreview path="/products" query={query} />
         <Table
           data={DATA}
           columns={columns}
@@ -115,6 +134,8 @@ export function TableFiltersPage() {
           searchable
           searchPlaceholder="Search…"
           filters={filters}
+          queryMapping={queryMapping}
+          onChange={(s) => setQuery(s.query)}
         />
       </Block>
     </Section>

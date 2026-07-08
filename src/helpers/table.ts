@@ -16,8 +16,10 @@ export interface TableQueryState {
   sort: { key: string; direction: 'asc' | 'desc' } | null
 }
 
-/** Resolved defaults for every mapping field — the page-based browser-URL shape. */
-const DEFAULTS: Required<Omit<TableQueryConfig, 'allValue'>> = {
+/** Resolved defaults for the page/size/search/sort fields (filter fields are handled by `buildFilterQuery`). */
+const DEFAULTS: Required<
+  Omit<TableQueryConfig, 'allValue' | 'multiSelectFormat' | 'rangeMinSuffix' | 'rangeMaxSuffix'>
+> = {
   page: 'page',
   size: 'size',
   search: 'search',

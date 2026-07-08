@@ -1,6 +1,7 @@
 // Table filters — the declarative filter model + the pure local matcher. `applyFilters` is used by the
 // Table in local mode (client-side) and is pure/testable; server mode just emits the filter state in
 // `onChange`. Core filter types only (text / number / range / select / multi / boolean / date / dateRange).
+import type { TableQueryConfig } from '../../theme'
 import type { SelectOption } from '../Select'
 
 /** Which control + matching logic a filter uses. */
@@ -41,6 +42,12 @@ export interface TableFilter {
   options?: SelectOption[]
   /** Placeholder for the input(s). */
   placeholder?: string
+  /**
+   * Param name this filter serializes to in the **server-request** query (`state.query`). Defaults to
+   * `key`. Set it to rename or bake in an operator — e.g. `'name_like'`, `'q'`, `'status'`. Range filters
+   * append the `rangeMin/MaxSuffix` to this.
+   */
+  queryKey?: string
   /** `numberRange` slider bounds + step (defaults `0` / `100` / `1`) — set to match the column's data range. */
   min?: number
   max?: number
@@ -145,4 +152,115 @@ export function applyFilters<T>(rows: T[], filters: TableFilter[], state: TableF
   return rows.filter((row) =>
     active.every((f) => matchOne(f.type, (row as Record<string, unknown>)[f.key], state[f.key]!)),
   )
+}
+
+// ── URL serialization ──────────────────────────────────────────────────────────
+// A filter value ⇄ a single URL-param string. Arrays/tuples join with `,`; parsing is directed by the
+// filter's `type` (the Table has the defs on both write + read), so it round-trips. Values with a literal
+// comma (multi-select option ids, range bounds) aren't supported — filter values are keys/numbers/dates.
+
+/** Serialize an **active** filter value to its URL-param string, or `null` when it isn't set (→ omit). */
+export function encodeFilterValue(
+  type: TableFilterType,
+  value: TableFilterValue | undefined,
+): string | null {
+  if (!isFilterActive(type, value)) return null
+  switch (type) {
+    case 'multiSelect':
+      return (value as string[]).join(',')
+    case 'numberRange':
+    case 'numberRangeSlider': {
+      const [min, max] = value as [number | null, number | null]
+      return `${min ?? ''},${max ?? ''}`
+    }
+    case 'dateRange':
+    case 'timeRange':
+    case 'dateTimeRange': {
+      const [from, to] = value as [string, string]
+      return `${from ?? ''},${to ?? ''}`
+    }
+    default: // text · number · select · boolean · date · time · dateTime
+      return String(value)
+  }
+}
+
+/** Parse a URL-param string back to a filter value, by the filter's `type` (inverse of `encodeFilterValue`). */
+export function decodeFilterValue(type: TableFilterType, raw: string): TableFilterValue {
+  switch (type) {
+    case 'number': {
+      const n = Number(raw)
+      return Number.isNaN(n) ? null : n
+    }
+    case 'boolean':
+      return raw === 'true' ? true : raw === 'false' ? false : null
+    case 'multiSelect':
+      return raw ? raw.split(',').filter(Boolean) : []
+    case 'numberRange':
+    case 'numberRangeSlider': {
+      const [a = '', b = ''] = raw.split(',')
+      return [a ? Number(a) : null, b ? Number(b) : null]
+    }
+    case 'dateRange':
+    case 'timeRange':
+    case 'dateTimeRange': {
+      const [a = '', b = ''] = raw.split(',')
+      return [a, b]
+    }
+    default: // text · select · date · time · dateTime
+      return raw
+  }
+}
+
+// ── server-request query ─────────────────────────────────────────────────────────
+/**
+ * Serialize the active filters into **server-request** params (folded into `state.query` alongside
+ * page/size/search/sort). Each filter uses its `queryKey ?? key`; scalars emit `param=value`, a
+ * `multiSelect` emits repeated / CSV / indexed params (`multiSelectFormat`), and ranges emit two params
+ * `<param><rangeMinSuffix>` / `<param><rangeMaxSuffix>` (defaults `Min`/`Max`) — only for the set bound.
+ * Config-driven via the shared `TableQueryConfig`; inactive filters are skipped.
+ */
+export function buildFilterQuery(
+  filters: TableFilter[],
+  state: TableFilterState,
+  mapping: TableQueryConfig = {},
+): URLSearchParams {
+  const params = new URLSearchParams()
+  const minSuffix = mapping.rangeMinSuffix ?? 'Min'
+  const maxSuffix = mapping.rangeMaxSuffix ?? 'Max'
+  const multiFormat = mapping.multiSelectFormat ?? 'repeat'
+
+  for (const f of filters) {
+    const value = state[f.key]
+    if (!isFilterActive(f.type, value)) continue
+    const param = f.queryKey ?? f.key
+    switch (f.type) {
+      case 'multiSelect': {
+        const arr = value as string[]
+        if (multiFormat === 'csv')
+          params.set(param, arr.join(',')) // cat=a,b
+        else if (multiFormat === 'indexed')
+          arr.forEach((v, i) => params.set(`${param}[${i}]`, v)) // cat[0]=a&cat[1]=b
+        else arr.forEach((v) => params.append(param, v)) // repeat → cat=a&cat=b
+        break
+      }
+      case 'numberRange':
+      case 'numberRangeSlider': {
+        const [min, max] = value as [number | null, number | null]
+        if (min != null) params.set(param + minSuffix, String(min))
+        if (max != null) params.set(param + maxSuffix, String(max))
+        break
+      }
+      case 'dateRange':
+      case 'timeRange':
+      case 'dateTimeRange': {
+        const [from, to] = value as [string, string]
+        if (from) params.set(param + minSuffix, from)
+        if (to) params.set(param + maxSuffix, to)
+        break
+      }
+      default: // text · number · select · boolean · date · time · dateTime
+        params.set(param, String(value))
+    }
+  }
+  return params
 }

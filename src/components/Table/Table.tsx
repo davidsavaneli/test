@@ -34,7 +34,14 @@ import {
 import { buildTableQuery } from '../../helpers/table'
 import type { IconName } from '../../icons/names'
 import { toCsv, downloadCsv } from './tableExport'
-import { applyFilters, type TableFilter, type TableFilterState } from './tableFilter'
+import {
+  applyFilters,
+  buildFilterQuery,
+  decodeFilterValue,
+  encodeFilterValue,
+  type TableFilter,
+  type TableFilterState,
+} from './tableFilter'
 import { TableFilters } from './TableFilters'
 import { Badge } from '../Badge'
 import { Dropdown } from '../Dropdown'
@@ -329,6 +336,21 @@ function readUrlParam(key: string | undefined): string | null {
 }
 
 /**
+ * `URLSearchParams.toString()`, but with the commonly-unencoded chars `,` `:` `[` `]` left raw — all read
+ * cleanly in a query and are accepted by servers in practice (`brand=a,b`, `created=…T09:00:00`,
+ * `cat[0]=a`). Non-ASCII (e.g. Georgian text) stays percent-encoded — that's unavoidable in a URL. This
+ * makes `state.query` pretty; `state.params.toString()` stays strictly encoded for consumers who want that.
+ */
+function prettyQuery(params: URLSearchParams): string {
+  return params
+    .toString()
+    .replace(/%2C/gi, ',')
+    .replace(/%3A/gi, ':')
+    .replace(/%5B/gi, '[')
+    .replace(/%5D/gi, ']')
+}
+
+/**
  * A data table built on **TanStack Table** (headless — an optional peer, `external`) styled entirely with
  * `--tz-*` tokens. Pass `columns` + `data` and it renders a sortable, paginated, searchable table. Works
  * two ways: **local** (hand it the full `data` — it searches / sorts / paginates client-side) or **server**
@@ -408,6 +430,9 @@ export const Table = forwardRef(function Table<T>(
   optionsRef.current = pageSizeOptions
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+  // filter defs for the stable URL write/popstate closures (types drive the URL (de)serialization)
+  const filtersRef = useRef(filters)
+  filtersRef.current = filters
 
   // horizontal-scroll state → a soft shadow on a pinned column's inner edge when content is hidden under
   // it (so it reads as "content scrolls under here", not a hard cut)
@@ -437,7 +462,18 @@ export const Table = forwardRef(function Table<T>(
     if (fromUrl.length) return fromUrl
     return defaultSort ? [{ id: defaultSort.key, desc: defaultSort.direction === 'desc' }] : []
   })
-  const [filterState, setFilterState] = useState<TableFilterState>(defaultFilters ?? {})
+  const [filterState, setFilterState] = useState<TableFilterState>(() => {
+    const base = defaultFilters ?? {}
+    // seed each filter from its URL param (`?<key>=…`) when synced — the URL wins over `defaultFilters`
+    if (!urlSync || typeof window === 'undefined' || !filters?.length) return base
+    const params = new URLSearchParams(window.location.search)
+    const fromUrl: TableFilterState = {}
+    for (const f of filters) {
+      const raw = params.get(f.key)
+      if (raw != null) fromUrl[f.key] = decodeFilterValue(f.type, raw)
+    }
+    return { ...base, ...fromUrl }
+  })
 
   const manual = manualPagination
 
@@ -572,6 +608,12 @@ export const Table = forwardRef(function Table<T>(
       { page, size, search: globalFilter, sort: sortState },
       queryMappingRef.current,
     )
+    // fold the active filters into the same server-request query (config-driven param names/format)
+    if (filters?.length) {
+      buildFilterQuery(filters, filterState, queryMappingRef.current).forEach((v, k) =>
+        params.append(k, v),
+      )
+    }
     return {
       page,
       size,
@@ -579,7 +621,7 @@ export const Table = forwardRef(function Table<T>(
       sort: sortState,
       filters: filterState,
       params,
-      query: params.toString(),
+      query: prettyQuery(params),
     }
   }
   // emit the full state on mount + whenever it changes — the server-mode fetch driver
@@ -607,7 +649,13 @@ export const Table = forwardRef(function Table<T>(
   // mirror page + size + search + sort into the URL query (replace, so it doesn't spam history);
   // canonicalizes on mount. A key set to `undefined` (opted out) is skipped; an empty value is removed.
   const writeQuery = useCallback(
-    (page: number, pageSize: number, search: string, sort: SortingState[number] | undefined) => {
+    (
+      page: number,
+      pageSize: number,
+      search: string,
+      sort: SortingState[number] | undefined,
+      activeFilters: TableFilterState,
+    ) => {
       const anyKey = pageKey || sizeKey || searchKey || sortKey
       if (typeof window === 'undefined' || !anyKey) return
       const params = new URLSearchParams(window.location.search)
@@ -629,6 +677,10 @@ export const Table = forwardRef(function Table<T>(
       set(sizeKey, sizeToParam(pageSize))
       set(searchKey, search)
       set(sortKey, sortToParam(sort))
+      // each filter under its own `key` param (its `type` drives (de)serialization); inactive → removed
+      for (const f of filtersRef.current ?? []) {
+        set(f.key, encodeFilterValue(f.type, activeFilters[f.key]) ?? '')
+      }
       if (!changed) return
       const query = params.toString()
       const url = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`
@@ -637,8 +689,8 @@ export const Table = forwardRef(function Table<T>(
     [pageKey, sizeKey, searchKey, sortKey],
   )
   useEffect(() => {
-    writeQuery(pagination.pageIndex + 1, pagination.pageSize, globalFilter, sorting[0])
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting, writeQuery])
+    writeQuery(pagination.pageIndex + 1, pagination.pageSize, globalFilter, sorting[0], filterState)
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter, sorting, filterState, writeQuery])
 
   // Back/Forward → restore page + size + search + sort from the query
   useEffect(() => {
@@ -661,6 +713,15 @@ export const Table = forwardRef(function Table<T>(
         setGlobalFilter(s)
       }
       if (sortKey) setSorting(parseSortParam(params.get(sortKey)))
+      const defs = filtersRef.current
+      if (defs?.length) {
+        const next: TableFilterState = {}
+        for (const f of defs) {
+          const raw = params.get(f.key)
+          if (raw != null) next[f.key] = decodeFilterValue(f.type, raw)
+        }
+        setFilterState(next)
+      }
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)

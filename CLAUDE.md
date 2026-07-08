@@ -332,11 +332,16 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   direction appended to the key in one param → `sort=priceAsc`/`sort=priceDesc`; the last two use **`ascValue`**
   / **`descValue`** default `'asc'`/`'desc'`), and **`allValue`** (what the size param emits for the **"All"**
   rows choice — e.g. `0`; on **"All"** the **page/offset param is dropped entirely** (no meaningful page) and
-  only `allValue` is emitted — with no `allValue`, "All" emits neither). Set once app-wide in `config.table.query`; override
+  only `allValue` is emitted — with no `allValue`, "All" emits neither). The same config also governs how the
+  **`Table`'s filters** fold into `state.query`: **`multiSelectFormat`** (`'repeat'` default `cat=a&cat=b` /
+  `'csv'` `cat=a,b` / `'indexed'` `cat[0]=a&cat[1]=b`) and **`rangeMinSuffix`** / **`rangeMaxSuffix`** (a range filter's two params, default
+  `Min`/`Max` → `priceMin`/`priceMax`; set `_gte`/`_lte`, `[gte]`/`[lte]`, … — each filter's param base is its
+  `queryKey ?? key`). Set once app-wide in `config.table.query`; override
   per table via the **`queryMapping`** prop (merged over the config). Read via **`useTableQueryConfig()`**;
-  the pure builder is **`buildTableQuery(state, mapping)`** (from `sava-test/helpers`), which `Table` calls
-  internally. Because it's just a param builder, the **endpoint / path / fetch stay the consumer's** (e.g.
-  DummyJSON puts search on a different path) — `Table` never fetches.
+  the pure builders are **`buildTableQuery(state, mapping)`** (page/size/search/sort, from `sava-test/helpers`)
+  - the internal **`buildFilterQuery(filters, filterState, mapping)`**, which `Table` calls internally.
+    Because they're just param builders, the **endpoint / path / fetch stay the consumer's** (e.g.
+    DummyJSON puts search on a different path) — `Table` never fetches.
 - **Light merge**: `{ ...DEFAULT_LIGHT_COLORS, ...config.colors.light }` — built-in defaults as base,
   the app's light overrides win.
 - **Dark merge**: `{ ...light, ...DEFAULT_DARK_COLORS, ...config.colors.dark }` — the merged light
@@ -1493,7 +1498,12 @@ empty search/sort is removed from the URL, and on the **"All"** size the `page` 
 all four on mount (a `?sort=`/`?search=` wins over `defaultSort`/`defaultSearch`) and restoring on `popstate`;
 the param names resolve **`pageQueryKey` / `sizeQueryKey` / `searchQueryKey` / `sortQueryKey` prop →
 `config.keys.*` → `'page'` / `'size'` / `'search'` / `'sort'`** — pass **`urlSync={false}`** (or a per-param
-`null`) to opt out (**multiple URL-synced tables on one page need distinct keys**, like `Tabs` strips). The table renders at a single (md) density — no `size` prop. Other props: **`title`** +
+`null`) to opt out (**multiple URL-synced tables on one page need distinct keys**, like `Tabs` strips).
+**Filters sync too** (under `urlSync`): each active filter mirrors to a param named after its **`key`** (e.g.
+`?category=furniture&price=10,100`) — the value is serialized by `encodeFilterValue` (arrays/ranges join with
+`,`) and parsed back by the filter's **type** on read (`decodeFilterValue`), so it round-trips; the URL wins
+over `defaultFilters` on mount, and restores on `popstate`. (Filter keys shouldn't collide with the
+page/size/search/sort param names.) The table renders at a single (md) density — no `size` prop. Other props: **`title`** +
 **`toolbar`** (extra toolbar content, e.g. a future filters slot), **`getRowId`** (stable row id, defaults
 to index), **`onRowClick`**, **`loading`** (**with rows already shown** — a token-scrim overlay + `Loader`
 dims them while refetching; **with no rows** — a centered `Loader` + `"Loading…"` caption fills the body,
@@ -1526,11 +1536,15 @@ minute), both bounds sliced the same so lexical compare works; `date`/`dateRange
 /`timeRange` `TimePicker`, `dateTime`/`dateTimeRange` `DateTimePicker` (ranges = a From/To pair).
 `select`/`multiSelect` take `options` (`SelectOption[]`). **Local mode** filters `data` client-side (the pure **`applyFilters`** — AND across set
 filters — pre-filters before TanStack search/sort/paginate); **server mode** emits the active values as
-**`state.filters`** in `onChange` (the consumer maps them to their request — filters aren't auto-added to
-`query` in v1). Applying/clearing resets to page 1; initial values via **`defaultFilters`**. The panel is
-the internal `TableFilters`; the model + matcher live in `tableFilter.ts`. _Per-column filters, an operator
-picker (contains vs equals), URL sync + query-mapping for filters, and active-filter chips are natural next
-iterations._ Because the component is
+**`state.filters`** in `onChange` **and folds them into `state.query`** (via the pure **`buildFilterQuery`**,
+config-driven): each filter uses its **`queryKey` ?? `key`**; a scalar emits `param=value`, a `multiSelect`
+emits repeated params or a CSV (**`multiSelectFormat`**), and a range emits `<param><rangeMinSuffix>` /
+`<param><rangeMaxSuffix>` (defaults `Min`/`Max`; set `_gte`/`_lte`, `[gte]`/`[lte]`, … per your API). So a
+server fetch appends `state.query` as before, filters included. Applying/clearing resets to page 1; initial
+values via **`defaultFilters`**; each active filter also mirrors to the URL under its `key` (see URL sync).
+The panel is the internal `TableFilters`; the model + matcher + query builders live in `tableFilter.ts`.
+_Per-column filters, an operator picker (contains vs equals), controlled filters + async filter options, and
+active-filter chips are natural next iterations._ Because the component is
 **generic** (`Table<T>`) it uses the standard `forwardRef(...) as <T>(props) => ReactElement` cast (the one
 sanctioned deviation from the plain `forwardRef` anatomy — generics don't survive `forwardRef`'s typing).
 **Responsive:** cells are `white-space: nowrap` and the surface (`.scroll`) is `overflow-x: auto` with
@@ -1544,9 +1558,11 @@ sort / pagination, the pinned-column class, the empty-cell "—" placeholder, se
 read + write + opt-out — incl. dropping `page` on "All" — and search/sort read + write), the query builder
 (`buildTableQuery` variants) + the CSV serializer (`toCsv`), the **export** menu (built-in CSV of the
 current page, a custom `exportActions` item firing with the state), the **filters** (`applyFilters` per
-type; the Filters panel filtering local data on Apply + emitting `state.filters` in server mode), and
-`onRowClick`. Own CSS module. _Row selection (checkboxes), per-column filters, filter operator pickers +
-URL/query mapping for filters, column resize/pinning, and virtualization are natural next iterations._
+type; the Filters panel filtering local data on Apply + emitting `state.filters` in server mode; the URL
+round-trip via `encodeFilterValue`/`decodeFilterValue`; the server query via `buildFilterQuery`), and
+`onRowClick`. Own CSS module. _Row selection (checkboxes), per-column filters, filter operator pickers,
+controlled filters + async filter options, column resize/pinning,
+and virtualization are natural next iterations._
 
 ### TranslatedFields
 

@@ -501,11 +501,17 @@ so you POST `state.query` to your endpoint. `exportFileName` sets the download n
 `<Table exportable exportFileName="products" exportActions={[{ label: 'Send On Email', icon: 'Sms', onClick: (s) => sendExport(s.query) }]} data={rows} columns={cols} />`
 
 **Filters** (`filters`) is **declarative** — like `columns`: pass `{ key, label, type, options? }[]` and the
-table renders a toolbar **Filters** button (with a count badge) opening a Modal of fields + Clear/Apply.
-Core `type`s: `text` · `number` · `numberRange` · `select` · `multiSelect` · `boolean` · `date` ·
-`dateRange` (`select`/`multiSelect` take `options: { value, label }[]`). In **local** mode the table filters
-`data` client-side (AND across set filters); in **server** mode the active values arrive in `onChange` as
-`state.filters` for you to map to your request. `defaultFilters` seeds initial values.
+table renders a toolbar **Filters** button (with a count badge) opening a right **drawer** of fields +
+Clear/Apply. Core `type`s: `text` · `number` · `numberRange` · `numberRangeSlider` · `select` ·
+`multiSelect` · `boolean` · `date` · `dateRange` · `time` · `timeRange` · `dateTime` · `dateTimeRange`
+(`select`/`multiSelect` take `options: { value, label }[]`; `numberRangeSlider` takes `min`/`max`/`step`).
+In **local** mode the table filters `data` client-side (AND across set filters); in **server** mode the
+active values arrive in `onChange` as `state.filters` **and are folded into `state.query`** — so your fetch
+stays `fetch(`/x?${state.query}`)`, filters included. Shape them via `config.table.query` / `queryMapping`
+(`multiSelectFormat`, `rangeMinSuffix`/`rangeMaxSuffix`) + a per-filter `queryKey` to rename/bake an operator
+(`name` → `name_like`). `defaultFilters` seeds initial values, and (like page/size/search/sort) **filters
+sync to the URL** by default — each under a param named after its `key` (`?category=furniture&price=10,100`),
+restored on refresh + shareable (`urlSync={false}` opts out).
 `<Table data={rows} columns={cols} filters={[{ key: 'status', label: 'Status', type: 'select', options }, { key: 'price', label: 'Price', type: 'numberRange' }]} />`
 
 **TranslatedFields** — a tabbed group of **per-locale** form fields (one tab per content locale). You

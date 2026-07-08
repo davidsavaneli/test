@@ -87,18 +87,18 @@ export interface KeysConfig {
  * Every field is optional; the defaults reproduce the browser-URL shape (`?page=1&size=10&search=…&sort=-key`).
  */
 export interface TableQueryConfig {
-  /** Param name for the page / offset. Defaults to `'page'` (e.g. `'skip'` for an offset API). */
-  page?: string
-  /** Param name for the page size. Defaults to `'size'` (e.g. `'limit'`). */
-  size?: string
-  /** Param name for the search query (omitted when the search is empty). Defaults to `'search'` (e.g. `'q'`). */
-  search?: string
+  /** Request param name for the page / offset. Defaults to `'page'` (e.g. `'skip'` for an offset API). */
+  pageParam?: string
+  /** Request param name for the page size. Defaults to `'size'` (e.g. `'limit'`). */
+  sizeParam?: string
+  /** Request param name for the search query (omitted when the search is empty). Defaults to `'search'` (e.g. `'q'`). */
+  searchParam?: string
   /**
-   * Param name holding the sort **key**. Defaults to `'sort'` (e.g. `'sortBy'`). With `sortFormat: 'field'`
-   * this single param also carries the direction (`-key` = desc); with `'separate'` the direction goes to
-   * `sortOrderKey`.
+   * Request param name holding the sort **key**. Defaults to `'sort'` (e.g. `'sortBy'`). With
+   * `sortFormat: 'field'` this single param also carries the direction (`-key` = desc); with `'separate'`
+   * the direction goes to `sortOrderParam`.
    */
-  sort?: string
+  sortParam?: string
   /**
    * Pagination style. `'page'` (default) emits the **1-based page number** as-is (`page=2`); `'offset'`
    * emits a **zero-based offset** `(page - 1) * size` instead (`skip=10`), for skip/offset APIs.
@@ -106,13 +106,13 @@ export interface TableQueryConfig {
   pagination?: 'page' | 'offset'
   /**
    * Sort encoding. `'field'` (default) is a single param with a `-` prefix for descending (`sort=-price`);
-   * `'separate'` splits into two params — the key in `sort` + the direction in `sortOrderKey`
+   * `'separate'` splits into two params — the key in `sortParam` + the direction in `sortOrderParam`
    * (`sortBy=price&order=desc`); `'suffix'` appends the direction value to the key in a single param
    * (`sort=priceAsc` / `sort=priceDesc` with `ascValue: 'Asc'` / `descValue: 'Desc'`).
    */
   sortFormat?: 'field' | 'separate' | 'suffix'
   /** Direction param name when `sortFormat: 'separate'`. Defaults to `'order'`. */
-  sortOrderKey?: string
+  sortOrderParam?: string
   /**
    * Value emitted for an ascending sort — the `sortOrderKey` value when `sortFormat: 'separate'`, or the
    * suffix appended to the key when `sortFormat: 'suffix'`. Defaults to `'asc'`.
@@ -129,6 +129,17 @@ export interface TableQueryConfig {
    * size param entirely (many APIs treat a missing limit as unbounded).
    */
   allValue?: string | number
+  /**
+   * How a **`multiSelect`** filter serializes into the request query: `'repeat'` (default — `cat=a&cat=b`),
+   * `'csv'` (`cat=a,b`), or `'indexed'` (`cat[0]=a&cat[1]=b`).
+   */
+  multiSelectFormat?: 'repeat' | 'csv' | 'indexed'
+  /**
+   * Suffix appended to a **range** filter's param for its lower / upper bound — e.g. `Min`/`Max` (default)
+   * → `priceMin`/`priceMax`; set `'_gte'`/`'_lte'`, `'[gte]'`/`'[lte]'`, `'From'`/`'To'`, … to match your API.
+   */
+  rangeMinSuffix?: string
+  rangeMaxSuffix?: string
 }
 
 /** `<Table>`-specific configuration. Grows over time; today just the server-request query mapping. */

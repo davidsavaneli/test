@@ -22,14 +22,38 @@ const config: Config = {
   // (e.g. TableServerPage passes DummyJSON's shape, which wins over this).
   table: {
     query: {
-      page: 'page', // page / offset param (try 'skip' together with pagination: 'offset')
-      size: 'size', // page-size param (try 'limit')
-      search: 'search', // search param (try 'q')
-      sort: 'sort', // sort-key param (try 'sortBy' together with sortFormat: 'separate')
-      pagination: 'page', // 'page' → page=2  |  'offset' → skip=(page-1)*size
-      sortFormat: 'field', // 'field' → sort=-price  |  'separate' → sortBy=price&order=desc
-      // sortOrderKey: 'order', ascValue: 'asc', descValue: 'desc',  // only for sortFormat: 'separate'
-      // allValue: 0,  // size param on "All" (e.g. limit=0); page/offset is dropped on "All" either way
+      // each field shows its active default, with a commented alternative under it
+      page: 'page', // page / offset param name
+      // page: 'skip',
+      size: 'size', // page-size param name
+      // size: 'limit',
+      search: 'search', // search param name
+      // search: 'q',
+      sort: 'sort', // sort-key param name
+      // sort: 'sortBy',
+      pagination: 'page', // page=2
+      // pagination: 'offset', // skip=(page-1)*size
+      sortFormat: 'field', // sort=-price
+      // sortFormat: 'separate', // sortBy=price&order=desc
+      // sortFormat: 'suffix', // sort=priceAsc / sort=priceDesc
+      sortOrderKey: 'order', // direction param (sortFormat: 'separate')
+      // sortOrderKey: 'direction',
+      ascValue: 'asc', // asc value (sortFormat: 'separate' / 'suffix')
+      // ascValue: 'ASC',
+      descValue: 'desc', // desc value (sortFormat: 'separate' / 'suffix')
+      // descValue: 'DESC',
+      multiSelectFormat: 'repeat', // cat=a&cat=b
+      // multiSelectFormat: 'csv', // cat=a,b
+      // multiSelectFormat: 'indexed', // cat[0]=a&cat[1]=b
+      rangeMinSuffix: 'From', // range lower bound → priceFrom
+      // rangeMinSuffix: 'Min', // priceMin
+      // rangeMinSuffix: '_gte', // price_gte
+      // rangeMinSuffix: '[gte]', // price[gte]
+      rangeMaxSuffix: 'To', // range upper bound → priceTo
+      // rangeMaxSuffix: 'Max', // priceMax
+      // rangeMaxSuffix: '_lte', // price_lte
+      // rangeMaxSuffix: '[lte]', // price[lte]
+      // allValue: 0, // "All" → limit=0 (default: no allValue → size param dropped on "All")
     },
   },
   theme: {

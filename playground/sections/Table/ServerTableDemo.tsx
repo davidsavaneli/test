@@ -4,6 +4,7 @@ import {
   Table,
   type TableChangeState,
   type TableColumn,
+  type TableFilter,
   type TableQueryConfig,
   type ThemeColor,
 } from '../../../src'
@@ -51,11 +52,18 @@ const columns: TableColumn<Product>[] = [
 interface ServerTableDemoProps {
   label: string
   description: string
-  /** The per-table query mapping — the only thing that differs between the two Server pages. */
+  /** The per-table query mapping (param names, offset/page, sort format, filter suffixes). */
   queryMapping: TableQueryConfig
+  /** Optional filter defs — their active values fold into `state.query` (visible in the preview). */
+  filters?: TableFilter[]
 }
 
-export function ServerTableDemo({ label, description, queryMapping }: ServerTableDemoProps) {
+export function ServerTableDemo({
+  label,
+  description,
+  queryMapping,
+  filters,
+}: ServerTableDemoProps) {
   const [rows, setRows] = useState<Product[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -98,6 +106,7 @@ export function ServerTableDemo({ label, description, queryMapping }: ServerTabl
           loading={loading}
           onChange={fetchPage}
           queryMapping={queryMapping}
+          filters={filters}
           columns={columns}
           getRowId={(p) => String(p.id)}
           searchable
