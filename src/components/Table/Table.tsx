@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-table'
 import { useTableQueryConfig, type TableQueryConfig } from '../../theme'
 import { buildTableQuery, parseTableQuery } from '../../helpers/table'
-import type { IconName } from '../../icons/names'
 import {
   applyFilters,
   buildFilterQuery,
@@ -96,16 +95,6 @@ export interface TableColumn<T> {
    * `width` to override.
    */
   pinned?: 'left' | 'right'
-}
-
-/** An extra item in the Table's export menu — e.g. "Send On Email" or a server-side export. */
-export interface TableExportAction {
-  /** Menu label. */
-  label: ReactNode
-  /** Optional leading icon (an `IconName` or a node). */
-  icon?: IconName | ReactNode
-  /** Click handler — receives the current table state (incl. `query`) so a server export/email can use it. */
-  onClick: (state: TableChangeState) => void
 }
 
 /** The current sort — the column `key` + direction, or `null` when unsorted. */
@@ -197,11 +186,12 @@ interface TableBaseProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChan
    */
   queryMapping?: TableQueryConfig
   /**
-   * Export-menu items — each adds a toolbar **export** `Dropdown` entry (e.g. "Send On Email" or a
-   * **server** export). Each `onClick` gets the current `TableChangeState` (incl. `query`), so it can hit
-   * your endpoint. The menu is shown only when at least one action is given.
+   * Handler for the toolbar **export** menu's built-in **"Send On Email"** item (label + icon are baked in).
+   * Set it to show the export `Dropdown`; on click it fires with the current `TableChangeState` (incl.
+   * `query`), so you just wire your endpoint — e.g. `onExportToEmail={(s) => exportCustomers(s.query)}`. Omit it
+   * to hide the export menu.
    */
-  exportActions?: TableExportAction[]
+  onExportToEmail?: (state: TableChangeState) => void
   /**
    * Declarative filters — each renders a field in a toolbar **Filters** panel (a `Modal`). In **local**
    * mode the table filters `data` client-side; in **server** mode the active values ride in `onChange`
@@ -375,7 +365,7 @@ export const Table = forwardRef(function Table<T>(
     defaultSort = null,
     onChange,
     queryMapping,
-    exportActions,
+    onExportToEmail,
     filters,
     defaultFilters,
     onRowClick,
@@ -670,7 +660,7 @@ export const Table = forwardRef(function Table<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageIndex, resolvedPageSize, resolvedGlobalFilter, resolvedSorting, resolvedFilterState])
 
-  const hasExport = exportActions != null && exportActions.length > 0
+  const hasExport = onExportToEmail != null
   const hasFilters = filters != null && filters.length > 0
 
   // mirror the table's state to the URL using the SAME builder as the server request (`state.query`), so the
@@ -847,7 +837,7 @@ export const Table = forwardRef(function Table<T>(
           <div className={styles.toolbarEnd}>
             {toolbar}
             {hasExport && (
-              // export menu — the consumer's `exportActions` (e.g. "Send On Email" / a server export)
+              // export menu — a baked "Send On Email" item; the consumer only wires `onExportToEmail`
               <Dropdown
                 placement="bottom-end"
                 trigger={
@@ -859,16 +849,9 @@ export const Table = forwardRef(function Table<T>(
                 <Typography as="div" variant="caption" color="muted" className={styles.menuTitle}>
                   Export
                 </Typography>
-                {exportActions?.map((action, i) => (
-                  <ListItem
-                    key={i}
-                    clickable
-                    icon={action.icon}
-                    onClick={() => action.onClick(getTableState())}
-                  >
-                    {action.label}
-                  </ListItem>
-                ))}
+                <ListItem clickable icon="Sms" onClick={() => onExportToEmail?.(getTableState())}>
+                  Send On Email
+                </ListItem>
               </Dropdown>
             )}
             {sortableColumns.length > 0 && (

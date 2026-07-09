@@ -4,7 +4,6 @@ export type {
   TableColumn,
   TableSortState,
   TableChangeState,
-  TableExportAction,
   TableAlign,
   TableSortDirection,
 } from './Table'

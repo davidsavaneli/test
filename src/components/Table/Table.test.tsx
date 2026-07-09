@@ -368,19 +368,19 @@ describe('Table', () => {
   })
 
   describe('export', () => {
-    it('runs a custom export action with the current table state (query)', () => {
-      const onClick = vi.fn()
+    it('fires onExportToEmail with the current table state (query) from the baked export item', () => {
+      const onExportToEmail = vi.fn()
       render(
         <Table
           data={makeData(3)}
           columns={columns}
           getRowId={(r) => r.id}
-          exportActions={[{ label: 'Send On Email', onClick }]}
+          onExportToEmail={onExportToEmail}
         />,
       )
       fireEvent.click(screen.getByRole('button', { name: 'Export' }))
       fireEvent.click(within(screen.getByRole('menu')).getByText('Send On Email'))
-      expect(onClick).toHaveBeenCalledWith(
+      expect(onExportToEmail).toHaveBeenCalledWith(
         expect.objectContaining({ page: 1, size: 10, query: 'page=1&size=10' }),
       )
     })

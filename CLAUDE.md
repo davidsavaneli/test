@@ -1517,12 +1517,12 @@ server page swaps in, so pass a real id like `(row) => row.id` for any interacti
 dims them while refetching; **with no rows** — a centered `Loader` + `"Loading…"` caption fills the body,
 mirroring the empty state's presence rather than a lone tiny spinner), **`empty`** (custom empty node — the
 default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
-(default `true`). **Export** (**`exportActions`**): a toolbar export `Dropdown` (an export-icon trigger next
-to sort) opening an uppercase **"Export" label** over the consumer's items — **`exportActions`**
-(`TableExportAction[]` = `{ label, icon?, onClick(state) }[]`); each `onClick` gets the current
-`TableChangeState`, so a server export / **"Send On Email"** hits your endpoint with `state.query`. The menu
-shows only when at least one action is given (there's **no built-in client-side CSV** — bring your own
-export via an action).
+(default `true`). **Export** (**`onExportToEmail`**): a toolbar export `Dropdown` (an export-icon trigger next to
+sort) opening an uppercase **"Export" label** over a **single baked "Send On Email" item** (label + icon
+hardcoded). Set the **`onExportToEmail`** prop (`(state: TableChangeState) => void`) to show the menu; on click
+it fires with the current state so you just wire your endpoint — e.g.
+`onExportToEmail={(s) => exportCustomers(s.query)}`. There's **no built-in client-side CSV**; the menu hides
+when `onExportToEmail` is omitted.
 **Filters** (**`filters`**): declarative filter defs (`TableFilter[]` = `{ key, label, type, options?,
 placeholder? }`) render a toolbar **Filters** button (a `Filter` icon with a **count `Badge`**) opening a
 right **drawer** (`Modal placement="right"`) — a `Modal`, not a popover, so the nested `Select` /
@@ -1561,7 +1561,7 @@ sort / pagination, the pinned-column class, the empty-cell "—" placeholder, se
 `queryMapping`-built `query`), the toolbar sort menu, empty + loading, URL sync (mirrors `state.query`:
 page/size canonicalize + read + write + opt-out — incl. the clean URL on "All" — and search/sort/filters
 read + write), the query builders (`buildTableQuery` / `parseTableQuery` round-trip), the **export** menu (a
-custom `exportActions` item firing with the state), the **filters** (`applyFilters` per type; the Filters panel filtering local data on Apply +
+the baked `onExportToEmail` item firing with the state), the **filters** (`applyFilters` per type; the Filters panel filtering local data on Apply +
 emitting `state.filters` in server mode; the server-query + URL round-trip via
 `buildFilterQuery` / `parseFilterQuery`), controlled mode (page / sort / search / filters), and
 `onRowClick`. Own CSS module. _Row selection (checkboxes), per-column filters, filter operator pickers,

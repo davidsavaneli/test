@@ -116,13 +116,7 @@ export function ServerTableDemo({
           getRowId={(p) => String(p.id)}
           searchable
           searchPlaceholder="Search products…"
-          exportActions={[
-            {
-              label: 'Send On Email',
-              icon: 'DirectSend',
-              onClick: (state) => alert(`Emailing export — server query: ?${state.query}`),
-            },
-          ]}
+          onExportToEmail={(state) => alert(`Emailing export — server query: ?${state.query}`)}
         />
       </Block>
     </Section>

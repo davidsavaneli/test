@@ -498,11 +498,10 @@ controlled or uncontrolled, per piece:** pass **`defaultPage` / `defaultPageSize
 `onSortChange` / `onFiltersChange`** callbacks to own that piece from outside (e.g. clear filters from your
 own button). (Renders at a single md density — no `size` prop.)
 
-**Export** (`exportActions`) adds a toolbar export menu (an "Export" header). There's no built-in CSV —
-you bring your own via **`exportActions={[{ label, icon?, onClick(state) }]}`**: each item fires with the
-current `TableChangeState`, so a **server export** or **"Send On Email"** POSTs `state.query` to your
-endpoint. The menu shows only when at least one action is given.
-`<Table exportActions={[{ label: 'Send On Email', icon: 'DirectSend', onClick: (s) => sendExport(s.query) }]} data={rows} columns={cols} />`
+**Export** (`onExportToEmail`) adds a toolbar export menu with a single baked **"Send On Email"** item (label +
+icon are hardcoded). There's no built-in CSV — you just wire the handler; it fires with the current
+`TableChangeState`, so you POST `state.query` to your endpoint. The menu shows only when `onExportToEmail` is set.
+`<Table onExportToEmail={(s) => exportCustomers(s.query)} data={rows} columns={cols} />`
 
 **Filters** (`filters`) is **declarative** — like `columns`: pass `{ key, label, type, options? }[]` and the
 table renders a toolbar **Filters** button (with a count badge) opening a right **drawer** of fields +
