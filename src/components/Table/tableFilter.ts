@@ -154,64 +154,7 @@ export function applyFilters<T>(rows: T[], filters: TableFilter[], state: TableF
   )
 }
 
-// ── URL serialization ──────────────────────────────────────────────────────────
-// A filter value ⇄ a single URL-param string. Arrays/tuples join with `,`; parsing is directed by the
-// filter's `type` (the Table has the defs on both write + read), so it round-trips. Values with a literal
-// comma (multi-select option ids, range bounds) aren't supported — filter values are keys/numbers/dates.
-
-/** Serialize an **active** filter value to its URL-param string, or `null` when it isn't set (→ omit). */
-export function encodeFilterValue(
-  type: TableFilterType,
-  value: TableFilterValue | undefined,
-): string | null {
-  if (!isFilterActive(type, value)) return null
-  switch (type) {
-    case 'multiSelect':
-      return (value as string[]).join(',')
-    case 'numberRange':
-    case 'numberRangeSlider': {
-      const [min, max] = value as [number | null, number | null]
-      return `${min ?? ''},${max ?? ''}`
-    }
-    case 'dateRange':
-    case 'timeRange':
-    case 'dateTimeRange': {
-      const [from, to] = value as [string, string]
-      return `${from ?? ''},${to ?? ''}`
-    }
-    default: // text · number · select · boolean · date · time · dateTime
-      return String(value)
-  }
-}
-
-/** Parse a URL-param string back to a filter value, by the filter's `type` (inverse of `encodeFilterValue`). */
-export function decodeFilterValue(type: TableFilterType, raw: string): TableFilterValue {
-  switch (type) {
-    case 'number': {
-      const n = Number(raw)
-      return Number.isNaN(n) ? null : n
-    }
-    case 'boolean':
-      return raw === 'true' ? true : raw === 'false' ? false : null
-    case 'multiSelect':
-      return raw ? raw.split(',').filter(Boolean) : []
-    case 'numberRange':
-    case 'numberRangeSlider': {
-      const [a = '', b = ''] = raw.split(',')
-      return [a ? Number(a) : null, b ? Number(b) : null]
-    }
-    case 'dateRange':
-    case 'timeRange':
-    case 'dateTimeRange': {
-      const [a = '', b = ''] = raw.split(',')
-      return [a, b]
-    }
-    default: // text · select · date · time · dateTime
-      return raw
-  }
-}
-
-// ── server-request query ─────────────────────────────────────────────────────────
+// ── server-request query (⇄ URL) ───────────────────────────────────────────────────
 /**
  * Serialize the active filters into **server-request** params (folded into `state.query` alongside
  * page/size/search/sort). Each filter uses its `queryKey ?? key`; scalars emit `param=value`, a
@@ -263,4 +206,77 @@ export function buildFilterQuery(
     }
   }
   return params
+}
+
+/**
+ * Read the active filter values back out of URL / request params — the **inverse of `buildFilterQuery`** for
+ * the same `mapping` + filter defs (each filter's `queryKey ?? key`, the `multiSelectFormat`, the range
+ * suffixes). Used by `<Table>` to restore URL-synced filters on mount / Back-Forward. Only present params
+ * produce a value; the rest stay unset.
+ */
+export function parseFilterQuery(
+  filters: TableFilter[],
+  params: URLSearchParams,
+  mapping: TableQueryConfig = {},
+): TableFilterState {
+  const minSuffix = mapping.rangeMinSuffix ?? 'Min'
+  const maxSuffix = mapping.rangeMaxSuffix ?? 'Max'
+  const multiFormat = mapping.multiSelectFormat ?? 'repeat'
+  const state: TableFilterState = {}
+
+  for (const f of filters) {
+    const param = f.queryKey ?? f.key
+    switch (f.type) {
+      case 'multiSelect': {
+        let arr: string[] = []
+        if (multiFormat === 'csv') {
+          const v = params.get(param)
+          if (v) arr = v.split(',').filter(Boolean)
+        } else if (multiFormat === 'indexed') {
+          for (let i = 0; params.has(`${param}[${i}]`); i++) arr.push(params.get(`${param}[${i}]`)!)
+        } else {
+          arr = params.getAll(param)
+        }
+        if (arr.length) state[f.key] = arr
+        break
+      }
+      case 'numberRange':
+      case 'numberRangeSlider': {
+        const lo = params.get(param + minSuffix)
+        const hi = params.get(param + maxSuffix)
+        if (lo != null || hi != null) {
+          state[f.key] = [lo != null ? Number(lo) : null, hi != null ? Number(hi) : null]
+        }
+        break
+      }
+      case 'dateRange':
+      case 'timeRange':
+      case 'dateTimeRange': {
+        const from = params.get(param + minSuffix)
+        const to = params.get(param + maxSuffix)
+        if (from != null || to != null) state[f.key] = [from ?? '', to ?? '']
+        break
+      }
+      case 'number': {
+        const v = params.get(param)
+        if (v != null) {
+          const n = Number(v)
+          if (!Number.isNaN(n)) state[f.key] = n
+        }
+        break
+      }
+      case 'boolean': {
+        const v = params.get(param)
+        if (v === 'true') state[f.key] = true
+        else if (v === 'false') state[f.key] = false
+        break
+      }
+      default: {
+        // text · select · date · time · dateTime
+        const v = params.get(param)
+        if (v) state[f.key] = v
+      }
+    }
+  }
+  return state
 }

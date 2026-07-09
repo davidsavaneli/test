@@ -311,20 +311,14 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
     word — field names resolve **`namespace` prop → `config.keys.translationsNamespace` →
     `DEFAULT_TRANSLATIONS_NAMESPACE` (`'translations'`)**. Read via **`useTranslationsNamespace()`** —
     pass it to the helpers to match, e.g. `buildTranslations(codes, fields, useTranslationsNamespace())`.
-  - **`keys.pageQueryKey`** (`'page'`) / **`keys.sizeQueryKey`** (`'size'`) / **`keys.searchQueryKey`**
-    (`'search'`) / **`keys.sortQueryKey`** (`'sort'`): the URL query params a **`Table`** syncs its 1-based
-    page + rows-per-page + search + sort to (`?page=1&size=10&search=phone&sort=-price` — sort is `key`
-    ascending, `-key` descending) — each resolves **`<param>QueryKey` prop → `config.keys.*` →
-    `DEFAULT_*_QUERY_KEY`**, so a table URL-syncs out of the box (pass `urlSync={false}`, or a per-param
-    `null`, to opt out). Read via **`usePageQueryKey()`** / **`useSizeQueryKey()`** /
-    **`useSearchQueryKey()`** / **`useSortQueryKey()`**. (Multiple URL-synced tables on one page need
-    distinct keys, like multiple `Tabs` strips.)
+    (The `<Table>` URL sync is **not** a `keys.*` entry — it reuses `table.query` below, so the address bar
+    matches the server request; see §7.)
   - All the key hooks return the resolved string and are lenient outside a provider.
 - **`table.query`** (`TableQueryConfig`): how a **`Table`** builds its **server-request** params — the query
   it hands the consumer as `state.params` / `state.query` in `onChange`, so a server-mode fetch doesn't
-  hand-map page/size/search/sort every time. **This is the backend-transport layer, distinct from
-  `keys.*QueryKey`** (which is the browser-URL sync — always page-based, for shareable links). Fields (all
-  optional; defaults reproduce the page-based URL shape `?page=1&size=10&search=…&sort=-key`): **`pageParam`** /
+  hand-map page/size/search/sort every time. **The same mapping also drives the browser-URL sync** (`urlSync`),
+  so the address bar mirrors `state.query` exactly — one shape for both the URL and the request. Fields (all
+  optional; defaults reproduce the page-based shape `?page=1&size=10&search=…&sort=-key`): **`pageParam`** /
   **`sizeParam`** / **`searchParam`** / **`sortParam`** (request-param names, e.g. `skip`/`limit`/`q`/`sortBy`), **`pagination`**
   (`'page'` default emits the 1-based page; `'offset'` emits `(page-1)*size` under the `pageParam` name — a
   `skip`), **`sortFormat`** (`'field'` default = one `-`-prefixed param `sort=-price`; `'separate'` = key in
@@ -339,9 +333,11 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   `queryKey ?? key`). Set once app-wide in `config.table.query`; override
   per table via the **`queryMapping`** prop (merged over the config). Read via **`useTableQueryConfig()`**;
   the pure builders are **`buildTableQuery(state, mapping)`** (page/size/search/sort, from `sava-test/helpers`)
-  - the internal **`buildFilterQuery(filters, filterState, mapping)`**, which `Table` calls internally.
-    Because they're just param builders, the **endpoint / path / fetch stay the consumer's** (e.g.
-    DummyJSON puts search on a different path) — `Table` never fetches.
+  - the internal **`buildFilterQuery(filters, filterState, mapping)`**, which `Table` calls internally. Their
+    inverses — **`parseTableQuery(params, mapping)`** (also from `sava-test/helpers`) + the internal
+    `parseFilterQuery` — read the state back out, and power the browser-URL sync (which reuses this exact
+    mapping, so the address bar matches `state.query`). Because they're just param builders, the **endpoint /
+    path / fetch stay the consumer's** (e.g. DummyJSON puts search on a different path) — `Table` never fetches.
 - **Light merge**: `{ ...DEFAULT_LIGHT_COLORS, ...config.colors.light }` — built-in defaults as base,
   the app's light overrides win.
 - **Dark merge**: `{ ...light, ...DEFAULT_DARK_COLORS, ...config.colors.dark }` — the merged light
@@ -1490,8 +1486,9 @@ reuses the `Pagination` component (prev/next + numbered pages; the **first/last 
 `[10, 20, 50, 100, 200]`; **`showPageSize`**; the Select passes **`showSelectedTick={false}`** for a
 compact look) plus an **"All"** choice (**`allowAllRows`**, default `true` — pass `false` to hide it for
 large datasets) that puts every row on one page, and a `"1–10 of N"` range. "All" is a **sentinel page
-size** (`Number.MAX_SAFE_INTEGER`) — it serializes to `?size=all` and is emitted verbatim in `onChange`
-(server consumers treat it as unbounded). Changing size / sort resets to page 1; the page clamps if the
+size** (`Number.MAX_SAFE_INTEGER`) — `state.size` carries it verbatim in `onChange` (server consumers treat
+it as unbounded; the server query drops the size param unless `allValue` is set), and it is **not written to
+the browser URL** (see URL sync below). Changing size / sort resets to page 1; the page clamps if the
 row count shrinks beneath it. **Controlled or uncontrolled, per piece** (like the rest of the library):
 each of **`page`** / **`pageSize`** / **`search`** / **`sort`** / **`filterValues`** may be passed with its
 **`onPageChange`** / **`onPageSizeChange`** / **`onSearchChange`** / **`onSortChange`** / **`onFiltersChange`**
@@ -1499,19 +1496,19 @@ callback to own that state from outside (e.g. reset filters from an external but
 a parent) — omit it to let the table manage that piece internally (seeded from the matching `default*`). Mix
 freely; each is resolved as `controlled ?? internal`, and every mutation still fires the aggregate `onChange`
 too. (These granular callbacks are the controlled channel; `onChange` stays the full-state fetch driver.) The **page navigator hides entirely when everything fits on one page**
-(`pageCount ≤ 1` — e.g. the "All" size or few rows); the rows-per-page select + `"1–N of N"` range stay. **URL sync — ON by default:** page + size + search +
-sort mirror to the query (`?page=1&size=10&search=phone&sort=-price` — sort is `key` asc, `-key` desc; an
-empty search/sort is removed from the URL, and on the **"All"** size the `page` param is dropped too —
-`?size=all` — since there's no meaningful page) via the native History API (`replaceState`, like `Tabs`), reading
-all four on mount (a `?sort=`/`?search=` wins over `defaultSort`/`defaultSearch`) and restoring on `popstate`;
-the param names resolve **`pageQueryKey` / `sizeQueryKey` / `searchQueryKey` / `sortQueryKey` prop →
-`config.keys.*` → `'page'` / `'size'` / `'search'` / `'sort'`** — pass **`urlSync={false}`** (or a per-param
-`null`) to opt out (**multiple URL-synced tables on one page need distinct keys**, like `Tabs` strips).
-**Filters sync too** (under `urlSync`): each active filter mirrors to a param named after its **`key`** (e.g.
-`?category=furniture&price=10,100`) — the value is serialized by `encodeFilterValue` (arrays/ranges join with
-`,`) and parsed back by the filter's **type** on read (`decodeFilterValue`), so it round-trips; the URL wins
-over `defaultFilters` on mount, and restores on `popstate`. (Filter keys shouldn't collide with the
-page/size/search/sort param names.) The table renders at a single (md) density — no `size` prop. Other props: **`title`** +
+(`pageCount ≤ 1` — e.g. the "All" size or few rows); the rows-per-page select + `"1–N of N"` range stay.
+**URL sync — ON by default, and it mirrors the server request exactly:** page + size + search + sort +
+filters are written to the query with the **same builder as `state.query`** (`config.table.query` merged
+with the `queryMapping` prop), so the address bar matches the request one-to-one (e.g.
+`?page=1&size=10&sortBy=rating&orderBy=desc`, and filters like `?category=a&category=b&price_gte=10&price_lte=100`).
+Written via the native History API (`replaceState`, like `Tabs`, preserving params the table doesn't own),
+read back on mount (via the exported **`parseTableQuery`** + the internal `parseFilterQuery` — a URL value
+wins over `defaultSort` / `defaultSearch` / `defaultFilters`) and restored on `popstate`. An empty
+search / sort / filter drops out of the URL, and on the **"All"** size the page + size params drop entirely
+(a clean URL, since there's no meaningful page — "All" isn't persisted, so a reload falls back to the default
+size). Pass **`urlSync={false}`** to opt out. (There's **no separate `keys.*QueryKey` layer** any more — the
+URL param names ARE the `table.query` names, so two URL-synced tables on one page need distinct param names
+via their `queryMapping`.) The table renders at a single (md) density — no `size` prop. Other props: **`title`** +
 **`toolbar`** (extra toolbar content, e.g. a future filters slot), **`getRowId`** (stable row id — the React
 key; defaults to the row **index**, fine for static data but reuses DOM by position when rows reorder or a
 server page swaps in, so pass a real id like `(row) => row.id` for any interactive/changing table; a
@@ -1565,14 +1562,15 @@ overflow guard). a11y: a real `<table>`/`<thead>`/`<tbody>`, `scope="col"` + `ar
 headers, the search box `aria-label`led, the `Loader` `role="status"`. **Note:** the tests run in jsdom
 (TanStack needs no DOM measurement) — they cover render / columns / custom cell, local search (debounced) /
 sort / pagination, the pinned-column class, the empty-cell "—" placeholder, server-mode `onChange` (+ the
-`queryMapping`-built `query`), the toolbar sort menu, empty + loading, URL sync (page/size canonicalize +
-read + write + opt-out — incl. dropping `page` on "All" — and search/sort read + write), the query builder
-(`buildTableQuery` variants) + the CSV serializer (`toCsv`), the **export** menu (built-in CSV of the
-current page, a custom `exportActions` item firing with the state), the **filters** (`applyFilters` per
-type; the Filters panel filtering local data on Apply + emitting `state.filters` in server mode; the URL
-round-trip via `encodeFilterValue`/`decodeFilterValue`; the server query via `buildFilterQuery`), and
+`queryMapping`-built `query`), the toolbar sort menu, empty + loading, URL sync (mirrors `state.query`:
+page/size canonicalize + read + write + opt-out — incl. the clean URL on "All" — and search/sort/filters
+read + write), the query builders (`buildTableQuery` / `parseTableQuery` round-trip) + the CSV serializer
+(`toCsv`), the **export** menu (built-in CSV of the current page, a custom `exportActions` item firing with
+the state), the **filters** (`applyFilters` per type; the Filters panel filtering local data on Apply +
+emitting `state.filters` in server mode; the server-query + URL round-trip via
+`buildFilterQuery` / `parseFilterQuery`), controlled mode (page / sort / search / filters), and
 `onRowClick`. Own CSS module. _Row selection (checkboxes), per-column filters, filter operator pickers,
-controlled filters + async filter options, column resize/pinning,
+async filter options, column resize/pinning,
 and virtualization are natural next iterations._
 
 ### TranslatedFields
@@ -1904,16 +1902,16 @@ createFileRoute('/dashboard/')({
 The package exposes **scoped subpaths**, not just the root. The aggregator files in `src/entries/`
 define each surface; the root `src/index.ts` re-exports them all. `package.json` `exports` maps:
 
-| subpath                               | source entry                          | what's in it                                                                                                                                                                                                                         |
-| ------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                                                                                                                                                                                        |
-| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                                                                                     |
-| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                                                                              |
-| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                                                                                     |
-| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `usePageQueryKey`, `useSizeQueryKey`, `useSearchQueryKey`, `useSortQueryKey`, `useTableQueryConfig`, `applyTheme` |
-| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                                                                            |
-| `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) + the `Table` query builder (`buildTableQuery`)          |
-| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                                                                                  |
+| subpath                               | source entry                          | what's in it                                                                                                                                                                                                                                           |
+| ------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                                                                                                                                                                                                          |
+| `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                                                                                                       |
+| `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                                                                                                |
+| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                                                                                                       |
+| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useTableQueryConfig`, `applyTheme`                                                                                                 |
+| `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                                                                                              |
+| `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) + the `Table` query builder + parser (`buildTableQuery`/`parseTableQuery`) |
+| `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                                                                                                    |
 
 Rules when adding/moving public API: keep internal-only symbols **out** of the entry files (e.g.
 `useFormContext`, `usePageTitle`, `useBreadcrumbs`, nav-tree internals); a new top-level group gets a

@@ -23,22 +23,14 @@ import {
   type SortingState,
   type Updater,
 } from '@tanstack/react-table'
-import {
-  usePageQueryKey,
-  useSizeQueryKey,
-  useSearchQueryKey,
-  useSortQueryKey,
-  useTableQueryConfig,
-  type TableQueryConfig,
-} from '../../theme'
-import { buildTableQuery } from '../../helpers/table'
+import { useTableQueryConfig, type TableQueryConfig } from '../../theme'
+import { buildTableQuery, parseTableQuery } from '../../helpers/table'
 import type { IconName } from '../../icons/names'
 import { toCsv, downloadCsv } from './tableExport'
 import {
   applyFilters,
   buildFilterQuery,
-  decodeFilterValue,
-  encodeFilterValue,
+  parseFilterQuery,
   type TableFilter,
   type TableFilterState,
 } from './tableFilter'
@@ -246,16 +238,14 @@ interface TableBaseProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChan
   loading?: boolean
   /** Custom content for the empty state (replaces the default `EmptyState`). */
   empty?: ReactNode
-  /** Sync page + rows-per-page + search + sort to the URL query (`?page=1&size=10&search=…&sort=…`). Defaults to `true`. */
+  /**
+   * Mirror page + rows-per-page + search + sort + filters to the URL query, using the **same shape as the
+   * server request** (`config.table.query` merged with `queryMapping`) — so the address bar matches
+   * `state.query` exactly (e.g. `?page=1&size=10&sortBy=rating&orderBy=desc`). Read back on mount + restored
+   * on Back/Forward. Defaults to `true`; pass `false` to opt out entirely. (Two synced tables on one page
+   * need distinct param names via their `queryMapping`, since both write the same params otherwise.)
+   */
   urlSync?: boolean
-  /** URL query key for the page. `null` opts out of syncing the page; omit for the configured default. */
-  pageQueryKey?: string | null
-  /** URL query key for the rows-per-page. `null` opts out; omit for the configured default. */
-  sizeQueryKey?: string | null
-  /** URL query key for the search query (`?search=…`). `null` opts out; omit for the configured default. */
-  searchQueryKey?: string | null
-  /** URL query key for the sort (`?sort=key` asc / `?sort=-key` desc). `null` opts out; omit for the default. */
-  sortQueryKey?: string | null
   // ── Controlled state ─────────────────────────────────────────────────────────
   // Each pairs with its `default*` counterpart: pass the controlled prop (with its `on*Change`) to own the
   // state from outside; omit it to let the table manage that piece internally (seeded from `default*`). Mix
@@ -348,42 +338,6 @@ function renderCellContent(content: ReactNode): ReactNode {
   return content
 }
 
-/** The rows-per-page URL param → a page size: `'all'` → the sentinel, a valid option → itself, else the fallback. */
-function parseUrlSize(
-  raw: string | null,
-  options: number[],
-  allowAll: boolean,
-  fallback: number,
-): number {
-  if (raw === 'all') return allowAll ? ALL_ROWS : fallback
-  const n = Number(raw)
-  return Number.isFinite(n) && options.includes(n) ? n : fallback
-}
-
-/** A page size → its URL param: the "All" sentinel serializes as `'all'`, else the plain number. */
-function sizeToParam(size: number): string {
-  return size >= ALL_ROWS ? 'all' : String(size)
-}
-
-/** A sort → its URL param: `key` ascending, `-key` descending; `null` → `''` (removed from the query). */
-function sortToParam(sort: SortingState[number] | undefined): string {
-  return sort ? (sort.desc ? `-${sort.id}` : sort.id) : ''
-}
-
-/** The sort URL param → TanStack sorting state: a leading `-` means descending (`-price` → desc by price). */
-function parseSortParam(raw: string | null): SortingState {
-  if (!raw) return []
-  const desc = raw.startsWith('-')
-  const id = desc ? raw.slice(1) : raw
-  return id ? [{ id, desc }] : []
-}
-
-/** Read a single URL query param (null when the key is disabled or off-DOM). */
-function readUrlParam(key: string | undefined): string | null {
-  if (!key || typeof window === 'undefined') return null
-  return new URLSearchParams(window.location.search).get(key)
-}
-
 /**
  * `URLSearchParams.toString()`, but with the commonly-unencoded chars `,` `:` `[` `]` left raw — all read
  * cleanly in a query and are accepted by servers in practice (`brand=a,b`, `created=…T09:00:00`,
@@ -446,10 +400,6 @@ export const Table = forwardRef(function Table<T>(
     loading = false,
     empty,
     urlSync = true,
-    pageQueryKey,
-    sizeQueryKey,
-    searchQueryKey,
-    sortQueryKey,
     page,
     onPageChange,
     pageSize,
@@ -468,28 +418,16 @@ export const Table = forwardRef(function Table<T>(
   }: TableProps<T>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
-  // resolve the URL-sync keys: syncing off, or a `null` per-param, opts that param out
-  const configPageKey = usePageQueryKey()
-  const configSizeKey = useSizeQueryKey()
-  const configSearchKey = useSearchQueryKey()
-  const configSortKey = useSortQueryKey()
-  const pageKey = urlSync && pageQueryKey !== null ? (pageQueryKey ?? configPageKey) : undefined
-  const sizeKey = urlSync && sizeQueryKey !== null ? (sizeQueryKey ?? configSizeKey) : undefined
-  const searchKey =
-    urlSync && searchQueryKey !== null ? (searchQueryKey ?? configSearchKey) : undefined
-  const sortKey = urlSync && sortQueryKey !== null ? (sortQueryKey ?? configSortKey) : undefined
-
-  // the server-request query mapping — the app-wide `config.table.query` merged with this table's override
+  // the query mapping — the app-wide `config.table.query` merged with this table's override. It drives BOTH
+  // the server-request query (`state.query`) AND the browser-URL sync, so the two share one shape.
   const configQueryMapping = useTableQueryConfig()
   const queryMappingRef = useRef<TableQueryConfig>({})
   queryMappingRef.current = { ...configQueryMapping, ...queryMapping }
 
-  // keep the latest options + onChange for the stable effects / popstate listener (avoids re-subscribing)
-  const optionsRef = useRef(pageSizeOptions)
-  optionsRef.current = pageSizeOptions
+  // keep the latest onChange for the stable emit effect (avoids re-subscribing)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
-  // filter defs for the stable URL write/popstate closures (types drive the URL (de)serialization)
+  // filter defs for the stable URL write / popstate closures
   const filtersRef = useRef(filters)
   filtersRef.current = filters
 
@@ -499,40 +437,42 @@ export const Table = forwardRef(function Table<T>(
   const tableRef = useRef<HTMLTableElement | null>(null)
   const [pinShadow, setPinShadow] = useState({ start: false, end: false })
 
-  const [pagination, setPagination] = useState<PaginationState>(() => {
+  // seed the URL-synced state once, parsing the browser query with the SAME mapping the request uses (so the
+  // URL the table writes round-trips). `page` / `size` fall back to the defaults when absent from the URL.
+  const [urlSeed] = useState(() => {
     const params =
-      typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : undefined
-    const urlPage = pageKey && params ? Number(params.get(pageKey)) : NaN
-    const pageSize = parseUrlSize(
-      sizeKey && params ? params.get(sizeKey) : null,
-      pageSizeOptions,
-      allowAllRows,
-      defaultPageSize,
-    )
-    const page = Number.isInteger(urlPage) && urlPage > 0 ? urlPage : defaultPage
-    return { pageIndex: page - 1, pageSize }
+      urlSync && typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    if (!params) {
+      return {
+        page: null as number | null,
+        size: null as number | null,
+        search: '',
+        sort: null as TableSortState | null,
+        filters: {} as TableFilterState,
+      }
+    }
+    return {
+      ...parseTableQuery(params, queryMappingRef.current),
+      filters: filters?.length ? parseFilterQuery(filters, params, queryMappingRef.current) : {},
+    }
   })
+
+  const [pagination, setPagination] = useState<PaginationState>(() => ({
+    pageIndex: (urlSeed.page ?? defaultPage) - 1,
+    pageSize: urlSeed.size ?? defaultPageSize,
+  }))
   // `searchInput` is the immediate input value; `globalFilter` is the committed (debounced) query — both
-  // seed from the URL (`?search=`) when synced, else `defaultSearch`
-  const [searchInput, setSearchInput] = useState(() => readUrlParam(searchKey) ?? defaultSearch)
-  const [globalFilter, setGlobalFilter] = useState(() => readUrlParam(searchKey) ?? defaultSearch)
+  // seed from the URL when synced, else `defaultSearch`
+  const [searchInput, setSearchInput] = useState(urlSeed.search || defaultSearch)
+  const [globalFilter, setGlobalFilter] = useState(urlSeed.search || defaultSearch)
   const [sorting, setSorting] = useState<SortingState>(() => {
-    const fromUrl = parseSortParam(readUrlParam(sortKey)) // `?sort=` wins over `defaultSort`
-    if (fromUrl.length) return fromUrl
+    if (urlSeed.sort) return [{ id: urlSeed.sort.key, desc: urlSeed.sort.direction === 'desc' }]
     return defaultSort ? [{ id: defaultSort.key, desc: defaultSort.direction === 'desc' }] : []
   })
-  const [filterState, setFilterState] = useState<TableFilterState>(() => {
-    const base = defaultFilters ?? {}
-    // seed each filter from its URL param (`?<key>=…`) when synced — the URL wins over `defaultFilters`
-    if (!urlSync || typeof window === 'undefined' || !filters?.length) return base
-    const params = new URLSearchParams(window.location.search)
-    const fromUrl: TableFilterState = {}
-    for (const f of filters) {
-      const raw = params.get(f.key)
-      if (raw != null) fromUrl[f.key] = decodeFilterValue(f.type, raw)
-    }
-    return { ...base, ...fromUrl }
-  })
+  const [filterState, setFilterState] = useState<TableFilterState>(() => ({
+    ...defaultFilters,
+    ...urlSeed.filters,
+  }))
 
   const manual = manualPagination
 
@@ -763,56 +703,67 @@ export const Table = forwardRef(function Table<T>(
   const hasExport = exportable || (exportActions != null && exportActions.length > 0)
   const hasFilters = filters != null && filters.length > 0
 
-  // mirror page + size + search + sort into the URL query (replace, so it doesn't spam history);
-  // canonicalizes on mount. A key set to `undefined` (opted out) is skipped; an empty value is removed.
+  // mirror the table's state to the URL using the SAME builder as the server request (`state.query`), so the
+  // address bar matches the request shape (e.g. `?page=1&size=10&sortBy=rating&orderBy=desc`). `replaceState`
+  // (no history spam); canonicalizes on mount; params the table doesn't own are preserved. Gated by `urlSync`.
   const writeQuery = useCallback(
     (
       page: number,
       pageSize: number,
       search: string,
-      sort: SortingState[number] | undefined,
+      sort: TableSortState | null,
       activeFilters: TableFilterState,
     ) => {
-      const anyKey = pageKey || sizeKey || searchKey || sortKey
-      if (typeof window === 'undefined' || !anyKey) return
+      if (typeof window === 'undefined' || !urlSync) return
+      const mapping = queryMappingRef.current
+      const defs = filtersRef.current
+      // build the same params the request uses (page/size/search/sort + the active filters)
+      const built = buildTableQuery({ page, size: pageSize, search, sort }, mapping)
+      if (defs?.length) {
+        buildFilterQuery(defs, activeFilters, mapping).forEach((v, k) => built.append(k, v))
+      }
+      // the param names the table owns (resolved from the mapping) — cleared before copying `built` in, so a
+      // now-empty piece (cleared search, unset filter, "All" dropping page/size) drops out of the URL too
+      const m = {
+        pageParam: 'page',
+        sizeParam: 'size',
+        searchParam: 'search',
+        sortParam: 'sort',
+        sortOrderParam: 'order',
+        ...mapping,
+      }
+      const minSuffix = mapping.rangeMinSuffix ?? 'Min'
+      const maxSuffix = mapping.rangeMaxSuffix ?? 'Max'
+      const owned = [m.pageParam, m.sizeParam, m.searchParam, m.sortParam, m.sortOrderParam]
+      for (const f of defs ?? []) {
+        const p = f.queryKey ?? f.key
+        owned.push(p, p + minSuffix, p + maxSuffix)
+      }
+      // keep unrelated params (another widget's `?tab=…`), drop ours (incl. indexed `key[0]`), copy in built
       const params = new URLSearchParams(window.location.search)
-      let changed = false
-      const set = (key: string | undefined, value: string) => {
-        if (!key) return
-        if (value) {
-          if (params.get(key) !== value) {
-            params.set(key, value)
-            changed = true
-          }
-        } else if (params.has(key)) {
-          params.delete(key)
-          changed = true
-        }
+      for (const key of [...params.keys()]) {
+        if (owned.includes(key) || owned.some((b) => key.startsWith(`${b}[`))) params.delete(key)
       }
-      // on "All" (everything on one page) there's no meaningful page → drop it, leaving just `?size=all`
-      set(pageKey, pageSize >= ALL_ROWS ? '' : String(page))
-      set(sizeKey, sizeToParam(pageSize))
-      set(searchKey, search)
-      set(sortKey, sortToParam(sort))
-      // each filter under its own `key` param (its `type` drives (de)serialization); inactive → removed
-      for (const f of filtersRef.current ?? []) {
-        set(f.key, encodeFilterValue(f.type, activeFilters[f.key]) ?? '')
-      }
-      if (!changed) return
-      const query = params.toString()
+      built.forEach((v, k) => params.append(k, v))
+
+      const query = prettyQuery(params)
       const url = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`
+      // skip a no-op write (e.g. the mount canonicalization when the URL already matches)
+      if (url === `${window.location.pathname}${window.location.search}${window.location.hash}`)
+        return
       window.history.replaceState(window.history.state, '', url)
     },
-    [pageKey, sizeKey, searchKey, sortKey],
+    [urlSync],
   )
   useEffect(() => {
     writeQuery(
       pageIndex + 1,
       resolvedPageSize,
       resolvedGlobalFilter,
-      resolvedSorting[0],
+      sortState,
       resolvedFilterState,
     )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     pageIndex,
     resolvedPageSize,
@@ -822,46 +773,34 @@ export const Table = forwardRef(function Table<T>(
     writeQuery,
   ])
 
-  // Back/Forward → restore page + size + search + sort + filters from the query. Kept fresh behind a stable
+  // Back/Forward → restore state from the query (parsed with the same mapping). Kept fresh behind a stable
   // ref (the commit* helpers + resolved values change each render), so the listener never re-subscribes. It
   // restores WITHOUT resetting the page (the URL carries the intended page) and routes through the commit*
   // helpers so a controlled parent is notified of the Back/Forward navigation too.
   const popStateRef = useRef<() => void>(() => {})
   popStateRef.current = () => {
     const params = new URLSearchParams(window.location.search)
-    if (pageKey || sizeKey) {
-      const urlPage = pageKey ? Number(params.get(pageKey)) : NaN
-      const nextIndex = Number.isInteger(urlPage) && urlPage > 0 ? urlPage - 1 : pageIndex
-      const nextSize = parseUrlSize(
-        sizeKey ? params.get(sizeKey) : null,
-        optionsRef.current,
-        allowAllRows,
-        resolvedPageSize,
-      )
-      commitPagination(() => ({ pageIndex: nextIndex, pageSize: nextSize }))
-    }
-    if (searchKey) {
-      const s = params.get(searchKey) ?? ''
-      setSearchInput(s)
-      commitSearch(s, false)
-    }
-    if (sortKey) commitSorting(() => parseSortParam(params.get(sortKey)), false)
+    const mapping = queryMappingRef.current
+    const parsed = parseTableQuery(params, mapping)
+    commitPagination(() => ({
+      pageIndex: (parsed.page ?? defaultPage) - 1,
+      pageSize: parsed.size ?? resolvedPageSize,
+    }))
+    setSearchInput(parsed.search)
+    commitSearch(parsed.search, false)
+    commitSorting(
+      () => (parsed.sort ? [{ id: parsed.sort.key, desc: parsed.sort.direction === 'desc' }] : []),
+      false,
+    )
     const defs = filtersRef.current
-    if (defs?.length) {
-      const next: TableFilterState = {}
-      for (const f of defs) {
-        const raw = params.get(f.key)
-        if (raw != null) next[f.key] = decodeFilterValue(f.type, raw)
-      }
-      commitFilters(next, false)
-    }
+    if (defs?.length) commitFilters(parseFilterQuery(defs, params, mapping), false)
   }
   useEffect(() => {
-    if (typeof window === 'undefined' || (!pageKey && !sizeKey && !searchKey && !sortKey)) return
+    if (typeof window === 'undefined' || !urlSync) return
     const handler = () => popStateRef.current()
     window.addEventListener('popstate', handler)
     return () => window.removeEventListener('popstate', handler)
-  }, [pageKey, sizeKey, searchKey, sortKey])
+  }, [urlSync])
 
   // dev-only: a row-interactive table that relies on the index as its React key can misplace row DOM (and
   // in-cell focus / state) when rows reorder or a server page swaps in — hint to pass `getRowId`. Fires once.
@@ -969,13 +908,15 @@ export const Table = forwardRef(function Table<T>(
               </Dropdown>
             )}
             {sortableColumns.length > 0 && (
-              // sort menu — each sortable column lists an explicit "ascending" + "descending" entry; picking
-              // one applies exactly that sort (clicking the active one clears it). The active entry is shown
-              // by its `selected` tint alone (no icons); a dot `Badge` on the trigger flags that a sort is on.
+              // sort menu — one row per sortable column; clicking cycles that column asc → desc → unsorted.
+              // The menu **stays open** (`closeOnSelect={false}`) so you can cycle without reopening; the
+              // active row shows a `selected` tint + a direction arrow, and a dot `Badge` on the trigger
+              // flags that a sort is applied.
               <Dropdown
                 placement="bottom-end"
+                closeOnSelect={false}
                 trigger={
-                  <Badge dot={sorting.length > 0} color="primary">
+                  <Badge dot={resolvedSorting.length > 0} color="primary">
                     <IconButton variant="filled" size="sm" aria-label="Sort">
                       <Icon name="Sort" />
                     </IconButton>

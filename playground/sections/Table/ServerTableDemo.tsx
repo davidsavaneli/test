@@ -11,10 +11,12 @@ import {
 import { Block, Section } from '../../shared'
 import { QueryPreview } from './QueryPreview'
 
-/* Shared server-mode demo against a REAL free API — https://dummyjson.com (no key, CORS-enabled). The two
-   Server pages reuse this and differ ONLY in the `queryMapping.sortFormat`, so the built `state.query`
-   (shown live below) reads either `sort=-price` (field) or `sortBy=price&order=desc` (separate). Pagination
-   + search always work (skip/limit/q); DummyJSON sorts natively only in the `separate` (sortBy+order) shape. */
+/* Shared server-mode demo against a REAL free API — https://dummyjson.com (no key, CORS-enabled). Reused by
+   the Server pages; each passes its own `queryMapping` (or OMITS it to use the app-wide `config.table.query`
+   from main.tsx), so the `state.query` shown live below reflects that mapping — e.g. `sort=-price` (field) vs
+   `sortBy=price&order=desc` (separate). DummyJSON honors skip/limit/q + a `separate` sort natively; a page
+   whose mapping differs (e.g. the app-config page's page/size) still shows the outgoing URL — the point of
+   these pages — even though DummyJSON ignores params it doesn't recognize. */
 
 interface Product {
   id: number
@@ -52,8 +54,9 @@ const columns: TableColumn<Product>[] = [
 interface ServerTableDemoProps {
   label: string
   description: string
-  /** The per-table query mapping (param names, offset/page, sort format, filter suffixes). */
-  queryMapping: TableQueryConfig
+  /** The per-table query mapping (param names, offset/page, sort format, filter suffixes). Omit to use the
+   *  app-wide `config.table.query` (no per-table override) — the URL then follows main.tsx. */
+  queryMapping?: TableQueryConfig
   /** Optional filter defs — their active values fold into `state.query` (visible in the preview). */
   filters?: TableFilter[]
 }
@@ -79,9 +82,11 @@ export function ServerTableDemo({
     setQuery(state.query)
 
     // the query is already built by the table from `queryMapping` — we only pick the endpoint (DummyJSON
-    // puts search on a different path) and append `state.query`
+    // puts search on a different path) and append `state.query` (only with a `?` when it's non-empty, so an
+    // empty query — e.g. "All" with no `allValue` — hits a clean `/products`, not `/products?`)
     const path = state.search ? 'products/search' : 'products'
-    fetch(`https://dummyjson.com/${path}?${state.query}`, { signal: controller.signal })
+    const url = `https://dummyjson.com/${path}${state.query ? `?${state.query}` : ''}`
+    fetch(url, { signal: controller.signal })
       .then((res) => res.json())
       .then((data: { products?: Product[]; total?: number }) => {
         setRows(data.products ?? [])

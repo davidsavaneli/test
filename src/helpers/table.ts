@@ -85,3 +85,63 @@ export function buildTableQuery(
 
   return params
 }
+
+/**
+ * Read a `{ page, size, search, sort }` state back out of URL / request params — the **inverse of
+ * `buildTableQuery`** for the same `mapping`. `page` / `size` are `null` when absent (the caller falls back
+ * to its defaults). Used by `<Table>` to restore its URL-synced state on mount / Back-Forward, so the
+ * address bar and the request share one shape.
+ */
+export function parseTableQuery(
+  params: URLSearchParams,
+  mapping: TableQueryConfig = {},
+): { page: number | null; size: number | null; search: string; sort: TableQueryState['sort'] } {
+  const m = { ...DEFAULTS, ...mapping }
+
+  // size first — an offset-based page needs it to convert back to a 1-based page
+  let size: number | null = null
+  const rawSize = params.get(m.sizeParam)
+  if (rawSize != null) {
+    if (mapping.allValue !== undefined && rawSize === String(mapping.allValue)) {
+      size = Number.MAX_SAFE_INTEGER // the "All" sentinel
+    } else {
+      const n = Number(rawSize)
+      if (Number.isFinite(n)) size = n
+    }
+  }
+
+  // page — a 1-based page, or converted from a zero-based offset (`page = floor(offset / size) + 1`)
+  let page: number | null = null
+  const rawPage = params.get(m.pageParam)
+  if (rawPage != null) {
+    const n = Number(rawPage)
+    if (Number.isFinite(n)) page = m.pagination === 'offset' ? Math.floor(n / (size || 1)) + 1 : n
+  }
+
+  const search = params.get(m.searchParam) ?? ''
+
+  // sort — inverse of the three sort formats
+  let sort: TableQueryState['sort'] = null
+  const rawSort = params.get(m.sortParam)
+  if (m.sortFormat === 'separate') {
+    if (rawSort)
+      sort = {
+        key: rawSort,
+        direction: params.get(m.sortOrderParam) === m.descValue ? 'desc' : 'asc',
+      }
+  } else if (m.sortFormat === 'suffix') {
+    if (rawSort) {
+      if (rawSort.endsWith(m.descValue))
+        sort = { key: rawSort.slice(0, -m.descValue.length), direction: 'desc' }
+      else if (rawSort.endsWith(m.ascValue))
+        sort = { key: rawSort.slice(0, -m.ascValue.length), direction: 'asc' }
+      else sort = { key: rawSort, direction: 'asc' }
+    }
+  } else if (rawSort) {
+    sort = rawSort.startsWith('-')
+      ? { key: rawSort.slice(1), direction: 'desc' }
+      : { key: rawSort, direction: 'asc' }
+  }
+
+  return { page, size, search, sort }
+}

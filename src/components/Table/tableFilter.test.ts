@@ -3,12 +3,10 @@ import {
   activeFilterCount,
   applyFilters,
   buildFilterQuery,
-  decodeFilterValue,
-  encodeFilterValue,
   isFilterActive,
+  parseFilterQuery,
   type TableFilter,
-  type TableFilterType,
-  type TableFilterValue,
+  type TableFilterState,
 } from './tableFilter'
 
 interface Row {
@@ -154,38 +152,52 @@ describe('applyFilters — time / datetime types (ISO values)', () => {
   })
 })
 
-describe('encodeFilterValue / decodeFilterValue (URL round-trip)', () => {
-  const cases: Array<[TableFilterType, TableFilterValue, string]> = [
-    ['text', 'phone', 'phone'],
-    ['number', 5, '5'],
-    ['select', 'furniture', 'furniture'],
-    ['boolean', true, 'true'],
-    ['multiSelect', ['a', 'b'], 'a,b'],
-    ['numberRange', [10, 100], '10,100'],
-    ['numberRange', [null, 40], ',40'],
-    ['dateRange', ['2026-01-01', '2026-02-01'], '2026-01-01,2026-02-01'],
-    [
-      'dateTimeRange',
-      ['2026-01-01T09:00:00', '2026-01-02T10:00:00'],
-      '2026-01-01T09:00:00,2026-01-02T10:00:00',
-    ],
+describe('parseFilterQuery (inverse of buildFilterQuery)', () => {
+  const defs: TableFilter[] = [
+    { key: 'name', label: '', type: 'text' },
+    { key: 'rating', label: '', type: 'number' },
+    { key: 'category', label: '', type: 'select' },
+    { key: 'brand', label: '', type: 'multiSelect' },
+    { key: 'price', label: '', type: 'numberRange' },
+    { key: 'inStock', label: '', type: 'boolean' },
+    { key: 'created', label: '', type: 'dateRange' },
   ]
+  const state: TableFilterState = {
+    name: 'phone',
+    rating: 4,
+    category: 'furniture',
+    brand: ['a', 'b'],
+    price: [10, 100],
+    inStock: true,
+    created: ['2026-01-01', '2026-02-01'],
+  }
 
-  it('encodes to the expected URL string', () => {
-    for (const [type, value, encoded] of cases) expect(encodeFilterValue(type, value)).toBe(encoded)
+  it('round-trips build → parse with the default mapping', () => {
+    expect(parseFilterQuery(defs, buildFilterQuery(defs, state))).toEqual(state)
   })
 
-  it('round-trips encode → decode by type', () => {
-    for (const [type, value] of cases) {
-      const enc = encodeFilterValue(type, value)!
-      expect(decodeFilterValue(type, enc)).toEqual(value)
+  it('round-trips with csv multiSelect + custom range suffixes', () => {
+    const mapping = {
+      multiSelectFormat: 'csv' as const,
+      rangeMinSuffix: '_gte',
+      rangeMaxSuffix: '_lte',
     }
+    expect(parseFilterQuery(defs, buildFilterQuery(defs, state, mapping), mapping)).toEqual(state)
   })
 
-  it('returns null for an inactive value (so it is omitted from the URL)', () => {
-    expect(encodeFilterValue('text', '')).toBeNull()
-    expect(encodeFilterValue('multiSelect', [])).toBeNull()
-    expect(encodeFilterValue('numberRange', [null, null])).toBeNull()
+  it('round-trips with indexed multiSelect', () => {
+    const mapping = { multiSelectFormat: 'indexed' as const }
+    expect(parseFilterQuery(defs, buildFilterQuery(defs, state, mapping), mapping)).toEqual(state)
+  })
+
+  it('reads an open-ended range (only one bound set)', () => {
+    expect(parseFilterQuery(defs, buildFilterQuery(defs, { price: [null, 40] }))).toEqual({
+      price: [null, 40],
+    })
+  })
+
+  it('returns nothing for an empty query', () => {
+    expect(parseFilterQuery(defs, new URLSearchParams())).toEqual({})
   })
 })
 

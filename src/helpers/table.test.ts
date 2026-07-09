@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildTableQuery, type TableQueryState } from './table'
+import { buildTableQuery, parseTableQuery, type TableQueryState } from './table'
 
 const state = (over: Partial<TableQueryState> = {}): TableQueryState => ({
   page: 1,
@@ -81,5 +81,46 @@ describe('buildTableQuery', () => {
     // no allValue → "All" emits nothing (no page, no size)
     const noAll = buildTableQuery(all)
     expect(noAll.toString()).toBe('')
+  })
+})
+
+describe('parseTableQuery (inverse of buildTableQuery)', () => {
+  it('round-trips the default page-based shape', () => {
+    const s = state({
+      page: 2,
+      size: 20,
+      search: 'phone',
+      sort: { key: 'price', direction: 'desc' },
+    })
+    expect(parseTableQuery(buildTableQuery(s))).toEqual(s)
+  })
+
+  it('round-trips an offset + separate-sort mapping (DummyJSON style)', () => {
+    const mapping = {
+      pageParam: 'skip',
+      sizeParam: 'limit',
+      searchParam: 'q',
+      sortParam: 'sortBy',
+      pagination: 'offset' as const,
+      sortFormat: 'separate' as const,
+    }
+    const s = state({ page: 3, size: 10, search: 'ess', sort: { key: 'price', direction: 'asc' } })
+    // page 3 @ size 10 → skip 20 → back to page 3
+    expect(parseTableQuery(buildTableQuery(s, mapping), mapping)).toEqual(s)
+  })
+
+  it('round-trips a suffix sort (priceDesc)', () => {
+    const mapping = { sortFormat: 'suffix' as const }
+    const s = state({ sort: { key: 'price', direction: 'desc' } })
+    expect(parseTableQuery(buildTableQuery(s, mapping), mapping)).toEqual(s)
+  })
+
+  it('returns null page/size + empty search + null sort for an empty query', () => {
+    expect(parseTableQuery(new URLSearchParams())).toEqual({
+      page: null,
+      size: null,
+      search: '',
+      sort: null,
+    })
   })
 })

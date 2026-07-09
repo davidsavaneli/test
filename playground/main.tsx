@@ -29,14 +29,15 @@ const config: Config = {
       // sizeParam: 'limit',
       searchParam: 'search', // search request-param name
       // searchParam: 'q',
-      sortParam: 'sort', // sort-key request-param name
-      // sortParam: 'sortBy',
+      sortParam: 'sortBy', // sort-key request-param name
+      // sortParam: 'sort',
       pagination: 'page', // page=2
       // pagination: 'offset', // skip=(page-1)*size
-      sortFormat: 'field', // sort=-price
-      // sortFormat: 'separate', // sortBy=price&order=desc
+      sortFormat: 'separate', // sortBy=price&order=desc
+      // sortFormat: 'field', // sort=-price
       // sortFormat: 'suffix', // sort=priceAsc / sort=priceDesc
-      sortOrderParam: 'order', // direction request-param (sortFormat: 'separate')
+      sortOrderParam: 'orderBy', // direction request-param (sortFormat: 'separate')
+      // sortOrderParam: 'order',
       // sortOrderParam: 'direction',
       ascValue: 'asc', // asc value (sortFormat: 'separate' / 'suffix')
       // ascValue: 'ASC',
@@ -45,13 +46,13 @@ const config: Config = {
       multiSelectFormat: 'repeat', // cat=a&cat=b
       // multiSelectFormat: 'csv', // cat=a,b
       // multiSelectFormat: 'indexed', // cat[0]=a&cat[1]=b
-      rangeMinSuffix: 'From', // range lower bound → priceFrom
+      rangeMinSuffix: '_gte', // range lower bound → price_gte
+      // rangeMinSuffix: 'From', // priceFrom
       // rangeMinSuffix: 'Min', // priceMin
-      // rangeMinSuffix: '_gte', // price_gte
       // rangeMinSuffix: '[gte]', // price[gte]
-      rangeMaxSuffix: 'To', // range upper bound → priceTo
+      rangeMaxSuffix: '_lte', // range upper bound → price_lte
+      // rangeMaxSuffix: 'To', // priceTo
       // rangeMaxSuffix: 'Max', // priceMax
-      // rangeMaxSuffix: '_lte', // price_lte
       // rangeMaxSuffix: '[lte]', // price[lte]
       // allValue: 0, // "All" → limit=0 (default: no allValue → size param dropped on "All")
     },

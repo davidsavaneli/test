@@ -297,11 +297,7 @@ export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
         footer={
           // Clear (reset the draft fields) pinned left; Cancel (discard + close) + Apply (commit) on the right
           <div className={styles.footer}>
-            <Button
-              variant="filled"
-              startIcon={<Icon name="FilterRemove" />}
-              onClick={() => setDraft({})}
-            >
+            <Button variant="filled" startIcon={<Icon name="Trash" />} onClick={() => setDraft({})}>
               Clear
             </Button>
             <div className={styles.footerEnd}>
@@ -309,7 +305,7 @@ export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
                 Cancel
               </Button>
               {/* submits the body form (`formId`) — so clicking Apply OR pressing Enter in a field commits */}
-              <Button type="submit" form={formId}>
+              <Button type="submit" form={formId} startIcon={<Icon name="Filter" />}>
                 Apply
               </Button>
             </div>

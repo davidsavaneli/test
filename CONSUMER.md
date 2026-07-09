@@ -478,11 +478,11 @@ The cell swallows clicks, so they won't trigger the row's `onClick` (you don't `
   yours — the table only builds the params (exported standalone as **`buildTableQuery`**).
   `<Table manualPagination data={rows} rowCount={total} loading={loading} queryMapping={{ pageParam: 'skip', sizeParam: 'limit', searchParam: 'q', sortParam: 'sortBy', pagination: 'offset', sortFormat: 'separate' }} onChange={(s) => fetch(`/products?${s.query}`)} columns={cols} searchable />`
 
-**Page + rows-per-page + search + sort sync to the URL by default**
-(`?page=1&size=10&search=phone&sort=-price` — sort is `key` ascending, `-key` descending) — the param names
-resolve **`pageQueryKey`/`sizeQueryKey`/`searchQueryKey`/`sortQueryKey` prop → `ConfigProvider`'s
-`keys.*` → `'page'`/`'size'`/`'search'`/`'sort'`**; pass **`urlSync={false}`** (or a per-param `null`) to
-opt out. **Multiple URL-synced tables on one page need distinct keys** (like `Tabs`). The footer's rows-per-page `Select` offers `pageSizeOptions`
+**Page + rows-per-page + search + sort + filters sync to the URL by default, in the SAME shape as the server
+request** — the address bar mirrors `state.query` exactly (built from `config.table.query` + `queryMapping`),
+e.g. `?page=1&size=10&search=phone&sortBy=price&orderBy=desc`. Read back on mount + Back/Forward; pass
+**`urlSync={false}`** to opt out. (No separate URL-key layer — the URL param names ARE your `table.query`
+names; two URL-synced tables on one page need distinct param names via their `queryMapping`.) The footer's rows-per-page `Select` offers `pageSizeOptions`
 (default `[10, 20, 50, 100, 200]`) plus an **All** choice (`allowAllRows`, default `true` — shows every row
 on one page; pass `false` to hide it for large datasets); optional **first/last jump arrows**
 (`showFirstButton` / `showLastButton`, off by default) and the **page navigator auto-hides when everything

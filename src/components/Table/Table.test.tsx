@@ -112,20 +112,22 @@ describe('Table', () => {
     expect(screen.getByRole('button', { name: 'Go to last page' })).toBeInTheDocument()
   })
 
-  it('shows every row on one page for the "All" rows-per-page (size=all)', () => {
-    window.history.replaceState({}, '', '/?page=1&size=all')
+  it('shows every row on one page when "All" is picked', () => {
     render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
+    fireEvent.click(screen.getByRole('combobox')) // open the rows-per-page select
+    fireEvent.click(screen.getByRole('option', { name: 'All' }))
     expect(bodyRowCount()).toBe(25)
     expect(screen.getByText(/1.25 of 25/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Go to page 2' })).not.toBeInTheDocument()
   })
 
-  it('ignores size=all and falls back to the default when allowAllRows is false', () => {
-    window.history.replaceState({}, '', '/?page=1&size=all')
+  it('hides the "All" option when allowAllRows is false', () => {
     render(
       <Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} allowAllRows={false} />,
     )
-    expect(bodyRowCount()).toBe(10) // default page size, All rejected
+    fireEvent.click(screen.getByRole('combobox')) // open the rows-per-page select
+    expect(screen.queryByRole('option', { name: 'All' })).toBeNull()
+    expect(bodyRowCount()).toBe(10) // default page size
   })
 
   it('filters locally via the search box (debounced)', async () => {
@@ -156,7 +158,7 @@ describe('Table', () => {
     fireEvent.click(within(screen.getByRole('menu')).getByText('Age')) // → ascending
     expect(ageHeader).toHaveAttribute('aria-sort', 'ascending')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // reopen (menu closes on select)
+    // the menu stays open (closeOnSelect={false}) — click the same row again to cycle, no reopening
     fireEvent.click(within(screen.getByRole('menu')).getByText('Age')) // ascending → descending, resets to page 1
     expect(ageHeader).toHaveAttribute('aria-sort', 'descending')
     expect(screen.getByText('User 25')).toBeInTheDocument() // age 44, now first
@@ -171,6 +173,15 @@ describe('Table', () => {
     expect(within(menu).getByText('Age')).toBeInTheDocument()
     expect(within(menu).queryByText('Role')).toBeNull() // Role isn't sortable
     expect(within(menu).queryByText('Age ascending')).toBeNull() // one row per column, not asc + desc
+  })
+
+  it('keeps the sort menu open after a selection (cycle without reopening)', () => {
+    render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Sort' }))
+    fireEvent.click(within(screen.getByRole('menu')).getByText('Age')) // → ascending
+    // closeOnSelect={false}: the menu is still mounted + the same row is clickable to keep cycling
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    expect(within(screen.getByRole('menu')).getByText('Age')).toBeInTheDocument()
   })
 
   it('shows no sort button when no column is sortable', () => {
@@ -549,13 +560,13 @@ describe('Table', () => {
       await waitFor(() => expect(new URLSearchParams(window.location.search).get('page')).toBe('3'))
     })
 
-    it('drops page from the URL on the "All" rows-per-page (leaves just ?size=all)', async () => {
+    it('drops both page and size from the URL on the "All" rows-per-page (clean URL)', async () => {
       render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} />)
       fireEvent.click(screen.getByRole('combobox')) // open the rows-per-page select
       fireEvent.click(screen.getByRole('option', { name: 'All' }))
       await waitFor(() => {
         const params = new URLSearchParams(window.location.search)
-        expect(params.get('size')).toBe('all')
+        expect(params.has('size')).toBe(false) // "All" isn't persisted — no size param written
         expect(params.has('page')).toBe(false) // no meaningful page on "All"
       })
     })
@@ -593,7 +604,7 @@ describe('Table', () => {
       await waitFor(() =>
         expect(new URLSearchParams(window.location.search).get('sort')).toBe('age'),
       )
-      fireEvent.click(screen.getByRole('button', { name: 'Sort' })) // reopen (menu closes on select)
+      // menu stays open (closeOnSelect={false}) — click again to cycle to descending
       fireEvent.click(within(screen.getByRole('menu')).getByText('Age')) // ascending → descending
       await waitFor(() =>
         expect(new URLSearchParams(window.location.search).get('sort')).toBe('-age'),

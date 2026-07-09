@@ -57,26 +57,6 @@ export interface KeysConfig {
    * `'languages'` ⇒ `languages[en-US].title`. Defaults to `'translations'`.
    */
   translationsNamespace?: string
-  /**
-   * URL query param name a `<Table>` syncs its **1-based page** to (e.g. `'p'` ⇒ `?p=2`), unless that
-   * table sets its own `pageQueryKey` (or `urlSync={false}` to opt out). Defaults to `'page'`.
-   */
-  pageQueryKey?: string
-  /**
-   * URL query param name a `<Table>` syncs its **rows-per-page** to (e.g. `?page=2&size=25`), unless that
-   * table sets its own `sizeQueryKey`. Defaults to `'size'`.
-   */
-  sizeQueryKey?: string
-  /**
-   * URL query param name a `<Table>` syncs its **search query** to (e.g. `?search=phone`), unless that
-   * table sets its own `searchQueryKey`. Defaults to `'search'`.
-   */
-  searchQueryKey?: string
-  /**
-   * URL query param name a `<Table>` syncs its **sort** to — `key` for ascending, `-key` for descending
-   * (e.g. `?sort=title` / `?sort=-price`) — unless that table sets its own `sortQueryKey`. Defaults to `'sort'`.
-   */
-  sortQueryKey?: string
 }
 
 /**
@@ -179,14 +159,6 @@ interface ThemeContextValue {
   tabQueryKey: string
   /** Resolved nested tabs query key (`config.keys.nestedTabQueryKey` ?? the built-in default). */
   nestedTabQueryKey: string
-  /** Resolved `<Table>` page query key (`config.keys.pageQueryKey` ?? the built-in default). */
-  pageQueryKey: string
-  /** Resolved `<Table>` rows-per-page query key (`config.keys.sizeQueryKey` ?? the built-in default). */
-  sizeQueryKey: string
-  /** Resolved `<Table>` search query key (`config.keys.searchQueryKey` ?? the built-in default). */
-  searchQueryKey: string
-  /** Resolved `<Table>` sort query key (`config.keys.sortQueryKey` ?? the built-in default). */
-  sortQueryKey: string
   /** The `<Table>` server-request query mapping (`config.table.query` ?? `{}`). Defaults applied by `buildTableQuery`. */
   tableQuery: TableQueryConfig
 }
@@ -197,14 +169,6 @@ const STORAGE_KEY = 'tz-theme-mode'
 export const DEFAULT_TABS_QUERY_KEY = 'tab'
 /** The built-in default URL query param name a **nested** `<Tabs>` syncs to (no `queryKey`/config). */
 export const DEFAULT_NESTED_TAB_QUERY_KEY = 'nestedTab'
-/** The built-in default URL query param name a `<Table>` syncs its 1-based page to (no config). */
-export const DEFAULT_PAGE_QUERY_KEY = 'page'
-/** The built-in default URL query param name a `<Table>` syncs its rows-per-page to (no config). */
-export const DEFAULT_SIZE_QUERY_KEY = 'size'
-/** The built-in default URL query param name a `<Table>` syncs its search query to (no config). */
-export const DEFAULT_SEARCH_QUERY_KEY = 'search'
-/** The built-in default URL query param name a `<Table>` syncs its sort to (no config). */
-export const DEFAULT_SORT_QUERY_KEY = 'sort'
 /** Stable empty-locales fallback so the context value memo doesn't churn when no locales are configured. */
 const EMPTY_LOCALES: LocaleConfig[] = []
 /** Stable empty table-query fallback so the context memo doesn't churn when no `table.query` is configured. */
@@ -287,10 +251,6 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
     config?.keys?.translationsNamespace ?? DEFAULT_TRANSLATIONS_NAMESPACE
   const tabQueryKey = config?.keys?.tabQueryKey ?? DEFAULT_TABS_QUERY_KEY
   const nestedTabQueryKey = config?.keys?.nestedTabQueryKey ?? DEFAULT_NESTED_TAB_QUERY_KEY
-  const pageQueryKey = config?.keys?.pageQueryKey ?? DEFAULT_PAGE_QUERY_KEY
-  const sizeQueryKey = config?.keys?.sizeQueryKey ?? DEFAULT_SIZE_QUERY_KEY
-  const searchQueryKey = config?.keys?.searchQueryKey ?? DEFAULT_SEARCH_QUERY_KEY
-  const sortQueryKey = config?.keys?.sortQueryKey ?? DEFAULT_SORT_QUERY_KEY
   const tableQuery = config?.table?.query ?? EMPTY_TABLE_QUERY
 
   const value = useMemo<ThemeContextValue>(
@@ -302,10 +262,6 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       translationsNamespace,
       tabQueryKey,
       nestedTabQueryKey,
-      pageQueryKey,
-      sizeQueryKey,
-      searchQueryKey,
-      sortQueryKey,
       tableQuery,
     }),
     [
@@ -316,10 +272,6 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       translationsNamespace,
       tabQueryKey,
       nestedTabQueryKey,
-      pageQueryKey,
-      sizeQueryKey,
-      searchQueryKey,
-      sortQueryKey,
       tableQuery,
     ],
   )
@@ -369,42 +321,6 @@ export function useTabsQueryKey(): string {
  */
 export function useNestedTabQueryKey(): string {
   return useContext(ThemeContext)?.nestedTabQueryKey ?? DEFAULT_NESTED_TAB_QUERY_KEY
-}
-
-/**
- * The default `<Table>` page query key configured on `<ConfigProvider config={{ keys: { pageQueryKey } }}>`,
- * resolved against the built-in default (`'page'`). Lenient outside a provider. A `<Table>` reads it as the
- * fallback for an omitted `pageQueryKey`, so `?page=…` URL-sync works out of the box.
- */
-export function usePageQueryKey(): string {
-  return useContext(ThemeContext)?.pageQueryKey ?? DEFAULT_PAGE_QUERY_KEY
-}
-
-/**
- * The default `<Table>` rows-per-page query key configured on
- * `<ConfigProvider config={{ keys: { sizeQueryKey } }}>`, resolved against the built-in default (`'size'`).
- * Lenient outside a provider. A `<Table>` reads it as the fallback for an omitted `sizeQueryKey`.
- */
-export function useSizeQueryKey(): string {
-  return useContext(ThemeContext)?.sizeQueryKey ?? DEFAULT_SIZE_QUERY_KEY
-}
-
-/**
- * The default `<Table>` search query key configured on
- * `<ConfigProvider config={{ keys: { searchQueryKey } }}>`, resolved against the built-in default
- * (`'search'`). Lenient outside a provider. A `<Table>` reads it as the fallback for an omitted `searchQueryKey`.
- */
-export function useSearchQueryKey(): string {
-  return useContext(ThemeContext)?.searchQueryKey ?? DEFAULT_SEARCH_QUERY_KEY
-}
-
-/**
- * The default `<Table>` sort query key configured on `<ConfigProvider config={{ keys: { sortQueryKey } }}>`,
- * resolved against the built-in default (`'sort'`). Lenient outside a provider. A `<Table>` reads it as the
- * fallback for an omitted `sortQueryKey`.
- */
-export function useSortQueryKey(): string {
-  return useContext(ThemeContext)?.sortQueryKey ?? DEFAULT_SORT_QUERY_KEY
 }
 
 /**

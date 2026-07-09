@@ -9,5 +9,5 @@ export {
   toFormData,
   DEFAULT_TRANSLATIONS_NAMESPACE,
 } from '../helpers/translations'
-export { buildTableQuery } from '../helpers/table'
+export { buildTableQuery, parseTableQuery } from '../helpers/table'
 export type { TableQueryState } from '../helpers/table'
