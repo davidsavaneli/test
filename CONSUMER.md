@@ -498,13 +498,11 @@ controlled or uncontrolled, per piece:** pass **`defaultPage` / `defaultPageSize
 `onSortChange` / `onFiltersChange`** callbacks to own that piece from outside (e.g. clear filters from your
 own button). (Renders at a single md density — no `size` prop.)
 
-**Export** (`exportable`) adds a toolbar export menu (an "Export" header) with a **built-in client-side
-CSV** item — **"This Page"** (the rows shown). The CSV comes from your `columns`
-— set a column's **`exportValue: (row) => …`** when its `cell` renders a node (a `Chip`, a formatted date)
-so the file holds text, and **`exportHeader`** to override the header. For a **server export** or **"Send On
-Email"**, add **`exportActions={[{ label, icon?, onClick(state) }]}`** — each fires with the current state,
-so you POST `state.query` to your endpoint. `exportFileName` sets the download name.
-`<Table exportable exportFileName="products" exportActions={[{ label: 'Send On Email', icon: 'Sms', onClick: (s) => sendExport(s.query) }]} data={rows} columns={cols} />`
+**Export** (`exportActions`) adds a toolbar export menu (an "Export" header). There's no built-in CSV —
+you bring your own via **`exportActions={[{ label, icon?, onClick(state) }]}`**: each item fires with the
+current `TableChangeState`, so a **server export** or **"Send On Email"** POSTs `state.query` to your
+endpoint. The menu shows only when at least one action is given.
+`<Table exportActions={[{ label: 'Send On Email', icon: 'DirectSend', onClick: (s) => sendExport(s.query) }]} data={rows} columns={cols} />`
 
 **Filters** (`filters`) is **declarative** — like `columns`: pass `{ key, label, type, options? }[]` and the
 table renders a toolbar **Filters** button (with a count badge) opening a right **drawer** of fields +

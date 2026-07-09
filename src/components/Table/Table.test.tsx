@@ -368,39 +368,6 @@ describe('Table', () => {
   })
 
   describe('export', () => {
-    it('exports the current page to CSV via the export menu', () => {
-      // jsdom's Blob lacks .text(), so capture the CSV via a Blob mock; stub URL + anchor click (download)
-      const parts: string[] = []
-      class MockBlob {
-        type: string
-        constructor(chunks: string[], opts?: { type?: string }) {
-          parts.push(chunks.join(''))
-          this.type = opts?.type ?? ''
-        }
-      }
-      vi.stubGlobal('Blob', MockBlob)
-      vi.stubGlobal('URL', {
-        ...URL,
-        createObjectURL: vi.fn(() => 'blob:x'),
-        revokeObjectURL: vi.fn(),
-      })
-      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
-
-      render(<Table data={makeData(3)} columns={columns} getRowId={(r) => r.id} exportable />)
-      fireEvent.click(screen.getByRole('button', { name: 'Export' }))
-      const menu = screen.getByRole('menu')
-      expect(within(menu).queryByText('Export All')).toBeNull() // removed — current page only
-      fireEvent.click(within(menu).getByText('This Page'))
-
-      expect(click).toHaveBeenCalled() // a download was triggered
-      const csv = parts[parts.length - 1] ?? ''
-      expect(csv).toContain('Name,Role,Age') // header row from the column headers
-      expect(csv).toContain('User 1,Member,20') // first data row (raw key values)
-
-      click.mockRestore()
-      vi.unstubAllGlobals()
-    })
-
     it('runs a custom export action with the current table state (query)', () => {
       const onClick = vi.fn()
       render(

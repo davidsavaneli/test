@@ -1517,16 +1517,12 @@ server page swaps in, so pass a real id like `(row) => row.id` for any interacti
 dims them while refetching; **with no rows** — a centered `Loader` + `"Loading…"` caption fills the body,
 mirroring the empty state's presence rather than a lone tiny spinner), **`empty`** (custom empty node — the
 default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
-(default `true`). **Export** (**`exportable`**): a toolbar export `Dropdown` (an export-icon trigger next to
-sort) opening an uppercase **"Export" label** over a **built-in client-side CSV** item — **"This Page"**
-(the rows currently shown, both modes). The CSV is built from `columns` (in-house — no dependency; `\r\n` rows, RFC-4180 quoting, a UTF-8 BOM for
-Excel) using each column's **`exportHeader`** (defaults to `header` when it's a string, else `key`) +
-**`exportValue(row, i)`** (defaults to the raw `key` value — set it when the visible `cell` renders a node,
-e.g. a `Chip`, so the CSV holds text). Add custom items — e.g. **"Send On Email"** or a **server export** —
-via **`exportActions`** (`TableExportAction[]` = `{ label, icon?, onClick(state) }[]`, appended after the
-built-in items); each `onClick` gets the current `TableChangeState`, so a server export/email hits your
-endpoint with `state.query`. **`exportFileName`** sets the download name (defaults to `title` if a string,
-else `'export'`). The pure serializer (`toCsv`) + `downloadCsv` live in the internal `tableExport.ts`.
+(default `true`). **Export** (**`exportActions`**): a toolbar export `Dropdown` (an export-icon trigger next
+to sort) opening an uppercase **"Export" label** over the consumer's items — **`exportActions`**
+(`TableExportAction[]` = `{ label, icon?, onClick(state) }[]`); each `onClick` gets the current
+`TableChangeState`, so a server export / **"Send On Email"** hits your endpoint with `state.query`. The menu
+shows only when at least one action is given (there's **no built-in client-side CSV** — bring your own
+export via an action).
 **Filters** (**`filters`**): declarative filter defs (`TableFilter[]` = `{ key, label, type, options?,
 placeholder? }`) render a toolbar **Filters** button (a `Filter` icon with a **count `Badge`**) opening a
 right **drawer** (`Modal placement="right"`) — a `Modal`, not a popover, so the nested `Select` /
@@ -1564,9 +1560,8 @@ headers, the search box `aria-label`led, the `Loader` `role="status"`. **Note:**
 sort / pagination, the pinned-column class, the empty-cell "—" placeholder, server-mode `onChange` (+ the
 `queryMapping`-built `query`), the toolbar sort menu, empty + loading, URL sync (mirrors `state.query`:
 page/size canonicalize + read + write + opt-out — incl. the clean URL on "All" — and search/sort/filters
-read + write), the query builders (`buildTableQuery` / `parseTableQuery` round-trip) + the CSV serializer
-(`toCsv`), the **export** menu (built-in CSV of the current page, a custom `exportActions` item firing with
-the state), the **filters** (`applyFilters` per type; the Filters panel filtering local data on Apply +
+read + write), the query builders (`buildTableQuery` / `parseTableQuery` round-trip), the **export** menu (a
+custom `exportActions` item firing with the state), the **filters** (`applyFilters` per type; the Filters panel filtering local data on Apply +
 emitting `state.filters` in server mode; the server-query + URL round-trip via
 `buildFilterQuery` / `parseFilterQuery`), controlled mode (page / sort / search / filters), and
 `onRowClick`. Own CSS module. _Row selection (checkboxes), per-column filters, filter operator pickers,

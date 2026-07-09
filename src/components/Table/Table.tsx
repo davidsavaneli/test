@@ -26,7 +26,6 @@ import {
 import { useTableQueryConfig, type TableQueryConfig } from '../../theme'
 import { buildTableQuery, parseTableQuery } from '../../helpers/table'
 import type { IconName } from '../../icons/names'
-import { toCsv, downloadCsv } from './tableExport'
 import {
   applyFilters,
   buildFilterQuery,
@@ -97,13 +96,6 @@ export interface TableColumn<T> {
    * `width` to override.
    */
   pinned?: 'left' | 'right'
-  /**
-   * Value written for this column in a CSV **export** (`exportable`). Defaults to the raw `key` value —
-   * override for a formatted / derived string when the visible `cell` renders a node (e.g. a `Chip`).
-   */
-  exportValue?: (row: T, index: number) => string | number | null | undefined
-  /** Header text for this column in the export CSV. Defaults to `header` when it's a string, else `key`. */
-  exportHeader?: string
 }
 
 /** An extra item in the Table's export menu — e.g. "Send On Email" or a server-side export. */
@@ -205,16 +197,9 @@ interface TableBaseProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChan
    */
   queryMapping?: TableQueryConfig
   /**
-   * Show an **export** menu in the toolbar with a built-in client-side **CSV** of the current page
-   * ("This Page"). The CSV is built from `columns` (`exportHeader` / `exportValue` per column).
-   * Defaults to `false`.
-   */
-  exportable?: boolean
-  /** Base filename for the CSV download (no extension needed). Defaults to `title` (if a string), else `'export'`. */
-  exportFileName?: string
-  /**
-   * Extra export-menu items appended after the built-in CSV ones — e.g. "Send On Email" or a **server**
-   * export. Each `onClick` gets the current `TableChangeState` (incl. `query`), so it can hit your endpoint.
+   * Export-menu items — each adds a toolbar **export** `Dropdown` entry (e.g. "Send On Email" or a
+   * **server** export). Each `onClick` gets the current `TableChangeState` (incl. `query`), so it can hit
+   * your endpoint. The menu is shown only when at least one action is given.
    */
   exportActions?: TableExportAction[]
   /**
@@ -390,8 +375,6 @@ export const Table = forwardRef(function Table<T>(
     defaultSort = null,
     onChange,
     queryMapping,
-    exportable = false,
-    exportFileName,
     exportActions,
     filters,
     defaultFilters,
@@ -687,20 +670,7 @@ export const Table = forwardRef(function Table<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageIndex, resolvedPageSize, resolvedGlobalFilter, resolvedSorting, resolvedFilterState])
 
-  // built-in CSV export — the rows currently shown (the displayed page in both modes). Columns come from
-  // `columns` (the synthetic actions column isn't there), each cell using `exportValue` if given, else the
-  // raw `key` value.
-  const resolvedExportName = exportFileName ?? (typeof title === 'string' ? title : 'export')
-  const exportCsv = () => {
-    const rows = table.getRowModel().rows.map((r) => r.original)
-    const csvColumns = columns.map((col) => ({
-      header: col.exportHeader ?? (typeof col.header === 'string' ? col.header : col.key),
-      value: (row: T, i: number) =>
-        col.exportValue ? col.exportValue(row, i) : (row as Record<string, unknown>)[col.key],
-    }))
-    downloadCsv(resolvedExportName, toCsv(rows, csvColumns))
-  }
-  const hasExport = exportable || (exportActions != null && exportActions.length > 0)
+  const hasExport = exportActions != null && exportActions.length > 0
   const hasFilters = filters != null && filters.length > 0
 
   // mirror the table's state to the URL using the SAME builder as the server request (`state.query`), so the
@@ -877,8 +847,7 @@ export const Table = forwardRef(function Table<T>(
           <div className={styles.toolbarEnd}>
             {toolbar}
             {hasExport && (
-              // export menu — built-in client-side CSV of the current page ("This Page"), then any
-              // consumer `exportActions` (e.g. "Send On Email" / a server export)
+              // export menu — the consumer's `exportActions` (e.g. "Send On Email" / a server export)
               <Dropdown
                 placement="bottom-end"
                 trigger={
@@ -890,11 +859,6 @@ export const Table = forwardRef(function Table<T>(
                 <Typography as="div" variant="caption" color="muted" className={styles.menuTitle}>
                   Export
                 </Typography>
-                {exportable && (
-                  <ListItem clickable icon="DocumentDownload" onClick={exportCsv}>
-                    This Page
-                  </ListItem>
-                )}
                 {exportActions?.map((action, i) => (
                   <ListItem
                     key={i}
