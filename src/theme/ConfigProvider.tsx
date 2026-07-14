@@ -53,6 +53,12 @@ export interface KeysConfig {
    */
   nestedTabQueryKey?: string
   /**
+   * URL query param name a `<Stepper queryKey>` (the bare/`true` form) syncs its active step to
+   * (**1-based**, e.g. `?step=2`); a string `queryKey` overrides it per stepper. Defaults to `'step'`.
+   * (The sync itself is **opt-in** — a stepper with no `queryKey` never touches the URL.)
+   */
+  stepQueryKey?: string
+  /**
    * Top-level namespace word for `<TranslatedFields>`' form names + the nested object — e.g.
    * `'languages'` ⇒ `languages[en-US].title`. Defaults to `'translations'`.
    */
@@ -159,6 +165,8 @@ interface ThemeContextValue {
   tabQueryKey: string
   /** Resolved nested tabs query key (`config.keys.nestedTabQueryKey` ?? the built-in default). */
   nestedTabQueryKey: string
+  /** Resolved stepper query key (`config.keys.stepQueryKey` ?? the built-in default). */
+  stepQueryKey: string
   /** The `<Table>` server-request query mapping (`config.table.query` ?? `{}`). Defaults applied by `buildTableQuery`. */
   tableQuery: TableQueryConfig
 }
@@ -169,6 +177,8 @@ const STORAGE_KEY = 'tz-theme-mode'
 export const DEFAULT_TABS_QUERY_KEY = 'tab'
 /** The built-in default URL query param name a **nested** `<Tabs>` syncs to (no `queryKey`/config). */
 export const DEFAULT_NESTED_TAB_QUERY_KEY = 'nestedTab'
+/** The built-in default URL query param name a `<Stepper>` syncs to (no `queryKey`/config). */
+export const DEFAULT_STEP_QUERY_KEY = 'step'
 /** Stable empty-locales fallback so the context value memo doesn't churn when no locales are configured. */
 const EMPTY_LOCALES: LocaleConfig[] = []
 /** Stable empty table-query fallback so the context memo doesn't churn when no `table.query` is configured. */
@@ -251,6 +261,7 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
     config?.keys?.translationsNamespace ?? DEFAULT_TRANSLATIONS_NAMESPACE
   const tabQueryKey = config?.keys?.tabQueryKey ?? DEFAULT_TABS_QUERY_KEY
   const nestedTabQueryKey = config?.keys?.nestedTabQueryKey ?? DEFAULT_NESTED_TAB_QUERY_KEY
+  const stepQueryKey = config?.keys?.stepQueryKey ?? DEFAULT_STEP_QUERY_KEY
   const tableQuery = config?.table?.query ?? EMPTY_TABLE_QUERY
 
   const value = useMemo<ThemeContextValue>(
@@ -262,6 +273,7 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       translationsNamespace,
       tabQueryKey,
       nestedTabQueryKey,
+      stepQueryKey,
       tableQuery,
     }),
     [
@@ -272,6 +284,7 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       translationsNamespace,
       tabQueryKey,
       nestedTabQueryKey,
+      stepQueryKey,
       tableQuery,
     ],
   )
@@ -321,6 +334,15 @@ export function useTabsQueryKey(): string {
  */
 export function useNestedTabQueryKey(): string {
   return useContext(ThemeContext)?.nestedTabQueryKey ?? DEFAULT_NESTED_TAB_QUERY_KEY
+}
+
+/**
+ * The default stepper query key configured on `<ConfigProvider config={{ keys: { stepQueryKey } }}>`,
+ * resolved against the built-in default (`'step'`). Lenient outside a provider. A `<Stepper queryKey>`
+ * (the bare/`true` opt-in form) reads it as the param name; a string `queryKey` overrides it.
+ */
+export function useStepQueryKey(): string {
+  return useContext(ThemeContext)?.stepQueryKey ?? DEFAULT_STEP_QUERY_KEY
 }
 
 /**

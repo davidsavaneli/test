@@ -308,6 +308,11 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
     internal context); resolves **`queryKey` prop → `config.keys.nestedTabQueryKey` →
     `DEFAULT_NESTED_TAB_QUERY_KEY` (`'nestedTab'`)**. Read via **`useNestedTabQueryKey()`**. (3+ nesting
     levels reuse the nested key — set distinct `queryKey`s explicitly there.)
+  - **`keys.stepQueryKey`** (default `'step'`): the URL query param a **`Stepper`** with the **bare
+    `queryKey`** opt-in syncs its active step to (**1-based** — `?step=2` = index 1). Stepper sync is
+    **opt-in (off by default)** — `queryKey` (`true`) uses this configured name, a string `queryKey`
+    overrides it per stepper, and omitting the prop leaves the URL untouched (two synced steppers on
+    one page need distinct keys). Read via **`useStepQueryKey()`**.
   - **`keys.translationsNamespace`** (default `'translations'`): the **`<TranslatedFields>`** namespace
     word — field names resolve **`namespace` prop → `config.keys.translationsNamespace` →
     `DEFAULT_TRANSLATIONS_NAMESPACE` (`'translations'`)**. Read via **`useTranslationsNamespace()`** —
@@ -1430,11 +1435,22 @@ is a natural next iteration (URL-sync via `keys.page` / `keys.size` now lives in
 ### Stepper
 
 A step-progress indicator (checkout / wizard / multi-section form). Data-driven via **`steps`**
-(`StepItem[]` = `{ label?, description?, optional?, icon?, completed?, error?, disabled?, content? }`)
-with a controlled **`activeStep`** (**0-based**, default `0`): steps **before** it read **completed**
-(filled circle + a `Check` icon), the one **at** it is **active** (filled + a soft **halo ring** so it
-stands out from the completed ones), and those **after** it are **upcoming** (muted outline + the
-1-based number). **Two layouts only:** `horizontal` (default) — equal-width columns with each label
+(`StepItem[]` = `{ label?, description?, optional?, icon?, completed?, error?, disabled?, content? }`) —
+**controlled** (**`activeStep`**, **0-based**) or **uncontrolled** (**`defaultStep`**; falls back to the
+URL, else the first enabled step): steps **before** the active read **completed** (filled circle + a
+`Check` icon), the one **at** it is **active** (filled + a soft **halo ring** so it stands out from the
+completed ones), and those **after** it are **upcoming** (muted outline + the 1-based number). A
+controlled `activeStep` renders verbatim even past the last step (the "all completed" pattern). **URL
+query sync — opt-in, off by default:** pass **`queryKey`** (`boolean | string` — the bare/`true` form
+resolves the param name from `config.keys.stepQueryKey`, else `'step'`; a string is a custom name) and
+the active step syncs to that query param, written **1-based** (`?step=2` = index 1) via the native
+History API, so a refresh restores it (uncontrolled reads the URL on mount; controlled canonicalizes to
+its value); restored values are gated by validity (in-range + not `disabled`), an out-of-range active
+(e.g. `steps.length` = all done) leaves the URL alone, `popstate` restores on Back/Forward (firing
+**`onStepChange(index)`** — wire it to your state in controlled mode), and synced step changes
+**replace** by default (pass **`pushHistory`** to walk steps with Back). **With no `queryKey` the URL is
+never touched** (unlike `Tabs` — a stepper is often a display-only progress indicator); two synced
+steppers on one page need distinct keys. **Two layouts only:** `horizontal` (default) — equal-width columns with each label
 **centered under its circle** and an absolute connector line spanning between circle centers — and
 `vertical` — steps stacked along an absolute **rail** line down the circle column. Per-step
 **`content`** renders while that step is active: **below the whole strip** (a `.panel`) in horizontal
@@ -1443,10 +1459,12 @@ wizard's page body. Per-step **`icon`** (an `IconName` or node) overrides the nu
 forces the done look regardless of `activeStep`; **`error`** reddens the circle + label (a section that
 failed validation); **`disabled`** dims it. When the steps don't fit, the **horizontal strip scrolls
 sideways** (`overflow-x: auto`, scrollbar hidden — the `Tabs` idiom; each step has a `110px` min-width
-so the strip overflows instead of squeezing) and the active step is **kept in view** (`scrollIntoView`
-on `activeStep` change) — so it fits a phone as-is, with no vertical collapse. **`onStepClick(index)`**
-makes each step head a `<button>` (a `disabled` step never fires) — omit it for a display-only
-indicator. `size` (`sm`/`md`/`lg` — circle 24/30/38px, one-off literals like `Pagination`'s box px) and
+so the strip overflows instead of squeezing) and the active step is **kept in view** by moving the
+strip's **own `scrollLeft`** on `activeStep` change (not `scrollIntoView`, which also scrolls every
+scrollable ancestor — the page would jump to the stepper on mount) — so it fits a phone as-is, with no
+vertical collapse. **`onStepClick(index)`**
+makes each step head a `<button>` (a `disabled` step never fires; an **uncontrolled** stepper also
+selects the clicked step itself) — omit it for a display-only indicator. `size` (`sm`/`md`/`lg` — circle 24/30/38px, one-off literals like `Pagination`'s box px) and
 `color` (brand token, default `primary`, via the shared **`--tz-btn-rgb` / `--tz-btn-on`** pattern, set
 once on the root). The forwarded ref points at the **root `<div>`** (it wraps the `<ol>` list + the
 horizontal content panel); the `<ol>` carries the `aria-label`, the active step `aria-current="step"`,
@@ -1948,7 +1966,7 @@ define each surface; the root `src/index.ts` re-exports them all. `package.json`
 | `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                                                                                                       |
 | `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                                                                                                |
 | `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useMediaQuery`, `useForm`, `useAccessKeys`                                                                                                                                                                      |
-| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useTableQueryConfig`, `applyTheme`                                                                                                 |
+| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useStepQueryKey`, `useTableQueryConfig`, `applyTheme`                                                                              |
 | `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                                                                                              |
 | `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) + the `Table` query builder + parser (`buildTableQuery`/`parseTableQuery`) |
 | `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                                                                                                    |

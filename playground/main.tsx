@@ -15,6 +15,7 @@ const config: Config = {
   keys: {
     tabQueryKey: 'tab', // top-level <Tabs> URL query param, e.g. ?tab=… (try 'view')
     nestedTabQueryKey: 'nestedTab', // a <Tabs> nested in another tab's panel, e.g. ?nestedTab=…
+    stepQueryKey: 'step', // <Stepper queryKey> URL param (sync is opt-in; 1-based), e.g. ?step=2 (try 'wizard')
     translationsNamespace: 'translations', // <TranslatedFields> namespace, e.g. translations[en-US].title (try 'languages')
   },
   // how a <Table> builds its SERVER-REQUEST query (state.params/query) — the backend-transport names,

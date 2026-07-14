@@ -1,7 +1,10 @@
 import { createRef } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { ConfigProvider } from '../../theme'
 import { Stepper, type StepItem } from './Stepper'
+
+beforeEach(() => window.history.replaceState({}, '', '/'))
 
 const steps: StepItem[] = [
   { label: 'Account' },
@@ -101,5 +104,70 @@ describe('Stepper', () => {
     render(<Stepper steps={steps} activeStep={0} ref={ref} />)
     expect(ref.current?.tagName).toBe('DIV')
     expect(ref.current?.querySelector('ol')).not.toBeNull()
+  })
+})
+
+describe('Stepper URL sync (opt-in via queryKey)', () => {
+  it('leaves the URL untouched by default (no queryKey)', () => {
+    render(<Stepper steps={steps} activeStep={2} />)
+    expect(window.location.search).toBe('')
+  })
+
+  it('canonicalizes the URL on mount with the bare queryKey (1-based ?step=)', () => {
+    render(<Stepper steps={steps} activeStep={1} queryKey />)
+    expect(window.location.search).toBe('?step=2')
+  })
+
+  it('reads the step from the URL on mount (uncontrolled)', () => {
+    window.history.replaceState({}, '', '/?step=3')
+    render(<Stepper steps={steps} queryKey onStepClick={() => {}} />)
+    const current = document.querySelector('[aria-current="step"]')
+    expect(current).toHaveTextContent('Payment')
+  })
+
+  it('ignores an invalid URL value and falls back to the first enabled step', () => {
+    window.history.replaceState({}, '', '/?step=99')
+    render(<Stepper steps={steps} queryKey onStepClick={() => {}} />)
+    const current = document.querySelector('[aria-current="step"]')
+    expect(current).toHaveTextContent('Account')
+    // and the URL is canonicalized back to the resolved step
+    expect(window.location.search).toBe('?step=1')
+  })
+
+  it('selects on click (uncontrolled) and writes the URL + fires onStepChange', () => {
+    const onStepChange = vi.fn()
+    render(<Stepper steps={steps} queryKey onStepClick={() => {}} onStepChange={onStepChange} />)
+    fireEvent.click(screen.getAllByRole('button')[2])
+    expect(onStepChange).toHaveBeenCalledWith(2)
+    const current = document.querySelector('[aria-current="step"]')
+    expect(current).toHaveTextContent('Payment')
+    expect(window.location.search).toBe('?step=3')
+  })
+
+  it('uses a custom string queryKey as the param name', () => {
+    render(<Stepper steps={steps} activeStep={1} queryKey="wizard" />)
+    expect(window.location.search).toBe('?wizard=2')
+  })
+
+  it('resolves the bare queryKey through the configured keys.stepQueryKey', () => {
+    render(
+      <ConfigProvider config={{ keys: { stepQueryKey: 'phase' } }}>
+        <Stepper steps={steps} activeStep={1} queryKey />
+      </ConfigProvider>,
+    )
+    expect(window.location.search).toBe('?phase=2')
+  })
+
+  it('does not write an out-of-range active step (the "all done" pattern)', () => {
+    render(<Stepper steps={steps} activeStep={steps.length} queryKey />)
+    expect(window.location.search).toBe('')
+  })
+
+  it('restores the step from the query on popstate (uncontrolled)', () => {
+    render(<Stepper steps={steps} queryKey onStepClick={() => {}} />)
+    window.history.replaceState({}, '', '/?step=4')
+    fireEvent.popState(window)
+    const current = document.querySelector('[aria-current="step"]')
+    expect(current).toHaveTextContent('Review')
   })
 })

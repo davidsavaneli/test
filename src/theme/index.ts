@@ -7,9 +7,11 @@ export {
   useTranslationsNamespace,
   useTabsQueryKey,
   useNestedTabQueryKey,
+  useStepQueryKey,
   useTableQueryConfig,
   DEFAULT_TABS_QUERY_KEY,
   DEFAULT_NESTED_TAB_QUERY_KEY,
+  DEFAULT_STEP_QUERY_KEY,
 } from './ConfigProvider'
 export type {
   Config,

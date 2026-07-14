@@ -79,7 +79,6 @@ const MANY: StepItem[] = Array.from({ length: 10 }, (_, i) => ({
 export function StepperSection() {
   const [step, setStep] = useState(0)
   const [vStep, setVStep] = useState(1)
-  const [cStep, setCStep] = useState(1)
   const [sStep, setSStep] = useState(1)
   const [mStep, setMStep] = useState(2)
 
@@ -88,9 +87,15 @@ export function StepperSection() {
       {/* horizontal (default) — labels under the circles, content panel below, Back/Next drive it */}
       <Block
         label="Horizontal (default)"
-        description="Labels sit centered under the circles and the active step's content renders below the strip — Back / Next drive activeStep. When the steps don't fit, the strip scrolls sideways (narrow the window to see it) — so it fits a phone as-is."
+        description="Labels sit centered under the circles and the active step's content renders below the strip — Back / Next drive activeStep. URL sync is opt-in: this one passes the bare queryKey, so the step mirrors to ?step=N (the name from config keys.stepQueryKey). When the steps don't fit, the strip scrolls sideways (narrow the window to see it) — so it fits a phone as-is."
       >
-        <Stepper steps={STEPS} activeStep={step} aria-label="Checkout" />
+        <Stepper
+          steps={STEPS}
+          activeStep={step}
+          onStepChange={setStep}
+          queryKey
+          aria-label="Checkout"
+        />
         <Row gap="xs" style={{ marginTop: 'var(--tz-space-md)' }}>
           <Button
             variant="outlined"
@@ -111,26 +116,28 @@ export function StepperSection() {
       {/* vertical — rail connector, content inline under the active step, clickable heads */}
       <Block
         label="Vertical"
-        description="orientation='vertical' — steps stack along a rail and the active step's content renders inline under its label. onStepClick makes the heads clickable (click a step to jump)."
+        // description="orientation='vertical' — steps stack along a rail and the active step's content renders inline under its label. onStepClick makes the heads clickable (click a step to jump). Its own queryKey ('vstep') so it doesn't collide with the strip above."
       >
         <Stepper
           orientation="vertical"
           steps={STEPS}
           activeStep={vStep}
           onStepClick={setVStep}
+          // queryKey="vstep"
           aria-label="Vertical checkout"
         />
       </Block>
 
-      {/* clickable — plain numbered steps, click to jump */}
+      {/* clickable + uncontrolled — the stepper owns its state and restores from the URL on refresh */}
       <Block
-        label="Clickable"
-        description="Pass onStepClick to make the step heads buttons — click a step to jump to it (numbers show when a step has no icon)."
+        label="Clickable (uncontrolled + URL restore)"
+        description="No activeStep — the stepper owns its state (defaultStep) and selects on click itself. It syncs to its own queryKey ('cstep'), so pick a step and refresh the page: the step is restored from the URL."
       >
         <Stepper
           steps={BASIC}
-          activeStep={cStep}
-          onStepClick={setCStep}
+          defaultStep={1}
+          // queryKey="cstep"
+          onStepClick={(i) => console.log('Clicked step', i)}
           aria-label="Clickable steps"
         />
       </Block>
