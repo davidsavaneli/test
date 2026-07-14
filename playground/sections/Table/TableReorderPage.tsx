@@ -49,7 +49,11 @@ export function TableReorderPage() {
           columns={columns}
           getRowId={(t) => t.id}
           reorderable
-          onReorder={setTasks}
+          onReorder={(rows, meta) => {
+            // log the dragged row's id + where it landed (from `meta`), then commit the reordered array
+            console.log('reorder →', 'dragged id:', meta.id, '| from:', meta.from, '→ to:', meta.to)
+            setTasks(rows)
+          }}
           urlSync={false}
         />
         <Typography

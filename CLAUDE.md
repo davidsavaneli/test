@@ -1520,8 +1520,9 @@ mirroring the empty state's presence rather than a lone tiny spinner), **`empty`
 default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
 (default `true`). **Row reorder** (**`reorderable`**): prepends a **drag-handle** column (a grip `Menu`
 icon, content-width) and makes rows drag-sortable via **`@dnd-kit`** (`PointerSensor` 5px + `KeyboardSensor`:
-focus the grip → Space → Arrows → Space); a drop fires **`onReorder(rows)`** with the **full `data`
-reordered** (the consumer owns `data` and sets it). **Local mode**, best with no active sort (a sort fights a
+focus the grip → Space → Arrows → Space); a drop fires **`onReorder(rows, meta)`** with the **full `data`
+reordered** (the consumer owns `data` and sets it) + a **`meta`** (`TableReorderMeta` = `{ id, from, to }` —
+the dragged row's id + its old/new index, e.g. to log or persist the move). **Local mode**, best with no active sort (a sort fights a
 manual order), and **requires `getRowId`** for stable dnd ids (the dev warning above also fires for
 `reorderable` without it). The dragged row lifts with a subtle highlight; the body wraps in a `DndContext`
 only while `reorderable` (a `SortableContext` of the row ids, each row a `SortableRow`). The drag is

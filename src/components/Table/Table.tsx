@@ -122,6 +122,16 @@ export interface TableSortState {
   direction: TableSortDirection
 }
 
+/** Details of a single row-reorder drag, passed to `onReorder` alongside the reordered rows. */
+export interface TableReorderMeta {
+  /** The stable row id (from `getRowId`) of the dragged row. */
+  id: string
+  /** The dragged row's original index in `data`. */
+  from: number
+  /** The index the row was dropped at (its new position in the reordered array). */
+  to: number
+}
+
 /** The table's live state, emitted on every change — the server-mode fetch driver. */
 export interface TableChangeState {
   /** 1-based page number. */
@@ -237,9 +247,10 @@ interface TableBaseProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChan
   reorderable?: boolean
   /**
    * Fired after a drag reorder with the **full `data` reordered** — you own `data`, so set it from this
-   * (e.g. `onReorder={setRows}`). Only fires while `reorderable`.
+   * (e.g. `onReorder={setRows}`). A second **`meta`** arg carries the drag details (`{ id, from, to }` —
+   * the dragged row's id + its old/new index). Only fires while `reorderable`.
    */
-  onReorder?: (rows: T[]) => void
+  onReorder?: (rows: T[], meta: TableReorderMeta) => void
   /** Show a loading overlay over the table (e.g. while fetching a server page). Defaults to `false`. */
   loading?: boolean
   /** Custom content for the empty state (replaces the default `EmptyState`). */
@@ -753,7 +764,7 @@ export const Table = forwardRef(function Table<T>(
     const from = data.findIndex((r, i) => rowIdOf(r, i) === active.id)
     const to = data.findIndex((r, i) => rowIdOf(r, i) === over.id)
     if (from < 0 || to < 0) return
-    onReorder(arrayMove(data, from, to))
+    onReorder(arrayMove(data, from, to), { id: String(active.id), from, to })
   }
 
   const totalRows = manual ? (rowCount ?? data.length) : table.getFilteredRowModel().rows.length

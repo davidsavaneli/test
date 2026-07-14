@@ -499,8 +499,9 @@ controlled or uncontrolled, per piece:** pass **`defaultPage` / `defaultPageSize
 own button). (Renders at a single md density — no `size` prop.)
 
 **Row drag & drop** (`reorderable`) prepends a drag-handle column; grab a row's grip and drop to reorder
-(or focus it → Space + Arrow keys). Fires **`onReorder(rows)`** with the reordered `data` — you own `data`,
-so set it (`onReorder={setRows}`). Local mode, best unsorted, and needs **`getRowId`** (stable dnd ids).
+(or focus it → Space + Arrow keys). Fires **`onReorder(rows, meta)`** with the reordered `data` — you own
+`data`, so set it (`onReorder={setRows}`) — plus a **`meta`** `{ id, from, to }` (the dragged row's id + its
+old/new index). Local mode, best unsorted, and needs **`getRowId`** (stable dnd ids).
 `<Table data={rows} columns={cols} getRowId={(r) => r.id} reorderable onReorder={setRows} />`
 
 **Export** (`onExportToEmail`) adds a toolbar export menu with a single baked **"Send On Email"** item (label +
