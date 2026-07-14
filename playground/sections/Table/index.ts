@@ -3,3 +3,4 @@
 // straight from `config.table.query` in main.tsx, and match one-to-one.
 export { TableConfigQueryPage } from './TableConfigQueryPage'
 export { TableConfigQueryLocalPage } from './TableConfigQueryLocalPage'
+export { TableReorderPage } from './TableReorderPage'

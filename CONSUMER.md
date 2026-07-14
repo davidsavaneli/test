@@ -498,6 +498,11 @@ controlled or uncontrolled, per piece:** pass **`defaultPage` / `defaultPageSize
 `onSortChange` / `onFiltersChange`** callbacks to own that piece from outside (e.g. clear filters from your
 own button). (Renders at a single md density — no `size` prop.)
 
+**Row drag & drop** (`reorderable`) prepends a drag-handle column; grab a row's grip and drop to reorder
+(or focus it → Space + Arrow keys). Fires **`onReorder(rows)`** with the reordered `data` — you own `data`,
+so set it (`onReorder={setRows}`). Local mode, best unsorted, and needs **`getRowId`** (stable dnd ids).
+`<Table data={rows} columns={cols} getRowId={(r) => r.id} reorderable onReorder={setRows} />`
+
 **Export** (`onExportToEmail`) adds a toolbar export menu with a single baked **"Send On Email"** item (label +
 icon are hardcoded). There's no built-in CSV — you just wire the handler; it fires with the current
 `TableChangeState`, so you POST `state.query` to your endpoint. The menu shows only when `onExportToEmail` is set.

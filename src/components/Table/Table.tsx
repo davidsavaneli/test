@@ -23,6 +23,25 @@ import {
   type SortingState,
   type Updater,
 } from '@tanstack/react-table'
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type ClientRect,
+  type DragEndEvent,
+  type Modifier,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS, type Transform } from '@dnd-kit/utilities'
 import { useTableQueryConfig, type TableQueryConfig } from '../../theme'
 import { buildTableQuery, parseTableQuery } from '../../helpers/table'
 import {
@@ -209,6 +228,18 @@ interface TableBaseProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, 'onChan
    * `stopPropagation`-wrapped, so clicks inside it never fire the row's `onClick` — you don't handle that.
    */
   actions?: (row: T, index: number) => ReactNode
+  /**
+   * Enable **row drag-and-drop reordering** — a leading **drag-handle** column (a grip icon) is prepended,
+   * and dragging it (or keyboard: focus the handle → Space → Arrows → Space) reorders the rows, firing
+   * **`onReorder`**. **Local mode only**, and best with no active sort (a sort fights a manual order);
+   * **requires `getRowId`** (dnd needs stable row ids). Built on `@dnd-kit`. Defaults to `false`.
+   */
+  reorderable?: boolean
+  /**
+   * Fired after a drag reorder with the **full `data` reordered** — you own `data`, so set it from this
+   * (e.g. `onReorder={setRows}`). Only fires while `reorderable`.
+   */
+  onReorder?: (rows: T[]) => void
   /** Show a loading overlay over the table (e.g. while fetching a server page). Defaults to `false`. */
   loading?: boolean
   /** Custom content for the empty state (replaces the default `EmptyState`). */
@@ -328,6 +359,116 @@ function prettyQuery(params: URLSearchParams): string {
     .replace(/%5D/gi, ']')
 }
 
+/** aria-label for the row drag handle (row reordering). */
+const DRAG_HANDLE_LABEL = 'Drag to reorder'
+
+/** Clamp a transform so the dragged node stays within a bounding rect (dnd-kit's `restrictToBoundingRect`). */
+function restrictToBoundingRect(
+  transform: Transform,
+  rect: ClientRect,
+  boundingRect: ClientRect,
+): Transform {
+  const value = { ...transform }
+  if (rect.top + transform.y <= boundingRect.top) {
+    value.y = boundingRect.top - rect.top
+  } else if (rect.bottom + transform.y >= boundingRect.top + boundingRect.height) {
+    value.y = boundingRect.top + boundingRect.height - rect.bottom
+  }
+  if (rect.left + transform.x <= boundingRect.left) {
+    value.x = boundingRect.left - rect.left
+  } else if (rect.right + transform.x >= boundingRect.left + boundingRect.width) {
+    value.x = boundingRect.left + boundingRect.width - rect.right
+  }
+  return value
+}
+
+// dnd-kit modifiers for row drag (inlined — no `@dnd-kit/modifiers` dep): keep the drag on the **vertical
+// axis**, and **clamp it to the parent** (`<tbody>`) so a row dragged past the table's top/bottom can't
+// extend beyond it and grow the scroll container / add a scrollbar.
+const restrictToVerticalAxis: Modifier = ({ transform }) => ({ ...transform, x: 0 })
+const restrictToParentElement: Modifier = ({ containerNodeRect, draggingNodeRect, transform }) =>
+  draggingNodeRect && containerNodeRect
+    ? restrictToBoundingRect(transform, draggingNodeRect, containerNodeRect)
+    : transform
+const rowDragModifiers = [restrictToVerticalAxis, restrictToParentElement]
+
+/**
+ * A reorderable body row — wraps `useSortable` (dnd-kit) and renders a leading **drag-handle** cell (the
+ * grip `IconButton`) before the row's data cells. The handle carries the drag listeners; the rest of the
+ * row stays clickable (`onRowClick`). Only rendered when the table is `reorderable`.
+ */
+function SortableRow({
+  id,
+  cells,
+  clickable,
+  onClick,
+}: {
+  id: string
+  cells: ReactNode
+  clickable: boolean
+  onClick?: () => void
+}) {
+  const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({
+    id,
+  })
+  return (
+    <tr
+      ref={setNodeRef}
+      className={clsx(styles.tr, clickable && styles.clickable, isDragging && styles.dragging)}
+      style={
+        {
+          // Translate (not Transform) — skip dnd-kit's scaleX/scaleY, which would squish/stretch the
+          // dragged row to the target's size when rows have different heights; keep the row's own size
+          transform: CSS.Translate.toString(transform),
+          transition,
+          position: isDragging ? 'relative' : undefined,
+          zIndex: isDragging ? 1 : undefined,
+        } as CSSProperties
+      }
+      onClick={onClick}
+    >
+      <td className={clsx(styles.td, styles.dragHandleCell)}>
+        <button
+          type="button"
+          className={styles.dragHandle}
+          aria-label={DRAG_HANDLE_LABEL}
+          {...attributes}
+          {...listeners}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Icon name="Menu" size="sm" />
+        </button>
+      </td>
+      {cells}
+    </tr>
+  )
+}
+
+/** Wraps the table body in a dnd-kit `DndContext` only when reordering is on — a passthrough otherwise. */
+function ReorderProvider({
+  enabled,
+  sensors,
+  onDragEnd,
+  children,
+}: {
+  enabled: boolean
+  sensors: ReturnType<typeof useSensors>
+  onDragEnd: (event: DragEndEvent) => void
+  children: ReactNode
+}) {
+  if (!enabled) return <>{children}</>
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      modifiers={rowDragModifiers}
+      onDragEnd={onDragEnd}
+    >
+      {children}
+    </DndContext>
+  )
+}
+
 /**
  * A data table built on **TanStack Table** (headless — an optional peer, `external`) styled entirely with
  * `--tz-*` tokens. Pass `columns` + `data` and it renders a sortable, paginated, searchable table. Works
@@ -370,6 +511,8 @@ export const Table = forwardRef(function Table<T>(
     defaultFilters,
     onRowClick,
     actions,
+    reorderable = false,
+    onReorder,
     loading = false,
     empty,
     urlSync = true,
@@ -596,6 +739,23 @@ export const Table = forwardRef(function Table<T>(
   })
 
   const rows = table.getRowModel().rows
+
+  // row drag-and-drop reordering (dnd-kit) — pointer (5px activation) + keyboard sensors; the sortable ids
+  // are the TanStack row ids (= `getRowId`), and a drop moves the item within the full `data` and emits it
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+  const rowIdOf = (row: T, index: number) => (getRowId ? getRowId(row, index) : String(index))
+  const handleReorder = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id || !onReorder) return
+    const from = data.findIndex((r, i) => rowIdOf(r, i) === active.id)
+    const to = data.findIndex((r, i) => rowIdOf(r, i) === over.id)
+    if (from < 0 || to < 0) return
+    onReorder(arrayMove(data, from, to))
+  }
+
   const totalRows = manual ? (rowCount ?? data.length) : table.getFilteredRowModel().rows.length
   const { pageIndex, pageSize: resolvedPageSize } = resolvedPagination
   const pageCount = Math.max(1, Math.ceil(totalRows / resolvedPageSize))
@@ -769,7 +929,7 @@ export const Table = forwardRef(function Table<T>(
       typeof process !== 'undefined' &&
       process.env.NODE_ENV !== 'production' &&
       !getRowId &&
-      (onRowClick != null || actions != null)
+      (onRowClick != null || actions != null || reorderable)
     ) {
       console.warn(
         '[Table] No `getRowId` provided, so the row index is used as the React key. For a table with row ' +
@@ -809,6 +969,31 @@ export const Table = forwardRef(function Table<T>(
     hasFilters ||
     sortableColumns.length > 0 ||
     hasExport
+
+  // the data `<td>`s for one row — shared by the plain and the reorderable (`SortableRow`) row paths
+  const rowCells = (row: (typeof rows)[number]) =>
+    renderColumns.map((col) => (
+      <td
+        key={col.key}
+        className={clsx(
+          styles.td,
+          col.pinned === 'left' && styles.pinnedLeft,
+          col.pinned === 'right' && styles.pinnedRight,
+          (col.wrap || col.maxWidth != null) && styles.wrapCell,
+        )}
+        style={
+          {
+            width: col.width ?? (col.pinned ? 1 : wrapCap(col)),
+            maxWidth: wrapCap(col),
+            textAlign: col.align,
+          } as CSSProperties
+        }
+      >
+        {renderCellContent(
+          col.cell ? col.cell(row.original, row.index) : formatCell(row.getValue(col.key)),
+        )}
+      </td>
+    ))
 
   return (
     <div ref={ref} className={clsx(styles.root, className)} {...props}>
@@ -901,126 +1086,129 @@ export const Table = forwardRef(function Table<T>(
         </div>
       )}
 
-      <div
-        ref={scrollRef}
-        className={styles.scroll}
-        data-pin-start={pinShadow.start ? 'true' : 'false'}
-        data-pin-end={pinShadow.end ? 'true' : 'false'}
-      >
-        <table
-          ref={tableRef}
-          className={clsx(
-            styles.table,
-            striped && styles.striped,
-            hoverable && styles.hoverable,
-            stickyHeader && styles.sticky,
-          )}
+      <ReorderProvider enabled={reorderable} sensors={sensors} onDragEnd={handleReorder}>
+        <div
+          ref={scrollRef}
+          className={styles.scroll}
+          data-pin-start={pinShadow.start ? 'true' : 'false'}
+          data-pin-end={pinShadow.end ? 'true' : 'false'}
         >
-          <thead>
-            <tr>
-              {renderColumns.map((col) => {
-                const column = table.getColumn(col.key)
-                const sorted = column?.getIsSorted() || false
-                return (
-                  <th
-                    key={col.key}
-                    scope="col"
-                    className={clsx(
-                      styles.th,
-                      col.pinned === 'left' && styles.pinnedLeft,
-                      col.pinned === 'right' && styles.pinnedRight,
-                      (col.wrap || col.maxWidth != null) && styles.wrapCell,
-                    )}
-                    style={
-                      {
-                        // a pinned column with no explicit width shrinks to its content (the `width: 1px`
-                        // min-content trick); a wrap column sits at its cap (so it doesn't get starved),
-                        // others size to content
-                        width: col.width ?? (col.pinned ? 1 : wrapCap(col)),
-                        maxWidth: wrapCap(col),
-                        textAlign: col.align,
-                      } as CSSProperties
-                    }
-                    aria-sort={
-                      col.sortable
-                        ? sorted === 'asc'
-                          ? 'ascending'
-                          : sorted === 'desc'
-                            ? 'descending'
-                            : 'none'
-                        : undefined
-                    }
-                  >
-                    {/* sorting lives in the toolbar's sort menu, not the header; `aria-sort` above still
-                        reflects the current sort for a11y */}
-                    {col.header}
-                  </th>
-                )
-              })}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length > 0 ? (
-              rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={clsx(styles.tr, onRowClick && styles.clickable)}
-                  onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
-                >
-                  {renderColumns.map((col) => (
-                    <td
+          <table
+            ref={tableRef}
+            className={clsx(
+              styles.table,
+              striped && styles.striped,
+              hoverable && styles.hoverable,
+              stickyHeader && styles.sticky,
+            )}
+          >
+            <thead>
+              <tr>
+                {reorderable && (
+                  <th className={clsx(styles.th, styles.dragHandleCell)} scope="col" aria-hidden />
+                )}
+                {renderColumns.map((col) => {
+                  const column = table.getColumn(col.key)
+                  const sorted = column?.getIsSorted() || false
+                  return (
+                    <th
                       key={col.key}
+                      scope="col"
                       className={clsx(
-                        styles.td,
+                        styles.th,
                         col.pinned === 'left' && styles.pinnedLeft,
                         col.pinned === 'right' && styles.pinnedRight,
                         (col.wrap || col.maxWidth != null) && styles.wrapCell,
                       )}
                       style={
                         {
+                          // a pinned column with no explicit width shrinks to its content (the `width: 1px`
+                          // min-content trick); a wrap column sits at its cap (so it doesn't get starved),
+                          // others size to content
                           width: col.width ?? (col.pinned ? 1 : wrapCap(col)),
                           maxWidth: wrapCap(col),
                           textAlign: col.align,
                         } as CSSProperties
                       }
+                      aria-sort={
+                        col.sortable
+                          ? sorted === 'asc'
+                            ? 'ascending'
+                            : sorted === 'desc'
+                              ? 'descending'
+                              : 'none'
+                          : undefined
+                      }
                     >
-                      {renderCellContent(
-                        col.cell
-                          ? col.cell(row.original, row.index)
-                          : formatCell(row.getValue(col.key)),
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            ) : (
-              // no rows → a centered placeholder cell: the loader while fetching (mirrors the empty
-              // state's presence), otherwise the empty state
-              <tr>
-                <td colSpan={Math.max(1, renderColumns.length)} className={styles.stateCell}>
-                  {loading ? (
-                    <div className={styles.loadingState}>
-                      <Loader size="lg" />
-                      <Typography variant="bodySmall" color="muted" as="span">
-                        Loading…
-                      </Typography>
-                    </div>
-                  ) : (
-                    (empty ?? <EmptyState />)
-                  )}
-                </td>
+                      {/* sorting lives in the toolbar's sort menu, not the header; `aria-sort` above still
+                        reflects the current sort for a11y */}
+                      {col.header}
+                    </th>
+                  )
+                })}
               </tr>
-            )}
-          </tbody>
-        </table>
-        {/* while refetching with rows already shown, dim them + spinner; the no-rows case is handled in
+            </thead>
+            <tbody>
+              {rows.length > 0 ? (
+                reorderable ? (
+                  // dnd-kit sortable rows — each `SortableRow` renders a leading drag-handle cell + `rowCells`
+                  <SortableContext
+                    items={rows.map((row) => row.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {rows.map((row) => (
+                      <SortableRow
+                        key={row.id}
+                        id={row.id}
+                        clickable={!!onRowClick}
+                        onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
+                        cells={rowCells(row)}
+                      />
+                    ))}
+                  </SortableContext>
+                ) : (
+                  rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={clsx(styles.tr, onRowClick && styles.clickable)}
+                      onClick={onRowClick ? () => onRowClick(row.original, row.index) : undefined}
+                    >
+                      {rowCells(row)}
+                    </tr>
+                  ))
+                )
+              ) : (
+                // no rows → a centered placeholder cell: the loader while fetching (mirrors the empty
+                // state's presence), otherwise the empty state
+                <tr>
+                  <td
+                    colSpan={Math.max(1, renderColumns.length + (reorderable ? 1 : 0))}
+                    className={styles.stateCell}
+                  >
+                    {loading ? (
+                      <div className={styles.loadingState}>
+                        <Loader size="lg" />
+                        <Typography variant="bodySmall" color="muted" as="span">
+                          Loading…
+                        </Typography>
+                      </div>
+                    ) : (
+                      (empty ?? <EmptyState />)
+                    )}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+          {/* while refetching with rows already shown, dim them + spinner; the no-rows case is handled in
             the body above (a centered loader), not this overlay */}
-        {loading && rows.length > 0 && (
-          <div className={styles.loadingOverlay}>
-            <Loader size="lg" />
-          </div>
-        )}
-      </div>
+          {loading && rows.length > 0 && (
+            <div className={styles.loadingOverlay}>
+              <Loader size="lg" />
+            </div>
+          )}
+        </div>
+      </ReorderProvider>
 
       {totalRows > 0 && (
         <div className={styles.footer}>

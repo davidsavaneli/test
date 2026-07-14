@@ -631,6 +631,28 @@ describe('Table', () => {
     expect(onRowClick).toHaveBeenCalledWith(expect.objectContaining({ name: 'User 2' }), 1)
   })
 
+  describe('row reorder', () => {
+    // dnd-kit's drag relies on trusted pointer/keyboard events, so the actual reorder is verified in a real
+    // browser (like the FileUploader dnd); jsdom covers the render contract — a handle per row, gated by the prop
+    it('renders a drag handle per row when reorderable', () => {
+      render(
+        <Table
+          data={makeData(3)}
+          columns={columns}
+          getRowId={(r) => r.id}
+          reorderable
+          onReorder={() => {}}
+        />,
+      )
+      expect(screen.getAllByRole('button', { name: 'Drag to reorder' })).toHaveLength(3)
+    })
+
+    it('shows no drag handle when not reorderable', () => {
+      render(<Table data={makeData(3)} columns={columns} getRowId={(r) => r.id} />)
+      expect(screen.queryByRole('button', { name: 'Drag to reorder' })).toBeNull()
+    })
+  })
+
   describe('controlled mode', () => {
     it('controlled page: paging fires onPageChange without self-advancing (the parent owns it)', () => {
       const onPageChange = vi.fn()

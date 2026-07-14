@@ -27,7 +27,8 @@ change only what differs.
   (`DatePicker`, …), **`lexical`** (`>=0.45`) + its `@lexical/*` React packages power the
   **`RichTextEditor`**, and **`react-dropzone`** (`>=14`) + **`@dnd-kit/*`** (`core`/`sortable`/`utilities`)
   - **`@formkit/auto-animate`** (`>=0.8`) + **`react-image-crop`** (`>=11`) power the **`FileUploader`**
-    (file picking/drop, drag reorder, list animation, per-item image crop). Prefer React Context + hooks
+    (file picking/drop, drag reorder, list animation, per-item image crop). **`@dnd-kit/*`** also powers
+    the **`Table`'s row reorder** (`reorderable`). Prefer React Context + hooks
     for internal state; reach for a dependency when it clearly earns its place.
 
 ---
@@ -1517,7 +1518,18 @@ server page swaps in, so pass a real id like `(row) => row.id` for any interacti
 dims them while refetching; **with no rows** — a centered `Loader` + `"Loading…"` caption fills the body,
 mirroring the empty state's presence rather than a lone tiny spinner), **`empty`** (custom empty node — the
 default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
-(default `true`). **Export** (**`onExportToEmail`**): a toolbar export `Dropdown` (an export-icon trigger next to
+(default `true`). **Row reorder** (**`reorderable`**): prepends a **drag-handle** column (a grip `Menu`
+icon, content-width) and makes rows drag-sortable via **`@dnd-kit`** (`PointerSensor` 5px + `KeyboardSensor`:
+focus the grip → Space → Arrows → Space); a drop fires **`onReorder(rows)`** with the **full `data`
+reordered** (the consumer owns `data` and sets it). **Local mode**, best with no active sort (a sort fights a
+manual order), and **requires `getRowId`** for stable dnd ids (the dev warning above also fires for
+`reorderable` without it). The dragged row lifts with a subtle highlight; the body wraps in a `DndContext`
+only while `reorderable` (a `SortableContext` of the row ids, each row a `SortableRow`). The drag is
+**clamped** by two inlined dnd-kit modifiers (no `@dnd-kit/modifiers` dep) — vertical-axis + restrict-to-parent
+(`<tbody>`) — so a row dragged past the table's top/bottom edge can't extend beyond it and grow the
+`overflow` scroll container (which is vertically scrollable since `overflow-x: auto` forces `overflow-y: auto`).
+The drag itself relies on trusted pointer/keyboard events, so it's verified in a real browser, not jsdom
+(tests cover the render contract — a handle per row, gated by the prop). **Export** (**`onExportToEmail`**): a toolbar export `Dropdown` (an export-icon trigger next to
 sort) opening an uppercase **"Export" label** over a **single baked "Send On Email" item** (label + icon
 hardcoded). Set the **`onExportToEmail`** prop (`(state: TableChangeState) => void`) to show the menu; on click
 it fires with the current state so you just wire your endpoint — e.g.

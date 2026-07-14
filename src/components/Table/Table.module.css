@@ -131,6 +131,37 @@
   gap: calc(var(--tz-space-xxs) / 2);
 }
 
+/* row drag-and-drop — the leading handle column (content-width) + the grip button */
+.dragHandleCell {
+  width: 1px; /* min-content, so the handle column doesn't absorb the table's spare width */
+  padding-right: 0;
+}
+.dragHandle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--tz-space-xxs);
+  border: none;
+  background: none;
+  color: var(--tz-color-primary-shade600);
+  cursor: grab;
+  border-radius: var(--tz-radius-xs);
+  transition:
+    color var(--tz-duration),
+    background-color var(--tz-duration);
+}
+.dragHandle:hover {
+  color: var(--tz-color-text);
+  background-color: var(--tz-color-primary-shade100);
+}
+.dragHandle:active {
+  cursor: grabbing;
+}
+/* the row being dragged — a subtle highlight so it reads as lifted while it moves */
+.tr.dragging {
+  background-color: var(--tz-color-primary-shade100);
+}
+
 /* pinned columns — stick to an edge while the body scrolls horizontally; an opaque background keeps the
    horizontally-scrolled cells from showing through. The separating edge is a soft shadow shown ONLY while
    content is actually hidden under the column (see the `data-pin-*` rules) — so a pinned column that isn't

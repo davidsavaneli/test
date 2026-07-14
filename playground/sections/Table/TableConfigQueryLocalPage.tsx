@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { Chip, Table, type TableColumn, type TableFilter, type ThemeColor } from '../../../src'
+import {
+  Chip,
+  Icon,
+  IconButton,
+  Table,
+  type TableColumn,
+  type TableFilter,
+  type ThemeColor,
+} from '../../../src'
 import { Block, Section } from '../../shared'
 import { QueryPreview } from './QueryPreview'
 
@@ -56,11 +64,9 @@ const DATA: Product[] = Array.from({ length: 40 }, (_, i) => {
 
 const ratingColor = (r: number): ThemeColor => (r >= 4 ? 'success' : r >= 3 ? 'warning' : 'error')
 
+// a column per filter field, so every filter has a matching, populated column
 const columns: TableColumn<Product>[] = [
   { key: 'title', header: 'Title', sortable: true, wrap: true },
-  { key: 'brand', header: 'Brand' },
-  { key: 'category', header: 'Category' },
-  { key: 'price', header: 'Price', align: 'right', sortable: true, cell: (p) => `$${p.price}` },
   {
     key: 'rating',
     header: 'Rating',
@@ -68,7 +74,17 @@ const columns: TableColumn<Product>[] = [
     sortable: true,
     cell: (p) => <Chip color={ratingColor(p.rating)}>{p.rating}</Chip>,
   },
+  { key: 'price', header: 'Price', align: 'right', sortable: true, cell: (p) => `$${p.price}` },
   { key: 'stock', header: 'Stock', align: 'right', sortable: true },
+  { key: 'category', header: 'Category' },
+  { key: 'brand', header: 'Brand' },
+  { key: 'inStock', header: 'In Stock', cell: (p) => (p.inStock ? 'Yes' : 'No') },
+  { key: 'created', header: 'Created' },
+  { key: 'updated', header: 'Updated' },
+  { key: 'openAt', header: 'Open At' },
+  { key: 'shiftAt', header: 'Shift At' },
+  { key: 'startAt', header: 'Starts At' },
+  { key: 'endAt', header: 'Ends At' },
 ]
 
 const toOptions = (values: string[]) => values.map((v) => ({ value: v, label: v }))
@@ -113,6 +129,27 @@ export function TableConfigQueryLocalPage() {
           searchable
           searchPlaceholder="Search products…"
           onExportToEmail={(state) => alert(`Emailing export — server query: ?${state.query}`)}
+          actions={(p) => (
+            <>
+              <IconButton
+                size="sm"
+                variant="text"
+                aria-label={`Edit ${p.title}`}
+                onClick={() => alert(`Edit ${p.title}`)}
+              >
+                <Icon name="Edit2" />
+              </IconButton>
+              <IconButton
+                size="sm"
+                variant="text"
+                color="error"
+                aria-label={`Delete ${p.title}`}
+                onClick={() => alert(`Delete ${p.title}`)}
+              >
+                <Icon name="Trash" />
+              </IconButton>
+            </>
+          )}
         />
       </Block>
     </Section>

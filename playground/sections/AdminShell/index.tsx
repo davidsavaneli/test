@@ -29,7 +29,7 @@ import { AlertSection } from '../Alert'
 import { DropdownSection } from '../Dropdown'
 import { FileUploaderSection } from '../FileUploader'
 import { TabsSection } from '../Tabs'
-import { TableConfigQueryPage, TableConfigQueryLocalPage } from '../Table'
+import { TableConfigQueryPage, TableConfigQueryLocalPage, TableReorderPage } from '../Table'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
 import { CheckboxSection } from '../Checkbox'
@@ -204,6 +204,12 @@ const tableConfigQueryLocalRoute = createRoute({
   path: 'config-query-local',
   staticData: { name: 'Query — App Config (Local)', order: 1 },
   component: inPage(TableConfigQueryLocalPage),
+})
+const tableReorderRoute = createRoute({
+  getParentRoute: () => tableGroupRoute,
+  path: 'reorder',
+  staticData: { name: 'Row Reorder (drag & drop)', order: 2 },
+  component: inPage(TableReorderPage),
 })
 
 // `/components` — a module container (renders its child pages; not a page itself).
@@ -553,7 +559,11 @@ const shellRouter = createRouter({
         loaderRoute,
       ]),
       otherRoute.addChildren([buttonRoute, iconButtonRoute, popoverRoute]),
-      tableGroupRoute.addChildren([tableConfigQueryRoute, tableConfigQueryLocalRoute]),
+      tableGroupRoute.addChildren([
+        tableConfigQueryRoute,
+        tableConfigQueryLocalRoute,
+        tableReorderRoute,
+      ]),
     ]),
   ]),
   // Open on the icon gallery so it's visible right away.
