@@ -223,13 +223,9 @@ button.main:not(:disabled):hover .indicator {
 /* horizontal: a panel below the whole strip */
 .panel {
   padding-top: var(--tz-space-md);
-  color: var(--tz-color-text);
-  font-size: var(--tz-font-size-md);
 }
 /* vertical: inline under the step's label, indented past the circle so it sits beside the rail */
 .vertical .stepContent {
   margin-top: var(--tz-space-xs);
   padding-left: calc(var(--st-indicator) + var(--st-gap));
-  color: var(--tz-color-text);
-  font-size: var(--tz-font-size-md);
 }
