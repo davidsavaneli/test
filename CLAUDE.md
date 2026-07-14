@@ -1427,6 +1427,32 @@ button an `aria-label` (`"Go to page N"` / `"Go to previous page"` / …). Own C
 binding isn't relevant (it's navigation, not a field); a `count`-from-`total`+`pageSize` convenience prop
 is a natural next iteration (URL-sync via `keys.page` / `keys.size` now lives in `Table`)._
 
+### Stepper
+
+A step-progress indicator (checkout / wizard / multi-section form). Data-driven via **`steps`**
+(`StepItem[]` = `{ label?, description?, optional?, icon?, completed?, error?, disabled?, content? }`)
+with a controlled **`activeStep`** (**0-based**, default `0`): steps **before** it read **completed**
+(filled circle + a `Check` icon), the one **at** it is **active** (filled + a soft **halo ring** so it
+stands out from the completed ones), and those **after** it are **upcoming** (muted outline + the
+1-based number). **Two layouts only:** `horizontal` (default) — equal-width columns with each label
+**centered under its circle** and an absolute connector line spanning between circle centers — and
+`vertical` — steps stacked along an absolute **rail** line down the circle column. Per-step
+**`content`** renders while that step is active: **below the whole strip** (a `.panel`) in horizontal
+mode, and **inline under the step** (indented past the circle, beside the rail) in vertical mode — the
+wizard's page body. Per-step **`icon`** (an `IconName` or node) overrides the number; **`completed`**
+forces the done look regardless of `activeStep`; **`error`** reddens the circle + label (a section that
+failed validation); **`disabled`** dims it. When the steps don't fit, the **horizontal strip scrolls
+sideways** (`overflow-x: auto`, scrollbar hidden — the `Tabs` idiom; each step has a `110px` min-width
+so the strip overflows instead of squeezing) and the active step is **kept in view** (`scrollIntoView`
+on `activeStep` change) — so it fits a phone as-is, with no vertical collapse. **`onStepClick(index)`**
+makes each step head a `<button>` (a `disabled` step never fires) — omit it for a display-only
+indicator. `size` (`sm`/`md`/`lg` — circle 24/30/38px, one-off literals like `Pagination`'s box px) and
+`color` (brand token, default `primary`, via the shared **`--tz-btn-rgb` / `--tz-btn-on`** pattern, set
+once on the root). The forwarded ref points at the **root `<div>`** (it wraps the `<ol>` list + the
+horizontal content panel); the `<ol>` carries the `aria-label`, the active step `aria-current="step"`,
+connectors are `aria-hidden`. Own CSS module. _A `<Form>` binding isn't relevant; a linear/non-linear
+click guard and per-step optional-skip are natural next iterations._
+
 ### Table
 
 A data table built on **TanStack Table** (`@tanstack/react-table` `>=8`, **headless** — an optional peer,
@@ -1627,6 +1653,12 @@ scrolling on `<html>` + `<body>` while `locked` (e.g. an open `Dropdown`/modal/d
 **`overflow: clip`** (not `hidden`, so it doesn't establish a scroll container and `position: sticky`
 elements like the sidebar/header keep working), compensating for the removed scrollbar with
 `padding-right` and restoring the prior inline styles on unlock; it's public from `sava-test/hooks`.
+
+**`useMediaQuery(query)`** → `boolean` — subscribes to a CSS media query (e.g.
+`useMediaQuery('(max-width: 640px)')`) and re-renders when it flips. Built on `useSyncExternalStore`,
+so the first client render already has the correct value (no flash) and it's SSR-safe (returns `false`
+on the server / where `matchMedia` is absent). **Use this for any responsive JS branch** instead of
+hand-rolling `window.matchMedia` + effects; public from `sava-test/hooks`.
 
 **`useFloatingPanel({ open, triggerRef, onClose })`** (internal hook, `src/hooks/`) → `{ popoverRef,
 position, visible, reposition }`: the floating-panel plumbing — a `<body>`-portaled panel that opens
@@ -1915,7 +1947,7 @@ define each surface; the root `src/index.ts` re-exports them all. `package.json`
 | `.` (root)                            | `src/index.ts`                        | everything (back-compat / classic resolution)                                                                                                                                                                                                          |
 | `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                                                                                                       |
 | `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                                                                                                |
-| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useForm`, `useAccessKeys`                                                                                                                                                                                       |
+| `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useMediaQuery`, `useForm`, `useAccessKeys`                                                                                                                                                                      |
 | `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useTableQueryConfig`, `applyTheme`                                                                                                 |
 | `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                                                                                              |
 | `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) + the `Table` query builder + parser (`buildTableQuery`/`parseTableQuery`) |

@@ -29,6 +29,7 @@ import { AlertSection } from '../Alert'
 import { DropdownSection } from '../Dropdown'
 import { FileUploaderSection } from '../FileUploader'
 import { TabsSection } from '../Tabs'
+import { StepperSection } from '../Stepper'
 import { TableConfigQueryPage, TableConfigQueryLocalPage, TableReorderPage } from '../Table'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
@@ -333,6 +334,12 @@ const speedDialRoute = createRoute({
   staticData: { name: 'Speed Dial', icon: 'AddCircle', order: 3 },
   component: inPage(SpeedDialSection),
 })
+const stepperRoute = createRoute({
+  getParentRoute: () => navigationRoute,
+  path: 'stepper',
+  staticData: { name: 'Stepper', icon: 'Hierarchy', order: 4 },
+  component: inPage(StepperSection),
+})
 
 // Group: Feedback.
 const feedbackRoute = createRoute({
@@ -550,7 +557,13 @@ const shellRouter = createRouter({
         tooltipRoute,
         emptyStateRoute,
       ]),
-      navigationRoute.addChildren([tabsRoute, dropdownRoute, paginationRoute, speedDialRoute]),
+      navigationRoute.addChildren([
+        tabsRoute,
+        dropdownRoute,
+        paginationRoute,
+        speedDialRoute,
+        stepperRoute,
+      ]),
       feedbackRoute.addChildren([
         alertRoute,
         toastRoute,

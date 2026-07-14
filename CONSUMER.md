@@ -22,7 +22,7 @@ one import):
 | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sava-test/components`                                | every UI component — `Button`, `TextField`, …, `Form`, `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect`                                                                                                                                                                                                                       |
 | `sava-test/components/<Name>`                         | a single component, e.g. `import Button from 'sava-test/components/Button'` (default **or** named)                                                                                                                                                                                                                                        |
-| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useLockBodyScroll`, `useAccessKeys`                                                                                                                                                                                                                                                                          |
+| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useLockBodyScroll`, `useMediaQuery`, `useAccessKeys`                                                                                                                                                                                                                                                         |
 | `sava-test/theme`                                     | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `applyTheme`, `DEFAULT_TABS_QUERY_KEY`/`DEFAULT_NESTED_TAB_QUERY_KEY` + types (`Config`, `ThemeConfig`, `ThemeColors`, `ThemeMode`, `ThemeColor`, `ThemePalette`, `LocaleConfig`, `KeysConfig`, `ConfigProviderProps`) |
 | `sava-test/icons`                                     | `Icon`, `IconName`, `ICON_NAMES`, `ICON_COUNT` (the `1197` name count), the raw `icons` registry                                                                                                                                                                                                                                          |
 | `sava-test/helpers`                                   | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslationName`/`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`, `DEFAULT_TRANSLATIONS_NAMESPACE`)                                                                                                                             |
@@ -447,6 +447,18 @@ Home / End) + `role="tablist"`/`tab`/`tabpanel` a11y (name the tablist with `ari
 `content` render the active panel.
 `<Tabs items={[{ value: 'general', label: 'General', icon: 'Setting2' }, …]} />` (auto-syncs to `?tab=`).
 
+**Stepper** — a step-progress indicator (checkout / wizard / multi-section form). Data-driven via
+**`steps`** (`{ label?, description?, optional?, icon?, completed?, error?, disabled?, content? }[]`) + a
+controlled **`activeStep`** (**0-based**): steps before it show **completed** (check), the one at it is
+**active** (halo ring), the rest **upcoming** (number). Two layouts: `horizontal` (default — labels
+centered **under** the circles) and `vertical` (a rail). The active step's **`content`** renders below
+the strip (horizontal) or inline under the step (vertical) — put the wizard's page body there. When the
+steps don't fit (e.g. a phone) the horizontal strip **scrolls sideways** (scrollbar hidden) and keeps
+the active step in view. Per-step **`error`** reddens it. Pass **`onStepClick(index)`** to
+make the steps clickable (omit for display-only). `size` · `color` (brand tint). The list is an `<ol>`
+with `aria-current="step"` on the active step.
+`<Stepper steps={[{ label: 'Account', content: <AccountForm/> }, { label: 'Shipping', content: <ShippingForm/> }]} activeStep={1} />`
+
 **Table** — a data table built on **TanStack Table** (headless). **Needs the `@tanstack/react-table` peer**
 (`npm i @tanstack/react-table`, see §1). Pass `data` + a simple **`columns`** array — `{ key, header,
 cell?, sortable?, width?, maxWidth?, wrap?, align?, pinned? }[]` — where `key` is the field accessor and
@@ -568,7 +580,8 @@ wraps to one when narrow), plus `gap`/`align`/`padding`. Great for forms side-by
 `<Grid minItemWidth={220} gap={16}><TextField …/><TextField …/></Grid>`.
 
 **Hooks** — `useDisclosure(initial?)` → `{ isOpen, open, close, toggle }` · `useLockBodyScroll(locked)`
-(freeze page scroll while `locked` — for menus/modals/drawers).
+(freeze page scroll while `locked` — for menus/modals/drawers) · `useMediaQuery(query)` → `boolean`
+(subscribe to a CSS media query, e.g. `useMediaQuery('(max-width: 640px)')`; SSR-safe, no flash).
 
 ## 5. Forms (Zod-powered) — the easy way
 

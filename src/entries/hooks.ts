@@ -4,6 +4,7 @@
 export { useDisclosure } from '../hooks/useDisclosure'
 export type { UseDisclosureReturn } from '../hooks/useDisclosure'
 export { useLockBodyScroll } from '../hooks/useLockBodyScroll'
+export { useMediaQuery } from '../hooks/useMediaQuery'
 export { useForm } from '../form/useForm'
 export type {
   UseFormOptions,
