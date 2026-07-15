@@ -31,6 +31,7 @@ import { FileUploaderSection } from '../FileUploader'
 import { TabsSection } from '../Tabs'
 import { StepperSection } from '../Stepper'
 import { ChoiceCardSection } from '../ChoiceCard'
+import { OtpFieldSection } from '../OtpField'
 import { TimelineSection } from '../Timeline'
 import { CodeBlockSection } from '../CodeBlock'
 import { TableConfigQueryPage, TableConfigQueryLocalPage, TableReorderPage } from '../Table'
@@ -541,6 +542,12 @@ const choiceCardRoute = createRoute({
   staticData: { name: 'Choice Card', icon: 'TickSquare', order: 18 },
   component: inPage(ChoiceCardSection),
 })
+const otpFieldRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'otp-field',
+  staticData: { name: 'OTP Field', icon: 'PasswordCheck', order: 19 },
+  component: inPage(OtpFieldSection),
+})
 
 const shellRouter = createRouter({
   routeTree: shellRoot.addChildren([
@@ -569,6 +576,7 @@ const shellRouter = createRouter({
         sliderRoute,
         formValidationsRoute,
         choiceCardRoute,
+        otpFieldRoute,
       ]),
       dataDisplayRoute.addChildren([
         typographyRoute,

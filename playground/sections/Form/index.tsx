@@ -14,6 +14,7 @@ import {
   MultiSelect,
   nestTranslations,
   NumberField,
+  OtpField,
   RichTextEditor,
   Slider,
   Switch,
@@ -46,6 +47,7 @@ const TEST_RESPONSE = {
   tags: ['news', 'featured'],
   categories: ['design', 'eng'],
   role: 'user',
+  otp: '1234',
   published: true,
   priority: 7,
   body: '<h2>Edit me</h2><p>Prefilled <strong>rich</strong> content.</p>',
@@ -77,6 +79,7 @@ const buildSchema = (codes: string[]) => {
     tags: z.array(z.string()).min(1, 'Add at least one tag'),
     categories: z.array(z.string()).min(1, 'Pick at least one'),
     role: z.string().min(1, 'Pick a role'),
+    otp: z.string().length(4, 'Enter the 4-digit code'),
     published: z.boolean(),
     priority: z.number().min(1, 'Set a priority (min 1)'),
     // RTE value is HTML, but a blank editor emits '' (not <p><br></p>), so min(1) is enough
@@ -96,6 +99,7 @@ const buildDefaults = (codes: string[]) => ({
   tags: [] as string[],
   categories: [] as string[],
   role: '',
+  otp: '',
   published: false,
   priority: 0,
   body: '',
@@ -138,6 +142,7 @@ function Fields() {
           { value: 'guest', label: 'Guest', description: 'Read-only', icon: 'Global' },
         ]}
       />
+      <OtpField name="otp" required label="Verification Code" length={4} />
       <Switch name="published" label="Published" />
       <Slider
         name="priority"

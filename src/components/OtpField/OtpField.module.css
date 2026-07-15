@@ -1,0 +1,68 @@
+/* ── row of boxes ─────────────────────────────────────────────────────────── */
+.row {
+  display: inline-flex;
+  gap: var(--tz-space-xs);
+}
+
+/* sizes — square boxes + char font (one-off literals, like Pagination's box px) */
+.sm {
+  --otp-box: 40px;
+  --otp-font: var(--tz-font-size-lg);
+}
+.md {
+  --otp-box: 48px;
+  --otp-font: var(--tz-font-size-xl);
+}
+.lg {
+  --otp-box: 56px;
+  --otp-font: var(--tz-font-size-xxl);
+}
+
+/* ── box ──────────────────────────────────────────────────────────────────── */
+.box {
+  box-sizing: border-box;
+  width: var(--otp-box);
+  height: var(--otp-box);
+  padding: 0;
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-sm);
+  background: var(--tz-color-secondary);
+  color: var(--tz-color-text);
+  font-family: var(--tz-font-family);
+  font-size: var(--otp-font);
+  font-weight: var(--tz-font-weight-medium);
+  line-height: 1;
+  text-align: center;
+  caret-color: rgb(var(--tz-btn-rgb));
+  transition:
+    border-color var(--tz-duration),
+    box-shadow var(--tz-duration),
+    background-color var(--tz-duration);
+}
+.box::placeholder {
+  color: var(--tz-color-primary-shade400);
+}
+/* a filled box gets a slightly stronger border so progress reads at a glance */
+.box.filled {
+  border-color: var(--tz-color-primary-shade400);
+}
+.box:hover:not(:disabled):not(:focus) {
+  border-color: rgba(var(--tz-btn-rgb), 0.5);
+}
+.box:focus {
+  outline: none;
+  border-color: rgb(var(--tz-btn-rgb));
+  box-shadow: 0 0 0 3px rgba(var(--tz-btn-rgb), 0.16);
+}
+.box:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* ── error — reddened boxes (an own class on the row, so scoping matches this module) ── */
+.invalid .box {
+  border-color: rgb(var(--tz-color-error-rgb));
+}
+.invalid .box:focus {
+  box-shadow: 0 0 0 3px rgba(var(--tz-color-error-rgb), 0.16);
+}
