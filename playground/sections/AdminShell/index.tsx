@@ -32,6 +32,7 @@ import { TabsSection } from '../Tabs'
 import { StepperSection } from '../Stepper'
 import { ChoiceCardSection } from '../ChoiceCard'
 import { TimelineSection } from '../Timeline'
+import { CodeBlockSection } from '../CodeBlock'
 import { TableConfigQueryPage, TableConfigQueryLocalPage, TableReorderPage } from '../Table'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
@@ -310,6 +311,12 @@ const timelineRoute = createRoute({
   staticData: { name: 'Timeline', icon: 'Clock', order: 7 },
   component: inPage(TimelineSection),
 })
+const codeBlockRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'code-block',
+  staticData: { name: 'Code Block', icon: 'Code', order: 8 },
+  component: inPage(CodeBlockSection),
+})
 
 // Group: Navigation.
 const navigationRoute = createRoute({
@@ -572,6 +579,7 @@ const shellRouter = createRouter({
         tooltipRoute,
         emptyStateRoute,
         timelineRoute,
+        codeBlockRoute,
       ]),
       navigationRoute.addChildren([
         tabsRoute,

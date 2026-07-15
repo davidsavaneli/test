@@ -76,4 +76,21 @@ describe('Tooltip', () => {
     expect(screen.getByText('Only Me')).toBeInTheDocument()
     expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull()
   })
+
+  it('tints the fill via the --tz-btn-rgb inline var from color (default primary)', () => {
+    const { rerender } = render(
+      <Tooltip content="Hi">
+        <button>Trigger</button>
+      </Tooltip>,
+    )
+    let wrapper = screen.getByText('Trigger').parentElement as HTMLElement
+    expect(wrapper.getAttribute('style')).toContain('--tz-btn-rgb: var(--tz-color-primary-rgb)')
+    rerender(
+      <Tooltip content="Hi" color="secondary">
+        <button>Trigger</button>
+      </Tooltip>,
+    )
+    wrapper = screen.getByText('Trigger').parentElement as HTMLElement
+    expect(wrapper.getAttribute('style')).toContain('--tz-btn-rgb: var(--tz-color-secondary-rgb)')
+  })
 })

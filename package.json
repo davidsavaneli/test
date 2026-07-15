@@ -128,7 +128,8 @@
     "react-dom": ">=18.0.0",
     "react-dropzone": ">=14.0.0",
     "react-image-crop": ">=11.0.0",
-    "zod": ">=3.23.0"
+    "zod": ">=3.23.0",
+    "shiki": ">=1.0.0"
   },
   "peerDependenciesMeta": {
     "@dnd-kit/core": {
@@ -187,6 +188,9 @@
     },
     "@lexical/utils": {
       "optional": true
+    },
+    "shiki": {
+      "optional": true
     }
   },
   "devDependencies": {
@@ -218,6 +222,7 @@
     "react-dom": "^19.2.6",
     "react-dropzone": "^15.0.0",
     "react-image-crop": "^11.1.2",
+    "shiki": "^4.3.1",
     "typescript": "^6.0.3",
     "vite": "^6.4.3",
     "vitest": "^4.1.8",

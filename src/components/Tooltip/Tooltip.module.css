@@ -1,4 +1,5 @@
-/* Tooltip — floating label on hover/focus. Token-only, theme-aware (brand `primary` fill). */
+/* Tooltip — floating label on hover/focus. Token-only; the fill comes from `color` via the shared
+   --tz-btn-rgb pattern (default `primary`), so it flips with the theme. */
 
 .root {
   position: relative;
@@ -13,8 +14,8 @@
   max-width: 240px;
   padding: var(--tz-space-xxs) var(--tz-space-xs);
   border-radius: var(--tz-radius-xs);
-  background: var(--tz-color-primary);
-  color: var(--tz-color-primary-contrast);
+  background: rgb(var(--tz-btn-rgb));
+  color: var(--tz-btn-on, #fff);
   font-size: var(--tz-font-size-sm);
   font-weight: var(--tz-font-weight-regular);
   line-height: var(--tz-line-height);

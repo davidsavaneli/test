@@ -53,6 +53,7 @@ export default defineConfig({
         /^@formkit\/auto-animate($|\/)/,
         /^lexical($|\/)/,
         /^@lexical\/[^/]+($|\/)/,
+        /^shiki($|\/)/,
       ],
       output: {
         // Components expose both a named and a default export — force named CJS interop so the

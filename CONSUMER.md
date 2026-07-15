@@ -141,6 +141,8 @@ npm i lexical @lexical/react @lexical/rich-text @lexical/list @lexical/link @lex
 npm i react-dropzone @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities @formkit/auto-animate react-image-crop
 # @tanstack/react-table is an OPTIONAL peer (>=8, headless) — only for <Table>:
 npm i @tanstack/react-table
+# shiki is an OPTIONAL peer (>=1) — only for <CodeBlock> (VS Code syntax highlighting):
+npm i shiki
 ```
 
 ## 2. One-time setup (app entry, e.g. main.tsx)
@@ -407,7 +409,8 @@ divider separates the header from the body while expanded.
 
 **Tooltip** — wraps a single element and shows a floating label on hover/focus:
 `<Tooltip content="Save"><IconButton …/></Tooltip>`. `content: ReactNode`, `placement`
-(`top` default · `bottom` · `left` · `right`). Closes on `Escape`; a11y-wired via `aria-describedby`.
+(`top` default · `bottom` · `left` · `right`), `color` (brand token, default `primary`). Closes on
+`Escape`; a11y-wired via `aria-describedby`.
 
 **Avatar** — `src` (image, auto-fallback on error) · `icon` (`IconName`/node) · `children` (e.g.
 `"D.S."`) · `name` (auto-initials `"David Savaneli"` → `"DS"`, also the accessible name) · `size`
@@ -438,6 +441,14 @@ small **dot** — mix freely; a per-item **`color`** tints just that node (`succ
 `time` is the muted date caption; the rail hides after the last entry. `size` (`sm`/`md`/`lg`) ·
 `color` (base tint). Display-only; a semantic `<ol>` (name it with `aria-label`).
 `<Timeline items={[{ label: 'Shipped', time: '13th May', icon: 'Truck', content: 'Via FedEx.' }]} />`
+
+**CodeBlock** — a syntax-highlighted code block with **VS Code colors**. Needs the **`shiki` optional
+peer** (`npm i shiki`, see §1) — the actual VS Code engine with its `dark-plus` theme; the block is
+**always dark** (in both app modes). Highlighting is lazy + async — until it lands (or if `shiki` is
+missing / the language is unknown) the plain code shows, so nothing breaks. **`code`** · **`language`** (any shiki id; default `'tsx'`) · **`title`** (filename
+header bar) · **`copyable`** (default `true` — a copy button that flips to a tick) ·
+**`showLineNumbers`** · **`maxHeight`** (scrolls inside) · **`wrap`**.
+`<CodeBlock code={snippet} language="json" title="payload.json" showLineNumbers />`
 
 **Dropdown** — a floating menu anchored to a `trigger`, with `ListItem`s as children. `placement`
 (`bottom-start` default · `bottom-end` · `top-start` · `top-end`) — auto-**flips** and stays on-screen,

@@ -1,0 +1,92 @@
+/* ── container ────────────────────────────────────────────────────────────── */
+/* the block is ALWAYS dark (both app modes) — VS Code's own dark surface, a deliberate literal-color
+   exception (like the Modal scrim). Only the outer radius comes from a token. */
+.root {
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--tz-radius-sm);
+  background: #1e1e1e; /* VS Code dark-plus editor background */
+  font-family: var(--tz-font-family);
+}
+
+/* ── header (title bar) ───────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tz-space-xs);
+  padding: var(--tz-space-xxs) var(--tz-space-xs) var(--tz-space-xxs) var(--tz-space-sm);
+  background: #252526; /* VS Code editor-group header */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.title {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: var(--tz-font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── code area ────────────────────────────────────────────────────────────── */
+.code {
+  overflow: auto;
+  background: #1e1e1e;
+}
+
+/* shared text metrics for the shiki output and the plain fallback — the mono stack is a one-off
+   literal (no --tz-* font token maps to monospace) */
+.code pre {
+  margin: 0;
+  padding: var(--tz-space-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: var(--tz-font-size-sm);
+  line-height: var(--tz-line-height);
+  tab-size: 2;
+}
+/* the plain (pre-highlight / no-shiki) fallback — VS Code's dark foreground, so it matches the block */
+.plain {
+  color: #d4d4d4;
+  background: transparent;
+}
+
+/* keep code clear of the floating copy button when there's no header */
+.padForCopy pre {
+  padding-right: calc(var(--tz-control-height-sm) + var(--tz-space-xs));
+}
+
+/* soft-wrap long lines instead of scrolling sideways */
+.wrap pre {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+/* ── line numbers (shiki marks each line with span.line) ─────────────────────── */
+.lineNumbers pre {
+  counter-reset: tz-ln;
+}
+.lineNumbers :global(.shiki) :global(.line)::before {
+  counter-increment: tz-ln;
+  content: counter(tz-ln);
+  display: inline-block;
+  min-width: 2em;
+  margin-right: var(--tz-space-sm);
+  text-align: right;
+  opacity: 0.4;
+  user-select: none;
+}
+
+/* ── copy button — light on the dark surface (white --tz-btn-rgb set inline on the button) ─────── */
+.copy {
+  opacity: 0.7;
+}
+.copy:hover {
+  opacity: 1;
+}
+.floatingCopy {
+  position: absolute;
+  top: var(--tz-space-xxs);
+  right: var(--tz-space-xxs);
+}
