@@ -31,6 +31,7 @@ import { FileUploaderSection } from '../FileUploader'
 import { TabsSection } from '../Tabs'
 import { StepperSection } from '../Stepper'
 import { ChoiceCardSection } from '../ChoiceCard'
+import { TimelineSection } from '../Timeline'
 import { TableConfigQueryPage, TableConfigQueryLocalPage, TableReorderPage } from '../Table'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
@@ -303,6 +304,12 @@ const emptyStateRoute = createRoute({
   staticData: { name: 'Empty State', icon: 'Box', order: 6 },
   component: inPage(EmptyStateSection),
 })
+const timelineRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'timeline',
+  staticData: { name: 'Timeline', icon: 'Clock', order: 7 },
+  component: inPage(TimelineSection),
+})
 
 // Group: Navigation.
 const navigationRoute = createRoute({
@@ -564,6 +571,7 @@ const shellRouter = createRouter({
         listRoute,
         tooltipRoute,
         emptyStateRoute,
+        timelineRoute,
       ]),
       navigationRoute.addChildren([
         tabsRoute,

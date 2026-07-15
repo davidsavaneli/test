@@ -1,0 +1,112 @@
+/* ── root ─────────────────────────────────────────────────────────────────── */
+.root {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--tz-font-family);
+}
+
+/* ── item ─────────────────────────────────────────────────────────────────── */
+.item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--tz-space-sm);
+  padding-bottom: var(--tz-space-md);
+}
+.item:last-child {
+  padding-bottom: 0;
+}
+
+/* sizes — node circle / dot / fonts (circle px are one-off literals, like Stepper's) */
+.sm {
+  --tl-node: 24px;
+  --tl-dot: 8px;
+  --tl-font: var(--tz-font-size-sm);
+  --tl-meta: var(--tz-font-size-xs);
+  --tl-body: var(--tz-font-size-sm);
+}
+.md {
+  --tl-node: 32px;
+  --tl-dot: 10px;
+  --tl-font: var(--tz-font-size-md);
+  --tl-meta: var(--tz-font-size-sm);
+  --tl-body: var(--tz-font-size-md);
+}
+.lg {
+  --tl-node: 40px;
+  --tl-dot: 12px;
+  --tl-font: var(--tz-font-size-lg);
+  --tl-meta: var(--tz-font-size-sm);
+  --tl-body: var(--tz-font-size-md);
+}
+
+/* ── node — a soft tinted icon circle, or a small dot when the entry has no icon ── */
+.node {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--tl-node);
+  height: var(--tl-node);
+  border-radius: 50%;
+  background: rgba(var(--tl-rgb), 0.12);
+  color: rgb(var(--tl-rgb));
+}
+/* dot node — same footprint (the rail stays centered), transparent box with a filled dot */
+.node.dotNode {
+  background: transparent;
+}
+.dot {
+  width: var(--tl-dot);
+  height: var(--tl-dot);
+  border-radius: 50%;
+  background: rgb(var(--tl-rgb));
+}
+
+/* ── rail — a hairline from this node down to the next one; none after the last ── */
+.connector {
+  position: absolute;
+  top: calc(var(--tl-node) + var(--tz-space-xxs));
+  bottom: var(--tz-space-xxs);
+  left: calc(var(--tl-node) / 2);
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--tz-color-border);
+}
+.item:last-child .connector {
+  display: none;
+}
+
+/* ── body ─────────────────────────────────────────────────────────────────── */
+/* at least node-tall and centered, so a lone label sits level with the circle; a taller
+   label+time+content block simply grows past it (the ChoiceCard/vertical-Stepper trick) */
+.body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--tz-space-xxs);
+  min-width: 0;
+  min-height: var(--tl-node);
+}
+.label {
+  color: var(--tz-color-text);
+  font-size: var(--tl-font);
+  font-weight: var(--tz-font-weight-medium);
+  line-height: var(--tz-line-height);
+  overflow-wrap: break-word;
+}
+.time {
+  color: var(--tz-color-primary-shade600);
+  font-size: var(--tl-meta);
+  line-height: var(--tz-line-height);
+}
+.content {
+  color: var(--tz-color-text);
+  font-size: var(--tl-body);
+  line-height: var(--tz-line-height);
+  overflow-wrap: break-word;
+}

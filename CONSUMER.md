@@ -431,6 +431,14 @@ a title for a labeled divider with `align` (`left` · `center` default · `right
 for all its items). Standalone, in a dropdown panel, or in the sidebar.
 `<List role="menu"><ListItem icon="Setting2" clickable selected>Settings</ListItem></List>`.
 
+**Timeline / TimelineItem** — a vertical timeline (order tracking, activity feeds, audit logs).
+Data-driven **`items`** (`{ label?, time?, content?, icon?, color? }[]`) or `<TimelineItem>` children
+(body = `children`). An entry **with** an `icon` gets a soft tinted circle node; one **without** gets a
+small **dot** — mix freely; a per-item **`color`** tints just that node (`success`/`error`/… feeds).
+`time` is the muted date caption; the rail hides after the last entry. `size` (`sm`/`md`/`lg`) ·
+`color` (base tint). Display-only; a semantic `<ol>` (name it with `aria-label`).
+`<Timeline items={[{ label: 'Shipped', time: '13th May', icon: 'Truck', content: 'Via FedEx.' }]} />`
+
 **Dropdown** — a floating menu anchored to a `trigger`, with `ListItem`s as children. `placement`
 (`bottom-start` default · `bottom-end` · `top-start` · `top-end`) — auto-**flips** and stays on-screen,
 and re-positions on scroll/resize (a tall menu caps its height + scrolls). Opens on click; closes on
