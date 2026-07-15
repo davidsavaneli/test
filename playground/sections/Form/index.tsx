@@ -3,6 +3,7 @@ import { z } from 'zod'
 import {
   Button,
   buildTranslations,
+  ChoiceCardGroup,
   Col,
   FileUploader,
   type FileUploaderItem,
@@ -44,6 +45,7 @@ const TEST_RESPONSE = {
   quantity: 5,
   tags: ['news', 'featured'],
   categories: ['design', 'eng'],
+  role: 'user',
   published: true,
   priority: 7,
   body: '<h2>Edit me</h2><p>Prefilled <strong>rich</strong> content.</p>',
@@ -74,6 +76,7 @@ const buildSchema = (codes: string[]) => {
       .refine((v): boolean => v !== null, 'Required'),
     tags: z.array(z.string()).min(1, 'Add at least one tag'),
     categories: z.array(z.string()).min(1, 'Pick at least one'),
+    role: z.string().min(1, 'Pick a role'),
     published: z.boolean(),
     priority: z.number().min(1, 'Set a priority (min 1)'),
     // RTE value is HTML, but a blank editor emits '' (not <p><br></p>), so min(1) is enough
@@ -92,6 +95,7 @@ const buildDefaults = (codes: string[]) => ({
   quantity: null as number | null,
   tags: [] as string[],
   categories: [] as string[],
+  role: '',
   published: false,
   priority: 0,
   body: '',
@@ -122,6 +126,17 @@ function Fields() {
         label="Categories"
         placeholder="Pick a few…"
         options={CATEGORIES}
+      />
+      <ChoiceCardGroup
+        exclusive
+        name="role"
+        required
+        label="Role"
+        options={[
+          { value: 'admin', label: 'Admin', description: 'Full access', icon: 'ShieldTick' },
+          { value: 'user', label: 'User', description: 'Limited access', icon: 'User' },
+          { value: 'guest', label: 'Guest', description: 'Read-only', icon: 'Global' },
+        ]}
       />
       <Switch name="published" label="Published" />
       <Slider

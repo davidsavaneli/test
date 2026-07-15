@@ -362,6 +362,17 @@ for `hour12`). `<TimePicker label="Start time" name="startTime" minuteStep={5} /
 **Checkbox** — `label` · `color` (checked fill) · `size` · `checked`/`defaultChecked` ·
 `onChange(boolean)` · `error` (reddens the box only, no helper text) · `required` · `disabled`.
 
+**ChoiceCard / ChoiceCardGroup** — **selectable cards**: rich checkboxes/radios with an `icon`, `label`
+and `description` (role pickers, plan choices). Use **`ChoiceCardGroup`**: **`exclusive`** = one card
+(radio semantics, `value` is a `string | null`, Arrow keys rove) vs the default multiple (checkbox
+semantics, `string[]`); `options` (`{ value, label?, description?, icon?, disabled? }[]`) **or**
+`<ChoiceCard>` children; the cards fill a **responsive grid** (`minCardWidth`, default `160`); an
+icon-less card **left-aligns** its content automatically (a list-row look). `label` ·
+`required` · `size` · `color` · `error` (reddens borders, no message) · `disabled`. Binds to `<Form>` by
+`name` (`string` when `exclusive`, else `string[]`). A single `<ChoiceCard>` also works standalone
+(`checked` + `onChange`).
+`<ChoiceCardGroup exclusive name="role" options={[{ value: 'admin', label: 'Admin', description: 'Full access', icon: 'ShieldTick' }]} />`
+
 **Radio / RadioGroup** — single-select radios. Use **`RadioGroup`**: `value`/`defaultValue` (`string`)
 · `onChange(value)` · `name` · `options` (`{ value, label?, disabled? }[]`) **or** `<Radio>` children ·
 `orientation` (`vertical` / `horizontal`) · `label` · `error` (reddens rings, no message) · `required` ·

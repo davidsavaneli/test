@@ -1,0 +1,223 @@
+/* ── group ────────────────────────────────────────────────────────────────── */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-xs);
+  font-family: var(--tz-font-family);
+}
+.groupLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tz-space-xxs);
+}
+.required {
+  color: var(--tz-color-error);
+}
+/* responsive grid — as many ≥var(--cc-min) cards per row as fit, wrapping below */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--cc-min, 160px)), 1fr));
+  gap: var(--tz-space-sm);
+}
+
+/* ── card ─────────────────────────────────────────────────────────────────── */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-sizing: border-box;
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-sm);
+  background: var(--tz-color-secondary);
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--tz-font-family);
+  transition:
+    border-color var(--tz-duration),
+    background-color var(--tz-duration),
+    box-shadow var(--tz-duration);
+}
+.card:hover:not(.disabled):not(.selected) {
+  border-color: rgba(var(--tz-btn-rgb), 0.5);
+}
+/* selected — brand border + a soft halo ring + a faint wash */
+.card.selected {
+  border-color: rgb(var(--tz-btn-rgb));
+  background: rgba(var(--tz-btn-rgb), 0.04);
+  box-shadow: 0 0 0 2px rgba(var(--tz-btn-rgb), 0.12);
+}
+.card:has(.input:focus-visible) {
+  outline: 2px solid rgba(var(--tz-btn-rgb), 0.5);
+  outline-offset: 2px;
+}
+.card.error {
+  border-color: var(--tz-color-error);
+}
+.card.error.selected {
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-error-rgb), 0.12);
+}
+.card.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+/* icon-less card — reads as a list row: content left-aligned (the icon circle centers a card) */
+.card.plain {
+  align-items: flex-start;
+  text-align: left;
+}
+.card.plain .text {
+  /* keep the title clear of the top-right indicator */
+  padding-right: calc(var(--cc-indicator) + var(--tz-space-xxs));
+}
+
+/* sizes — padding, icon circle, indicator, fonts */
+.sm {
+  --cc-iconbox: 32px;
+  --cc-indicator: 16px;
+  --cc-font: var(--tz-font-size-sm);
+  --cc-desc: var(--tz-font-size-xs);
+  padding: var(--tz-space-sm);
+  gap: var(--tz-space-xxs);
+}
+.md {
+  --cc-iconbox: 40px;
+  --cc-indicator: 18px;
+  --cc-font: var(--tz-font-size-md);
+  --cc-desc: var(--tz-font-size-sm);
+  padding: var(--tz-space-sm) var(--tz-space-sm);
+  gap: var(--tz-space-xxs);
+}
+.lg {
+  --cc-iconbox: 48px;
+  --cc-indicator: 20px;
+  --cc-font: var(--tz-font-size-lg);
+  --cc-desc: var(--tz-font-size-md);
+  padding: var(--tz-space-md) var(--tz-space-sm);
+  gap: var(--tz-space-xxs);
+}
+
+/* the real input — visually hidden but still focusable & announced */
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── selection indicator (top-right) — a circle that fills + a CSS tick ─────── */
+.indicator {
+  position: absolute;
+  top: var(--tz-space-xs);
+  right: var(--tz-space-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--cc-indicator);
+  height: var(--cc-indicator);
+  border: 1px solid var(--tz-color-border);
+  border-radius: 50%;
+  background: var(--tz-color-secondary);
+  transition:
+    border-color var(--tz-duration),
+    background-color var(--tz-duration);
+}
+/* the tick — a rotated corner (no icon dependency), scaled in when selected */
+.indicator::after {
+  content: '';
+  box-sizing: border-box;
+  width: 26%;
+  height: 52%;
+  margin-top: -12%;
+  border: solid var(--tz-btn-on, #fff);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform var(--tz-duration);
+}
+.selected .indicator {
+  border-color: rgb(var(--tz-btn-rgb));
+  background: rgb(var(--tz-btn-rgb));
+}
+.selected .indicator::after {
+  transform: rotate(45deg) scale(1);
+}
+.error .indicator {
+  border-color: var(--tz-color-error);
+}
+.error.selected .indicator {
+  background: var(--tz-color-error);
+}
+
+/* exclusive (radio) cards — the indicator mirrors the Radio component: a hollow ring whose inner
+   dot scales in, instead of the filled circle + tick */
+.indicator.radioDot::after {
+  width: 50%;
+  height: 50%;
+  margin-top: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(var(--tz-btn-rgb));
+  transform: scale(0);
+}
+.selected .indicator.radioDot {
+  background: var(--tz-color-secondary); /* stays hollow — brand ring + dot, like Radio */
+}
+.selected .indicator.radioDot::after {
+  transform: scale(1);
+}
+.error.selected .indicator.radioDot {
+  background: var(--tz-color-secondary);
+}
+.error .indicator.radioDot::after {
+  background: var(--tz-color-error);
+}
+
+/* ── icon circle — soft neutral, fills with the brand color while selected ──── */
+.iconBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--cc-iconbox);
+  height: var(--cc-iconbox);
+  margin-bottom: var(--tz-space-xxs);
+  border-radius: 50%;
+  background: var(--tz-color-primary-shade100);
+  color: var(--tz-color-primary-shade600);
+  transition:
+    background-color var(--tz-duration),
+    color var(--tz-duration);
+}
+.selected .iconBox {
+  background: rgb(var(--tz-btn-rgb));
+  color: var(--tz-btn-on, #fff);
+}
+
+/* ── text ─────────────────────────────────────────────────────────────────── */
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.label {
+  color: var(--tz-color-text);
+  font-size: var(--cc-font);
+  font-weight: var(--tz-font-weight-medium);
+  line-height: var(--tz-line-height);
+  overflow-wrap: break-word;
+}
+.description {
+  color: var(--tz-color-primary-shade600);
+  font-size: var(--cc-desc);
+  line-height: var(--tz-line-height);
+  overflow-wrap: break-word;
+}

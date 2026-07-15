@@ -30,6 +30,7 @@ import { DropdownSection } from '../Dropdown'
 import { FileUploaderSection } from '../FileUploader'
 import { TabsSection } from '../Tabs'
 import { StepperSection } from '../Stepper'
+import { ChoiceCardSection } from '../ChoiceCard'
 import { TableConfigQueryPage, TableConfigQueryLocalPage, TableReorderPage } from '../Table'
 import { ButtonSection } from '../Button'
 import { CardSection } from '../Card'
@@ -520,6 +521,12 @@ const formValidationsRoute = createRoute({
   staticData: { name: 'Form Validations', icon: 'Edit', order: 17 },
   component: inPage(FormValidationsSection),
 })
+const choiceCardRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'choice-card',
+  staticData: { name: 'Choice Card', icon: 'TickSquare', order: 18 },
+  component: inPage(ChoiceCardSection),
+})
 
 const shellRouter = createRouter({
   routeTree: shellRoot.addChildren([
@@ -547,6 +554,7 @@ const shellRouter = createRouter({
         toggleButtonRoute,
         sliderRoute,
         formValidationsRoute,
+        choiceCardRoute,
       ]),
       dataDisplayRoute.addChildren([
         typographyRoute,
