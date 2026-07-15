@@ -97,6 +97,24 @@ describe('OtpField', () => {
     expect(boxes()[0]).toHaveAttribute('inputmode', 'text')
   })
 
+  it('accepts a string[] value and mirrors the array shape in onChange', () => {
+    const onChange = vi.fn()
+    render(<OtpField value={['1', '2', '', '']} onChange={onChange} />)
+    const bs = boxes()
+    expect(bs[0]).toHaveValue('1')
+    expect(bs[1]).toHaveValue('2')
+    fireEvent.change(bs[2], { target: { value: '3' } })
+    // array in → array out (length-padded per box)
+    expect(onChange).toHaveBeenLastCalledWith(['1', '2', '3', ''])
+  })
+
+  it('mirrors a string[] defaultValue shape in uncontrolled mode + onComplete', () => {
+    const onComplete = vi.fn()
+    render(<OtpField length={3} defaultValue={['1', '2']} onComplete={onComplete} />)
+    fireEvent.change(boxes()[2], { target: { value: '3' } })
+    expect(onComplete).toHaveBeenCalledWith(['1', '2', '3'])
+  })
+
   it('binds to a <Form> by name (value = the code string)', () => {
     function Demo() {
       const form = useForm({

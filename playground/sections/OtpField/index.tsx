@@ -5,10 +5,11 @@ import { Block, Section, SIZES } from '../../shared'
 export function OtpFieldSection() {
   const [code, setCode] = useState('')
   const [completed, setCompleted] = useState<string | null>(null)
+  const [arr, setArr] = useState<string[]>(['1', '2', '', ''])
 
   return (
     <Section>
-      {/* the basics — default 4 numeric boxes, onComplete */}
+      {/* the basics — default 4 numeric boxes, onComplete (string value) */}
       <Block
         label="Basic (numeric, 4)"
         description="Default — 4 numeric boxes. Type to advance, Backspace to step back, Arrows to navigate, paste to fill. onComplete fires once all boxes are filled."
@@ -16,8 +17,8 @@ export function OtpFieldSection() {
         <OtpField
           label="Verification Code"
           value={code}
-          onChange={setCode}
-          onComplete={setCompleted}
+          onChange={(v) => setCode(v as string)}
+          onComplete={(v) => setCompleted(v as string)}
         />
         <Typography variant="bodySmall" color="muted" as="div">
           Value: {code || '—'} {completed && `· completed: ${completed}`}
@@ -27,6 +28,17 @@ export function OtpFieldSection() {
             Clear
           </Button>
         </div>
+      </Block>
+
+      {/* array value — pass a string[] and onChange mirrors the array shape */}
+      <Block
+        label="Array value (string[])"
+        description="Pass a string[] as value and onChange mirrors that shape — a per-box array (length-padded). Useful when your state/backend keeps the code as an array."
+      >
+        <OtpField value={arr} onChange={(v) => setArr(v as string[])} aria-label="Array code" />
+        <Typography variant="bodySmall" color="muted" as="div">
+          Value: [{arr.map((c) => `'${c}'`).join(', ')}]
+        </Typography>
       </Block>
 
       {/* length + types */}

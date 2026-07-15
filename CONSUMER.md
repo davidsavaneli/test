@@ -297,10 +297,12 @@ a chip's delete button (or **Backspace** on the empty input) removes one. `label
 **OtpField** — a one-time-passcode input (a row of single-char boxes). **`length`** (default `4`) ·
 **`type`** (`'numeric'` default · `'alphabetic'` · `'alphanumeric'` — restricts chars + the mobile
 keyboard). Typing advances, Backspace steps back, Arrows navigate, and **paste / SMS autofill**
-(`autocomplete="one-time-code"`) fill the whole code across the boxes. Value is the concatenated string —
+(`autocomplete="one-time-code"`) fill the whole code across the boxes. Value accepts — and `onChange` /
+`onComplete` mirror — **either a joined `string` or a per-box `string[]`** (`['1','2','3','4']`);
 `value`/`defaultValue` + `onChange(value)`; **`onComplete(value)`** fires when full. `label` · `error` +
 `helperText` · `required` · `disabled` · `size` · `color` · `placeholder` · `autoFocus`. Binds to
-`<Form>` by `name` (value = the code string; validate with e.g. `z.string().length(4)`).
+`<Form>` by `name` (value = the code `string` or `string[]`; validate with `z.string().length(4)` or
+`z.array(z.string()).length(4)`).
 `<OtpField name="otp" length={6} type="numeric" onComplete={verify} />`
 
 **ColorPicker** — a color field with a popover picker (saturation/value square + hue slider + **alpha

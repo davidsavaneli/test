@@ -761,15 +761,18 @@ so typing in a filled box replaces), **Backspace** clears + steps back, **Arrows
 clears the box, and **paste / iOS SMS autofill** distribute the whole code across the boxes (a full code
 landing in one box — the autofill case — is detected and spread, since a multi-char change can't be a
 single keystroke). Autofill is wired via **`autocomplete="one-time-code"`** on the **first** box (the
-others `off`). **Value is the concatenated string** — controlled (`value` + `onChange`) or uncontrolled
-(`defaultValue`); **`onComplete(value)`** fires once every box is filled. Shares the field-family chrome
+others `off`). **Dual value shape (the `TagsField` idiom):** `value`/`defaultValue` accept **either a
+joined `string` or a per-box `string[]`** (`['1','2','3','4']`, length-padded), and `onChange` /
+`onComplete` **mirror the input's shape** — controlled (`value` + `onChange`) or uncontrolled
+(`defaultValue`); **`onComplete`** fires once every box is filled. Shares the field-family chrome
 (imports `TextField.module.css` for `label` · `error` + `helperText` · `required` · `disabled`) + its
 own module for the boxes; **`size`** (`sm`/`md`/`lg` — square box 40/48/56px + char font, one-off
 literals) and **`color`** (default `primary`, the shared **`--tz-btn-rgb`** pattern → caret + focus ring
 
 - active box), plus **`placeholder`** (a char in empty boxes) and **`autoFocus`**. Binds to a `<Form>` by
-  **`name`** — form value is the code `string` (validate with e.g. `z.string().length(4)` or a
-  `type`-matching regex); error/touched come from `field()`, and the **`name` rides the first box only** so
+  **`name`** — form value is the code `string` **or** `string[]` (validate with `z.string().length(4)` /
+  a `type`-regex, or `z.array(z.string()).length(4)`; the raw form value is read un-coerced like
+  `TagsField`); error/touched come from `field()`, and the **`name` rides the first box only** so
   the form's **scroll-to-error** can focus it (touched fires on blur outside the whole widget). a11y:
   `role="group"` (labelled by `label`, `aria-invalid` while error) with per-box `aria-label`s
   (`"Digit N of M"`). Own CSS module (+ TextField's chrome). _A masked/password mode and a `separator`
