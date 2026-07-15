@@ -28,13 +28,9 @@ const PATTERN: Record<OtpFieldType, RegExp> = {
   alphanumeric: /[A-Za-z0-9]/,
 }
 
-/**
- * Normalize a value (a code `string` or a per-box `string[]`) into exactly `length` single-char slots,
- * padded with empties. A string is split per character; array entries are capped to one char each.
- */
-function toChars(value: string | string[] | undefined, length: number): string[] {
-  const source = value == null ? [] : Array.isArray(value) ? value : [...value]
-  const out = source.slice(0, length).map((c) => String(c ?? '').slice(0, 1))
+/** Split a code string into exactly `length` single-char slots, padded with empties. */
+function toChars(value: string, length: number): string[] {
+  const out = [...value].slice(0, length)
   while (out.length < length) out.push('')
   return out
 }
@@ -44,15 +40,15 @@ export interface OtpFieldProps {
   length?: number
   /** Which characters are accepted (also drives the mobile keyboard). Defaults to `'numeric'`. */
   type?: OtpFieldType
-  /** Controlled value — the concatenated code `string`, or a per-box `string[]` (e.g. `['1','2']`). */
-  value?: string | string[]
-  /** Initial value for uncontrolled use (a `string` or a per-box `string[]`). */
-  defaultValue?: string | string[]
-  /** Fires on every change, mirroring the value's shape: a joined `string`, or a per-box `string[]`. */
-  onChange?: (value: string | string[]) => void
-  /** Fires once every box is filled (same shape as `onChange`). */
-  onComplete?: (value: string | string[]) => void
-  /** Field name — the `<Form>` binding key (form value is the code `string` **or** `string[]`). */
+  /** Controlled value — the concatenated code string. */
+  value?: string
+  /** Initial value for uncontrolled use. */
+  defaultValue?: string
+  /** Fires with the full code string on every change. */
+  onChange?: (value: string) => void
+  /** Fires with the code once every box is filled. */
+  onComplete?: (value: string) => void
+  /** Field name — the `<Form>` binding key (form value is the code `string`). */
   name?: string
   /** Label rendered above the boxes. */
   label?: ReactNode
@@ -81,12 +77,11 @@ export interface OtpFieldProps {
  * (default `4`) sets the box count; **`type`** (`'numeric'` default · `'alphabetic'` · `'alphanumeric'`)
  * restricts the accepted characters and the mobile keyboard. Typing advances to the next box, Backspace
  * clears + steps back, Arrows navigate, and **paste / SMS autofill** (`autocomplete="one-time-code"`)
- * distributes the whole code across the boxes. The value accepts — and `onChange`/`onComplete` mirror —
- * **either a joined `string` or a per-box `string[]`** (`['1','2','3','4']`, length-padded); controlled
+ * distributes the whole code across the boxes. The value is the concatenated string — controlled
  * (`value` + `onChange`) or uncontrolled (`defaultValue`); **`onComplete`** fires when all boxes are
  * filled. Shares the field-family chrome (`label` · `error` + `helperText` · `required` · `disabled` ·
- * `size`) and binds to a surrounding `<Form>` by **`name`** (form value = the code string **or** array;
- * validate with `z.string().length(4)` / a `type`-regex, or `z.array(z.string()).length(4)`). Tinted by `color` via the shared
+ * `size`) and binds to a surrounding `<Form>` by **`name`** (form value = the code string; validate with
+ * e.g. `z.string().length(4)` or a `type`-matching regex). Tinted by `color` via the shared
  * `--tz-btn-rgb` pattern; `role="group"` with per-box `aria-label`s. Own CSS module (+ TextField's for
  * the label/helper chrome).
  */
@@ -117,27 +112,22 @@ export const OtpField = forwardRef<HTMLDivElement, OtpFieldProps>(function OtpFi
   const helperId = `${reactId}-helper`
   const allowed = PATTERN[type]
 
-  // bind to a surrounding <Form> by `name`. error/touched come from field(), but the VALUE is read RAW
-  // from `form.values` — field().value String-coerces, which would flatten a `string[]` (like TagsField).
+  // bind to a surrounding <Form> by `name` — form value is the code string; error/touched via field()
   const form = useFormContext()
   const isFormBound = Boolean(form && name)
   const bound = form && name ? form.field(name) : undefined
-  const rawFormValue = isFormBound
-    ? (form!.values[name!] as string | string[] | undefined)
-    : undefined
 
-  const externalValue = value !== undefined ? value : isFormBound ? rawFormValue : undefined
+  const externalValue =
+    value !== undefined ? value : isFormBound ? (form!.values[name!] as string) : undefined
   const isControlled = value !== undefined || isFormBound
-  // mirror the value's shape on output: a per-box array when the source is an array, else a joined string
-  const shapeSource = externalValue !== undefined ? externalValue : defaultValue
-  const arrayMode = Array.isArray(shapeSource)
+  const [internal, setInternal] = useState<string>(defaultValue ?? '')
+  const currentValue = isControlled ? (externalValue ?? '') : internal
 
   const resolvedError = error ?? bound?.error ?? false
   const resolvedHelperText = helperText ?? bound?.helperText
 
   // the code split into exactly `length` single-char slots (padded with empties)
-  const [internal, setInternal] = useState<string[]>(() => toChars(defaultValue, length))
-  const chars = toChars(isControlled ? externalValue : internal, length)
+  const chars = toChars(currentValue, length)
 
   const inputsRef = useRef<(HTMLInputElement | null)[]>([])
 
@@ -153,12 +143,11 @@ export const OtpField = forwardRef<HTMLDivElement, OtpFieldProps>(function OtpFi
   }
 
   const commit = (nextChars: string[]) => {
-    if (!isControlled) setInternal(nextChars)
-    // emit in the value's shape: the per-box array, or the joined code string
-    const out: string | string[] = arrayMode ? nextChars : nextChars.join('')
-    if (isFormBound) form!.setValue(name!, out)
-    onChange?.(out)
-    if (nextChars.every((c) => c !== '')) onComplete?.(out)
+    const next = nextChars.join('')
+    if (!isControlled) setInternal(next)
+    if (isFormBound) form!.setValue(name!, next)
+    onChange?.(next)
+    if (nextChars.every((c) => c !== '')) onComplete?.(next)
   }
 
   const handleChange = (index: number, raw: string) => {
