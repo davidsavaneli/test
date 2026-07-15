@@ -88,7 +88,7 @@ describe('ChoiceCardGroup', () => {
     expect(container.querySelector('.indicator')).not.toBeNull()
   })
 
-  it('left-aligns an icon-less card via the plain class', () => {
+  it('smart-aligns by default: an icon card centers, an icon-less card left-aligns', () => {
     const { container } = render(
       <ChoiceCardGroup
         options={[
@@ -98,8 +98,19 @@ describe('ChoiceCardGroup', () => {
       />,
     )
     const cards = container.querySelectorAll('label')
-    expect(cards[0].classList.contains('plain')).toBe(false)
-    expect(cards[1].classList.contains('plain')).toBe(true)
+    expect(cards[0].classList.contains('left')).toBe(false)
+    expect(cards[1].classList.contains('left')).toBe(true)
+  })
+
+  it('align overrides the smart default (left with icons, center without)', () => {
+    const { container, rerender } = render(
+      <ChoiceCardGroup align="left" options={options} />, // all have icons → still left
+    )
+    let cards = container.querySelectorAll('label')
+    expect([...cards].every((c) => c.classList.contains('left'))).toBe(true)
+    rerender(<ChoiceCardGroup align="center" options={[{ value: 'b', label: 'No Icon' }]} />)
+    cards = container.querySelectorAll('label')
+    expect(cards[0].classList.contains('left')).toBe(false)
   })
 
   it('tints via the --tz-btn-rgb inline var from color', () => {

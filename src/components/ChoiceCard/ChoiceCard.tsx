@@ -16,6 +16,7 @@ import styles from './ChoiceCard.module.css'
 const ICON_NAME_SET = new Set<string>(ICON_NAMES)
 
 export type ChoiceCardSize = 'sm' | 'md' | 'lg'
+export type ChoiceCardAlign = 'left' | 'center'
 
 export interface ChoiceCardProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
@@ -27,8 +28,14 @@ export interface ChoiceCardProps extends Omit<
   label?: ReactNode
   /** Muted description line under the title. */
   description?: ReactNode
-  /** Leading icon in a tinted circle — a known `IconName` or any node. */
+  /** Leading icon in a tinted circle — a known `IconName` or any node. Optional. */
   icon?: IconName | ReactNode
+  /**
+   * Content alignment. `center` centers the icon + text stack; `left` anchors the same stack to the
+   * left edge (icon above left-aligned text). Defaults to the group's `align`, else `center` with an
+   * icon and `left` without one.
+   */
+  align?: ChoiceCardAlign
   /** Brand palette token for the selected tint. Defaults to `primary` (inherits the group's `color`). */
   color?: ThemeColor
   /** Preset size — padding, icon circle and fonts. Inherits the group's `size` when omitted. */
@@ -56,6 +63,7 @@ export const ChoiceCard = forwardRef<HTMLInputElement, ChoiceCardProps>(function
     label,
     description,
     icon,
+    align,
     color,
     size,
     error,
@@ -76,6 +84,8 @@ export const ChoiceCard = forwardRef<HTMLInputElement, ChoiceCardProps>(function
   const resolvedError = error ?? group?.error ?? false
   const resolvedDisabled = disabled ?? group?.disabled ?? false
   const resolvedName = name ?? group?.name
+  // explicit prop → group's align → smart default (an icon centers the card, no icon reads as a row)
+  const resolvedAlign = align ?? group?.align ?? (icon == null ? 'left' : 'center')
 
   // In a group the selection comes from context; standalone it's controlled (`checked`) or local.
   const [internal, setInternal] = useState(false)
@@ -103,7 +113,7 @@ export const ChoiceCard = forwardRef<HTMLInputElement, ChoiceCardProps>(function
       className={clsx(
         styles.card,
         styles[resolvedSize],
-        icon == null && styles.plain, // icon-less card reads as a list row — content left-aligned
+        resolvedAlign === 'left' && styles.left,
         isChecked && styles.selected,
         resolvedError && styles.error,
         resolvedDisabled && styles.disabled,

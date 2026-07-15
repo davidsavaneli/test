@@ -11,7 +11,7 @@ import { useFormContext } from '../../form/formContext'
 import type { ThemeColor } from '../../theme'
 import type { IconName } from '../../icons/names'
 import { Typography } from '../Typography'
-import { ChoiceCard, type ChoiceCardSize } from './ChoiceCard'
+import { ChoiceCard, type ChoiceCardAlign, type ChoiceCardSize } from './ChoiceCard'
 import { ChoiceCardGroupContext, type ChoiceCardGroupContextValue } from './choiceCardContext'
 import styles from './ChoiceCard.module.css'
 
@@ -54,6 +54,12 @@ export interface ChoiceCardGroupProps extends Omit<
   label?: ReactNode
   /** Minimum card width in px — the grid fits as many per row as this allows. Defaults to `160`. */
   minCardWidth?: number
+  /**
+   * Content alignment for every card. `center` centers the icon + text stack; `left` anchors the same
+   * stack to the left edge (icon above left-aligned text). Omit for the smart default — cards with an
+   * icon center, icon-less cards left-align. A card's own `align` wins.
+   */
+  align?: ChoiceCardAlign
   /** Preset size for every card. Defaults to `md`. */
   size?: ChoiceCardSize
   /** Brand palette token for the selected tint. Defaults to `primary`. */
@@ -92,6 +98,7 @@ export const ChoiceCardGroup = forwardRef<HTMLDivElement, ChoiceCardGroupProps>(
       options,
       label,
       minCardWidth = 160,
+      align,
       size = 'md',
       color = 'primary',
       error,
@@ -147,6 +154,7 @@ export const ChoiceCardGroup = forwardRef<HTMLDivElement, ChoiceCardGroupProps>(
       isSelected,
       toggle,
       size,
+      align,
       color,
       disabled,
       error: resolvedError,

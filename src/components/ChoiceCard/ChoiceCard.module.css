@@ -62,13 +62,14 @@
   cursor: not-allowed;
   opacity: 0.5;
 }
-/* icon-less card — reads as a list row: content left-aligned (the icon circle centers a card) */
-.card.plain {
+/* left-aligned card — the same stacked layout as center (icon above label above description), just
+   anchored to the left edge. The default for icon-less cards; opt any card in via align="left" */
+.card.left {
   align-items: flex-start;
   text-align: left;
 }
-.card.plain .text {
-  /* keep the title clear of the top-right indicator */
+.card.left .text {
+  /* keep an icon-less card's title clear of the top-right indicator */
   padding-right: calc(var(--cc-indicator) + var(--tz-space-xxs));
 }
 

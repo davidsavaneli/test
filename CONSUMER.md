@@ -366,8 +366,9 @@ for `hour12`). `<TimePicker label="Start time" name="startTime" minuteStep={5} /
 and `description` (role pickers, plan choices). Use **`ChoiceCardGroup`**: **`exclusive`** = one card
 (radio semantics, `value` is a `string | null`, Arrow keys rove) vs the default multiple (checkbox
 semantics, `string[]`); `options` (`{ value, label?, description?, icon?, disabled? }[]`) **or**
-`<ChoiceCard>` children; the cards fill a **responsive grid** (`minCardWidth`, default `160`); an
-icon-less card **left-aligns** its content automatically (a list-row look). `label` ·
+`<ChoiceCard>` children; the cards fill a **responsive grid** (`minCardWidth`, default `160`).
+**`align`** (`'left' | 'center'`) aligns the stacked content (icon above text) — by default an icon
+card centers and an icon-less one left-aligns. `label` ·
 `required` · `size` · `color` · `error` (reddens borders, no message) · `disabled`. Binds to `<Form>` by
 `name` (`string` when `exclusive`, else `string[]`). A single `<ChoiceCard>` also works standalone
 (`checked` + `onChange`).

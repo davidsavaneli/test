@@ -990,10 +990,13 @@ a card** (`ChoiceCard`): a `<label>` card wrapping a **visually-hidden native in
 a **top-right indicator that mirrors the semantics** — in an `exclusive` group a **radio-style hollow
 ring + scaled-in inner dot** (the `Radio` look), else a circle that fills with the brand color + a
 scaled-in **CSS tick** (the `Checkbox` corner trick, no icon dep) — an **icon circle** (soft neutral `primary-shade100` fill that
-**fills solid brand + contrast icon while selected** — the polish flip), and the centered
-`label`/`description` — an **icon-less card left-aligns its content automatically** (a list-row look;
-the text keeps clear of the indicator). Selected card: brand border + faint `0.04` wash + a soft
-**halo ring** (`box-shadow: 0 0 0 2px rgba(btn, .12)`). `ChoiceCard` also works **standalone** as a single fancy
+**fills solid brand + contrast icon while selected** — the polish flip), and the
+`label`/`description`. **`align`** (`'left' | 'center'`, on the group or per card — the card's wins)
+picks the alignment of the **same stacked layout** (icon above label above description): `center`
+centers it, `left` anchors it to the left edge (an icon-less card's title keeps clear of the
+indicator). The **smart default** needs no prop — a card **with** an icon centers, an **icon-less**
+card left-aligns. Selected card:
+brand border + faint `0.04` wash + a soft **halo ring** (`box-shadow: 0 0 0 2px rgba(btn, .12)`). `ChoiceCard` also works **standalone** as a single fancy
 checkbox (`checked` + `onChange(checked)` — e.g. an agree-to-terms card). Binds to a `<Form>` by
 **`name`** (on the **group**) — form value `string` when `exclusive` (`z.string().min(1)`), else
 `string[]` (`z.array(z.string()).min(1)`); the form's error reddens the cards. a11y:

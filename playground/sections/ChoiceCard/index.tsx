@@ -55,7 +55,7 @@ export function ChoiceCardSection() {
         </Typography>
       </Block>
 
-      {/* without icons — content left-aligned */}
+      {/* without icons — content left-aligned automatically */}
       <Block
         label="Without Icons"
         description="A card with no icon left-aligns its content automatically — a compact list-row look (no prop needed)."
@@ -69,6 +69,20 @@ export function ChoiceCardSection() {
             { value: 'team', label: 'Team', description: 'SSO · roles · priority support' },
           ]}
           aria-label="Plan"
+        />
+      </Block>
+
+      {/* left-aligned WITH icons — the same stack, anchored left */}
+      <Block
+        label="Left-Aligned With Icons"
+        description="align='left' works with icons too — the same stacked layout as center (icon above label above description), just anchored to the left edge (a card's own align wins over the group's)."
+      >
+        <ChoiceCardGroup
+          exclusive
+          align="left"
+          defaultValue="user"
+          options={ROLES.slice(0, 3)}
+          aria-label="Role (left-aligned)"
         />
       </Block>
 

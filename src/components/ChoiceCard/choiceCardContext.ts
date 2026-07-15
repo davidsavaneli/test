@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { ThemeColor } from '../../theme'
-import type { ChoiceCardSize } from './ChoiceCard'
+import type { ChoiceCardAlign, ChoiceCardSize } from './ChoiceCard'
 
 /** Shared state a `<ChoiceCardGroup>` hands down to its `<ChoiceCard>` children via context. */
 export interface ChoiceCardGroupContextValue {
@@ -13,6 +13,7 @@ export interface ChoiceCardGroupContextValue {
   /** Select / toggle a value — called by a child `<ChoiceCard>` on change. */
   toggle: (value: string) => void
   size?: ChoiceCardSize
+  align?: ChoiceCardAlign
   color?: ThemeColor
   disabled?: boolean
   error?: boolean
