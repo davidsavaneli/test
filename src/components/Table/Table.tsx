@@ -1119,8 +1119,9 @@ export const Table = forwardRef(function Table<T>(
                   <th className={clsx(styles.th, styles.dragHandleCell)} scope="col" aria-hidden />
                 )}
                 {renderColumns.map((col) => {
-                  const column = table.getColumn(col.key)
-                  const sorted = column?.getIsSorted() || false
+                  // look the column up only when sortable (for aria-sort) — the synthetic `__actions`
+                  // column isn't registered with TanStack, and getColumn would warn on its id
+                  const sorted = (col.sortable && table.getColumn(col.key)?.getIsSorted()) || false
                   return (
                     <th
                       key={col.key}

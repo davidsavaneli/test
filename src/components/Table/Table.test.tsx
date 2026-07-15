@@ -274,6 +274,25 @@ describe('Table', () => {
     expect(onRowClick).not.toHaveBeenCalled() // the actions cell swallows the click
   })
 
+  it('does not log a TanStack warning for the synthetic actions column id', () => {
+    // the auto-appended `__actions` column is display-only (not registered with TanStack) — rendering
+    // must not look it up via getColumn, which console-warns on an unknown id
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(
+      <Table
+        data={makeData(2)}
+        columns={columns}
+        getRowId={(r) => r.id}
+        actions={() => <button type="button">edit</button>}
+      />,
+    )
+    const logged = [...warn.mock.calls, ...error.mock.calls].flat().join(' ')
+    expect(logged).not.toContain('__actions')
+    warn.mockRestore()
+    error.mockRestore()
+  })
+
   it('shows the empty state and no footer when there are no rows', () => {
     render(<Table data={[]} columns={columns} />)
     expect(screen.getByText(/No Results Found/i)).toBeInTheDocument()
