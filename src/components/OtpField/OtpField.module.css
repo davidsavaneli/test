@@ -52,7 +52,7 @@
 .box:focus {
   outline: none;
   border-color: rgb(var(--tz-btn-rgb));
-  box-shadow: 0 0 0 3px rgba(var(--tz-btn-rgb), 0.16);
+  box-shadow: 0 0 0 2px rgba(var(--tz-btn-rgb), 0.16);
 }
 .box:disabled {
   cursor: not-allowed;
@@ -64,5 +64,5 @@
   border-color: rgb(var(--tz-color-error-rgb));
 }
 .invalid .box:focus {
-  box-shadow: 0 0 0 3px rgba(var(--tz-color-error-rgb), 0.16);
+  box-shadow: 0 0 0 2px rgba(var(--tz-color-error-rgb), 0.16);
 }
