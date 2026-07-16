@@ -56,17 +56,20 @@
   padding: 0 var(--tz-space-md);
 }
 
-/* only the nav scrolls; brand + footer stay put */
+/* only the nav scrolls; brand + footer stay put. min-width:0 so long content (a nav label, the
+   footer user card) can't grow the sidebar's grid column past its fixed width — it clips/truncates */
 .navScroll {
   grid-row: 2;
+  min-width: 0;
   min-height: 0;
   overflow-y: auto;
   padding: var(--tz-space-xs) var(--tz-space-sm);
 }
 
-/* optional footer content (promo / help card) pinned to the bottom of the sidebar */
+/* optional footer content (promo / help / user card) pinned to the bottom of the sidebar */
 .sidebarFooter {
   grid-row: 3;
+  min-width: 0;
   padding: var(--tz-space-sm);
 }
 

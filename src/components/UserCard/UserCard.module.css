@@ -17,6 +17,8 @@
   display: flex;
   align-items: center;
   gap: var(--tz-space-xs);
+  /* let the row shrink so the `.text` column bounds its Typography (truncates a long name/email) */
+  min-width: 0;
 }
 
 .text {

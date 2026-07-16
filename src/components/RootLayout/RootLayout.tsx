@@ -110,14 +110,14 @@ export function RootLayout({
                 placement="bottom-end"
                 trigger={
                   <button type="button" className={styles.account} aria-label="Account">
-                    <Avatar size="md" icon="User" src={user?.avatar} />
+                    <Avatar size="md" name={user?.name} src={user?.avatar} color="primary" />
                   </button>
                 }
               >
                 {user ? (
                   <>
                     <Row gap={8} align="center" padding="var(--tz-space-xxs) var(--tz-space-sm)">
-                      <Avatar size="sm" icon="User" src={user.avatar} />
+                      <Avatar size="sm" name={user.name} src={user.avatar} color="primary" />
                       <Col gap={2}>
                         {user.name ? (
                           <Typography variant="bodySmall">{user.name}</Typography>
