@@ -9,16 +9,7 @@ import {
   useRouter,
   useRouterState,
 } from '@tanstack/react-router'
-import {
-  Avatar,
-  Button,
-  FirstRouteRedirect,
-  Icon,
-  PageLayout,
-  RootLayout,
-  Typography,
-  type IconName,
-} from '../../../src'
+import { FirstRouteRedirect, PageLayout, RootLayout, UserCard, type IconName } from '../../../src'
 import { ToastSection } from '../Toast'
 import { EmptyStateSection } from '../EmptyState'
 import { AccordionSection } from '../Accordion'
@@ -137,53 +128,20 @@ function TechzyLogo() {
   )
 }
 
-// the signed-in user + logout, pinned to the bottom of the sidebar (via the `sidebarFooter` slot)
-function UserCard() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--tz-space-sm)',
-        padding: 'var(--tz-space-md)',
-        borderRadius: 'var(--tz-radius-md)',
-        border: '1px solid var(--tz-color-border)',
-        background: 'rgba(var(--tz-color-primary-rgb), 0.03)',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--tz-space-xs)' }}>
-        <Avatar size="md" name="David Savaneli" color="primary" />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="bodySmall" truncate>
-            David Savaneli
-          </Typography>
-          <Typography variant="caption" color="muted" truncate>
-            d.savaneli@techzy.app
-          </Typography>
-        </div>
-      </div>
-      <Button
-        variant="outlined"
-        color="error"
-        size="sm"
-        fullWidth
-        startIcon={<Icon name="Logout" />}
-        onClick={() => alert('Logout clicked')}
-      >
-        Sign out
-      </Button>
-    </div>
-  )
-}
-
 const shellRoot = createRootRoute({
   component: () => (
     // static header toggles live in `config.header` (main.tsx); the DYNAMIC account bits — the live
     // user + logout (real apps read these from an auth store here) — go via the `header` prop, which
-    // merges over `config.header`.
+    // merges over `config.header`. The sidebar footer uses the library's `<UserCard>` (no hand-rolling).
     <RootLayout
       logo={<TechzyLogo />}
-      sidebarFooter={<UserCard />}
+      sidebarFooter={
+        <UserCard
+          name="David Savaneli"
+          email="d.savaneli@techzy.app"
+          onLogout={() => alert('Logout clicked')}
+        />
+      }
       header={{
         onLogout: () => alert('Logout clicked'),
         user: { name: 'David Savaneli', email: 'd.savaneli@techzy.app' },

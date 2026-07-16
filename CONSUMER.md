@@ -428,6 +428,13 @@ divider separates the header from the body while expanded.
 collapses overflow past `max` into `+N`: `<AvatarGroup max={3}>…</AvatarGroup>`. `size`/`color` apply
 to the whole group.
 
+**UserCard** — a ready-made account block (avatar + name/email + an optional **Sign out** button) for
+the signed-in user; drop it into the `RootLayout` **`sidebarFooter`** (or anywhere) instead of
+hand-rolling it per app. `name` (+ auto avatar initials) · `email` · `avatar` (image) · `icon` (fallback)
+· `color` (avatar tint) · `size` · `onLogout` (shows the sign-out button) · `logoutLabel` · `children`
+(extra content before the button).
+`<UserCard name="David Savaneli" email="d.savaneli@techzy.app" onLogout={logout} />`
+
 **Divider** — a separator line. `<Divider />` (plain) · `<Divider orientation="vertical" />` · or pass
 a title for a labeled divider with `align` (`left` · `center` default · `right`):
 `<Divider align="left">Section</Divider>`.

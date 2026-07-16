@@ -1,0 +1,38 @@
+/* UserCard — a compact account block (avatar + name/email + optional Sign out). Token-only. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-sm);
+  box-sizing: border-box;
+  padding: var(--tz-space-sm);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-sm);
+  background: rgba(var(--tz-color-primary-rgb), 0.03);
+  font-family: var(--tz-font-family);
+}
+
+/* the identity row — avatar + name/email */
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* sizes — tighten the padding on sm, roomier on lg (avatar/button scale via the component) */
+.sm {
+  gap: var(--tz-space-xs);
+  padding: var(--tz-space-sm);
+}
+.lg {
+  gap: var(--tz-space-md);
+  padding: var(--tz-space-lg);
+}

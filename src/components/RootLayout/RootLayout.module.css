@@ -121,9 +121,9 @@
 .content {
   flex: 1;
   min-width: 0;
-  padding-top: var(--tz-space-sm);
+  padding-top: var(--tz-space-xs);
 }
 
 .pageTitle {
-  margin: 0 0 var(--tz-space-md);
+  margin: 0 0 var(--tz-space-sm);
 }
