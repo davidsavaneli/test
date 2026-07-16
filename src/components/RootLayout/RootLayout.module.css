@@ -1,52 +1,72 @@
-/* Admin shell (sidebar + header + content). Token-only, so it follows the active theme. */
+/* Admin shell — a floating layout: a soft `--tz-color-surface` canvas with a rounded, elevated white
+   sidebar card and white content cards floating on it (the FreshCart look). Token-only, theme-aware. */
 
 .shell {
+  /* the inset of the floating cards from the window edges (+ the gap between sidebar and content) */
+  --shell-pad: var(--tz-space-sm);
   display: grid;
-  /* first column tracks the sidebar's own (animatable) width */
+  /* first column tracks the sidebar card's own (animatable) width */
   grid-template-columns: auto 1fr;
+  gap: var(--shell-pad);
   min-height: 100vh;
-  background: var(--tz-color-background);
+  padding: var(--shell-pad);
+  box-sizing: border-box;
+  /* a very light gradient canvas — a faint brand glow from the top-left, fading into the soft surface
+     grey underneath (flips with the theme via the tokens) */
+  background:
+    linear-gradient(150deg, rgba(var(--tz-color-light-rgb), 0.05), transparent 45%),
+    var(--tz-color-surface);
   color: var(--tz-color-text);
   font-family: var(--tz-font-family);
 }
 
-/* sidebar toggle: smoothly collapse the sidebar's width to 0 and hide it */
+/* sidebar toggle: smoothly collapse the sidebar card's width to 0 and hide it */
 .shellCollapsed .sidebar {
   width: 0;
-  border-right-color: transparent;
+  border-width: 0;
 }
 
-/* sticky full-height sidebar: pinned during page scroll; brand fixed, nav scrolls on its own */
+/* the sidebar as a rounded, elevated white card — sticky + full viewport height (minus the shell
+   padding); logo fixed at top, nav scrolls, an optional footer card pinned at the bottom */
 .sidebar {
   position: sticky;
-  top: 0;
+  top: var(--shell-pad);
   align-self: start;
   width: 264px;
-  height: 100vh;
+  height: calc(100vh - var(--shell-pad) * 2);
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  background: var(--tz-color-background);
-  border-right: 1px solid var(--tz-color-border);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--tz-color-secondary);
+  border: 1px solid var(--tz-color-border);
+  border-radius: var(--tz-radius-lg);
+  box-shadow: var(--tz-shadow-xs);
   overflow: hidden;
-  transition: width var(--tz-duration);
+  transition:
+    width var(--tz-duration),
+    border-width var(--tz-duration);
 }
 
-/* brand row — fixed; same height as the header so their bottom borders form one line */
+/* brand row — fixed at the top of the sidebar card (airy, no divider) */
 .brand {
   grid-row: 1;
   display: flex;
   align-items: center;
   gap: var(--tz-space-sm);
   height: calc(var(--tz-control-height-md) + var(--tz-space-md));
-  padding: 0 var(--tz-space-lg);
-  border-bottom: 1px solid var(--tz-color-border);
+  padding: 0 var(--tz-space-md);
 }
 
-/* only the nav scrolls; the brand above stays put */
+/* only the nav scrolls; brand + footer stay put */
 .navScroll {
   grid-row: 2;
   min-height: 0;
   overflow-y: auto;
+  padding: var(--tz-space-xs) var(--tz-space-sm);
+}
+
+/* optional footer content (promo / help card) pinned to the bottom of the sidebar */
+.sidebarFooter {
+  grid-row: 3;
   padding: var(--tz-space-sm);
 }
 
@@ -56,19 +76,22 @@
   min-width: 0;
 }
 
-/* header — pinned to the top during scroll; height matches the brand row */
+/* header — transparent, on the canvas (no background); scrolls with the content (not pinned) */
 .topbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--tz-z-sticky);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--tz-space-xs);
-  height: calc(var(--tz-control-height-md) + var(--tz-space-md));
-  padding: 0 var(--tz-space-xl);
-  background: var(--tz-color-background);
-  border-bottom: 1px solid var(--tz-color-border);
+  gap: var(--tz-space-sm);
+  min-height: calc(var(--tz-control-height-md) + var(--tz-space-md));
+}
+
+/* left side of the header — the sidebar toggle + the nav search */
+.headerStart {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-sm);
+  min-width: 0;
+  flex: 1;
 }
 
 /* right-side header controls (theme toggle, account avatar) */
@@ -94,9 +117,11 @@
   outline-offset: 2px;
 }
 
+/* the content column — on the canvas; the page's PageLayout cards float as white panels on top */
 .content {
   flex: 1;
-  padding: var(--tz-space-lg) var(--tz-space-xl) var(--tz-space-xl);
+  min-width: 0;
+  padding-top: var(--tz-space-sm);
 }
 
 .pageTitle {

@@ -9,6 +9,7 @@ export {
   useNestedTabQueryKey,
   useStepQueryKey,
   useTableQueryConfig,
+  useHeaderConfig,
   DEFAULT_TABS_QUERY_KEY,
   DEFAULT_NESTED_TAB_QUERY_KEY,
   DEFAULT_STEP_QUERY_KEY,
@@ -23,4 +24,6 @@ export type {
   KeysConfig,
   TableConfig,
   TableQueryConfig,
+  HeaderConfig,
+  HeaderUser,
 } from './ConfigProvider'

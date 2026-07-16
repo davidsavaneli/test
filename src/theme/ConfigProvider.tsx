@@ -134,6 +134,37 @@ export interface TableConfig {
   query?: TableQueryConfig
 }
 
+/** Signed-in user shown in the shell header avatar + its account menu (see `HeaderConfig`). */
+export interface HeaderUser {
+  /** Full name — shown as the menu's name line. */
+  name?: string
+  /** Email shown under the name in the account menu. */
+  email?: string
+  /** Avatar image URL (falls back to a user icon). */
+  avatar?: string
+}
+
+/**
+ * `RootLayout` header configuration — the shell's top-bar controls. Set it once app-wide in
+ * `config.header`, or per shell via the `RootLayout` `header` prop (the prop wins, merged over config).
+ */
+export interface HeaderConfig {
+  /** Show the built-in light/dark theme toggle. Defaults to `true`. */
+  theme?: boolean
+  /** Show the browser-fullscreen toggle (auto-hides where the Fullscreen API is unavailable). Defaults to `true`. */
+  fullscreen?: boolean
+  /** Show the nav search over the sidebar's pages (with suggestions). Defaults to `true`. */
+  search?: boolean
+  /** Show the breadcrumb trail at the top of the content. Defaults to **`false`** (hidden). */
+  breadcrumbs?: boolean
+  /** Render the automatic page-title `h2` (the active route's `staticData.name`). Defaults to `true`. */
+  pageTitle?: boolean
+  /** When provided, an account `Avatar` appears; its menu has a **Sign out** item that calls this. */
+  onLogout?: () => void
+  /** Signed-in user — shown in the header avatar and as a header block atop the account menu. */
+  user?: HeaderUser
+}
+
 /**
  * App-level configuration passed to `<ConfigProvider config={…}>`. Groups theming under `theme`,
  * the configurable key/param names under `keys`, and keeps the rest (`locales`, …) at the top — a
@@ -152,6 +183,12 @@ export interface Config {
   keys?: KeysConfig
   /** `<Table>` config — today the server-request query mapping (`table.query`) shared by every table. */
   table?: TableConfig
+  /**
+   * `RootLayout` header config, app-wide — the shell top-bar toggles (`theme` / `fullscreen` /
+   * `search` / `breadcrumbs` / `pageTitle`) + the account (`onLogout` / `user`). A `RootLayout`
+   * `header` prop is merged over this (the prop wins), so a specific shell can override.
+   */
+  header?: HeaderConfig
 }
 
 interface ThemeContextValue {
@@ -169,6 +206,8 @@ interface ThemeContextValue {
   stepQueryKey: string
   /** The `<Table>` server-request query mapping (`config.table.query` ?? `{}`). Defaults applied by `buildTableQuery`. */
   tableQuery: TableQueryConfig
+  /** App-wide `RootLayout` header config (`config.header` ?? `{}`); the `RootLayout` prop merges over it. */
+  header: HeaderConfig
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
@@ -183,6 +222,8 @@ export const DEFAULT_STEP_QUERY_KEY = 'step'
 const EMPTY_LOCALES: LocaleConfig[] = []
 /** Stable empty table-query fallback so the context memo doesn't churn when no `table.query` is configured. */
 const EMPTY_TABLE_QUERY: TableQueryConfig = {}
+/** Stable empty header fallback so the context memo doesn't churn when no `header` is configured. */
+const EMPTY_HEADER: HeaderConfig = {}
 
 /**
  * The library's built-in light palette — the single source of truth for every brand color's default
@@ -263,6 +304,7 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
   const nestedTabQueryKey = config?.keys?.nestedTabQueryKey ?? DEFAULT_NESTED_TAB_QUERY_KEY
   const stepQueryKey = config?.keys?.stepQueryKey ?? DEFAULT_STEP_QUERY_KEY
   const tableQuery = config?.table?.query ?? EMPTY_TABLE_QUERY
+  const headerConfig = config?.header ?? EMPTY_HEADER
 
   const value = useMemo<ThemeContextValue>(
     () => ({
@@ -275,6 +317,7 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       nestedTabQueryKey,
       stepQueryKey,
       tableQuery,
+      header: headerConfig,
     }),
     [
       mode,
@@ -286,6 +329,7 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       nestedTabQueryKey,
       stepQueryKey,
       tableQuery,
+      headerConfig,
     ],
   )
 
@@ -353,4 +397,13 @@ export function useStepQueryKey(): string {
  */
 export function useTableQueryConfig(): TableQueryConfig {
   return useContext(ThemeContext)?.tableQuery ?? EMPTY_TABLE_QUERY
+}
+
+/**
+ * The app-wide `RootLayout` header config set on `<ConfigProvider config={{ header }}>` (`{}` when
+ * unset / outside a provider). `RootLayout` merges its own `header` prop over this (the prop wins), so
+ * a specific shell can override the app-wide defaults.
+ */
+export function useHeaderConfig(): HeaderConfig {
+  return useContext(ThemeContext)?.header ?? EMPTY_HEADER
 }

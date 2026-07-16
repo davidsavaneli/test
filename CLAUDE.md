@@ -104,19 +104,19 @@ references it:
 
 **Brand palette (11 colors)** — light-mode defaults:
 
-| token        | hex       | role                                            |
-| ------------ | --------- | ----------------------------------------------- |
-| `primary`    | `#13404e` | primary brand / default text                    |
-| `secondary`  | `#ffffff` | surface (cards, inputs, dropdowns)              |
-| `background` | `#ffffff` | page canvas — separate from surface             |
-| `surface`    | `#f5f7fa` | light surface — **defined but not yet applied** |
-| `dark`       | `#033b44` | dark brand shade                                |
-| `medium`     | `#056472` | mid brand shade                                 |
-| `light`      | `#039aa1` | light brand shade                               |
-| `success`    | `#00a854` | semantic — success                              |
-| `error`      | `#f04134` | semantic — error/danger                         |
-| `info`       | `#039aa1` | semantic — info                                 |
-| `warning`    | `#ffbf00` | semantic — warning                              |
+| token        | hex       | role                                                              |
+| ------------ | --------- | ----------------------------------------------------------------- |
+| `primary`    | `#13404e` | primary brand / default text                                      |
+| `secondary`  | `#ffffff` | surface (cards, inputs, dropdowns)                                |
+| `background` | `#ffffff` | page canvas — separate from surface                               |
+| `surface`    | `#f5f7fa` | the shell canvas — `RootLayout`'s soft floating-layout background |
+| `dark`       | `#033b44` | dark brand shade                                                  |
+| `medium`     | `#056472` | mid brand shade                                                   |
+| `light`      | `#039aa1` | light brand shade                                                 |
+| `success`    | `#00a854` | semantic — success                                                |
+| `error`      | `#f04134` | semantic — error/danger                                           |
+| `info`       | `#039aa1` | semantic — info                                                   |
+| `warning`    | `#ffbf00` | semantic — warning                                                |
 
 > These hex values are the library's built-in light defaults — they live in `DEFAULT_LIGHT_COLORS`
 > (`ConfigProvider.tsx`), the single source of truth. Consuming apps override any subset through
@@ -139,11 +139,12 @@ that color used as a solid fill. Used by `contained` controls. Defaults are most
 ### 3.2 Semantic colors
 
 Just two thin aliases derived from brand tokens, so they flip automatically when the palette is
-swapped per mode. `--tz-color-surface` **is defined** (§3.1) and configurable, but **nothing uses it
-yet** — surfaces (cards, inputs, dropdowns) still use `--tz-color-secondary` directly; and the page
-canvas is its own `--tz-color-background` brand color (see §3.1). The whole shell (sidebar, header,
-content) and `PageLayout` use `--tz-color-background`, so only cards/inputs/dropdowns
-(`--tz-color-secondary`) read as elevated:
+swapped per mode. `--tz-color-surface` is the **shell canvas**: `RootLayout` uses a **floating layout**
+where the soft `--tz-color-surface` sits behind everything, and the **sidebar card** (a rounded
+`--tz-color-secondary` panel with a border + `--tz-shadow-xs`) plus the page's `PageLayout` (flat
+`--tz-color-background`) float on it — both white in light mode — so the workspace reads as elevated
+above the canvas (see the Layout §). Cards, inputs and dropdowns also use `--tz-color-secondary`. So
+the surface stack is **surface (canvas) → background / secondary (the floating cards)**:
 
 ```css
 --tz-color-text: rgb(var(--tz-color-primary-rgb)); /* = primary, the default text color */
@@ -287,10 +288,16 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `background
 #1F1F1E`, `surface #2a2a28`, plus a brighter `dark`/`medium`/`light` teal ramp). `theme.css` holds **no** color values — only the structure (solids, shades,
   contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
-- **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; keys?: KeysConfig; table?: TableConfig }`
+- **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; keys?: KeysConfig; table?: TableConfig; header?: HeaderConfig }`
   — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),
   the configurable key/param **names** grouped under **`keys`**, the `<Table>` server-request query mapping
-  under **`table`** (`{ query?: TableQueryConfig }` — see below), and the rest (`locales`, …) at the top.
+  under **`table`** (`{ query?: TableQueryConfig }` — see below), the **`RootLayout` header** app-wide
+  under **`header`** (`HeaderConfig` — the shell top-bar `theme`/`fullscreen`/`search`/`breadcrumbs`/
+  `pageTitle` toggles + `onLogout`/`user`; a `RootLayout` `header` prop merges over it, prop wins; read
+  via **`useHeaderConfig()`**). Best practice: put the **static toggles** in `config.header` (app-wide)
+  and pass the **runtime `user` + `onLogout`** via the `RootLayout` `header` prop at the render site
+  (where the live auth state is), rather than hardcoding them in the module-level config. Then the rest
+  (`locales`, …) at the top.
   Everything optional — omit `config` (or `theme`) to ship the built-in theme; override any **subset** of
   either palette. (Grows over time.)
 - **`locales`** (`LocaleConfig[]` = `{ code: string; label?: string }[]`): the app's content locales —
@@ -1365,6 +1372,10 @@ pattern from `color`, default `primary`) and sets `aria-current`; `clickable` ma
 - inerts it. `size` is `sm/md/lg` (min-height a touch under the control height; the label **wraps**
   onto multiple lines — `overflow-wrap: break-word` — while the description truncates to one line).
   Render as a link/button/component via **`as`** (anchor `href`/`target`/`rel`/`download` are typed).
+  The hover/selected tint is **container-overridable**: `--tz-list-accent-rgb` (a triplet — falls back
+  to the color-prop's `--tz-btn-rgb`) + `--tz-list-hover-alpha` / `--tz-list-selected-alpha` (default
+  `0.06`), so a themed container (the dark `RootLayout` sidebar) turns it into a frosted white pill
+  without touching the defaults.
   **`List`** is a thin semantic container — a vertical stack (inline-styled like `Flex`/`Grid`) with
   `gap` (default `2px`) / `padding` and `role="list"` (override `role` to `"menu"` for a dropdown). Its
   `size` provides a default for every contained `ListItem` (via context; an explicit item `size` wins).
@@ -1887,25 +1898,37 @@ const form = useForm({ schema, defaultValues: { email: '', password: '' }, onSub
 
 The admin-panel shell lives under `src/components/` (`RootLayout/`, `Sidebar/`, `Breadcrumbs/`) — it's
 shipped as ordinary components, so it imports from `sava-test/components` like everything else. Powered
-by **`@tanstack/react-router`** (optional peer, `>=1`, `external` in the build). `RootLayout({ logo?, header?, children })` renders a left sidebar (`logo` +
-`<Sidebar/>`), a top header, and a content container; set it as the **root route's** component and
-pass `<Outlet/>` as `children`. Both the sidebar and the header are **sticky** (`position: sticky`) —
-they stay pinned while the page scrolls. The sidebar is `height: 100vh` with the `logo`/brand row
-fixed and only the nav scrolling (a `grid-template-rows: auto minmax(0,1fr)` split, nav in an
-`overflow-y:auto` row); the brand row and the header share the same height
-(`calc(--tz-control-height-md + --tz-space-md)`) so their bottom borders form one continuous line. A
-header **toggle** `IconButton` (left, `filled`, `Menu` icon) collapses/hides the sidebar by animating
-its `width` to `0` (the shell's first grid column is `auto`, so it follows); the `ThemeToggle` is
-`filled` too. Nav icons match the row label
-(text) color via `--tz-list-icon-color` set on the nav. The **header** holds only the right-side controls driven by the
-`header` config — `header?: { theme?: boolean /* default true */; fullscreen?: boolean /* default true */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`
-(a `FullscreenToggle` + `ThemeToggle`, both on by default and `filled`, plus an account `Avatar` — a
+by **`@tanstack/react-router`** (optional peer, `>=1`, `external` in the build).
+`RootLayout({ logo?, sidebarFooter?, header?, toaster?, children })` uses a **floating layout**: the
+shell is a grid (`auto 1fr`, `--tz-space-md` padding + gap) on the soft **`--tz-color-surface`** canvas,
+with a rounded, elevated **white sidebar card** (`--tz-color-secondary` + border + `--tz-radius-lg` +
+`--tz-shadow-xs`) beside the header + content; set it as the **root route's** component and pass
+`<Outlet/>` as `children`. The sidebar card is **sticky** (`top: --tz-space-md`, `height: calc(100vh -
+2*--tz-space-md)`) and split into three rows (`grid-template-rows: auto minmax(0,1fr) auto`) — the
+`logo`/brand row fixed at the top, the nav scrolling (`overflow-y:auto`), and an optional
+**`sidebarFooter`** card (any node — e.g. a "Need help?" promo) pinned at the bottom. A header
+**toggle** `IconButton` (left, `filled`, `Menu` icon) collapses/hides the sidebar by animating its
+`width` to `0` (the shell's first grid column is `auto`, so it follows); the `ThemeToggle` is `filled`
+too. Nav icons match the row label (text) color via `--tz-list-icon-color`, and the active **pill** is a
+touch stronger than the default `List` tint (bumped `--tz-list-hover-alpha`/`--tz-list-selected-alpha`
+on the nav). The **header is borderless on the canvas** (transparent, scrolls with the content — not pinned), with
+the sidebar toggle + a built-in **nav search** (`search`, default `true`) on the **left** and the
+controls on the right, driven by the
+`header` config (`HeaderConfig`) — `{ theme?: boolean /* default true */; fullscreen?: boolean /* default true */; search?: boolean /* default true */; breadcrumbs?: boolean /* default false */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`.
+Set it **app-wide** via **`config.header`** (`<ConfigProvider>`) or **per shell** via the `RootLayout`
+**`header` prop** — the prop is merged **over** `config.header` (prop wins).
+The **`NavSearch`** (an internal `Sidebar` export) searches the sidebar's pages — it flattens the same
+`useNavTree` (so it's RBAC-filtered) into `{ label, to, context }` and shows suggestions as a floating
+`List` of `ListItem`s below a `TextField` (filter by page name or section; Up/Down + Enter navigate via
+`useNavigate`, Escape/outside-pointerdown close). The right-side controls are
+a `FullscreenToggle` + `ThemeToggle` (both on by default and `filled`), plus an account `Avatar` — a
 focusable button whose `Dropdown` menu
 has a single **Sign out** `ListItem` calling `onLogout` — shown when `onLogout` is given; when `user`
 is supplied the menu opens with a `User`-icon (or `user.avatar` image) + name + email header above a
 divider). The
-content area stacks **`Breadcrumbs` → the page title (the active route's `staticData.name`, via the
-internal `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**.
+content area stacks **the page title (the active route's `staticData.name`, via the internal
+`usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**; the
+`Breadcrumbs` trail sits above the title **only when `header.breadcrumbs` is on** (default off).
 Set **`header.pageTitle: false`** to drop that auto `h2` when pages render their own heading inside
 their `PageLayout` header instead (icon + title + actions) — so the title isn't shown twice.
 RootLayout also **mounts a `<Toaster>` by default** (so `toast.*()` works app-wide with no extra setup):
@@ -1920,10 +1943,16 @@ bridged by a small typed `NavLink` cast since `to` is router-specific); the acti
 `ArrowDown4`). The module label is a dark, `md`, uppercase heading (no icon). **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item. **`PageLayout`**
 is a **flat `Card`** (`<Card flat>`) for a page's content — so it gains Card's full anatomy (optional
 header `icon`/`title`/`subtitle`/`actions`, body, `footer`/`footerStart`, `collapsible`) while staying on
-the page `--tz-color-background` with no shadow. The whole shell (sidebar, header, content) and
-`PageLayout` share `--tz-color-background`, so only cards/inputs/dropdowns (`--tz-color-secondary`) read
-as elevated; its props are `Omit<CardProps, 'flat'>` (always flat) and it ships named **and** default
-from `sava-test/components/PageLayout`.
+the page `--tz-color-background` with no shadow. The shell is a **floating layout** (the FreshCart look):
+the whole app sits on a soft **`--tz-color-surface`** canvas (with a very light brand-glow gradient
+from the top-left; the shell has `--tz-space-md` padding + gap), and the **sidebar is a rounded,
+elevated white card** (`--tz-color-secondary` + border +
+`--tz-radius-lg` + `--tz-shadow-xs`, sticky at `100vh - padding`) with the `logo` at the top, the nav
+(a slightly stronger active **pill** via bumped `--tz-list-hover-alpha`/`--tz-list-selected-alpha` on the
+nav), and an optional **`sidebarFooter`** card pinned at the bottom (grid rows `auto minmax(0,1fr) auto`).
+The **header is borderless on the canvas** (sticky, grey bg), and the page's `PageLayout` cards float as
+white panels on the grey. `PageLayout`'s props are `Omit<CardProps, 'flat'>` (always flat) and it ships
+named **and** default from `sava-test/components/PageLayout`.
 
 Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
 `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[]; badge?: string; dot?: ThemeColor }`
@@ -1953,8 +1982,8 @@ functions `setAccessKeys`/`getAccessKeys`/`hasAccess` (from `sava-test/helpers`)
 types — RootLayout/Breadcrumbs use them via direct file imports. Gotcha: never name a leaf route file
 `loader.tsx` (reserved by the router plugin) — use a `loader/index.tsx` folder.
 
-**Breadcrumbs.** `RootLayout` auto-renders `<Breadcrumbs/>` at the top of the content area, so apps
-get a trail for free. It's built from the active match chain via `useBreadcrumbs()` — one crumb per
+**Breadcrumbs.** `RootLayout` renders `<Breadcrumbs/>` at the top of the content area **only when
+`header.breadcrumbs` is `true`** (it defaults to **`false`** — hidden). It's built from the active match chain via `useBreadcrumbs()` — one crumb per
 matched route that declares a `staticData.name` (module → group → page). It always opens with a home
 icon linking to the first allowed menu page (same target as `FirstRouteRedirect`). Intermediate crumbs
 link only when they map to a real navigable menu page (reusing the access-filtered nav tree, so
@@ -1981,7 +2010,7 @@ the first allowed page. Defaults are inert: pages without `roles`, and apps that
 route too: `beforeLoad: () => { if (!hasAccess(['Analyst'])) throw redirect({ to: '/' }) }`.
 
 ```tsx
-// app: src/routes/__root.tsx — logo in the sidebar; header shows the page title + theme toggle + logout
+// app: src/routes/__root.tsx — logo + optional sidebarFooter in the sidebar card; header = theme toggle + logout
 export const Route = createRootRoute({
   component: () => (
     <RootLayout logo={<Icon name="Box" />} header={{ theme: true, onLogout: () => auth.logout() }}>
@@ -2076,7 +2105,7 @@ define each surface; the root `src/index.ts` re-exports them all. `package.json`
 | `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                                                                                                       |
 | `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                                                                                                |
 | `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useMediaQuery`, `useForm`, `useAccessKeys`                                                                                                                                                                      |
-| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useStepQueryKey`, `useTableQueryConfig`, `applyTheme`                                                                              |
+| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useStepQueryKey`, `useTableQueryConfig`, `useHeaderConfig`, `applyTheme`                                                           |
 | `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                                                                                              |
 | `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) + the `Table` query builder + parser (`buildTableQuery`/`parseTableQuery`) |
 | `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                                                                                                    |

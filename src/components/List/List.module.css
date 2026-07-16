@@ -86,11 +86,14 @@
 .clickable {
   cursor: pointer;
 }
+/* the hover/selected tint color + intensity are overridable per container via CSS vars (a dark
+   sidebar bumps them for a frosted pill); defaults reproduce the original subtle look, so nothing
+   else changes. `--tz-list-accent-rgb` falls back to the color-prop's `--tz-btn-rgb`. */
 .clickable:hover {
-  background: rgba(var(--tz-btn-rgb), 0.06);
+  background: rgba(var(--tz-list-accent-rgb, var(--tz-btn-rgb)), var(--tz-list-hover-alpha, 0.06));
 }
 .clickable:focus-visible {
-  outline: 2px solid rgba(var(--tz-btn-rgb), 0.5);
+  outline: 2px solid rgba(var(--tz-list-accent-rgb, var(--tz-btn-rgb)), 0.5);
   outline-offset: -2px;
 }
 
@@ -98,8 +101,11 @@
 /* same light tint as :hover (no darker fill) and the same font-weight as a normal row — only the
    color + the consumer's own marker (e.g. a tick / aria-current) distinguish a selected row */
 .selected {
-  background: rgba(var(--tz-btn-rgb), 0.06);
-  color: rgb(var(--tz-btn-rgb));
+  background: rgba(
+    var(--tz-list-accent-rgb, var(--tz-btn-rgb)),
+    var(--tz-list-selected-alpha, 0.06)
+  );
+  color: rgb(var(--tz-list-accent-rgb, var(--tz-btn-rgb)));
 }
 .selected .itemIcon,
 .selected .itemTrailing {

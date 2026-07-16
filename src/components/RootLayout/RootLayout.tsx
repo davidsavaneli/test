@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { clsx } from 'clsx'
+import { useHeaderConfig, type HeaderConfig, type HeaderUser } from '../../theme'
 import { Avatar } from '../Avatar'
 import { Col, Row } from '../Flex'
 import { Divider } from '../Divider'
@@ -12,43 +13,26 @@ import { ThemeToggle } from '../ThemeToggle'
 import { Typography } from '../Typography'
 import { Breadcrumbs } from '../Breadcrumbs'
 import { Toaster, type ToasterProps } from '../Toast'
-import { Sidebar, usePageTitle } from '../Sidebar/Sidebar'
+import { NavSearch, Sidebar, usePageTitle } from '../Sidebar/Sidebar'
 import styles from './RootLayout.module.css'
 
-/** Signed-in user shown in the header avatar + its account menu. */
-export interface RootLayoutUser {
-  /** Full name — shown as the menu's name line. */
-  name?: string
-  /** Email shown under the name in the account menu. */
-  email?: string
-  /** Avatar image URL (falls back to a user icon). */
-  avatar?: string
-}
-
-export interface RootLayoutHeader {
-  /** Show the built-in light/dark theme toggle on the right of the header. Defaults to `true`. */
-  theme?: boolean
-  /**
-   * Show the built-in browser-fullscreen toggle next to the theme toggle. Defaults to `true`. The
-   * toggle auto-hides where the Fullscreen API is unavailable (e.g. iOS Safari on iPhone).
-   */
-  fullscreen?: boolean
-  /**
-   * Render the automatic page title (the active route's `staticData.name`) as an `h2` above the
-   * content. Defaults to `true`. Set `false` when pages carry their own heading inside their
-   * `PageLayout` header (so the title isn't shown twice).
-   */
-  pageTitle?: boolean
-  /** When provided, an account `Avatar` appears on the right; its menu has a **Sign out** item that calls this. */
-  onLogout?: () => void
-  /** Signed-in user — shown in the header avatar and as a header block atop the account menu. */
-  user?: RootLayoutUser
-}
+/**
+ * The shell header config + its user shape now live in the theme layer (so `config.header` can carry
+ * them app-wide). These aliases keep the historical `RootLayout*` names importable.
+ */
+export type RootLayoutUser = HeaderUser
+export type RootLayoutHeader = HeaderConfig
 
 export interface RootLayoutProps {
-  /** Brand logo at the top of the sidebar — pass an `<img>`, an `<Icon>`, or any node. */
+  /** Brand logo at the top of the sidebar card — pass an `<img>`, an `<Icon>`, or any node. */
   logo?: ReactNode
-  /** Header config: the built-in theme toggle (`theme`, default `true`) and an optional `onLogout`. */
+  /** Optional content pinned to the **bottom of the sidebar** (e.g. a promo / "Need help?" card). */
+  sidebarFooter?: ReactNode
+  /**
+   * Header config for **this** shell — merged **over** the app-wide `config.header` (the prop wins).
+   * Fields: the built-in `theme` / `fullscreen` / `search` toggles (default `true`), `breadcrumbs`
+   * (default `false`), `pageTitle` (default `true`), and the account (`onLogout` / `user`).
+   */
   header?: RootLayoutHeader
   /**
    * The built-in toast viewport, mounted for you so `toast.*()` works app-wide with no extra setup.
@@ -61,11 +45,12 @@ export interface RootLayoutProps {
 }
 
 /**
- * The admin-panel shell: a left sidebar (`logo` + auto-generated `Sidebar`), a top header, and a
- * content container. Set it as the root route's component and pass `<Outlet />` as `children`; the
- * `Sidebar` builds itself from the routes' `staticData`. The header holds an optional `ThemeToggle`
- * (on by default) plus an account `Avatar` whose menu has a **Sign out** item when `header.onLogout`
- * is given. The content area stacks
+ * The admin-panel shell — a **floating** layout: the whole app sits on a soft `--tz-color-surface`
+ * canvas, with a rounded, elevated **sidebar card** (`logo` + auto-generated `Sidebar` + an optional
+ * `sidebarFooter`) beside the header + content. Set it as the root route's component and pass
+ * `<Outlet />` as `children`; the `Sidebar` builds itself from the routes' `staticData`. The header
+ * holds an optional `ThemeToggle` (on by default) plus an account `Avatar` whose menu has a **Sign
+ * out** item when `header.onLogout` is given. The content area stacks
  * **`Breadcrumbs` → the page title (the active route's `staticData.name`) → `children`**; pages wrap
  * their own body in `PageLayout`. Set `header.pageTitle = false` to drop the auto `h2` when pages
  * carry their own heading inside their `PageLayout` header. A `<Toaster>` is **mounted by default** so
@@ -73,14 +58,25 @@ export interface RootLayoutProps {
  * out). Styling is token-based, so it follows the active `ConfigProvider` mode. Requires
  * `@tanstack/react-router` (peer).
  */
-export function RootLayout({ logo, header, toaster = true, children }: RootLayoutProps) {
+export function RootLayout({
+  logo,
+  sidebarFooter,
+  header,
+  toaster = true,
+  children,
+}: RootLayoutProps) {
   const title = usePageTitle()
-  const showTheme = header?.theme ?? true
-  const showFullscreen = header?.fullscreen ?? true
+  // app-wide header config (config.header) as the base; this shell's `header` prop wins over it
+  const configHeader = useHeaderConfig()
+  const h: HeaderConfig = { ...configHeader, ...header }
+  const showTheme = h.theme ?? true
+  const showFullscreen = h.fullscreen ?? true
+  const showSearch = h.search ?? true
+  const showBreadcrumbs = h.breadcrumbs ?? false
   const toasterProps = typeof toaster === 'object' ? toaster : undefined
-  const showPageTitle = header?.pageTitle ?? true
-  const onLogout = header?.onLogout
-  const user = header?.user
+  const showPageTitle = h.pageTitle ?? true
+  const onLogout = h.onLogout
+  const user = h.user
   const [collapsed, setCollapsed] = useState(false)
 
   return (
@@ -90,18 +86,22 @@ export function RootLayout({ logo, header, toaster = true, children }: RootLayou
         <div className={styles.navScroll}>
           <Sidebar />
         </div>
+        {sidebarFooter ? <div className={styles.sidebarFooter}>{sidebarFooter}</div> : null}
       </aside>
       <div className={styles.main}>
         <header className={styles.topbar}>
-          <IconButton
-            aria-label={collapsed ? 'Show sidebar' : 'Hide sidebar'}
-            aria-expanded={!collapsed}
-            variant="filled"
-            size="sm"
-            onClick={() => setCollapsed((c) => !c)}
-          >
-            <Icon name="Menu" />
-          </IconButton>
+          <div className={styles.headerStart}>
+            <IconButton
+              aria-label={collapsed ? 'Show sidebar' : 'Hide sidebar'}
+              aria-expanded={!collapsed}
+              variant="filled"
+              size="sm"
+              onClick={() => setCollapsed((c) => !c)}
+            >
+              <Icon name="Menu" />
+            </IconButton>
+            {showSearch ? <NavSearch /> : null}
+          </div>
           <div className={styles.headerEnd}>
             {showFullscreen ? <FullscreenToggle variant="filled" size="sm" /> : null}
             {showTheme ? <ThemeToggle variant="filled" size="sm" /> : null}
@@ -140,7 +140,7 @@ export function RootLayout({ logo, header, toaster = true, children }: RootLayou
           </div>
         </header>
         <main className={styles.content}>
-          <Breadcrumbs />
+          {showBreadcrumbs ? <Breadcrumbs /> : null}
           {showPageTitle && title ? (
             <Typography variant="h2" className={styles.pageTitle}>
               {title}

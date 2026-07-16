@@ -1,7 +1,17 @@
-import { useMemo, useState, type MouseEvent, type ReactNode } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  type ReactNode,
+} from 'react'
 import {
   Link,
   Navigate,
+  useNavigate,
   useRouter,
   useRouterState,
   type LinkProps,
@@ -10,6 +20,7 @@ import {
 import { clsx } from 'clsx'
 import { Icon } from '../Icon'
 import { List, ListItem, type ListItemProps } from '../List'
+import { TextField } from '../TextField'
 import type { ThemeColor } from '../../theme'
 import type { IconName } from '../../icons/names'
 import { hasAccess, useAccessKeys } from '../../helpers/access'
@@ -363,6 +374,145 @@ export function Sidebar() {
         </div>
       ))}
     </nav>
+  )
+}
+
+/** A single searchable destination — a nav page flattened out of the tree, with a breadcrumb context. */
+interface NavPage {
+  label: string
+  to: string
+  icon?: IconName
+  /** Where it lives — e.g. `"Components · Forms"` — shown as the muted second line. */
+  context?: string
+}
+
+/** Flatten the nav tree into every navigable page (top links + group pages + leaves). */
+function flattenPages(tree: { links: NavLeaf[]; modules: NavModule[] }): NavPage[] {
+  const pages: NavPage[] = []
+  for (const link of tree.links) pages.push({ label: link.label, to: link.to, icon: link.icon })
+  for (const mod of tree.modules)
+    for (const group of mod.groups) {
+      if (group.to)
+        pages.push({ label: group.label, to: group.to, icon: group.icon, context: mod.module })
+      for (const leaf of group.children ?? [])
+        pages.push({
+          label: leaf.label,
+          to: leaf.to,
+          icon: leaf.icon,
+          context: `${mod.module} · ${group.label}`,
+        })
+    }
+  return pages
+}
+
+const MAX_SEARCH_RESULTS = 8
+
+/**
+ * Header search over the sidebar's pages — type to filter the nav (by page name or its section) and
+ * pick a suggestion to jump there. Data comes from the same `useNavTree` the sidebar uses (so it
+ * respects RBAC). Keyboard: Up/Down move, Enter opens, Escape closes. Rendered by `RootLayout`'s header.
+ */
+export function NavSearch() {
+  const tree = useNavTree()
+  const navigate = useNavigate()
+  const pages = useMemo(() => flattenPages(tree), [tree])
+
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(0)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return pages
+      .filter(
+        (p) => p.label.toLowerCase().includes(q) || (p.context?.toLowerCase().includes(q) ?? false),
+      )
+      .slice(0, MAX_SEARCH_RESULTS)
+  }, [pages, query])
+
+  const showList = open && results.length > 0
+
+  // reset the highlighted row whenever the query changes
+  useEffect(() => setActive(0), [query])
+
+  // close the suggestions on an outside pointerdown
+  useEffect(() => {
+    if (!open) return
+    const onDown = (event: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown)
+    return () => document.removeEventListener('pointerdown', onDown)
+  }, [open])
+
+  const go = (to: string) => {
+    navigate({ to: to as LinkProps['to'] })
+    setQuery('')
+    setOpen(false)
+  }
+
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (!showList) return
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setActive((i) => (i + 1) % results.length)
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setActive((i) => (i - 1 + results.length) % results.length)
+    } else if (event.key === 'Enter') {
+      event.preventDefault()
+      const hit = results[active]
+      if (hit) go(hit.to)
+    } else if (event.key === 'Escape') {
+      setOpen(false)
+    }
+  }
+
+  return (
+    <div
+      ref={rootRef}
+      className={styles.search}
+      role="combobox"
+      aria-expanded={showList}
+      aria-haspopup="listbox"
+    >
+      <TextField
+        value={query}
+        onChange={(event: ChangeEvent<HTMLInputElement>) => {
+          setQuery(event.target.value)
+          setOpen(true)
+        }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={onKeyDown}
+        adornment={<Icon name="SearchNormal" />}
+        placeholder="Search pages…"
+        aria-label="Search pages"
+        autoComplete="off"
+      />
+      {showList ? (
+        <div className={styles.searchPanel}>
+          <List role="listbox">
+            {results.map((page, i) => (
+              <ListItem
+                key={page.to}
+                icon={page.icon}
+                description={page.context}
+                clickable
+                selected={i === active}
+                // keep the input focused through the click so blur doesn't close the list first
+                onMouseDown={(event: MouseEvent) => event.preventDefault()}
+                onMouseEnter={() => setActive(i)}
+                onClick={() => go(page.to)}
+              >
+                {page.label}
+              </ListItem>
+            ))}
+          </List>
+        </div>
+      ) : null}
+    </div>
   )
 }
 

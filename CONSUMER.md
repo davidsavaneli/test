@@ -18,15 +18,15 @@ name is `@techzy/ui`). Stack on the consumer side: React 18+ and TypeScript.
 Imports are grouped by **subpath** (the root `'sava-test'` still re-exports everything, if you prefer
 one import):
 
-| subpath                                               | what's in it                                                                                                                                                                                                                                                                                                                                                                          |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sava-test/components`                                | every UI component — `Button`, `TextField`, …, `Form`, `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect`                                                                                                                                                                                                                                                                   |
-| `sava-test/components/<Name>`                         | a single component, e.g. `import Button from 'sava-test/components/Button'` (default **or** named)                                                                                                                                                                                                                                                                                    |
-| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useLockBodyScroll`, `useMediaQuery`, `useAccessKeys`                                                                                                                                                                                                                                                                                                     |
-| `sava-test/theme`                                     | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useStepQueryKey`, `applyTheme`, `DEFAULT_TABS_QUERY_KEY`/`DEFAULT_NESTED_TAB_QUERY_KEY`/`DEFAULT_STEP_QUERY_KEY` + types (`Config`, `ThemeConfig`, `ThemeColors`, `ThemeMode`, `ThemeColor`, `ThemePalette`, `LocaleConfig`, `KeysConfig`, `ConfigProviderProps`) |
-| `sava-test/icons`                                     | `Icon`, `IconName`, `ICON_NAMES`, `ICON_COUNT` (the `1197` name count), the raw `icons` registry                                                                                                                                                                                                                                                                                      |
-| `sava-test/helpers`                                   | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslationName`/`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`, `DEFAULT_TRANSLATIONS_NAMESPACE`)                                                                                                                                                                         |
-| `sava-test/css/reset.css`, `sava-test/css/styles.css` | the two stylesheets                                                                                                                                                                                                                                                                                                                                                                   |
+| subpath                                               | what's in it                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sava-test/components`                                | every UI component — `Button`, `TextField`, …, `Form`, `RootLayout`, `Sidebar`, `Breadcrumbs`, `FirstRouteRedirect`                                                                                                                                                                                                                                                                                                                    |
+| `sava-test/components/<Name>`                         | a single component, e.g. `import Button from 'sava-test/components/Button'` (default **or** named)                                                                                                                                                                                                                                                                                                                                     |
+| `sava-test/hooks`                                     | `useForm`, `useDisclosure`, `useLockBodyScroll`, `useMediaQuery`, `useAccessKeys`                                                                                                                                                                                                                                                                                                                                                      |
+| `sava-test/theme`                                     | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useStepQueryKey`, `useHeaderConfig`, `applyTheme`, `DEFAULT_TABS_QUERY_KEY`/`DEFAULT_NESTED_TAB_QUERY_KEY`/`DEFAULT_STEP_QUERY_KEY` + types (`Config`, `ThemeConfig`, `ThemeColors`, `ThemeMode`, `ThemeColor`, `ThemePalette`, `LocaleConfig`, `KeysConfig`, `HeaderConfig`, `HeaderUser`, `ConfigProviderProps`) |
+| `sava-test/icons`                                     | `Icon`, `IconName`, `ICON_NAMES`, `ICON_COUNT` (the `1197` name count), the raw `icons` registry                                                                                                                                                                                                                                                                                                                                       |
+| `sava-test/helpers`                                   | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslationName`/`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`, `DEFAULT_TRANSLATIONS_NAMESPACE`)                                                                                                                                                                                                                          |
+| `sava-test/css/reset.css`, `sava-test/css/styles.css` | the two stylesheets                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 > Subpath imports need TypeScript `moduleResolution: "bundler"` (or `"node16"`/`"nodenext"`) — the
 > default in Vite/Next/CRA5 setups. On an older `"node"` resolution, import everything from the root
@@ -183,9 +183,10 @@ createRoot(el).render(
 ## 3. Theming
 
 - **10 brand colors** (`ThemeColor`): `primary secondary background dark medium light success error info warning`.
-- `background` is the **page canvas** (body, shell, sidebar, header, `PageLayout`); the elevated
-  surfaces on top of it (cards, inputs, dropdowns) use `secondary`. Defaults to white in light mode
-  and a deep dark in dark mode; override it per mode like any color.
+- `background` is the **card canvas** (`PageLayout` + flat cards); `secondary` is the elevated surfaces
+  (the `RootLayout` sidebar card, cards, inputs, dropdowns); and **`surface`** is the soft shell canvas
+  the whole `RootLayout` floats on. Defaults: `background`/`secondary` white, `surface` soft grey in
+  light mode, deep darks in dark mode; override per mode like any color.
 - **Built-in defaults live in the library** (`DEFAULT_LIGHT_COLORS` + `DEFAULT_DARK_COLORS`), so the
   theme works with **no config**. The `<ConfigProvider config>` type is **`Config`** = `{ theme?, locales?, keys? }`
   (app config: theme + locales + the configurable key/param names + more later); theme settings live under **`theme`**:
@@ -697,14 +698,20 @@ peer: `npm i @tanstack/react-router` (>=1).
 >   — the theme toggle is built in (`theme`, default `true`) and the logout button appears when you
 >   pass `onLogout`.
 
-- **`RootLayout`** — `logo?`, `header?`, `children`. Set it as the **root route's** component and pass
-  `<Outlet/>`. Renders sidebar + header + content. `logo` is any node shown atop the sidebar (an
-  `<img>`, an `<Icon>`, …). The **header** holds only right-side controls via
-  `header?: { theme?: boolean; fullscreen?: boolean; onLogout?: () => void; user?: { name?; email?; avatar? } }`
-  — `theme` and `fullscreen` (both default `true`) show the `ThemeToggle` and `FullscreenToggle`;
-  `onLogout` adds an account avatar whose menu has a **Sign
+- **`RootLayout`** — `logo?`, `sidebarFooter?`, `header?`, `children`. Set it as the **root route's**
+  component and pass `<Outlet/>`. A **floating layout**: a rounded, elevated **sidebar card** on a soft
+  canvas, beside a borderless header + content (the page's `PageLayout` cards float as white panels).
+  `logo` is any node at the top of the sidebar card; **`sidebarFooter`** is any node pinned at its bottom
+  (e.g. a "Need help?" promo card). The **header** holds a nav search + right-side controls — configure
+  it **app-wide** via **`config.header`** (`<ConfigProvider>`) or **per shell** via this `header` prop
+  (the prop merges over `config.header`):
+  `header?: { theme?: boolean; fullscreen?: boolean; search?: boolean; breadcrumbs?: boolean; onLogout?: () => void; user?: { name?; email?; avatar? } }`
+  — `theme` / `fullscreen` / `search` (all default `true`) show the `ThemeToggle`, `FullscreenToggle`
+  and the nav search; **`breadcrumbs`** (default **`false`**) shows the breadcrumb trail; `onLogout`
+  adds an account avatar whose menu has a **Sign
   out** item (calls `onLogout`); `user` adds a name+email header in that menu (avatar = a user icon, or `user.avatar` image). The content area auto-stacks
-  **`Breadcrumbs` → the page title (the active route's `staticData.name`, as an `h2`) → your page**.
+  **the page title (the active route's `staticData.name`, as an `h2`) → your page** (with the breadcrumb
+  trail above it when `header.breadcrumbs` is on).
   (The component's props are the exported **`RootLayoutProps`** type and the `header` value's shape is
   **`RootLayoutHeader`**, both importable from `sava-test/components` if you build the `header` separately.)
 - **`PageLayout`** — the container your page body sits in (border + radius + padding); uses the page `background`, so cards/inputs inside read as elevated.
@@ -712,7 +719,8 @@ peer: `npm i @tanstack/react-router` (>=1).
   exported named **and** default from `sava-test/components` (and `sava-test/components/PageLayout`).
 - **`Sidebar`** — auto-builds the menu from the routes' `staticData` (rendered inside `RootLayout`;
   you don't place it yourself).
-- **`Breadcrumbs`** — auto-rendered above the page title. Starts with a home icon (links to the first
+- **`Breadcrumbs`** — rendered above the page title **when `header.breadcrumbs` is `true`** (off by
+  default). Starts with a home icon (links to the first
   allowed page) + a crumb per matched route with a `staticData.name`; the current page is plain text.
   `separator?: IconName | ReactNode` (default `"ArrowRight4"`) — an `IconName` renders as an icon, any
   other string as text. Also exported from `sava-test/components` if you want to place it yourself.
