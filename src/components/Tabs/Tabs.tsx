@@ -224,12 +224,29 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // keep the active tab in view when the strip scrolls horizontally (overflow)
+  // keep the active tab in view when the strip overflows — by moving the tablist's OWN scroll offset
+  // only. (scrollIntoView would also scroll every scrollable ancestor — i.e. the page — yanking a
+  // below-the-fold strip's section into view on mount.)
   useEffect(() => {
     if (active == null) return
-    tablistRef.current
-      ?.querySelector<HTMLElement>(tabSelector(active))
-      ?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' })
+    const list = tablistRef.current
+    const el = list?.querySelector<HTMLElement>(tabSelector(active))
+    if (!list || !el) return
+    const listRect = list.getBoundingClientRect()
+    const elRect = el.getBoundingClientRect()
+    if (orientation === 'vertical') {
+      const top = elRect.top - listRect.top + list.scrollTop
+      const bottom = top + elRect.height
+      if (top < list.scrollTop) list.scrollTop = top
+      else if (bottom > list.scrollTop + list.clientHeight)
+        list.scrollTop = bottom - list.clientHeight
+    } else {
+      const left = elRect.left - listRect.left + list.scrollLeft
+      const right = left + elRect.width
+      if (left < list.scrollLeft) list.scrollLeft = left
+      else if (right > list.scrollLeft + list.clientWidth)
+        list.scrollLeft = right - list.clientWidth
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 

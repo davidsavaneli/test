@@ -13,6 +13,7 @@ import {
   $getRoot,
   $insertNodes,
   $isParagraphNode,
+  $setSelection,
   type EditorThemeClasses,
 } from 'lexical'
 import { LexicalComposer } from '@lexical/react/LexicalComposer'
@@ -131,6 +132,10 @@ function $setRootFromHtml(editor: Parameters<typeof $generateNodesFromDOM>[0], h
     $insertNodes(nodes)
   }
   if (root.getChildrenSize() === 0) root.append($createParagraphNode())
+  // clear the caret the insert left at the end of the content — otherwise Lexical scrolls it into
+  // view when setting the initial/controlled value on mount, dragging the whole page down to a
+  // below-the-fold editor (e.g. the prefilled RTEs on the Edit form). Focus re-places it later.
+  $setSelection(null)
 }
 
 interface ValuePluginProps {
