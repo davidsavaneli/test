@@ -39,7 +39,6 @@
   background: var(--tz-color-secondary);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-lg);
-  box-shadow: var(--tz-shadow-xs);
   overflow: hidden;
   transition:
     width var(--tz-duration),
@@ -52,8 +51,14 @@
   display: flex;
   align-items: center;
   gap: var(--tz-space-sm);
-  height: calc(var(--tz-control-height-md) + var(--tz-space-md));
-  padding: 0 var(--tz-space-md);
+  padding: var(--tz-space-md) var(--tz-space-md);
+}
+
+.brand svg,
+.brand img {
+  display: block;
+  max-width: 116px;
+  max-height: 32px;
 }
 
 /* only the nav scrolls; brand + footer stay put. min-width:0 so long content (a nav label, the
@@ -77,6 +82,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin: 0 var(--tz-space-sm);
 }
 
 /* header — transparent, on the canvas (no background); scrolls with the content (not pinned) */
