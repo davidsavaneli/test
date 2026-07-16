@@ -47,7 +47,7 @@ export interface SwitchProps extends Omit<
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
   {
     label,
-    color = 'medium',
+    color = 'brand',
     size = 'md',
     error,
     required = false,

@@ -55,7 +55,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(function Avatar(
     name,
     size = 'md',
     shape = 'circle',
-    color = 'medium',
+    color = 'brand',
     className,
     style,
     children,

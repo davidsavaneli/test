@@ -65,8 +65,8 @@
   flex: none;
   padding: calc(var(--tz-space-xxs) / 2) var(--tz-space-xxs);
   border-radius: var(--tz-radius-sm);
-  background: var(--tz-color-medium);
-  color: var(--tz-color-medium-contrast, #fff);
+  background: var(--tz-color-brand);
+  color: var(--tz-color-brand-contrast, #fff);
   font-size: var(--tz-font-size-xxs);
   font-weight: var(--tz-font-weight-medium);
   line-height: var(--tz-line-height);

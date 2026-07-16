@@ -32,7 +32,7 @@ const OVERLAP: Record<AvatarSize, string> = { sm: '-6px', md: '-8px', lg: '-10px
  * Token-only styling.
  */
 export const AvatarGroup = forwardRef<HTMLDivElement, AvatarGroupProps>(function AvatarGroup(
-  { children, max, size = 'md', color = 'medium', className, style, ...props },
+  { children, max, size = 'md', color = 'brand', className, style, ...props },
   ref,
 ) {
   const items = Children.toArray(children).filter(isValidElement) as ReactElement<AvatarProps>[]

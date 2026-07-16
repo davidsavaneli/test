@@ -47,7 +47,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
     title,
     subtitle,
     icon,
-    color = 'medium',
+    color = 'brand',
     flat = false,
     actions,
     footer,

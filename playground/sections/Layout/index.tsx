@@ -18,7 +18,7 @@ export function LayoutSection() {
           padding="sm"
           style={{ border: '1px solid var(--tz-color-border)', borderRadius: 8 }}
         >
-          <Chip color="medium">Logo</Chip>
+          <Chip color="brand">Logo</Chip>
           <Flex grow />
           <Button variant="text" size="sm">
             Cancel

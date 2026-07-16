@@ -63,7 +63,7 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(function Radio(
   const id = idProp ?? reactId
   const group = useRadioGroupContext()
 
-  const resolvedColor = color ?? group?.color ?? 'medium'
+  const resolvedColor = color ?? group?.color ?? 'brand'
   const resolvedSize = size ?? group?.size ?? 'md'
   const resolvedError = error ?? group?.error ?? false
   const resolvedDisabled = disabled ?? group?.disabled ?? false

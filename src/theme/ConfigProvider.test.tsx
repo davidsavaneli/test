@@ -8,9 +8,7 @@ const LIGHT: ThemePalette = {
   secondary: '#f4f9f8',
   background: '#ffffff',
   surface: '#f5f7fa',
-  dark: '#056472',
-  medium: '#039aa1',
-  light: '#adc3c9',
+  brand: '#056472',
   success: '#00a854',
   error: '#f04134',
   info: '#039aa1',
@@ -114,8 +112,8 @@ describe('ConfigProvider', () => {
       </ConfigProvider>,
     )
     expect(cssVar('--tz-color-primary-rgb')).toBe('0, 0, 0') // overridden
-    // a color not in the override is filled from DEFAULT_LIGHT_COLORS (medium = #056472)
-    expect(cssVar('--tz-color-medium-rgb')).toBe('5, 100, 114')
+    // a color not in the override is filled from DEFAULT_LIGHT_COLORS (brand = #056472)
+    expect(cssVar('--tz-color-brand-rgb')).toBe('5, 100, 114')
   })
 
   it('throws when useTheme is called outside a provider', () => {

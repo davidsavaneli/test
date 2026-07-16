@@ -72,7 +72,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(function R
     options,
     orientation = 'vertical',
     size = 'md',
-    color = 'medium',
+    color = 'brand',
     error,
     required = false,
     disabled = false,

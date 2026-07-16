@@ -47,7 +47,7 @@ export interface CheckboxProps extends Omit<
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
   {
     label,
-    color = 'medium',
+    color = 'brand',
     size = 'md',
     error,
     required = false,

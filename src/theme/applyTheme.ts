@@ -3,18 +3,16 @@ export interface ThemePalette {
   secondary: string
   /**
    * Page canvas color (the body / shell background) — separate from `secondary` (surface). Built-in
-   * defaults: white in light mode, a deep dark (darker than `dark`) in dark mode.
+   * defaults: white in light mode, a deep dark in dark mode.
    */
   background: string
   /**
-   * A light surface color, **available** as `--tz-color-surface` (configurable per mode like any brand
-   * color) — intended for things like form-field backgrounds. Not yet applied to any component by
-   * default; reserved for future use.
+   * The soft shell-chrome canvas, `--tz-color-surface` — `RootLayout`'s floating-layout background.
+   * Configurable per mode like any brand color.
    */
   surface: string
-  dark: string
-  medium: string
-  light: string
+  /** The single brand accent — the default tint for controls (`Button`, `IconButton`, …). */
+  brand: string
   success: string
   error: string
   info: string
@@ -49,11 +47,10 @@ function contrastColor(rgbTriplet: string): string {
  * luminance pick isn't the desired look:
  * - `secondary`: near-white fill that blends with the page, so the label uses
  *   the primary color (flips with the mode) to stay readable without a border.
- * - `light` / `warning`: keep the plain white label by design.
+ * - `warning`: keep the plain white label by design.
  */
 const CONTRAST_OVERRIDE: Readonly<Record<string, string>> = {
   secondary: 'rgb(var(--tz-color-primary-rgb))',
-  light: '#ffffff',
   warning: '#ffffff',
 }
 

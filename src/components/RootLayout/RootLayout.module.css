@@ -14,7 +14,7 @@
   /* a very light gradient canvas — a faint brand glow from the top-left, fading into the soft surface
      grey underneath (flips with the theme via the tokens) */
   background:
-    linear-gradient(150deg, rgba(var(--tz-color-light-rgb), 0.05), transparent 45%),
+    linear-gradient(150deg, rgba(var(--tz-color-brand-rgb), 0.05), transparent 45%),
     var(--tz-color-surface);
   color: var(--tz-color-text);
   font-family: var(--tz-font-family);

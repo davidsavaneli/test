@@ -102,7 +102,7 @@ references it:
 --tz-color-primary-contrast: #ffffff; /* readable text color on a solid fill (theme.css fallback) */
 ```
 
-**Brand palette (11 colors)** — light-mode defaults:
+**Brand palette (9 colors)** — light-mode defaults:
 
 | token        | hex       | role                                                              |
 | ------------ | --------- | ----------------------------------------------------------------- |
@@ -110,9 +110,7 @@ references it:
 | `secondary`  | `#ffffff` | surface (cards, inputs, dropdowns)                                |
 | `background` | `#ffffff` | page canvas — separate from surface                               |
 | `surface`    | `#f5f7fa` | the shell canvas — `RootLayout`'s soft floating-layout background |
-| `dark`       | `#033b44` | dark brand shade                                                  |
-| `medium`     | `#056472` | mid brand shade                                                   |
-| `light`      | `#039aa1` | light brand shade                                                 |
+| `brand`      | `#056472` | the single brand accent (tints controls via `--tz-btn-rgb`)       |
 | `success`    | `#00a854` | semantic — success                                                |
 | `error`      | `#f04134` | semantic — error/danger                                           |
 | `info`       | `#039aa1` | semantic — info                                                   |
@@ -208,7 +206,7 @@ Inputs, selects, buttons — the `sm/md/lg` sizing baseline:
 ## 4. Color application (`applyTheme`)
 
 `src/theme/applyTheme.ts` writes per-color CSS variables onto an element (default
-`document.documentElement`) from a `ThemePalette` (a `{ name: hex }` map of the 10 brand colors):
+`document.documentElement`) from a `ThemePalette` (a `{ name: hex }` map of the 9 brand colors):
 
 For each color it sets:
 
@@ -217,7 +215,7 @@ For each color it sets:
   1. **`CONTRAST_OVERRIDE`** map for hand-tuned colors:
      - `secondary` → `rgb(var(--tz-color-primary-rgb))` (near-white fill blends with the page, so
        the label uses the primary color and flips with the mode — no border needed).
-     - `light` / `warning` → `#ffffff` (kept white by design).
+     - `warning` → `#ffffff` (kept white by design).
   2. Otherwise **YIQ luminance**: `(r*299 + g*587 + b*114) / 1000 >= 150 ? '#04202b' : '#ffffff'`.
 
 Because contrast is recomputed from the live triplet, a light `primary` in dark mode automatically
@@ -226,7 +224,7 @@ gets a dark label and stays readable.
 ### The `--tz-btn-rgb` / `--tz-btn-on` pattern
 
 `Button` and `IconButton` set **two inline CSS vars** from the `color` prop, then the CSS derives
-all 4 variants × 10 colors with `rgb()`/`rgba()` alpha math — no per-color CSS classes:
+all 4 variants × 9 colors with `rgb()`/`rgba()` alpha math — no per-color CSS classes:
 
 ```tsx
 style={{
@@ -286,7 +284,7 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 - **Default palettes live in TS, in `ConfigProvider.tsx`** — `DEFAULT_LIGHT_COLORS` (the full built-in
   light palette = the single source of truth for every brand color's default value) and
   `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `background
-#1F1F1E`, `surface #2a2a28`, plus a brighter `dark`/`medium`/`light` teal ramp). `theme.css` holds **no** color values — only the structure (solids, shades,
+#1F1F1E`, `surface #2a2a28`, plus a brighter `brand` teal `#16a6b4`). `theme.css` holds **no** color values — only the structure (solids, shades,
   contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
 - **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; keys?: KeysConfig; table?: TableConfig; header?: HeaderConfig }`
   — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),
@@ -382,7 +380,7 @@ export type WidgetSize = 'sm' | 'md' | 'lg'
 export interface WidgetProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
   /** JSDoc on EVERY prop — short, English, describes behavior + default. */
   variant?: WidgetVariant
-  /** Brand palette token that tints the control. Defaults to `medium`. */
+  /** Brand palette token that tints the control. Defaults to `brand`. */
   color?: ThemeColor
   size?: WidgetSize
 }
@@ -429,7 +427,7 @@ Rules baked into the pattern:
 | prop           | type                                        | default       | notes                                                                                                                               |
 | -------------- | ------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `variant`      | `'contained'\|'filled'\|'outlined'\|'text'` | `'contained'` | for tintable controls                                                                                                               |
-| `color`        | `ThemeColor`                                | `'medium'`    | brand token; drives `--tz-btn-rgb`. Text/`Typography` default stays `primary` (via `--tz-color-text`).                              |
+| `color`        | `ThemeColor`                                | `'brand'`     | brand token; drives `--tz-btn-rgb`. Text/`Typography` default stays `primary` (via `--tz-color-text`).                              |
 | `size`         | `'sm'\|'md'\|'lg'`                          | `'md'`        | maps to control-height / font / icon size                                                                                           |
 | `loading`      | `boolean`                                   | `false`       | shows `Loader`, sets native `disabled` + `aria-busy`                                                                                |
 | `disabled`     | `boolean`                                   | `false`       | `opacity: 0.5` + `cursor: not-allowed`                                                                                              |
@@ -600,7 +598,7 @@ extra consumer import; the JS stays external).
 Shares **TextField's field chrome** — it imports `TextField.module.css` for the label / required /
 helper / error styling (the `Slider`/`NumberField` precedent) — so `label` · `required` · `error` +
 `helperText` · `fullWidth` (**default `true`**) behave like the rest of the field family. A soft
-**dropzone** bar (compact, horizontal, dashed `medium` border, `DocumentUpload` icon, the
+**dropzone** bar (compact, horizontal, dashed `brand` border, `DocumentUpload` icon, the
 `"Choose a file or drag & drop it here"` prompt) sits above a **responsive grid of image cards** — each
 **≥200px wide and stretching to fill the row** (`repeat(auto-fit, minmax(min(100%, 200px), 1fr))`, so a row
 reaches the right edge and wraps once another 200px won't fit), a fixed **200px tall**. The dropzone shows while `multiple` (or, in single mode, until a file is
@@ -787,7 +785,7 @@ literals) and **`color`** (default `primary`, the shared **`--tz-btn-rgb`** patt
 A range slider — drag (or arrow-key / Home / End) a thumb along the track to pick a number, **snapping
 to `step`**. Built on a **native `<input type="range">`**, so keyboard, dragging, step/min/max, and a11y
 (`role="slider"`) come for free; the track / fill / thumb are styled via `--tz-*` tokens and tinted by
-`color` (default `medium`, via the **`--tz-btn-rgb`** pattern). The filled portion is a hard-stop
+`color` (default `brand`, via the **`--tz-btn-rgb`** pattern). The filled portion is a hard-stop
 gradient driven by an inline **`--tz-slider-fill`** percent (WebKit `::-webkit-slider-runnable-track`;
 Firefox uses native `::-moz-range-progress`). Props: `min` (0) · `max` (100) · `step` (1) · `size`
 (`sm`/`md`/`lg` → track + thumb px via `--sl-track`/`--sl-thumb`, one-off literals) · `valueLabel`
@@ -992,7 +990,7 @@ Controlled or uncontrolled; binds to a `<Form>` by **`name`** (value = the time 
 
 A labeled checkbox. The native `<input type="checkbox">` is **visually hidden** (sr-only) but stays
 focusable + announced; a styled `.box` shows the state, and the tick is a **CSS checkmark** (rotated
-corner — no icon dependency). `label` · `color` (checked fill, default `medium`) · `size` (box +
+corner — no icon dependency). `label` · `color` (checked fill, default `brand`) · `size` (box +
 label) · `error` · `required` · `disabled` · `checked`/`defaultChecked` ·
 `onChange(checked)` (emits a `boolean`). Uses the `--tz-btn-rgb`/`--tz-btn-on` pattern: checked →
 `background: rgb(var(--tz-btn-rgb))` with a contrast-colored tick; `:focus-visible` ring; `error`
@@ -1048,7 +1046,7 @@ styled `.circle` + scaled-in `.dot` shows the state (filled from `--tz-btn-rgb`)
 (`string`) · `onChange(value)` · `name` · `options` (data-driven `{ value, label?, disabled? }[]`, an
 alternative to passing `<Radio>` children) · `orientation` (`vertical` default · `horizontal`) ·
 `label` · `error` (reddens the radio rings — **no message text**, like `Checkbox`) · `required`
-(asterisk) · `size` · `color` (default `medium`) · `disabled`. `role="radiogroup"` with `aria-invalid`;
+(asterisk) · `size` · `color` (default `brand`) · `disabled`. `role="radiogroup"` with `aria-invalid`;
 the label renders through `Typography`. Binds to a
 surrounding `<Form>` by **`name`** — its form value is a **`string`** (validate with e.g.
 `z.string().min(1)`), read/written via `values`/`setValue`. Uses the `--tz-btn-rgb` pattern; own CSS
@@ -1059,7 +1057,7 @@ module. `Radio` ships named **and** default, `RadioGroup` named.
 A toggle switch — the on/off sibling of `Checkbox`. The native `<input type="checkbox" role="switch">`
 is **visually hidden** (sr-only) but focusable + announced; a styled `.track` + sliding `.thumb` show
 the state — the track fills from `--tz-btn-rgb` when on and the thumb slides across (token-sized per
-`size`). `label` · `color` (on fill, default `medium`) · `size` (`sm`/`md`/`lg` — track/thumb + label)
+`size`). `label` · `color` (on fill, default `brand`) · `size` (`sm`/`md`/`lg` — track/thumb + label)
 · `error` · `required` · `disabled` · `checked`/`defaultChecked` · `onChange(checked)` (emits a
 `boolean`). `:focus-visible` ring; `error` **reddens the track ring only (no helper text)**, like
 `Checkbox`. Binds to a surrounding `<Form>` by **`name`** — its form value is a **`boolean`**. Own CSS
@@ -1139,7 +1137,7 @@ A **wrapper** that pins a small count/dot to a child's corner — wrap a `Button
 node): `<Badge content={2}><IconButton…/></Badge>`. `content` (`number | string`) renders a count;
 a `number` is capped to `${max}+` (`max` default `99`) and a numeric `0` is hidden unless `showZero`.
 `dot` renders a plain indicator instead (decorative → `aria-hidden`); `content` wins over `dot`.
-`color` (default `medium`) tints via the **`--tz-btn-rgb` / `--tz-btn-on`** pattern; `placement`
+`color` (default `brand`) tints via the **`--tz-btn-rgb` / `--tz-btn-on`** pattern; `placement`
 (`top-right` default · `top-left` · `bottom-right` · `bottom-left`) picks the corner. The badge has a
 `box-shadow` ring in `--tz-color-background` so it reads as cut-out over the control. Own CSS module.
 
@@ -1205,7 +1203,7 @@ color's contrast, the arrow inherits the fill), flipping with the theme; `--tz-z
 **Avatar** shows, in priority order: an image (`src` — falls back automatically on load error), an
 `icon` (`IconName` or node), explicit `children` (e.g. initials `"D.S."`), initials derived from
 `name` (`"David Savaneli"` → `"DS"`), else a default `User` icon. `size` (`sm` 32 · `md` 40 · `lg` 48),
-`shape` (`circle` default · `square`), `color` (default `medium`, via `--tz-btn-rgb` / `--tz-btn-on`).
+`shape` (`circle` default · `square`), `color` (default `brand`, via `--tz-btn-rgb` / `--tz-btn-on`).
 a11y: an image renders `<img alt>` (alt ← `alt`/`name`); a non-image avatar with a name gets
 `role="img"` + `aria-label`. **AvatarGroup** overlaps `Avatar` children (negative margin + a
 `--tz-color-background` ring) and collapses the overflow past `max` into a trailing `+N` avatar;
@@ -1250,7 +1248,7 @@ item) carries **`min-width: 0`** as well as `min-height: 0` — so a wide, non-w
 with its own horizontal scroll) shrinks and scrolls **inside the card** instead of forcing the card (and
 the whole page) wider than the viewport. `icon` (an `IconName` or a node) renders in
 a leading **filled, non-clickable `IconButton`** box (decorative → `aria-hidden`), tinted by `color`
-(brand token, default `medium`). `subtitle` is a muted description line under the `title`; both `title`
+(brand token, default `brand`). `subtitle` is a muted description line under the `title`; both `title`
 and `subtitle` clamp to **two lines** then ellipsis (`-webkit-line-clamp`).
 Surface + border + `--tz-radius-md` + `--tz-shadow-xs`. **`flat`** drops the shadow and swaps the
 `secondary` surface for the page `--tz-color-background` (blends with the shell, no elevation) — used by
@@ -1455,7 +1453,7 @@ when it fits and top-aligns + scrolls when it doesn't) or **`inside`** (the body
   (header + footer pinned — `placement` forces `scrollBehavior: inside`, so the `outside` rules never
   apply). **The header mirrors `Card`:** an optional leading
   **`icon`** (an `IconName` or node) in a **filled, non-clickable `IconButton` box** tinted by **`color`**
-  (brand token, default `medium`), a **`title`** (md/bold, clamps to 2 lines) that labels the dialog via
+  (brand token, default `brand`), a **`title`** (md/bold, clamps to 2 lines) that labels the dialog via
   `aria-labelledby`, and a **`description`** (xs/muted subtitle, clamps to 2 lines); a **dashed** divider
   (like Card) sets the header apart when a body/footer follows. **`children`** is the body and **`footer`** holds right-aligned
   actions over a top divider (e.g. Cancel / Confirm). Dismissal is three-way and each toggle-able: a header
@@ -1555,7 +1553,7 @@ pages + the current page's siblings + `start`/`end` ellipses; **internal**, not 
 `buildNavTree`). **`siblingCount`** (default `1`) sets pages on each side of the current; **`boundaryCount`**
 (default `1`) the pages pinned at each edge. **`variant`** is `outlined` (default — every page/arrow is a
 bordered box) or `text` (borderless); the **selected** page is always a solid brand fill via the shared
-**`--tz-btn-rgb` / `--tz-btn-on`** pattern (`color`, default `medium`). `size` (`sm/md/lg` → compact box
+**`--tz-btn-rgb` / `--tz-btn-on`** pattern (`color`, default `brand`). `size` (`sm/md/lg` → compact box
 **28/32/36px** — a literal-px exception like the RTE toolbar, no token maps to these — + font/icon on the
 shared scale), **`rounded`** (circular page buttons), **`disabled`** (disables every
 button). Arrows: prev/next always shown (toggle with **`hidePrevButton`** / **`hideNextButton`**), each
@@ -1973,7 +1971,7 @@ Routes self-register via TanStack `staticData`, which the library augments (type
 `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[]; badge?: string; dot?: ThemeColor }`
 — a route with **no `name`** never appears; `hidden` keeps it routed but off the menu; `order` sorts
 (asc, then alphabetical); `roles` gates it by access (see RBAC below); `badge` shows a small "New"-style
-pill on the menu row (a styled span, **not** the `Badge` component — `--tz-color-dark` fill, rendered
+pill on the menu row (a styled span, **not** the `Badge` component — `--tz-color-brand` fill, rendered
 in the row's trailing slot before any chevron); `dot` shows a small colored dot on the row tinted by any
 brand `ThemeColor` (e.g. `dot: 'error'`, via `var(--tz-color-<color>)`). **Dynamic/param routes** (e.g.
 `/users/$userId`) work normally — give them no `name` (or `hidden`) and they route + render via the

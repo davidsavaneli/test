@@ -70,7 +70,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(function Pagi
     hideNextButton = false,
     variant = 'outlined',
     size = 'md',
-    color = 'medium',
+    color = 'brand',
     rounded = false,
     disabled = false,
     className,

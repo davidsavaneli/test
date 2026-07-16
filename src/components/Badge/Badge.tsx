@@ -40,7 +40,7 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(function Badge(
     children,
     content,
     dot = false,
-    color = 'medium',
+    color = 'brand',
     max = 99,
     showZero = false,
     placement = 'top-right',

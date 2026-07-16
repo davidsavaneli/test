@@ -182,7 +182,7 @@ createRoot(el).render(
 
 ## 3. Theming
 
-- **10 brand colors** (`ThemeColor`): `primary secondary background dark medium light success error info warning`.
+- **9 brand colors** (`ThemeColor`): `primary secondary background surface brand success error info warning`.
 - `background` is the **card canvas** (`PageLayout` + flat cards); `secondary` is the elevated surfaces
   (the `RootLayout` sidebar card, cards, inputs, dropdowns); and **`surface`** is the soft shell canvas
   the whole `RootLayout` floats on. Defaults: `background`/`secondary` white, `surface` soft grey in
@@ -406,11 +406,11 @@ pass-through props as `ThemeToggle`.
 **Badge** — wraps a child (e.g. a `Button`/`IconButton`) and pins a count or dot to its corner:
 `<Badge content={2}><IconButton …/></Badge>`. `content` (`number | string`) → a count (numbers cap to
 `${max}+`, `max` default 99; a `0` hides unless `showZero`); `dot` → a plain indicator. `color`
-(default `medium`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
+(default `brand`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
 
 **Card** — a surface card. `title` (clamps to two lines, then ellipsis) · `subtitle` (muted line under
 the title) · `icon` (`IconName`/node, shown in a filled icon box) · `color` (tints the icon box,
-default `medium`) · `actions` (header, right) ·
+default `brand`) · `actions` (header, right) ·
 `footer` (bottom actions, right) · `footerStart` (bottom actions, left) · `children` (body) ·
 `collapsible` (chevron folds the body+footer smoothly;
 header actions hide while collapsed) · `collapsed`/`defaultCollapsed`/`onCollapsedChange`. A subtle

@@ -27,9 +27,9 @@
   justify-content: center;
   gap: var(--tz-space-sm);
   padding: var(--tz-space-sm) var(--tz-space-md);
-  border: 1px dashed var(--tz-color-medium-shade400);
+  border: 1px dashed var(--tz-color-brand-shade400);
   border-radius: var(--tz-radius-sm);
-  background-color: var(--tz-color-medium-shade100);
+  background-color: var(--tz-color-brand-shade100);
   cursor: pointer;
   outline: none;
   transition:
@@ -46,16 +46,16 @@
 }
 .dropzone:hover,
 .dropzone:focus-visible {
-  border-color: var(--tz-color-medium-shade600);
-  background-color: var(--tz-color-medium-shade200);
+  border-color: var(--tz-color-brand-shade600);
+  background-color: var(--tz-color-brand-shade200);
 }
 .dropzone:focus-visible {
-  box-shadow: 0 0 0 3px rgba(var(--tz-color-medium-rgb), 0.16);
+  box-shadow: 0 0 0 3px rgba(var(--tz-color-brand-rgb), 0.16);
 }
 /* a file is being dragged over the zone */
 .dropzone.dropping {
-  border-color: var(--tz-color-medium-shade600);
-  background-color: var(--tz-color-medium-shade200);
+  border-color: var(--tz-color-brand-shade600);
+  background-color: var(--tz-color-brand-shade200);
 }
 /* form/validation error → redden the dropzone border (the helper text turns red via <Typography>) */
 .error .dropzone {

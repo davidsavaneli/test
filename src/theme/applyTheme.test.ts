@@ -46,9 +46,8 @@ describe('applyTheme', () => {
       )
     })
 
-    it('keeps `light` and `warning` labels white even though both are light fills', () => {
-      applyTheme({ light: '#adc3c9', warning: '#ffbf00' }, target)
-      expect(cssVar(target, '--tz-color-light-contrast')).toBe('#ffffff')
+    it('keeps the `warning` label white even though it is a light fill', () => {
+      applyTheme({ warning: '#ffbf00' }, target)
       expect(cssVar(target, '--tz-color-warning-contrast')).toBe('#ffffff')
     })
   })

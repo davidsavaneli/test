@@ -37,7 +37,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
     variant = 'contained',
-    color = 'medium',
+    color = 'brand',
     size = 'md',
     loading = false,
     fullWidth = false,

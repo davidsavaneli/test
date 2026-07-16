@@ -93,7 +93,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
     title,
     description,
     icon,
-    color = 'medium',
+    color = 'brand',
     footer,
     showCloseButton = true,
     closeOnBackdrop = true,

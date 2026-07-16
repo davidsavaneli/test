@@ -96,7 +96,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
     min = 0,
     max = 100,
     step = 1,
-    color = 'medium',
+    color = 'brand',
     disabled = false,
     valueLabel = true,
     marks,

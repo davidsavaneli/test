@@ -42,7 +42,7 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
   {
     variant = 'contained',
-    color = 'medium',
+    color = 'brand',
     size = 'md',
     loading = false,
     rounded = false,

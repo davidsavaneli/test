@@ -37,7 +37,7 @@ const ROLES = [
 ]
 
 /** Brand colors exercised by the icon-box demo. */
-const ICON_COLORS = ['medium', 'success', 'info', 'warning', 'error'] as const
+const ICON_COLORS = ['brand', 'success', 'info', 'warning', 'error'] as const
 
 const schema = z.object({
   name: z.string().min(1, 'Required'),
@@ -266,11 +266,11 @@ export function ModalSection() {
           onClose={() => setIconColor(null)}
           size="sm"
           icon="Star"
-          color={iconColor ?? 'medium'}
-          title={`${cap(iconColor ?? 'medium')} Modal`}
-          description={`color="${iconColor ?? 'medium'}" tints the leading icon box`}
+          color={iconColor ?? 'brand'}
+          title={`${cap(iconColor ?? 'brand')} Modal`}
+          description={`color="${iconColor ?? 'brand'}" tints the leading icon box`}
           footer={
-            <Button color={iconColor ?? 'medium'} onClick={() => setIconColor(null)}>
+            <Button color={iconColor ?? 'brand'} onClick={() => setIconColor(null)}>
               Done
             </Button>
           }
