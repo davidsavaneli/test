@@ -107,6 +107,14 @@
   );
   color: rgb(var(--tz-list-accent-rgb, var(--tz-btn-rgb)));
 }
+/* a selected row keeps its (stronger) selected tint on hover — don't drop to the lighter hover tint
+   (`.selected.clickable:hover` outranks `.clickable:hover`, so hovering the active row stays put) */
+.selected.clickable:hover {
+  background: rgba(
+    var(--tz-list-accent-rgb, var(--tz-btn-rgb)),
+    var(--tz-list-selected-alpha, 0.06)
+  );
+}
 .selected .itemIcon,
 .selected .itemTrailing {
   color: inherit;

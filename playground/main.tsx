@@ -90,7 +90,8 @@ const config: Config = {
   // RootLayout `header` prop at the render site (see AdminShell), NOT hardcoded here.
   header: {
     theme: true, // ThemeToggle (default true)
-    fullscreen: true, // FullscreenToggle — the maximize button (default true)
+    fullscreen: false, // FullscreenToggle — the maximize button (default false)
+    settings: true, // Settings button → accent-color drawer (default true)
     search: true, // nav search over the sidebar pages (default true)
     breadcrumbs: false, // breadcrumb trail above the page title (default false)
     pageTitle: true, // auto page-title <h2> from the route's staticData.name (default true)

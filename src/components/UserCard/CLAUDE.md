@@ -12,6 +12,6 @@ don't hand-roll the markup per project. Props: **`name`** (primary line + avatar
 the button), **`onLogout`** (when given, shows an **outlined `error`** full-width sign-out `Button` with
 the `Logout` icon), **`logoutLabel`** (default `"Sign out"`), and **`children`** (extra content between
 the identity row and the button — e.g. a settings link). A bordered, rounded card with a faint
-`primary`-tint wash. Composes `Avatar` + `Typography` + `Button` + `Icon`; own CSS module (token-only).
+`accent`-tint wash. Composes `Avatar` + `Typography` + `Button` + `Icon`; own CSS module (token-only).
 Ships named **and** default from `sava-test/components/UserCard`. _A dropdown-menu variant (like the
 header account) is a natural next iteration._

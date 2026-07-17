@@ -151,8 +151,10 @@ export interface HeaderUser {
 export interface HeaderConfig {
   /** Show the built-in light/dark theme toggle. Defaults to `true`. */
   theme?: boolean
-  /** Show the browser-fullscreen toggle (auto-hides where the Fullscreen API is unavailable). Defaults to `true`. */
+  /** Show the browser-fullscreen toggle (auto-hides where the Fullscreen API is unavailable). Defaults to `false`. */
   fullscreen?: boolean
+  /** Show the **Settings** button (opens the right-side drawer to pick the per-mode `accent`). Defaults to `true`. */
+  settings?: boolean
   /** Show the nav search over the sidebar's pages (with suggestions). Defaults to `true`. */
   search?: boolean
   /** Show the breadcrumb trail at the top of the content. Defaults to **`false`** (hidden). */

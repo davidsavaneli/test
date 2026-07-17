@@ -719,9 +719,10 @@ peer: `npm i @tanstack/react-router` (>=1).
   (e.g. a "Need help?" promo card). The **header** holds a nav search + right-side controls — configure
   it **app-wide** via **`config.header`** (`<ConfigProvider>`) or **per shell** via this `header` prop
   (the prop merges over `config.header`):
-  `header?: { theme?: boolean; fullscreen?: boolean; search?: boolean; breadcrumbs?: boolean; onLogout?: () => void; user?: { name?; email?; avatar? } }`
-  — `theme` / `fullscreen` / `search` (all default `true`) show the `ThemeToggle`, `FullscreenToggle`
-  and the nav search; **`breadcrumbs`** (default **`false`**) shows the breadcrumb trail; `onLogout`
+  `header?: { theme?: boolean; fullscreen?: boolean; settings?: boolean; search?: boolean; breadcrumbs?: boolean; onLogout?: () => void; user?: { name?; email?; avatar? } }`
+  — `theme` / `settings` / `search` (default `true`) show the `ThemeToggle`, the **Settings** button
+  (accent-color drawer) and the nav search; **`fullscreen`** (default **`false`**) shows the
+  `FullscreenToggle`; **`breadcrumbs`** (default **`false`**) shows the breadcrumb trail; `onLogout`
   adds an account avatar whose menu has a **Sign
   out** item (calls `onLogout`); `user` adds a name+email header in that menu (avatar = a user icon, or `user.avatar` image). The content area auto-stacks
   **the page title (the active route's `staticData.name`, as an `h2`) → your page** (with the breadcrumb

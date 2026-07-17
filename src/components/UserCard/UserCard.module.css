@@ -8,7 +8,7 @@
   padding: var(--tz-space-sm);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);
-  background: rgba(var(--tz-color-primary-rgb), 0.03);
+  background: var(--tz-color-accent-shade100);
   font-family: var(--tz-font-family);
 }
 

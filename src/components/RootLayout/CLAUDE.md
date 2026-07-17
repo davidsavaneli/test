@@ -16,24 +16,25 @@ with a rounded, elevated **`--tz-color-surface` sidebar card** (border + `--tz-r
 **`sidebarFooter`** card (any node — e.g. a "Need help?" promo) pinned at the bottom. A header
 **toggle** `IconButton` (left, `filled`, `Menu` icon) collapses/hides the sidebar by animating its
 `width` to `0` (the shell's first grid column is `auto`, so it follows); the `ThemeToggle` is `filled`
-too. Nav icons match the row label (text) color via `--tz-list-icon-color`, and the active **pill** is a
-touch stronger than the default `List` tint (bumped `--tz-list-hover-alpha`/`--tz-list-selected-alpha`
-on the nav). The **header is borderless on the canvas** (transparent, scrolls with the content — not pinned), with
+too. Nav icons match the row label (text) color via `--tz-list-icon-color`; the hover / active **pill**
+tints with the **`accent`** color (`--tz-list-accent-rgb: var(--tz-color-accent-rgb)` on the nav, not
+the default `primary`) and is a touch stronger than the default `List` tint (bumped
+`--tz-list-hover-alpha`/`--tz-list-selected-alpha`). The **header is borderless on the canvas** (transparent, scrolls with the content — not pinned), with
 the sidebar toggle + a built-in **nav search** (`search`, default `true`) on the **left** and the
 controls on the right, driven by the
-`header` config (`HeaderConfig`) — `{ theme?: boolean /* default true */; fullscreen?: boolean /* default true */; search?: boolean /* default true */; breadcrumbs?: boolean /* default false */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`.
+`header` config (`HeaderConfig`) — `{ theme?: boolean /* default true */; fullscreen?: boolean /* default false */; settings?: boolean /* default true */; search?: boolean /* default true */; breadcrumbs?: boolean /* default false */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`.
 Set it **app-wide** via **`config.header`** (`<ConfigProvider>`) or **per shell** via the `RootLayout`
 **`header` prop** — the prop is merged **over** `config.header` (prop wins).
 The **`NavSearch`** (an internal `Sidebar` export) searches the sidebar's pages — it flattens the same
 `useNavTree` (so it's RBAC-filtered) into `{ label, to, context }` and shows suggestions as a floating
 `List` of `ListItem`s below a `TextField` (filter by page name or section; Up/Down + Enter navigate via
 `useNavigate`, Escape/outside-pointerdown close). The right-side controls are
-a `FullscreenToggle` + `ThemeToggle` (both `filled`, `size="sm"`, on by default) + a **Settings**
-`IconButton` (`variant="text"`, `size="sm"`), plus an account `Avatar` — a focusable button whose
+a `ThemeToggle` (default on) + `FullscreenToggle` (default off) + a **Settings** `IconButton` (default
+on) — all `size="sm"` (the toggles `filled`, Settings `variant="text"`), plus an account `Avatar` — a focusable button whose
 `Dropdown` menu has a single **Sign out** `ListItem` (calling `onLogout`), shown when `onLogout` is
 given; when `user` is supplied the menu opens with a `User`-icon (or `user.avatar` image) plus a name +
 email header above a divider. The **Settings** button (a `Setting5` gear beside the theme toggle that
-**spins continuously** via a keyframe animation, always shown — independent of `onLogout`) opens the
+**spins continuously** via a keyframe animation, shown when `header.settings` — default `true`) opens the
 internal **`SettingsDrawer`** — a right-side `Modal` (`placement="right"`, `size="sm"`) with **two
 `SwatchPicker`s** (one labelled **Light theme**, one **Dark theme**) so both accents are chosen
 independently at once — each a **per-mode** set (deeper tones for light, brighter for dark). Picking a

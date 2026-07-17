@@ -7,6 +7,8 @@
   gap: var(--tz-space-lg);
   /* nav icons match the row label (text) color instead of the muted default */
   --tz-list-icon-color: var(--tz-color-text);
+  /* hover / active rows tint with the accent color (not the default primary) */
+  --tz-list-accent-rgb: var(--tz-color-accent-rgb);
   /* a slightly more present active/hover pill than the default subtle List tint */
   --tz-list-hover-alpha: 0.05;
   --tz-list-selected-alpha: 0.1;

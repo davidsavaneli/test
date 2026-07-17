@@ -6,7 +6,8 @@
 **`ListItem`** is a flexible, reusable row: a leading `icon` (`IconName` → `<Icon>`, or any node such
 as an `Avatar`), a label (`children`) with an optional muted `description`, and a `trailing` slot
 (icon, `Badge`, shortcut text, chevron). `selected` highlights it (tinted via the `--tz-btn-rgb`
-pattern from `color`, default `primary`) and sets `aria-current`; `clickable` makes it interactive — hover
+pattern from `color`, default `primary`) and sets `aria-current` — a **selected row keeps its (stronger)
+selected tint on hover** (it doesn't drop to the lighter hover tint); `clickable` makes it interactive — hover
 
 - cursor, and when rendered as a **plain** element it also gets `role="button"` + `tabIndex` +
   Enter/Space → click (a native `a`/`button` or a router `Link` keeps its own semantics). `disabled` dims

@@ -31,8 +31,9 @@ export interface RootLayoutProps {
   sidebarFooter?: ReactNode
   /**
    * Header config for **this** shell — merged **over** the app-wide `config.header` (the prop wins).
-   * Fields: the built-in `theme` / `fullscreen` / `search` toggles (default `true`), `breadcrumbs`
-   * (default `false`), `pageTitle` (default `true`), and the account (`onLogout` / `user`).
+   * Fields: the built-in `theme` / `search` / `settings` toggles (default `true`), `fullscreen`
+   * (default `false`), `breadcrumbs` (default `false`), `pageTitle` (default `true`), and the account
+   * (`onLogout` / `user`).
    */
   header?: RootLayoutHeader
   /**
@@ -72,7 +73,8 @@ export function RootLayout({
   const configHeader = useHeaderConfig()
   const h: HeaderConfig = { ...configHeader, ...header }
   const showTheme = h.theme ?? true
-  const showFullscreen = h.fullscreen ?? true
+  const showFullscreen = h.fullscreen ?? false
+  const showSettings = h.settings ?? true
   const showSearch = h.search ?? true
   const showBreadcrumbs = h.breadcrumbs ?? false
   const toasterProps = typeof toaster === 'object' ? toaster : undefined
@@ -108,15 +110,17 @@ export function RootLayout({
           <div className={styles.headerEnd}>
             {showFullscreen ? <FullscreenToggle variant="filled" size="sm" /> : null}
             {showTheme ? <ThemeToggle variant="filled" size="sm" /> : null}
-            <IconButton
-              aria-label="Settings"
-              variant="text"
-              size="sm"
-              className={styles.settings}
-              onClick={() => setSettingsOpen(true)}
-            >
-              <Icon name="Setting5" />
-            </IconButton>
+            {showSettings ? (
+              <IconButton
+                aria-label="Settings"
+                variant="text"
+                size="sm"
+                className={styles.settings}
+                onClick={() => setSettingsOpen(true)}
+              >
+                <Icon name="Setting5" />
+              </IconButton>
+            ) : null}
             {onLogout ? (
               <Dropdown
                 placement="bottom-end"
@@ -162,7 +166,9 @@ export function RootLayout({
         </main>
       </div>
       {toaster !== false && <Toaster {...toasterProps} />}
-      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      {showSettings ? (
+        <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      ) : null}
     </div>
   )
 }

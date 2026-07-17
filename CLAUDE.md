@@ -293,7 +293,7 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),
   the configurable key/param **names** grouped under **`keys`**, the `<Table>` server-request query mapping
   under **`table`** (`{ query?: TableQueryConfig }` — see below), the **`RootLayout` header** app-wide
-  under **`header`** (`HeaderConfig` — the shell top-bar `theme`/`fullscreen`/`search`/`breadcrumbs`/
+  under **`header`** (`HeaderConfig` — the shell top-bar `theme`/`fullscreen`/`settings`/`search`/`breadcrumbs`/
   `pageTitle` toggles + `onLogout`/`user`; a `RootLayout` `header` prop merges over it, prop wins; read
   via **`useHeaderConfig()`**). Best practice: put the **static toggles** in `config.header` (app-wide)
   and pass the **runtime `user` + `onLogout`** via the `RootLayout` `header` prop at the render site
