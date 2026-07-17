@@ -357,10 +357,17 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   the app's light overrides win.
 - **Dark merge**: `{ ...light, ...DEFAULT_DARK_COLORS, ...config.colors.dark }` — the merged light
   palette as base, then the library's dark deltas, then the app's own dark overrides win.
-- On mode change (in `useLayoutEffect`, before paint): calls `applyTheme(palette)`, sets
-  `data-tz-theme` attr, sets CSS `color-scheme`, and persists to `localStorage['tz-theme-mode']`.
-- **`useTheme()`** returns `{ mode, setMode, toggleMode }`. Throws if used outside a provider.
-- Initial mode = stored value if present, else `config.mode`, else `'light'`.
+- On mode / brand change (in `useLayoutEffect`, before paint): calls `applyTheme(palette)`, sets
+  `data-tz-theme` attr, sets CSS `color-scheme`, and persists the mode to `localStorage['tz-theme-mode']`.
+- **Brand-color override**: a user-picked `brand` accent (via `useTheme().setBrandColor`) overrides the
+  configured/default `brand` in **both modes**, is applied by the same effect, and persists to
+  **`localStorage['tz-brand-color']`** — so a chosen accent is restored on the next visit (`null` clears
+  it, back to the configured/default brand). The `RootLayout` header **Settings** drawer drives it (see
+  the Layout §).
+- **`useTheme()`** returns `{ mode, setMode, toggleMode, brandColor, setBrandColor }` (`brandColor` = the
+  override hex or `null`). Throws if used outside a provider.
+- Initial mode = stored value if present, else `config.mode`, else `'light'`; initial `brandColor` = the
+  stored override if present, else `null`.
 - **No-JS note:** because the triplet values are injected by `applyTheme` (not declared in `theme.css`),
   colors require `ConfigProvider` to have mounted. It runs in `useLayoutEffect` (before first paint), so
   there's no flash in a normal CSR app; importing the CSS alone (no provider) yields no brand colors.
@@ -489,6 +496,7 @@ component, create its folder `CLAUDE.md` too (see §12).
 - [Select](src/components/Select/CLAUDE.md) — single-select dropdown (searchable, server search).
 - [MultiSelect](src/components/MultiSelect/CLAUDE.md) — the `string[]` sibling of Select.
 - [ColorPicker](src/components/ColorPicker/CLAUDE.md) — color field with a popover picker + alpha.
+- [SwatchPicker](src/components/SwatchPicker/CLAUDE.md) — pick a color from a fixed preset palette of swatches (rounded tiles).
 - [DatePicker](src/components/DatePicker/CLAUDE.md) — masked date input + calendar popover.
 - [DateTimePicker](src/components/DateTimePicker/CLAUDE.md) — date + time (tabbed popover; store-UTC / show-local).
 - [TimePicker](src/components/TimePicker/CLAUDE.md) — time-only picker.

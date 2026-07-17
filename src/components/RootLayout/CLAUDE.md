@@ -28,12 +28,20 @@ The **`NavSearch`** (an internal `Sidebar` export) searches the sidebar's pages 
 `useNavTree` (so it's RBAC-filtered) into `{ label, to, context }` and shows suggestions as a floating
 `List` of `ListItem`s below a `TextField` (filter by page name or section; Up/Down + Enter navigate via
 `useNavigate`, Escape/outside-pointerdown close). The right-side controls are
-a `FullscreenToggle` + `ThemeToggle` (both on by default and `filled`), plus an account `Avatar` — a
-focusable button whose `Dropdown` menu
-has a single **Sign out** `ListItem` calling `onLogout` — shown when `onLogout` is given; when `user`
-is supplied the menu opens with a `User`-icon (or `user.avatar` image) + name + email header above a
-divider). The
-content area stacks **the page title (the active route's `staticData.name`, via the internal
+a `FullscreenToggle` + `ThemeToggle` (both `filled`, `size="sm"`, on by default) + a **Settings**
+`IconButton` (`variant="text"`, `size="sm"`), plus an account `Avatar` — a focusable button whose
+`Dropdown` menu has a single **Sign out** `ListItem` (calling `onLogout`), shown when `onLogout` is
+given; when `user` is supplied the menu opens with a `User`-icon (or `user.avatar` image) plus a name +
+email header above a divider. The **Settings** button (a `Setting5` gear beside the theme toggle that
+**spins continuously** via a keyframe animation, always shown — independent of `onLogout`) opens the
+internal **`SettingsDrawer`** — a right-side `Modal` (`placement="right"`,
+`size="sm"`) with a **`SwatchPicker`** of static **brand-color swatches**; picking one calls **`useTheme().setBrandColor`**,
+which overrides the theme `brand` accent (both modes) and persists it to
+`localStorage['tz-brand-color']`, so the choice is restored next visit. The first swatch is the
+provider default (`#056472`) — selected when there's no override, and picking it clears the override.
+`SettingsDrawer` is internal to the shell (no `index.ts`, not a public export).
+
+The content area stacks **the page title (the active route's `staticData.name`, via the internal
 `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**; the
 `Breadcrumbs` trail sits above the title **only when `header.breadcrumbs` is on** (default off).
 Set **`header.pageTitle: false`** to drop that auto `h2` when pages render their own heading inside

@@ -46,6 +46,7 @@ import { RichTextEditorSection } from '../RichTextEditor'
 import { SliderSection } from '../Slider'
 import { SwitchSection } from '../Switch'
 import { ColorPickerSection } from '../ColorPicker'
+import { SwatchPickerSection } from '../SwatchPicker'
 import { FormValidationsSection } from '../FormValidations'
 import { IconButtonSection } from '../IconButton'
 import { IconSection } from '../Icon'
@@ -480,6 +481,12 @@ const colorPickerRoute = createRoute({
   staticData: { name: 'Color Picker', icon: 'ColorSwatch', order: 7 },
   component: inPage(ColorPickerSection),
 })
+const swatchPickerRoute = createRoute({
+  getParentRoute: () => formsRoute,
+  path: 'swatch-picker',
+  staticData: { name: 'Swatch Picker', icon: 'ColorSwatch', order: 21 },
+  component: inPage(SwatchPickerSection),
+})
 const selectRoute = createRoute({
   getParentRoute: () => formsRoute,
   path: 'select',
@@ -569,6 +576,7 @@ const shellRouter = createRouter({
         radioRoute,
         switchRoute,
         colorPickerRoute,
+        swatchPickerRoute,
         selectRoute,
         multiSelectRoute,
         datePickerRoute,

@@ -14,6 +14,7 @@ import { Typography } from '../Typography'
 import { Breadcrumbs } from '../Breadcrumbs'
 import { Toaster, type ToasterProps } from '../Toast'
 import { NavSearch, Sidebar, usePageTitle } from '../Sidebar/Sidebar'
+import { SettingsDrawer } from './SettingsDrawer'
 import styles from './RootLayout.module.css'
 
 /**
@@ -49,8 +50,9 @@ export interface RootLayoutProps {
  * canvas, with a rounded, elevated `--tz-color-surface` **sidebar card** (`logo` + auto-generated `Sidebar` + an optional
  * `sidebarFooter`) beside the header + content. Set it as the root route's component and pass
  * `<Outlet />` as `children`; the `Sidebar` builds itself from the routes' `staticData`. The header
- * holds an optional `ThemeToggle` (on by default) plus an account `Avatar` whose menu has a **Sign
- * out** item when `header.onLogout` is given. The content area stacks
+ * holds an optional `ThemeToggle` (on by default), a **Settings** button (opens a right-side drawer to
+ * pick + persist the `brand` accent), plus an account `Avatar` whose menu has a **Sign out** item when
+ * `header.onLogout` is given. The content area stacks
  * **`Breadcrumbs` → the page title (the active route's `staticData.name`) → `children`**; pages wrap
  * their own body in `PageLayout`. Set `header.pageTitle = false` to drop the auto `h2` when pages
  * carry their own heading inside their `PageLayout` header. A `<Toaster>` is **mounted by default** so
@@ -78,6 +80,7 @@ export function RootLayout({
   const onLogout = h.onLogout
   const user = h.user
   const [collapsed, setCollapsed] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   return (
     <div className={clsx(styles.shell, collapsed && styles.shellCollapsed)}>
@@ -105,6 +108,15 @@ export function RootLayout({
           <div className={styles.headerEnd}>
             {showFullscreen ? <FullscreenToggle variant="filled" size="sm" /> : null}
             {showTheme ? <ThemeToggle variant="filled" size="sm" /> : null}
+            <IconButton
+              aria-label="Settings"
+              variant="text"
+              size="sm"
+              className={styles.settings}
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Icon name="Setting5" />
+            </IconButton>
             {onLogout ? (
               <Dropdown
                 placement="bottom-end"
@@ -150,6 +162,7 @@ export function RootLayout({
         </main>
       </div>
       {toaster !== false && <Toaster {...toasterProps} />}
+      <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   )
 }

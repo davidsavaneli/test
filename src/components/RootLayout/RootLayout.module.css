@@ -132,3 +132,13 @@
 .pageTitle {
   margin: 0 0 var(--tz-space-sm);
 }
+
+/* the header Settings gear spins continuously (a keyframe animation, like the Loader — not a token transition) */
+@keyframes tz-settings-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.settings svg {
+  animation: tz-settings-spin 4s linear infinite;
+}

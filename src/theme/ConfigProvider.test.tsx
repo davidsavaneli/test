@@ -24,6 +24,12 @@ function Toggle() {
   return <button onClick={toggleMode}>{mode}</button>
 }
 
+/** A button that sets the brand-color override, so we can drive it from the DOM. */
+function BrandSetter({ color }: { color: string | null }) {
+  const { setBrandColor } = useTheme()
+  return <button onClick={() => setBrandColor(color)}>set brand</button>
+}
+
 describe('ConfigProvider', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -114,6 +120,35 @@ describe('ConfigProvider', () => {
     expect(cssVar('--tz-color-primary-rgb')).toBe('0, 0, 0') // overridden
     // a color not in the override is filled from DEFAULT_LIGHT_COLORS (brand = #056472)
     expect(cssVar('--tz-color-brand-rgb')).toBe('5, 100, 114')
+  })
+
+  it('overrides the brand color via setBrandColor and persists it to localStorage', () => {
+    render(
+      <ConfigProvider>
+        <BrandSetter color="#7c3aed" />
+      </ConfigProvider>,
+    )
+    // default brand before the override (DEFAULT_LIGHT_COLORS.brand = #056472 -> 5, 100, 114)
+    expect(cssVar('--tz-color-brand-rgb')).toBe('5, 100, 114')
+    fireEvent.click(screen.getByRole('button'))
+    // #7c3aed -> 124, 58, 237, applied live + persisted
+    expect(cssVar('--tz-color-brand-rgb')).toBe('124, 58, 237')
+    expect(localStorage.getItem('tz-brand-color')).toBe('#7c3aed')
+  })
+
+  it('restores a persisted brand color on mount, and clearing it removes the key', () => {
+    localStorage.setItem('tz-brand-color', '#2563eb')
+    render(
+      <ConfigProvider>
+        <BrandSetter color={null} />
+      </ConfigProvider>,
+    )
+    // #2563eb -> 37, 99, 235, applied from storage on first paint
+    expect(cssVar('--tz-color-brand-rgb')).toBe('37, 99, 235')
+    // clearing the override falls back to the configured/default brand + drops the key
+    fireEvent.click(screen.getByRole('button'))
+    expect(cssVar('--tz-color-brand-rgb')).toBe('5, 100, 114')
+    expect(localStorage.getItem('tz-brand-color')).toBeNull()
   })
 
   it('throws when useTheme is called outside a provider', () => {

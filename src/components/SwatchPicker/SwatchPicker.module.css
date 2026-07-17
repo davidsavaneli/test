@@ -1,0 +1,52 @@
+/* SwatchPicker — a wrapping row of rounded color tiles. Swatch fills come from the inline `--sw` var
+   (arbitrary CSS colors, not `--tz-*` tokens — a deliberate exception, like ColorPicker's spectrum). */
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tz-space-xs);
+  /* per-size: tile size · corner radius · tick (icon) size — overridden by the size class below */
+  --sw-size: 36px;
+  --sw-radius: var(--tz-radius-sm);
+  --sw-icon: 20px;
+}
+
+.sm {
+  --sw-size: 30px;
+  --sw-radius: calc(var(--tz-radius-xs) / 1.4);
+  --sw-icon: 12px;
+}
+.md {
+  --sw-size: 36px;
+  --sw-radius: var(--tz-radius-xs);
+  --sw-icon: 16px;
+}
+.lg {
+  --sw-size: 42px;
+  --sw-radius: calc(var(--tz-radius-sm) / 1.4);
+  --sw-icon: 20px;
+}
+
+.swatch {
+  width: var(--sw-size);
+  height: var(--sw-size);
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: var(--sw-radius);
+  background: var(--sw);
+  color: #fff; /* the selected TickCircle reads over the colored fill */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  transition: box-shadow var(--tz-duration);
+}
+
+/* selection is shown by the TickCircle icon (not a ring); keep a focus ring for keyboard a11y only */
+.swatch:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--tz-color-surface),
+    0 0 0 5px var(--sw);
+}

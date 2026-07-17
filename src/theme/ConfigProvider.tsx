@@ -195,6 +195,10 @@ interface ThemeContextValue {
   mode: ThemeMode
   setMode: (mode: ThemeMode) => void
   toggleMode: () => void
+  /** The persisted brand-color override (a hex), or `null` when using the configured/default brand. */
+  brandColor: string | null
+  /** Set (or clear with `null`) the brand-color override — persists to localStorage and re-applies live. */
+  setBrandColor: (color: string | null) => void
   locales: LocaleConfig[]
   /** Resolved translations namespace (`config.keys.translationsNamespace` ?? the built-in default). */
   translationsNamespace: string
@@ -212,6 +216,8 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 const STORAGE_KEY = 'tz-theme-mode'
+/** Where the user's picked brand-color override is persisted (survives reloads / sessions). */
+const BRAND_STORAGE_KEY = 'tz-brand-color'
 /** The built-in default URL query param name a **top-level** `<Tabs>` syncs to (no `queryKey`/config). */
 export const DEFAULT_TABS_QUERY_KEY = 'tab'
 /** The built-in default URL query param name a **nested** `<Tabs>` syncs to (no `queryKey`/config). */
@@ -263,6 +269,11 @@ function getInitialMode(fallback: ThemeMode): ThemeMode {
   return stored === 'light' || stored === 'dark' ? stored : fallback
 }
 
+/** The persisted brand-color override (a hex string), or `null` when none was picked. */
+function getInitialBrand(): string | null {
+  return localStorage.getItem(BRAND_STORAGE_KEY) || null
+}
+
 export interface ConfigProviderProps {
   /** App config — theme overrides, initial mode, locales. Omit for the built-in defaults (light mode). */
   config?: Config
@@ -271,6 +282,8 @@ export interface ConfigProviderProps {
 
 export function ConfigProvider({ config, children }: ConfigProviderProps) {
   const [mode, setMode] = useState<ThemeMode>(() => getInitialMode(config?.theme?.mode ?? 'light'))
+  // a user-picked brand accent that overrides the configured/default `brand` in BOTH modes; persisted
+  const [brandColor, setBrandColorState] = useState<string | null>(getInitialBrand)
 
   const colors = config?.theme?.colors
 
@@ -278,17 +291,26 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
     // light = the library defaults, then the app's light overrides
     const light = { ...DEFAULT_LIGHT_COLORS, ...colors?.light }
     // dark = the merged light palette, then the library dark deltas, then the app's dark overrides
-    const palette = mode === 'dark' ? { ...light, ...DEFAULT_DARK_COLORS, ...colors?.dark } : light
+    const base = mode === 'dark' ? { ...light, ...DEFAULT_DARK_COLORS, ...colors?.dark } : light
+    // a picked brand override wins over the configured/default brand (applies to both modes)
+    const palette = brandColor ? { ...base, brand: brandColor } : base
     applyTheme(palette)
 
     const root = document.documentElement
     root.setAttribute('data-tz-theme', mode)
     root.style.setProperty('color-scheme', mode)
     localStorage.setItem(STORAGE_KEY, mode)
-  }, [mode, colors])
+  }, [mode, colors, brandColor])
 
   const toggleMode = useCallback(() => {
     setMode((current) => (current === 'light' ? 'dark' : 'light'))
+  }, [])
+
+  // set (or clear with `null`) the brand override; persists to localStorage and re-applies live
+  const setBrandColor = useCallback((color: string | null) => {
+    setBrandColorState(color)
+    if (color) localStorage.setItem(BRAND_STORAGE_KEY, color)
+    else localStorage.removeItem(BRAND_STORAGE_KEY)
   }, [])
 
   const locales = config?.locales ?? EMPTY_LOCALES
@@ -305,6 +327,8 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       mode,
       setMode,
       toggleMode,
+      brandColor,
+      setBrandColor,
       locales,
       translationsNamespace,
       tabQueryKey,
@@ -317,6 +341,8 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       mode,
       setMode,
       toggleMode,
+      brandColor,
+      setBrandColor,
       locales,
       translationsNamespace,
       tabQueryKey,

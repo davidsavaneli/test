@@ -208,7 +208,10 @@ createRoot(el).render(
   - **`keys.translationsNamespace`** (default `'translations'`) — the `<TranslatedFields>` namespace word (e.g.
     `'languages'`). Read with `useTranslationsNamespace()` (pass it to `buildTranslations` /
     `nestTranslations` to match).
-- `useTheme()` → `{ mode, setMode, toggleMode }` (must be inside `ConfigProvider`).
+- `useTheme()` → `{ mode, setMode, toggleMode, brandColor, setBrandColor }` (must be inside
+  `ConfigProvider`). `setBrandColor(hex)` overrides the `brand` accent in both modes and persists it to
+  `localStorage['tz-brand-color']` (restored next visit); `setBrandColor(null)` clears it. The
+  `RootLayout` header **Settings** drawer uses this.
 - `<ThemeToggle />` / `<FullscreenToggle />` — ready-made light/dark and browser-fullscreen switch buttons.
 - **Always pass a color by token name** via the `color` prop (`color="error"`); never hardcode hex.
 - Sizes everywhere are `sm | md | lg` (default `md`).
