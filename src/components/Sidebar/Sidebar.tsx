@@ -381,7 +381,6 @@ export function Sidebar() {
 interface NavPage {
   label: string
   to: string
-  icon?: IconName
   /** Where it lives — e.g. `"Components · Forms"` — shown as the muted second line. */
   context?: string
 }
@@ -389,16 +388,14 @@ interface NavPage {
 /** Flatten the nav tree into every navigable page (top links + group pages + leaves). */
 function flattenPages(tree: { links: NavLeaf[]; modules: NavModule[] }): NavPage[] {
   const pages: NavPage[] = []
-  for (const link of tree.links) pages.push({ label: link.label, to: link.to, icon: link.icon })
+  for (const link of tree.links) pages.push({ label: link.label, to: link.to })
   for (const mod of tree.modules)
     for (const group of mod.groups) {
-      if (group.to)
-        pages.push({ label: group.label, to: group.to, icon: group.icon, context: mod.module })
+      if (group.to) pages.push({ label: group.label, to: group.to, context: mod.module })
       for (const leaf of group.children ?? [])
         pages.push({
           label: leaf.label,
           to: leaf.to,
-          icon: leaf.icon,
           context: `${mod.module} · ${group.label}`,
         })
     }
@@ -497,7 +494,6 @@ export function NavSearch() {
             {results.map((page, i) => (
               <ListItem
                 key={page.to}
-                icon={page.icon}
                 description={page.context}
                 clickable
                 selected={i === active}
