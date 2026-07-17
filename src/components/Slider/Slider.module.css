@@ -72,7 +72,7 @@
   margin-top: calc((var(--sl-track) - var(--sl-thumb)) / 2);
   border-radius: 50%;
   background: rgb(var(--tz-btn-rgb));
-  border: 2px solid var(--tz-color-secondary);
+  border: 2px solid var(--tz-color-surface);
   box-shadow: var(--tz-shadow-xs);
   pointer-events: auto; /* grabbable even when the input ignores pointer events (range mode) */
   transition: box-shadow var(--tz-duration);
@@ -97,7 +97,7 @@
   height: var(--sl-thumb);
   border-radius: 50%;
   background: rgb(var(--tz-btn-rgb));
-  border: 2px solid var(--tz-color-secondary);
+  border: 2px solid var(--tz-color-surface);
   box-shadow: var(--tz-shadow-xs);
   pointer-events: auto;
 }

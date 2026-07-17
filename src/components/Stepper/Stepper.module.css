@@ -111,7 +111,7 @@ button.main:not(:disabled):hover .indicator {
   height: var(--st-indicator);
   border: 2px solid var(--tz-color-border);
   border-radius: 50%;
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   color: var(--tz-color-primary-shade600);
   font-size: var(--st-font);
   font-weight: var(--tz-font-weight-medium);
@@ -143,7 +143,7 @@ button.main:not(:disabled):hover .indicator {
 /* error — red outline + red number */
 .step.error .indicator {
   border-color: var(--tz-color-error);
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   color: var(--tz-color-error);
 }
 

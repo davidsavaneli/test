@@ -9,6 +9,6 @@
 `shape` (`circle` default · `square`), `color` (default `brand`, via `--tz-btn-rgb` / `--tz-btn-on`).
 a11y: an image renders `<img alt>` (alt ← `alt`/`name`); a non-image avatar with a name gets
 `role="img"` + `aria-label`. **AvatarGroup** overlaps `Avatar` children (negative margin + a
-`--tz-color-background` ring) and collapses the overflow past `max` into a trailing `+N` avatar;
+`--tz-color-surface` ring) and collapses the overflow past `max` into a trailing `+N` avatar;
 `size`/`color` normalize all of them (children are cloned to the group `size`). Both live in
 `src/components/Avatar/` (one folder, two exports); `Avatar` ships named **and** default. Own CSS module.

@@ -64,7 +64,7 @@ const config: Config = {
       light: {
         primary: '#13404e',
         secondary: '#ffffff',
-        background: '#ffffff',
+        background: '#f9f9f9',
         surface: '#ffffff',
         brand: '#056472',
         success: '#00a854',
@@ -74,9 +74,9 @@ const config: Config = {
       },
       dark: {
         primary: '#e6e8eb',
-        secondary: '#131b22',
-        background: '#131b22',
-        surface: '#131b22',
+        secondary: '#191919',
+        background: '#0f0f0f',
+        surface: '#191919',
         brand: '#16a6b4',
         success: '#00a854',
         error: '#f04134',

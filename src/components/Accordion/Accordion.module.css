@@ -26,7 +26,7 @@
 .item {
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   overflow: hidden;
   transition:
     border-color var(--tz-duration),

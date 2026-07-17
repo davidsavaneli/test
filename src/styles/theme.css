@@ -40,8 +40,9 @@
   --tz-color-surface-shade700: rgba(var(--tz-color-surface-rgb), 0.8);
   --tz-color-surface-shade800: rgba(var(--tz-color-surface-rgb), 0.9);
 
-  /* background — page canvas (body / shell). Separate from `secondary` (surface): white in light
-     mode, a deep dark in dark mode. Overridable per mode via ConfigProvider like any brand color. */
+  /* background — the rear + shell canvas (body / shell; flat `PageLayout` blends into it). The panels
+     float on it in `--tz-color-surface`: a soft grey in light mode, a deep dark in dark mode.
+     Overridable per mode via ConfigProvider like any brand color. */
   --tz-color-background: rgb(var(--tz-color-background-rgb));
   --tz-color-background-shade100: rgba(var(--tz-color-background-rgb), 0.06);
   --tz-color-background-shade200: rgba(var(--tz-color-background-rgb), 0.1);
@@ -120,8 +121,8 @@
   --tz-color-warning-contrast: #ffffff;
 
   /* semantic — derived from brand; flip automatically when the palette is swapped per mode.
-     (Surfaces use `--tz-color-secondary` directly; the page canvas is its own `--tz-color-background`
-     brand color above.) */
+     (Elevated panels use `--tz-color-surface`; `--tz-color-background` is the rear + shell canvas
+     the panels float on; `--tz-color-secondary` is no longer a surface — just a free brand color.) */
   --tz-color-text: rgb(var(--tz-color-primary-rgb));
   --tz-color-border: rgba(var(--tz-color-primary-rgb), 0.12);
 

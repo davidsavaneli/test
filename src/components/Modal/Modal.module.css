@@ -17,7 +17,7 @@
   flex-direction: column;
   width: 100%;
   max-height: 100%;
-  background-color: var(--tz-color-secondary);
+  background-color: var(--tz-color-surface);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-md);
   box-shadow: var(--tz-shadow-xl);

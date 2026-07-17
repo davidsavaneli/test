@@ -29,7 +29,7 @@
   padding: 0 0 0 var(--tz-space-sm);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-xs);
-  background-color: var(--tz-color-secondary);
+  background-color: var(--tz-color-surface);
   color: var(--tz-color-text);
   font-family: inherit;
   cursor: pointer;
@@ -107,7 +107,7 @@
       rgb(var(--tz-color-error-rgb)) 55%,
       transparent 56%
     ),
-    var(--tz-color-background);
+    var(--tz-color-surface);
 }
 
 .helper {
@@ -271,7 +271,7 @@
       rgb(var(--tz-color-error-rgb)) 56%,
       transparent 57%
     ),
-    var(--tz-color-background);
+    var(--tz-color-surface);
 }
 
 /* ── sizes ───────────────────────────────────────────────────────────────── */

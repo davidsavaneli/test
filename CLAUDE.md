@@ -105,17 +105,17 @@ references it:
 
 **Brand palette (9 colors)** — light-mode defaults:
 
-| token        | hex       | role                                                              |
-| ------------ | --------- | ----------------------------------------------------------------- |
-| `primary`    | `#13404e` | primary brand / default text                                      |
-| `secondary`  | `#ffffff` | surface (cards, inputs, dropdowns)                                |
-| `background` | `#ffffff` | page canvas — separate from surface                               |
-| `surface`    | `#f5f7fa` | the shell canvas — `RootLayout`'s soft floating-layout background |
-| `brand`      | `#056472` | the single brand accent (tints controls via `--tz-btn-rgb`)       |
-| `success`    | `#00a854` | semantic — success                                                |
-| `error`      | `#f04134` | semantic — error/danger                                           |
-| `info`       | `#039aa1` | semantic — info                                                   |
-| `warning`    | `#ffbf00` | semantic — warning                                                |
+| token        | hex       | role                                                                                |
+| ------------ | --------- | ----------------------------------------------------------------------------------- |
+| `primary`    | `#13404e` | primary brand / default text                                                        |
+| `secondary`  | `#ffffff` | a free brand color (near-white), selectable via `color` — **not** the panel surface |
+| `background` | `#f9f9f9` | rear page background + shell canvas + flat `PageLayout` (behind the panels)         |
+| `surface`    | `#ffffff` | the elevated panel surface — cards, sidebar, inputs, dropdowns, modals              |
+| `brand`      | `#056472` | the single brand accent (tints controls via `--tz-btn-rgb`)                         |
+| `success`    | `#00a854` | semantic — success                                                                  |
+| `error`      | `#f04134` | semantic — error/danger                                                             |
+| `info`       | `#039aa1` | semantic — info                                                                     |
+| `warning`    | `#ffbf00` | semantic — warning                                                                  |
 
 > These hex values are the library's built-in light defaults — they live in `DEFAULT_LIGHT_COLORS`
 > (`ConfigProvider.tsx`), the single source of truth. Consuming apps override any subset through
@@ -133,17 +133,19 @@ references it:
 **Contrast tokens** (`--tz-color-<name>-contrast`): the text color that stays legible on top of
 that color used as a solid fill. Used by `contained` controls. Defaults are mostly `#ffffff`;
 `secondary-contrast` is `rgb(var(--tz-color-primary-rgb))` and `background-contrast` is `#04202b`
-(dark text on the white canvas). These are **recomputed per mode** by `applyTheme()` — see §4.
+(dark text on the light canvas). These are **recomputed per mode** by `applyTheme()` — see §4.
 
 ### 3.2 Semantic colors
 
-Just two thin aliases derived from brand tokens, so they flip automatically when the palette is
-swapped per mode. `--tz-color-surface` is the **shell canvas**: `RootLayout` uses a **floating layout**
-where the soft `--tz-color-surface` sits behind everything, and the **sidebar card** (a rounded
-`--tz-color-secondary` panel with a border + `--tz-shadow-xs`) plus the page's `PageLayout` (flat
-`--tz-color-background`) float on it — both white in light mode — so the workspace reads as elevated
-above the canvas (see the Layout §). Cards, inputs and dropdowns also use `--tz-color-secondary`. So
-the surface stack is **surface (canvas) → background / secondary (the floating cards)**:
+Thin aliases derived from brand tokens, so they flip automatically when the palette is swapped per
+mode. The surface hierarchy is **two layers**: `--tz-color-background` is the **rear + canvas** — the
+`<body>` fill and the shell canvas the panels float on (the flat `PageLayout` blends into it), and
+`--tz-color-surface` is the **elevated panel surface** — the sidebar card, cards, inputs, dropdowns,
+modals, and the Badge / Avatar cut-out rings. `--tz-color-secondary` is **no longer a surface**: it's
+just a free brand color (near-white by default, selectable via `color`). `RootLayout` uses a **floating
+layout**: the soft `--tz-color-background` canvas with rounded, elevated `--tz-color-surface` panels
+(border + `--tz-shadow-xs`) floating on it. So the surface stack is **background (rear + canvas + flat
+`PageLayout`) → surface (floating panels)**:
 
 ```css
 --tz-color-text: rgb(var(--tz-color-primary-rgb)); /* = primary, the default text color */
@@ -284,8 +286,8 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 
 - **Default palettes live in TS, in `ConfigProvider.tsx`** — `DEFAULT_LIGHT_COLORS` (the full built-in
   light palette = the single source of truth for every brand color's default value) and
-  `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `background
-#1F1F1E`, `surface #2a2a28`, plus a brighter `brand` teal `#16a6b4`). `theme.css` holds **no** color values — only the structure (solids, shades,
+  `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `surface
+#191919`, `background #0f0f0f`, plus a brighter `brand` teal `#16a6b4`). `theme.css` holds **no** color values — only the structure (solids, shades,
   contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
 - **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; keys?: KeysConfig; table?: TableConfig; header?: HeaderConfig }`
   — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),

@@ -8,6 +8,6 @@
 
 - A **flat `Card`** (`<Card flat>`) for a page's content — so it gains Card's full anatomy (optional
   header `icon`/`title`/`subtitle`/`actions`, body, `footer`/`footerStart`, `collapsible`) while
-  staying on the page `--tz-color-background` with **no shadow** (blends with the shell canvas).
+  staying on the `--tz-color-background` canvas with **no shadow** (blends into the shell canvas).
 - Props are **`Omit<CardProps, 'flat'>`** (always flat). Ships **named and default** from
   `sava-test/components/PageLayout`.

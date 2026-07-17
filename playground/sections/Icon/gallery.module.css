@@ -11,7 +11,7 @@
   padding: var(--tz-space-sm);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-md);
-  background: var(--tz-color-secondary);
+  background: transparent;
   color: var(--tz-color-primary);
   cursor: pointer;
   transition:
@@ -21,7 +21,6 @@
 }
 
 .card:hover {
-  background: var(--tz-color-secondary);
   border-color: rgba(var(--tz-color-primary-rgb), 0.4);
 }
 

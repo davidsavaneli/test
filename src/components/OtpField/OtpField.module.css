@@ -26,7 +26,7 @@
   padding: 0;
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   color: var(--tz-color-text);
   font-family: var(--tz-font-family);
   font-size: var(--otp-font);

@@ -17,7 +17,7 @@ the whole page) wider than the viewport. `icon` (an `IconName` or a node) render
 a leading **filled, non-clickable `IconButton`** box (decorative → `aria-hidden`), tinted by `color`
 (brand token, default `brand`). `subtitle` is a muted description line under the `title`; both `title`
 and `subtitle` clamp to **two lines** then ellipsis (`-webkit-line-clamp`).
-Surface + border + `--tz-radius-md` + `--tz-shadow-xs`. **`flat`** drops the shadow and swaps the
-`secondary` surface for the page `--tz-color-background` (blends with the shell, no elevation) — used by
-`PageLayout`, which is a flat Card. Header omitted entirely when there's no title/icon/actions/collapsible.
+`--tz-color-surface` panel + border + `--tz-radius-md` + `--tz-shadow-xs`. **`flat`** drops the shadow
+and swaps the `surface` panel for the `--tz-color-background` canvas (blends with the shell, no
+elevation) — used by `PageLayout`, which is a flat Card. Header omitted entirely when there's no title/icon/actions/collapsible.
 Own CSS module.

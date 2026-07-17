@@ -23,7 +23,7 @@
   color: var(--tz-btn-on, #fff);
 }
 .outlined {
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   border-color: rgba(var(--tz-btn-rgb), 0.5);
 }
 .text {

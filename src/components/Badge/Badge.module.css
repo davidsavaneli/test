@@ -16,8 +16,8 @@
   box-sizing: border-box;
   background: rgb(var(--tz-btn-rgb));
   color: var(--tz-btn-on, #fff);
-  /* a ring in the page color so the badge reads as "cut out" over the control */
-  box-shadow: 0 0 0 2px var(--tz-color-background);
+  /* a ring in the surface color so the badge reads as "cut out" over the control */
+  box-shadow: 0 0 0 2px var(--tz-color-surface);
   pointer-events: none;
 }
 

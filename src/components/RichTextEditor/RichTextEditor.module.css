@@ -24,7 +24,7 @@
 .control {
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-xs);
-  background-color: var(--tz-color-secondary);
+  background-color: var(--tz-color-surface);
   overflow: hidden;
   transition:
     border-color var(--tz-duration),
@@ -231,7 +231,7 @@
   top: 5px;
   width: 4px;
   height: 8px;
-  border: solid var(--tz-color-secondary);
+  border: solid var(--tz-color-surface);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }

@@ -1,5 +1,6 @@
-/* Admin shell — a floating layout: a soft `--tz-color-surface` canvas with a rounded, elevated white
-   sidebar card and white content cards floating on it (the FreshCart look). Token-only, theme-aware. */
+/* Admin shell — a floating layout: a soft `--tz-color-background` canvas with a rounded, elevated
+   `--tz-color-surface` sidebar card and surface content cards floating on it (the FreshCart look).
+   Token-only, theme-aware. */
 
 .shell {
   /* the inset of the floating cards from the window edges (+ the gap between sidebar and content) */
@@ -11,11 +12,6 @@
   min-height: 100vh;
   padding: var(--shell-pad);
   box-sizing: border-box;
-  /* a very light gradient canvas — a faint brand glow from the top-left, fading into the soft surface
-     grey underneath (flips with the theme via the tokens) */
-  background:
-    linear-gradient(150deg, rgba(var(--tz-color-brand-rgb), 0.05), transparent 45%),
-    var(--tz-color-surface);
   color: var(--tz-color-text);
   font-family: var(--tz-font-family);
 }
@@ -36,7 +32,7 @@
   height: calc(100vh - var(--shell-pad) * 2);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-lg);
   overflow: hidden;

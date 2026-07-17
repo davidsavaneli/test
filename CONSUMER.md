@@ -183,10 +183,12 @@ createRoot(el).render(
 ## 3. Theming
 
 - **9 brand colors** (`ThemeColor`): `primary secondary background surface brand success error info warning`.
-- `background` is the **card canvas** (`PageLayout` + flat cards); `secondary` is the elevated surfaces
-  (the `RootLayout` sidebar card, cards, inputs, dropdowns); and **`surface`** is the soft shell canvas
-  the whole `RootLayout` floats on. Defaults: `background`/`secondary` white, `surface` soft grey in
-  light mode, deep darks in dark mode; override per mode like any color.
+- `background` is the **rear + shell canvas** (the `<body>` fill + the canvas `RootLayout` floats on;
+  the flat `PageLayout` blends into it); **`surface`** is the **elevated panels** (the `RootLayout`
+  sidebar card, cards, inputs, dropdowns, modals); and `secondary` is just a **free brand color**
+  (near-white by default, selectable via `color`) — no longer a surface. Defaults: `background` a soft
+  off-white / `surface` white in light mode (a subtle canvas behind the panels), and a near-black canvas
+  / a touch-lighter panels in dark mode; override per mode like any color.
 - **Built-in defaults live in the library** (`DEFAULT_LIGHT_COLORS` + `DEFAULT_DARK_COLORS`), so the
   theme works with **no config**. The `<ConfigProvider config>` type is **`Config`** = `{ theme?, locales?, keys? }`
   (app config: theme + locales + the configurable key/param names + more later); theme settings live under **`theme`**:

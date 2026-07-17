@@ -36,7 +36,7 @@
   padding: var(--tz-space-xxs) var(--tz-space-xs) var(--tz-space-xxs) var(--tz-space-sm);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-xs);
-  background-color: var(--tz-color-secondary);
+  background-color: var(--tz-color-surface);
   color: var(--tz-color-text);
   cursor: pointer;
   transition:

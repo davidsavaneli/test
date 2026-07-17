@@ -7,7 +7,7 @@ A message banner — the inline feedback surface (info / success / warning / err
 (`contained` · `filled` **default** · `outlined` · `text`) and **`color`** (default `info`) tint it via
 the shared **`--tz-btn-rgb` / `--tz-btn-on`** pattern: `filled` is a soft `0.1` wash with dark text + a
 colored icon, `contained` is the solid fill with contrast (white) text + icon, `outlined` is the
-`secondary` surface + a `0.5` color border, `text` is bare. A **semantic leading `icon` is auto-picked
+`surface` panel + a `0.5` color border, `text` is bare. A **semantic leading `icon` is auto-picked
 per color** (`success → TickCircle`, `error → CloseCircle`, `warning → Warning`, `info → InfoCircle`;
 other colors → `InfoCircle`) — override with **`icon`** (an `IconName` or node) or drop it with
 **`icon={false}`**. The icon is the brand color on the light variants and inherits the contrast text on

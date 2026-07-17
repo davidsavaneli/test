@@ -61,7 +61,7 @@
 
 .item {
   position: relative;
-  box-shadow: 0 0 0 2px var(--tz-color-background);
+  box-shadow: 0 0 0 2px var(--tz-color-surface);
 }
 
 .item:not(:first-child) {

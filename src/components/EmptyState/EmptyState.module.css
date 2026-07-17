@@ -90,6 +90,6 @@
 }
 /* elevated, floating icon puck (a subtle surface→shade gradient + a soft drop shadow) */
 .pattern .icon {
-  background: linear-gradient(180deg, var(--tz-color-secondary), var(--tz-color-primary-shade100));
+  background: linear-gradient(180deg, var(--tz-color-surface), var(--tz-color-primary-shade100));
   box-shadow: var(--tz-shadow-md);
 }

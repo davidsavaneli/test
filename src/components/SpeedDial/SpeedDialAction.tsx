@@ -42,7 +42,7 @@ export const SpeedDialAction = forwardRef<HTMLButtonElement, SpeedDialActionProp
         ref={ref}
         rounded
         variant="contained"
-        color="secondary"
+        color="surface"
         size={dial?.size ?? 'sm'}
         disabled={disabled}
         aria-label={typeof label === 'string' ? label : undefined}

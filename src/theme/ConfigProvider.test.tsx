@@ -39,7 +39,7 @@ describe('ConfigProvider', () => {
     )
     expect(root().getAttribute('data-tz-theme')).toBe('light')
     expect(cssVar('--tz-color-primary-rgb')).toBe('19, 64, 78')
-    // the dedicated page-canvas color defaults to white in light mode
+    // the rear canvas background comes from the provided LIGHT palette (#ffffff here)
     expect(cssVar('--tz-color-background-rgb')).toBe('255, 255, 255')
     expect(localStorage.getItem('tz-theme-mode')).toBe('light')
   })
@@ -64,8 +64,8 @@ describe('ConfigProvider', () => {
     )
     // DEFAULT_DARK_COLORS.primary = #e6e8eb -> 230, 232, 235
     expect(cssVar('--tz-color-primary-rgb')).toBe('230, 232, 235')
-    // DEFAULT_DARK_COLORS.background = #1F1F1E -> 31, 31, 30 (dark page canvas)
-    expect(cssVar('--tz-color-background-rgb')).toBe('31, 31, 30')
+    // DEFAULT_DARK_COLORS.background = #0f0f0f -> 15, 15, 15 (near-black rear + canvas)
+    expect(cssVar('--tz-color-background-rgb')).toBe('15, 15, 15')
   })
 
   it('lets the app dark override win over the library default', () => {
@@ -101,8 +101,8 @@ describe('ConfigProvider', () => {
     expect(root().getAttribute('data-tz-theme')).toBe('light')
     // DEFAULT_LIGHT_COLORS.primary = #13404e -> 19, 64, 78
     expect(cssVar('--tz-color-primary-rgb')).toBe('19, 64, 78')
-    // DEFAULT_LIGHT_COLORS.background = #ffffff -> 255, 255, 255
-    expect(cssVar('--tz-color-background-rgb')).toBe('255, 255, 255')
+    // DEFAULT_LIGHT_COLORS.background = #f9f9f9 (soft off-white canvas) -> 249, 249, 249
+    expect(cssVar('--tz-color-background-rgb')).toBe('249, 249, 249')
   })
 
   it('merges a partial light override onto the built-in defaults', () => {

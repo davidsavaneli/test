@@ -71,7 +71,7 @@
   height: 40px;
   border-radius: var(--tz-radius-sm);
   color: rgb(var(--tz-color-primary-rgb));
-  background-color: var(--tz-color-secondary);
+  background-color: var(--tz-color-surface);
   box-shadow: var(--tz-shadow-xs);
 }
 .prompt {

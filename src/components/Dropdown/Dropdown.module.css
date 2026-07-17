@@ -7,7 +7,7 @@
   box-sizing: border-box;
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   box-shadow: var(--tz-shadow-md);
   overflow-y: auto;
   overscroll-behavior: contain;

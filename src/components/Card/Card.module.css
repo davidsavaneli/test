@@ -1,7 +1,7 @@
 /* Card — surface container with header / body / footer + smooth collapse. Token-only, theme-aware. */
 
 .card {
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-md);
   box-shadow: var(--tz-shadow-xs);
@@ -9,9 +9,8 @@
   color: var(--tz-color-text);
 }
 
-/* flat — blends with the page (no elevation): the page `background` + no shadow (used by `PageLayout`) */
+/* flat — blends with the canvas (no elevation): the `background` rear/canvas + no shadow (used by `PageLayout`) */
 .flat {
-  background: var(--tz-color-background);
   box-shadow: none;
 }
 

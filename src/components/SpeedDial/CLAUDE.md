@@ -15,9 +15,9 @@ takes **`icon`** (default `Add` — a `+`) + an optional **`openIcon`**; with no
 static label pill beside each (like MUI); per-action `<SpeedDialAction tooltipOpen>` overrides it.
 Controlled (`open` + `onOpenChange`) or uncontrolled (`defaultOpen`). Supply actions via the data-driven
 **`actions`** (`{ icon, label?, onClick?, disabled?, key? }[]`) or as **`<SpeedDialAction>`** children.
-**`SpeedDialAction`** is a small `contained` `secondary` (surface) `rounded` `IconButton` with a
+**`SpeedDialAction`** is a small `contained` `surface` `rounded` `IconButton` with a
 **`Tooltip`** `label` (also its `aria-label`); placement derives from the dial `direction` (left for
-vertical, top for horizontal). Because the surface (`secondary`) matches the page background, the action
+vertical, top for horizontal). Because the `surface` fill matches the panels/canvas, the action
 gets a hairline **`--tz-color-border`** (like `Card`/inputs) so the circle reads — `button.action`
 outranks `IconButton`'s contained border. The actions sit in an **absolutely-positioned container** (a DOM child,
 so it never shifts the FAB and hover treats it as inside) that animates open (opacity + per-action

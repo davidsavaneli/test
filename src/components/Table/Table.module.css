@@ -51,7 +51,7 @@
   overflow-x: auto;
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);
-  background-color: var(--tz-color-secondary);
+  background-color: var(--tz-color-surface);
 }
 .table {
   width: 100%;
@@ -64,7 +64,7 @@
   text-align: left;
   font-weight: var(--tz-font-weight-medium);
   color: var(--tz-color-text);
-  background-color: var(--tz-color-secondary);
+  background-color: var(--tz-color-surface);
   border-bottom: 1px solid var(--tz-color-border);
   padding: var(--tz-space-sm);
   white-space: nowrap;
@@ -170,7 +170,7 @@
 .pinnedRight {
   position: sticky;
   z-index: 2;
-  background-color: var(--tz-color-secondary);
+  background-color: var(--tz-color-surface);
 }
 /* a persistent hairline delineates the pinned column from the scrolling body — drawn as an INSET
    box-shadow (not a `border`, which renders unreliably on a sticky cell under `border-collapse: collapse`,
@@ -237,7 +237,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(var(--tz-color-secondary-rgb), 0.6);
+  background-color: rgba(var(--tz-color-surface-rgb), 0.6);
 }
 
 /* ── footer (rows per page + range + pagination) ────────────────────────────────── */

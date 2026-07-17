@@ -35,7 +35,7 @@
   max-height: 60vh;
   overflow-y: auto;
   padding: var(--tz-space-xs);
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);
   box-shadow: var(--tz-shadow-lg);

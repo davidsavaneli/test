@@ -29,7 +29,7 @@
   overflow: hidden; /* clip the icon button's hover tint to the rounded corners */
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-xs);
-  background-color: var(--tz-color-secondary);
+  background-color: var(--tz-color-surface);
   transition:
     border-color var(--tz-duration),
     box-shadow var(--tz-duration),

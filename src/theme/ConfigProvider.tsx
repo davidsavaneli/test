@@ -233,8 +233,8 @@ const EMPTY_HEADER: HeaderConfig = {}
 const DEFAULT_LIGHT_COLORS: ThemePalette = {
   primary: '#13404e',
   secondary: '#ffffff',
-  background: '#ffffff',
-  surface: '#f5f7fa',
+  background: '#f9f9f9', // the rear + shell canvas — a soft off-white behind the white panels
+  surface: '#ffffff', // the elevated panels (cards, sidebar, inputs, dropdowns, modals)
   brand: '#056472',
   success: '#00a854',
   error: '#f04134',
@@ -248,11 +248,10 @@ const DEFAULT_LIGHT_COLORS: ThemePalette = {
  */
 const DEFAULT_DARK_COLORS: Partial<ThemePalette> = {
   primary: '#e6e8eb',
-  secondary: '#1F1F1E',
-  background: '#1F1F1E',
-  // background: '#04191d',
-  surface: '#2a2a28', // a touch lighter than the dark background, for an elevated surface
-  brand: '#16a6b4', // a brighter teal — the light-mode brand is too dark on #1F1F1E
+  secondary: '#191919',
+  background: '#0f0f0f', // the near-black rear + canvas
+  surface: '#191919', // a touch lighter than the canvas, for the elevated panels
+  brand: '#16a6b4', // a brighter teal — the light-mode brand is too dark on the dark canvas
   success: '#00a854',
   error: '#f04134',
   info: '#039aa1',

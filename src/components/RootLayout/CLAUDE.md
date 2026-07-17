@@ -7,8 +7,8 @@ The admin-panel shell lives under `src/components/` (`RootLayout/`, `Sidebar/`, 
 shipped as ordinary components, so it imports from `sava-test/components` like everything else. Powered
 by **`@tanstack/react-router`** (optional peer, `>=1`, `external` in the build).
 `RootLayout({ logo?, sidebarFooter?, header?, toaster?, children })` uses a **floating layout**: the
-shell is a grid (`auto 1fr`, `--tz-space-md` padding + gap) on the soft **`--tz-color-surface`** canvas,
-with a rounded, elevated **white sidebar card** (`--tz-color-secondary` + border + `--tz-radius-lg` +
+shell is a grid (`auto 1fr`, `--tz-space-sm` padding + gap) on the soft **`--tz-color-background`** canvas,
+with a rounded, elevated **`--tz-color-surface` sidebar card** (border + `--tz-radius-lg` +
 `--tz-shadow-xs`) beside the header + content; set it as the **root route's** component and pass
 `<Outlet/>` as `children`. The sidebar card is **sticky** (`top: --tz-space-md`, `height: calc(100vh -
 2*--tz-space-md)`) and split into three rows (`grid-template-rows: auto minmax(0,1fr) auto`) — the
@@ -50,16 +50,18 @@ bridged by a small typed `NavLink` cast since `to` is router-specific); the acti
 `ArrowDown4`). The module label is a dark, `md`, uppercase heading (no icon). **`FirstRouteRedirect`** (for the `/` route) forwards to the first menu item. **`PageLayout`**
 is a **flat `Card`** (`<Card flat>`) for a page's content — so it gains Card's full anatomy (optional
 header `icon`/`title`/`subtitle`/`actions`, body, `footer`/`footerStart`, `collapsible`) while staying on
-the page `--tz-color-background` with no shadow. The shell is a **floating layout** (the FreshCart look):
-the whole app sits on a soft **`--tz-color-surface`** canvas (with a very light brand-glow gradient
-from the top-left; the shell has `--tz-space-md` padding + gap), and the **sidebar is a rounded,
-elevated white card** (`--tz-color-secondary` + border +
+the `--tz-color-background` canvas with no shadow. The shell is a **floating layout** (the FreshCart look):
+the whole app sits on a soft **`--tz-color-background`** canvas (the shell has `--tz-space-sm` padding +
+gap via `--shell-pad`), and the **sidebar is a rounded,
+elevated `--tz-color-surface` card** (border +
 `--tz-radius-lg` + `--tz-shadow-xs`, sticky at `100vh - padding`) with the `logo` at the top, the nav
 (a slightly stronger active **pill** via bumped `--tz-list-hover-alpha`/`--tz-list-selected-alpha` on the
 nav), and an optional **`sidebarFooter`** card pinned at the bottom (grid rows `auto minmax(0,1fr) auto`).
-The **header is borderless on the canvas** (sticky, grey bg), and the page's `PageLayout` cards float as
-white panels on the grey. `PageLayout`'s props are `Omit<CardProps, 'flat'>` (always flat) and it ships
-named **and** default from `sava-test/components/PageLayout`.
+The **header is borderless on the canvas** (sticky, `--tz-color-background` bg), and the page's
+`PageLayout` is a **flat card on the `--tz-color-background` canvas** (it blends into it — no elevation;
+individual `Card`s inside it are the `--tz-color-surface` panels that float). `PageLayout`'s props are
+`Omit<CardProps, 'flat'>` (always flat) and it ships named **and** default from
+`sava-test/components/PageLayout`.
 
 Routes self-register via TanStack `staticData`, which the library augments (typed for consumers):
 `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[]; badge?: string; dot?: ThemeColor }`

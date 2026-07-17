@@ -45,8 +45,8 @@ export interface RootLayoutProps {
 }
 
 /**
- * The admin-panel shell — a **floating** layout: the whole app sits on a soft `--tz-color-surface`
- * canvas, with a rounded, elevated **sidebar card** (`logo` + auto-generated `Sidebar` + an optional
+ * The admin-panel shell — a **floating** layout: the whole app sits on a soft `--tz-color-background`
+ * canvas, with a rounded, elevated `--tz-color-surface` **sidebar card** (`logo` + auto-generated `Sidebar` + an optional
  * `sidebarFooter`) beside the header + content. Set it as the root route's component and pass
  * `<Outlet />` as `children`; the `Sidebar` builds itself from the routes' `staticData`. The header
  * holds an optional `ThemeToggle` (on by default) plus an account `Avatar` whose menu has a **Sign

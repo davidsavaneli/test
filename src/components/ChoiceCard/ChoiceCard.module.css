@@ -30,7 +30,7 @@
   box-sizing: border-box;
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-sm);
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   cursor: pointer;
   user-select: none;
   font-family: var(--tz-font-family);
@@ -126,7 +126,7 @@
   height: var(--cc-indicator);
   border: 1px solid var(--tz-color-border);
   border-radius: 50%;
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
   transition:
     border-color var(--tz-duration),
     background-color var(--tz-duration);
@@ -169,13 +169,13 @@
   transform: scale(0);
 }
 .selected .indicator.radioDot {
-  background: var(--tz-color-secondary); /* stays hollow — brand ring + dot, like Radio */
+  background: var(--tz-color-surface); /* stays hollow — brand ring + dot, like Radio */
 }
 .selected .indicator.radioDot::after {
   transform: scale(1);
 }
 .error.selected .indicator.radioDot {
-  background: var(--tz-color-secondary);
+  background: var(--tz-color-surface);
 }
 .error .indicator.radioDot::after {
   background: var(--tz-color-error);

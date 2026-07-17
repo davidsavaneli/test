@@ -9,4 +9,4 @@ a `number` is capped to `${max}+` (`max` default `99`) and a numeric `0` is hidd
 `dot` renders a plain indicator instead (decorative → `aria-hidden`); `content` wins over `dot`.
 `color` (default `brand`) tints via the **`--tz-btn-rgb` / `--tz-btn-on`** pattern; `placement`
 (`top-right` default · `top-left` · `bottom-right` · `bottom-left`) picks the corner. The badge has a
-`box-shadow` ring in `--tz-color-background` so it reads as cut-out over the control. Own CSS module.
+`box-shadow` ring in `--tz-color-surface` so it reads as cut-out over the control. Own CSS module.

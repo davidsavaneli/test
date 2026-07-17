@@ -1,14 +1,19 @@
 export interface ThemePalette {
   primary: string
+  /**
+   * A free brand color (near-white by default) selectable via the `color` prop — it is **no longer**
+   * the component surface (elevated panels use `--tz-color-surface`).
+   */
   secondary: string
   /**
-   * Page canvas color (the body / shell background) — separate from `secondary` (surface). Built-in
-   * defaults: white in light mode, a deep dark in dark mode.
+   * The rear-most page background — the `<body>` fill + the shell canvas that the floating panels sit
+   * on; nothing else uses it. Built-in defaults: a soft off-white in light mode, a near-black in dark mode.
    */
   background: string
   /**
-   * The soft shell-chrome canvas, `--tz-color-surface` — `RootLayout`'s floating-layout background.
-   * Configurable per mode like any brand color.
+   * The elevated **panel surface** — cards, sidebar, inputs/forms, dropdowns, modals (the panels that
+   * float over `--tz-color-background`). Built-in defaults: white in light mode, a touch lighter than
+   * the canvas in dark mode. Configurable per mode like any brand color.
    */
   surface: string
   /** The single brand accent — the default tint for controls (`Button`, `IconButton`, …). */
