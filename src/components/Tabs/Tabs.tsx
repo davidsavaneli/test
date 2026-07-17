@@ -81,7 +81,7 @@ export interface TabsProps {
   variant?: TabsVariant
   /** Preset size. Defaults to `'md'`. */
   size?: TabsSize
-  /** Brand token tinting the active tab. Defaults to `'primary'`. */
+  /** Theme palette token tinting the active tab. Defaults to `'primary'`. */
   color?: ThemeColor
   /** Strip direction. Defaults to `'horizontal'`. */
   orientation?: TabsOrientation
@@ -308,7 +308,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
       >
         {items.map((item) => {
           const selected = item.value === active
-          // the tab keeps its brand color; `error` shows up only as a red dot, not a full-tab tint
+          // the tab keeps its theme color; `error` shows up only as a red dot, not a full-tab tint
           const tint = color
           const icon = renderIcon(item.icon)
           const hasCount = item.badge != null && item.badge !== 0

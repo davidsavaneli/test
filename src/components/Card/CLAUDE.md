@@ -15,7 +15,7 @@ item) carries **`min-width: 0`** as well as `min-height: 0` — so a wide, non-w
 with its own horizontal scroll) shrinks and scrolls **inside the card** instead of forcing the card (and
 the whole page) wider than the viewport. `icon` (an `IconName` or a node) renders in
 a leading **filled, non-clickable `IconButton`** box (decorative → `aria-hidden`), tinted by `color`
-(brand token, default `brand`). `subtitle` is a muted description line under the `title`; both `title`
+(theme palette token, default `accent`). `subtitle` is a muted description line under the `title`; both `title`
 and `subtitle` clamp to **two lines** then ellipsis (`-webkit-line-clamp`).
 `--tz-color-surface` panel + border + `--tz-radius-md` + `--tz-shadow-xs`. **`flat`** drops the shadow
 and swaps the `surface` panel for the `--tz-color-background` canvas (blends with the shell, no

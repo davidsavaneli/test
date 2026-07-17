@@ -8,7 +8,7 @@ const LIGHT: ThemePalette = {
   secondary: '#f4f9f8',
   background: '#ffffff',
   surface: '#f5f7fa',
-  brand: '#056472',
+  accent: '#056472',
   success: '#00a854',
   error: '#f04134',
   info: '#039aa1',
@@ -24,10 +24,16 @@ function Toggle() {
   return <button onClick={toggleMode}>{mode}</button>
 }
 
-/** A button that sets the brand-color override, so we can drive it from the DOM. */
-function BrandSetter({ color }: { color: string | null }) {
-  const { setBrandColor } = useTheme()
-  return <button onClick={() => setBrandColor(color)}>set brand</button>
+/** A button that sets the accent-color override (optionally for a specific mode), from the DOM. */
+function AccentSetter({ color, target }: { color: string | null; target?: 'light' | 'dark' }) {
+  const { setAccentColor } = useTheme()
+  return <button onClick={() => setAccentColor(color, target)}>set accent</button>
+}
+
+/** Renders the resolved default accent (light), so we can assert what the provider exposes. */
+function AccentReader() {
+  const { defaultAccentColors } = useTheme()
+  return <span>{defaultAccentColors.light}</span>
 }
 
 describe('ConfigProvider', () => {
@@ -118,37 +124,84 @@ describe('ConfigProvider', () => {
       </ConfigProvider>,
     )
     expect(cssVar('--tz-color-primary-rgb')).toBe('0, 0, 0') // overridden
-    // a color not in the override is filled from DEFAULT_LIGHT_COLORS (brand = #056472)
-    expect(cssVar('--tz-color-brand-rgb')).toBe('5, 100, 114')
+    // a color not in the override is filled from DEFAULT_LIGHT_COLORS (accent = #056472)
+    expect(cssVar('--tz-color-accent-rgb')).toBe('5, 100, 114')
   })
 
-  it('overrides the brand color via setBrandColor and persists it to localStorage', () => {
+  it('overrides the accent color for the current mode via setAccentColor and persists it (per mode)', () => {
     render(
       <ConfigProvider>
-        <BrandSetter color="#7c3aed" />
+        <AccentSetter color="#7c3aed" />
       </ConfigProvider>,
     )
-    // default brand before the override (DEFAULT_LIGHT_COLORS.brand = #056472 -> 5, 100, 114)
-    expect(cssVar('--tz-color-brand-rgb')).toBe('5, 100, 114')
+    // default accent before the override (DEFAULT_LIGHT_COLORS.accent = #056472 -> 5, 100, 114)
+    expect(cssVar('--tz-color-accent-rgb')).toBe('5, 100, 114')
     fireEvent.click(screen.getByRole('button'))
-    // #7c3aed -> 124, 58, 237, applied live + persisted
-    expect(cssVar('--tz-color-brand-rgb')).toBe('124, 58, 237')
-    expect(localStorage.getItem('tz-brand-color')).toBe('#7c3aed')
+    // #7c3aed -> 124, 58, 237, applied live + persisted under the light-mode key
+    expect(cssVar('--tz-color-accent-rgb')).toBe('124, 58, 237')
+    expect(localStorage.getItem('tz-accent-color-light')).toBe('#7c3aed')
+    // dark keeps its own (unset) override
+    expect(localStorage.getItem('tz-accent-color-dark')).toBeNull()
   })
 
-  it('restores a persisted brand color on mount, and clearing it removes the key', () => {
-    localStorage.setItem('tz-brand-color', '#2563eb')
+  it('restores a persisted accent color on mount, and clearing it removes the key', () => {
+    localStorage.setItem('tz-accent-color-light', '#2563eb')
     render(
       <ConfigProvider>
-        <BrandSetter color={null} />
+        <AccentSetter color={null} />
       </ConfigProvider>,
     )
     // #2563eb -> 37, 99, 235, applied from storage on first paint
-    expect(cssVar('--tz-color-brand-rgb')).toBe('37, 99, 235')
-    // clearing the override falls back to the configured/default brand + drops the key
+    expect(cssVar('--tz-color-accent-rgb')).toBe('37, 99, 235')
+    // clearing the override falls back to the configured/default accent + drops the key
     fireEvent.click(screen.getByRole('button'))
-    expect(cssVar('--tz-color-brand-rgb')).toBe('5, 100, 114')
-    expect(localStorage.getItem('tz-brand-color')).toBeNull()
+    expect(cssVar('--tz-color-accent-rgb')).toBe('5, 100, 114')
+    expect(localStorage.getItem('tz-accent-color-light')).toBeNull()
+  })
+
+  it('can target another mode without touching the active one', () => {
+    render(
+      <ConfigProvider config={{ theme: { mode: 'light' } }}>
+        <AccentSetter color="#111111" target="dark" />
+      </ConfigProvider>,
+    )
+    fireEvent.click(screen.getByRole('button'))
+    // active mode (light) keeps its default accent; only dark's override was set + persisted
+    expect(cssVar('--tz-color-accent-rgb')).toBe('5, 100, 114')
+    expect(localStorage.getItem('tz-accent-color-dark')).toBe('#111111')
+    expect(localStorage.getItem('tz-accent-color-light')).toBeNull()
+  })
+
+  it('keeps accent overrides independent per mode', () => {
+    // a light override is persisted; dark was never set
+    localStorage.setItem('tz-accent-color-light', '#7c3aed')
+    render(
+      <ConfigProvider config={{ theme: { mode: 'light' } }}>
+        <Toggle />
+      </ConfigProvider>,
+    )
+    // light shows its override (#7c3aed -> 124, 58, 237)
+    expect(cssVar('--tz-color-accent-rgb')).toBe('124, 58, 237')
+    // toggle to dark → no dark override, so the dark default accent applies (#16a6b4 -> 22, 166, 180)
+    fireEvent.click(screen.getByRole('button'))
+    expect(cssVar('--tz-color-accent-rgb')).toBe('22, 166, 180')
+  })
+
+  it('exposes the configured/default accent via defaultAccentColors (app override wins)', () => {
+    const { rerender } = render(
+      <ConfigProvider>
+        <AccentReader />
+      </ConfigProvider>,
+    )
+    // DEFAULT_LIGHT_COLORS.accent
+    expect(screen.getByText('#056472')).toBeInTheDocument()
+    // an app's configured accent is reflected (no override set)
+    rerender(
+      <ConfigProvider config={{ theme: { colors: { light: { accent: '#123456' } } } }}>
+        <AccentReader />
+      </ConfigProvider>,
+    )
+    expect(screen.getByText('#123456')).toBeInTheDocument()
   })
 
   it('throws when useTheme is called outside a provider', () => {

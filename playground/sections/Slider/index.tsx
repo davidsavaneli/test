@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Col, Slider } from '../../../src'
 import { Block, cap, Section, SIZES } from '../../shared'
 
-const COLORS = ['brand', 'primary', 'success', 'info', 'warning', 'error'] as const
+const COLORS = ['accent', 'primary', 'success', 'info', 'warning', 'error'] as const
 
 export function SliderSection() {
   const [value, setValue] = useState(40)

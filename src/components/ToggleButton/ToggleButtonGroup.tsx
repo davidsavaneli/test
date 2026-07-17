@@ -52,7 +52,7 @@ export interface ToggleButtonGroupProps extends Omit<
   orientation?: ToggleButtonGroupOrientation
   /** Preset size for every button. Defaults to `md`. */
   size?: ToggleButtonSize
-  /** Brand palette token tinting selected buttons. Defaults to `primary`. */
+  /** Theme palette token tinting selected buttons. Defaults to `primary`. */
   color?: ThemeColor
   /** Disables every button in the group. */
   disabled?: boolean

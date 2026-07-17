@@ -18,7 +18,7 @@ export type IconButtonSize = 'sm' | 'md' | 'lg'
 export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
   /** Visual style. `contained` solid · `filled` soft tint · `outlined` border · `text` bare. */
   variant?: IconButtonVariant
-  /** Brand palette token that tints the button. Defaults to `medium`. */
+  /** Theme palette token that tints the button. Defaults to `accent`. */
   color?: ThemeColor
   /** Preset size — square: width === height === `--tz-control-height-*` (matches `Button` heights). */
   size?: IconButtonSize
@@ -42,7 +42,7 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
   {
     variant = 'contained',
-    color = 'brand',
+    color = 'accent',
     size = 'md',
     loading = false,
     rounded = false,

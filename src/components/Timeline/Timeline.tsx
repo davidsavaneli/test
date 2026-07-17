@@ -18,7 +18,7 @@ export interface TimelineEntry {
   content?: ReactNode
   /** Node icon (soft tinted circle) — a known `IconName` or any node. Omit for a small dot node. */
   icon?: IconName | ReactNode
-  /** Brand palette token tinting this entry's node (overrides the timeline's `color`). */
+  /** Theme palette token tinting this entry's node (overrides the timeline's `color`). */
   color?: ThemeColor
 }
 
@@ -27,7 +27,7 @@ export interface TimelineProps extends Omit<OlHTMLAttributes<HTMLOListElement>, 
   items?: TimelineEntry[]
   /** Preset size — node circle, dot and fonts. Defaults to `md`. */
   size?: TimelineSize
-  /** Brand palette token tinting the nodes. Defaults to `primary` (a per-item `color` wins). */
+  /** Theme palette token tinting the nodes. Defaults to `primary` (a per-item `color` wins). */
   color?: ThemeColor
   /** `<TimelineItem>` children (used when `items` is not given). */
   children?: ReactNode

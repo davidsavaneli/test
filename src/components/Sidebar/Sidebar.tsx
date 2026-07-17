@@ -47,7 +47,7 @@ declare module '@tanstack/react-router' {
     roles?: string[]
     /** Small text label (e.g. `"New"`) shown as a pill on the menu row. */
     badge?: string
-    /** Brand color of a small dot indicator on the menu row (e.g. `"error"`). */
+    /** Theme color of a small dot indicator on the menu row (e.g. `"error"`). */
     dot?: ThemeColor
   }
 }

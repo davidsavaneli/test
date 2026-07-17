@@ -19,7 +19,7 @@ when it fits and top-aligns + scrolls when it doesn't) or **`inside`** (the body
   (header + footer pinned — `placement` forces `scrollBehavior: inside`, so the `outside` rules never
   apply). **The header mirrors `Card`:** an optional leading
   **`icon`** (an `IconName` or node) in a **filled, non-clickable `IconButton` box** tinted by **`color`**
-  (brand token, default `brand`), a **`title`** (md/bold, clamps to 2 lines) that labels the dialog via
+  (theme palette token, default `accent`), a **`title`** (md/bold, clamps to 2 lines) that labels the dialog via
   `aria-labelledby`, and a **`description`** (xs/muted subtitle, clamps to 2 lines); a **dashed** divider
   (like Card) sets the header apart when a body/footer follows. **`children`** is the body and **`footer`** holds right-aligned
   actions over a top divider (e.g. Cancel / Confirm). Dismissal is three-way and each toggle-able: a header

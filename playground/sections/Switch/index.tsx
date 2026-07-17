@@ -16,7 +16,7 @@ export function SwitchSection() {
 
       <Block label="colors (on)">
         <Row gap={24} wrap>
-          <Switch color="brand" defaultChecked aria-label="Medium" />
+          <Switch color="accent" defaultChecked aria-label="Medium" />
           <Switch color="success" defaultChecked aria-label="Success" />
           <Switch color="error" defaultChecked aria-label="Error" />
           <Switch color="primary" defaultChecked aria-label="Primary" />

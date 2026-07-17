@@ -30,7 +30,7 @@
   background: transparent;
 }
 
-/* leading icon — the brand color; on the solid `contained` fill it inherits the contrast text color */
+/* leading icon — the theme color; on the solid `contained` fill it inherits the contrast text color */
 .icon {
   display: inline-flex;
   flex: none;

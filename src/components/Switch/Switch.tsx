@@ -21,7 +21,7 @@ export interface SwitchProps extends Omit<
 > {
   /** Text shown to the right of the switch. */
   label?: ReactNode
-  /** Brand palette token used for the "on" fill. Defaults to `medium`. */
+  /** Theme palette token used for the "on" fill. Defaults to `accent`. */
   color?: ThemeColor
   /** Preset size — track/thumb dimensions and label font. */
   size?: SwitchSize
@@ -47,7 +47,7 @@ export interface SwitchProps extends Omit<
 export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
   {
     label,
-    color = 'brand',
+    color = 'accent',
     size = 'md',
     error,
     required = false,

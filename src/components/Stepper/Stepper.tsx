@@ -80,7 +80,7 @@ export interface StepperProps {
   orientation?: StepperOrientation
   /** Preset size. Defaults to `'md'`. */
   size?: StepperSize
-  /** Brand token tinting the active / completed steps. Defaults to `'primary'`. */
+  /** Theme palette token tinting the active / completed steps. Defaults to `'primary'`. */
   color?: ThemeColor
   /**
    * Makes steps **clickable** — each step head becomes a `<button>` that fires this with the step index

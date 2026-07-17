@@ -42,7 +42,7 @@
 .card:hover:not(.disabled):not(.selected) {
   border-color: rgba(var(--tz-btn-rgb), 0.5);
 }
-/* selected — brand border + a soft halo ring + a faint wash */
+/* selected — accent border + a soft halo ring + a faint wash */
 .card.selected {
   border-color: rgb(var(--tz-btn-rgb));
   background: rgba(var(--tz-btn-rgb), 0.04);
@@ -169,7 +169,7 @@
   transform: scale(0);
 }
 .selected .indicator.radioDot {
-  background: var(--tz-color-surface); /* stays hollow — brand ring + dot, like Radio */
+  background: var(--tz-color-surface); /* stays hollow — accent ring + dot, like Radio */
 }
 .selected .indicator.radioDot::after {
   transform: scale(1);
@@ -181,7 +181,7 @@
   background: var(--tz-color-error);
 }
 
-/* ── icon circle — soft neutral, fills with the brand color while selected ──── */
+/* ── icon circle — soft neutral, fills with the theme color while selected ──── */
 .iconBox {
   display: inline-flex;
   align-items: center;

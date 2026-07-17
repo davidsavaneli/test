@@ -34,12 +34,15 @@ a `FullscreenToggle` + `ThemeToggle` (both `filled`, `size="sm"`, on by default)
 given; when `user` is supplied the menu opens with a `User`-icon (or `user.avatar` image) plus a name +
 email header above a divider. The **Settings** button (a `Setting5` gear beside the theme toggle that
 **spins continuously** via a keyframe animation, always shown — independent of `onLogout`) opens the
-internal **`SettingsDrawer`** — a right-side `Modal` (`placement="right"`,
-`size="sm"`) with a **`SwatchPicker`** of static **brand-color swatches**; picking one calls **`useTheme().setBrandColor`**,
-which overrides the theme `brand` accent (both modes) and persists it to
-`localStorage['tz-brand-color']`, so the choice is restored next visit. The first swatch is the
-provider default (`#056472`) — selected when there's no override, and picking it clears the override.
-`SettingsDrawer` is internal to the shell (no `index.ts`, not a public export).
+internal **`SettingsDrawer`** — a right-side `Modal` (`placement="right"`, `size="sm"`) with **two
+`SwatchPicker`s** (one labelled **Light theme**, one **Dark theme**) so both accents are chosen
+independently at once — each a **per-mode** set (deeper tones for light, brighter for dark). Picking a
+swatch calls **`useTheme().setAccentColor(color, mode)`**, which overrides that mode's `accent` and
+persists it to `localStorage['tz-accent-color-<mode>']` (light + dark keep independent accents), so the
+choice is restored next visit. Each list leads with the provider's configured default for that mode
+(read via `useTheme().defaultAccentColors[mode]` — not hardcoded) — selected when there's no override,
+and picking it clears that mode's override. `SettingsDrawer` is internal to the shell (no `index.ts`,
+not a public export).
 
 The content area stacks **the page title (the active route's `staticData.name`, via the internal
 `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**; the
@@ -75,7 +78,7 @@ Routes self-register via TanStack `staticData`, which the library augments (type
 `{ name?: string; icon?: IconName; order?: number; hidden?: boolean; roles?: string[]; badge?: string; dot?: ThemeColor }`
 — a route with **no `name`** never appears; `hidden` keeps it routed but off the menu; `order` sorts
 (asc, then alphabetical); `roles` gates it by access (see RBAC below); `badge` shows a small "New"-style
-pill on the menu row (a styled span, **not** the `Badge` component — `--tz-color-brand` fill, rendered
+pill on the menu row (a styled span, **not** the `Badge` component — `--tz-color-accent` fill, rendered
 in the row's trailing slot before any chevron); `dot` shows a small colored dot on the row tinted by any
 brand `ThemeColor` (e.g. `dot: 'error'`, via `var(--tz-color-<color>)`). **Dynamic/param routes** (e.g.
 `/users/$userId`) work normally — give them no `name` (or `hidden`) and they route + render via the

@@ -8,7 +8,7 @@ export type LoaderSize = 'sm' | 'md' | 'lg'
 export interface LoaderProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'color'> {
   /** Preset size — matches the Icon sizes: `sm` 14px · `md` 18px · `lg` 22px. Defaults to `md`. */
   size?: LoaderSize
-  /** Brand palette token used to color the spinner. Omit to inherit the surrounding text color (`currentColor`). */
+  /** Theme palette token used to color the spinner. Omit to inherit the surrounding text color (`currentColor`). */
   color?: ThemeColor
 }
 

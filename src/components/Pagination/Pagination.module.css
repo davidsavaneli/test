@@ -81,7 +81,7 @@
   border-color: var(--tz-color-border);
 }
 
-/* selected page — solid brand fill (the current-page indicator); declared after the variant rules so it wins */
+/* selected page — solid accent fill (the current-page indicator); declared after the variant rules so it wins */
 .page.selected {
   background: rgb(var(--tz-btn-rgb));
   border-color: rgb(var(--tz-btn-rgb));

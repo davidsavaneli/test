@@ -20,7 +20,7 @@ extra consumer import; the JS stays external).
 Shares **TextField's field chrome** — it imports `TextField.module.css` for the label / required /
 helper / error styling (the `Slider`/`NumberField` precedent) — so `label` · `required` · `error` +
 `helperText` · `fullWidth` (**default `true`**) behave like the rest of the field family. A soft
-**dropzone** bar (compact, horizontal, dashed `brand` border, `DocumentUpload` icon, the
+**dropzone** bar (compact, horizontal, dashed `accent` border, `DocumentUpload` icon, the
 `"Choose a file or drag & drop it here"` prompt) sits above a **responsive grid of image cards** — each
 **≥200px wide and stretching to fill the row** (`repeat(auto-fit, minmax(min(100%, 200px), 1fr))`, so a row
 reaches the right edge and wraps once another 200px won't fit), a fixed **200px tall**. The dropzone shows while `multiple` (or, in single mode, until a file is

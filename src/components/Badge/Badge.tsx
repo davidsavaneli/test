@@ -12,7 +12,7 @@ export interface BadgeProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'color
   content?: number | string
   /** Render a small dot instead of `content` (a plain notification indicator). */
   dot?: boolean
-  /** Brand palette token that tints the badge. Defaults to `medium`. */
+  /** Theme palette token that tints the badge. Defaults to `accent`. */
   color?: ThemeColor
   /** Cap for numeric `content` — anything above renders as `${max}+`. Defaults to `99`. */
   max?: number
@@ -40,7 +40,7 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(function Badge(
     children,
     content,
     dot = false,
-    color = 'brand',
+    color = 'accent',
     max = 99,
     showZero = false,
     placement = 'top-right',

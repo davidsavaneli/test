@@ -56,7 +56,7 @@ export interface SliderProps extends Omit<
   max?: number
   /** Increment the thumb snaps to (arrow keys + drag). Defaults to `1`. */
   step?: number
-  /** Brand palette token that tints the fill + thumb. Defaults to `medium`. */
+  /** Theme palette token that tints the fill + thumb. Defaults to `accent`. */
   color?: ThemeColor
   /** Disables the slider. */
   disabled?: boolean
@@ -96,7 +96,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
     min = 0,
     max = 100,
     step = 1,
-    color = 'brand',
+    color = 'accent',
     disabled = false,
     valueLabel = true,
     marks,

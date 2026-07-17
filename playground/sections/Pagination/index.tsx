@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Col, List, ListItem, Pagination, Row, Typography } from '../../../src'
 import { Block, Section, SIZES } from '../../shared'
 
-const COLORS = ['brand', 'primary', 'success', 'info', 'warning', 'error'] as const
+const COLORS = ['accent', 'primary', 'success', 'info', 'warning', 'error'] as const
 
 export function PaginationSection() {
   const [page, setPage] = useState(5)

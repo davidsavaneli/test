@@ -37,9 +37,9 @@ describe('colorUtils', () => {
 
 describe('ColorPicker', () => {
   it('renders a placeholder trigger and opens the popover on click', () => {
-    render(<ColorPicker label="Brand color" />)
+    render(<ColorPicker label="Theme color" />)
     // an associated <label htmlFor> names the trigger button
-    const trigger = screen.getByRole('button', { name: 'Brand color' })
+    const trigger = screen.getByRole('button', { name: 'Theme color' })
     fireEvent.click(trigger)
     expect(screen.getByRole('dialog', { name: 'Color picker' })).toBeInTheDocument()
   })

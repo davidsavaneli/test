@@ -12,8 +12,8 @@ and the active page is clamped to `[1, count]`. The visible items come from a **
 pages + the current page's siblings + `start`/`end` ellipses; **internal**, not exported, like
 `buildNavTree`). **`siblingCount`** (default `1`) sets pages on each side of the current; **`boundaryCount`**
 (default `1`) the pages pinned at each edge. **`variant`** is `outlined` (default — every page/arrow is a
-bordered box) or `text` (borderless); the **selected** page is always a solid brand fill via the shared
-**`--tz-btn-rgb` / `--tz-btn-on`** pattern (`color`, default `brand`). `size` (`sm/md/lg` → compact box
+bordered box) or `text` (borderless); the **selected** page is always a solid accent fill via the shared
+**`--tz-btn-rgb` / `--tz-btn-on`** pattern (`color`, default `accent`). `size` (`sm/md/lg` → compact box
 **28/32/36px** — a literal-px exception like the RTE toolbar, no token maps to these — + font/icon on the
 shared scale), **`rounded`** (circular page buttons), **`disabled`** (disables every
 button). Arrows: prev/next always shown (toggle with **`hidePrevButton`** / **`hideNextButton`**), each

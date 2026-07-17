@@ -491,7 +491,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         ariaLabel="Text color"
         width={232}
       >
-        {/* no "no color" swatch; with no explicit color the brand default (first swatch) shows selected */}
+        {/* no "no color" swatch; with no explicit color the accent default (first swatch) shows selected */}
         <ColorPickerPanel
           value={textColor || DEFAULT_SWATCHES[0]}
           onChange={applyColor}

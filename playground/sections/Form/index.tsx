@@ -17,6 +17,7 @@ import {
   OtpField,
   RichTextEditor,
   Slider,
+  SwatchPicker,
   Switch,
   TagsField,
   TextField,
@@ -36,6 +37,18 @@ const CATEGORIES = [
   { value: 'data', label: 'Data' },
 ]
 
+const ACCENT_COLORS = [
+  '#056472',
+  '#7c3aed',
+  '#2563eb',
+  '#0891b2',
+  '#059669',
+  '#ca8a04',
+  '#ea580c',
+  '#dc2626',
+  '#db2777',
+]
+
 /** A nested server response — flattened into the Edit page's defaults so the fields arrive filled. */
 const TEST_RESPONSE = {
   email: 'hello@techzy.app',
@@ -47,6 +60,7 @@ const TEST_RESPONSE = {
   tags: ['news', 'featured'],
   categories: ['design', 'eng'],
   role: 'user',
+  accent: '#7c3aed',
   otp: '1234',
   published: true,
   priority: 7,
@@ -79,6 +93,7 @@ const buildSchema = (codes: string[]) => {
     tags: z.array(z.string()).min(1, 'Add at least one tag'),
     categories: z.array(z.string()).min(1, 'Pick at least one'),
     role: z.string().min(1, 'Pick a role'),
+    accent: z.string().min(1, 'Pick a brand color'),
     otp: z.string().length(4, 'Enter the 4-digit code'),
     published: z.boolean(),
     priority: z.number().min(1, 'Set a priority (min 1)'),
@@ -99,6 +114,7 @@ const buildDefaults = (codes: string[]) => ({
   tags: [] as string[],
   categories: [] as string[],
   role: '',
+  accent: '',
   otp: '',
   published: false,
   priority: 0,
@@ -156,6 +172,7 @@ function Fields() {
           { value: 10, label: '10' },
         ]}
       />
+      <SwatchPicker name="accent" required label="Accent Color" colors={ACCENT_COLORS} />
       <RichTextEditor
         name="body"
         required

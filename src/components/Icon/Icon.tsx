@@ -10,7 +10,7 @@ export type IconSize = 'sm' | 'md' | 'lg'
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'color' | 'children'> {
   /** Icon to render — see the `IconName` union for the full set. */
   name: IconName
-  /** Brand palette token used as the icon color. Omit to inherit the surrounding text color (`currentColor`). */
+  /** Theme palette token used as the icon color. Omit to inherit the surrounding text color (`currentColor`). */
   color?: ThemeColor
   /** Preset size: `sm` 16px · `md` 18px · `lg` 22px. Defaults to `md`. */
   size?: IconSize
@@ -18,7 +18,7 @@ export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'color' | 'chil
 
 /**
  * Renders an inline SVG from the generated icon registry. With a `color` token
- * the icon takes that brand color; without one it inherits the surrounding text
+ * the icon takes that theme color; without one it inherits the surrounding text
  * color via `currentColor` (so it adapts inside a `Button`). Override the preset
  * `size` for one-offs with `style={{ width, height }}`.
  */

@@ -66,7 +66,7 @@ export interface OtpFieldProps {
   placeholder?: string
   /** Preset size. Defaults to `'md'`. */
   size?: OtpFieldSize
-  /** Brand palette token for the focus ring / active box. Defaults to `'primary'`. */
+  /** Theme palette token for the focus ring / active box. Defaults to `'primary'`. */
   color?: ThemeColor
   className?: string
   style?: CSSProperties

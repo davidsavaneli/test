@@ -18,7 +18,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg'
 export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
   /** Visual style. `contained` solid · `filled` soft tint · `outlined` border · `text` bare. */
   variant?: ButtonVariant
-  /** Brand palette token that tints the button. Defaults to `medium`. */
+  /** Theme palette token that tints the button. Defaults to `accent`. */
   color?: ThemeColor
   /** Preset size — drives height (`--tz-control-height-*`), padding and font size. */
   size?: ButtonSize
@@ -37,7 +37,7 @@ export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
     variant = 'contained',
-    color = 'brand',
+    color = 'accent',
     size = 'md',
     loading = false,
     fullWidth = false,

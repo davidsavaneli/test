@@ -10,7 +10,7 @@ colored icon, `contained` is the solid fill with contrast (white) text + icon, `
 `surface` panel + a `0.5` color border, `text` is bare. A **semantic leading `icon` is auto-picked
 per color** (`success → TickCircle`, `error → CloseCircle`, `warning → Warning`, `info → InfoCircle`;
 other colors → `InfoCircle`) — override with **`icon`** (an `IconName` or node) or drop it with
-**`icon={false}`**. The icon is the brand color on the light variants and inherits the contrast text on
+**`icon={false}`**. The icon is the theme color on the light variants and inherits the contrast text on
 `contained`. A trailing **`action`** slot (a `Button`, e.g. `UNDO`) sits before an optional **`onClose`**
 × **`IconButton`** (`variant="text"`, `closeLabel` default `"Close"`) that the alert CSS shrinks below
 the `sm` preset to a compact 24px box and re-tints — its × inherits the alert text color (dark on light

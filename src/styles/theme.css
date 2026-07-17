@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
 :root {
-  /* Brand color VALUES (the `-rgb` triplets) are NOT declared here — ConfigProvider injects them onto
+  /* Theme color VALUES (the `-rgb` triplets) are NOT declared here — ConfigProvider injects them onto
      <html> at runtime from DEFAULT_LIGHT_COLORS (+ the app's overrides, + the dark deltas), via
      applyTheme. This file defines only the *structure* that references them: each solid
      `--tz-color-<name>`, its shade scale, and the contrast fallbacks. */
@@ -29,7 +29,7 @@
   --tz-color-secondary-shade800: rgba(var(--tz-color-secondary-rgb), 0.9);
 
   /* surface — a light surface color (very light in light mode, elevated dark in dark). Defined +
-     injected like any brand color, but NOT yet wired to any component — reserved for future use. */
+     injected like any theme color, but NOT yet wired to any component — reserved for future use. */
   --tz-color-surface: rgb(var(--tz-color-surface-rgb));
   --tz-color-surface-shade100: rgba(var(--tz-color-surface-rgb), 0.06);
   --tz-color-surface-shade200: rgba(var(--tz-color-surface-rgb), 0.1);
@@ -42,7 +42,7 @@
 
   /* background — the rear + shell canvas (body / shell; flat `PageLayout` blends into it). The panels
      float on it in `--tz-color-surface`: a soft grey in light mode, a deep dark in dark mode.
-     Overridable per mode via ConfigProvider like any brand color. */
+     Overridable per mode via ConfigProvider like any theme color. */
   --tz-color-background: rgb(var(--tz-color-background-rgb));
   --tz-color-background-shade100: rgba(var(--tz-color-background-rgb), 0.06);
   --tz-color-background-shade200: rgba(var(--tz-color-background-rgb), 0.1);
@@ -53,16 +53,16 @@
   --tz-color-background-shade700: rgba(var(--tz-color-background-rgb), 0.8);
   --tz-color-background-shade800: rgba(var(--tz-color-background-rgb), 0.9);
 
-  /* brand */
-  --tz-color-brand: rgb(var(--tz-color-brand-rgb));
-  --tz-color-brand-shade100: rgba(var(--tz-color-brand-rgb), 0.06);
-  --tz-color-brand-shade200: rgba(var(--tz-color-brand-rgb), 0.1);
-  --tz-color-brand-shade300: rgba(var(--tz-color-brand-rgb), 0.14);
-  --tz-color-brand-shade400: rgba(var(--tz-color-brand-rgb), 0.3);
-  --tz-color-brand-shade500: rgba(var(--tz-color-brand-rgb), 0.5);
-  --tz-color-brand-shade600: rgba(var(--tz-color-brand-rgb), 0.7);
-  --tz-color-brand-shade700: rgba(var(--tz-color-brand-rgb), 0.8);
-  --tz-color-brand-shade800: rgba(var(--tz-color-brand-rgb), 0.9);
+  /* accent */
+  --tz-color-accent: rgb(var(--tz-color-accent-rgb));
+  --tz-color-accent-shade100: rgba(var(--tz-color-accent-rgb), 0.06);
+  --tz-color-accent-shade200: rgba(var(--tz-color-accent-rgb), 0.1);
+  --tz-color-accent-shade300: rgba(var(--tz-color-accent-rgb), 0.14);
+  --tz-color-accent-shade400: rgba(var(--tz-color-accent-rgb), 0.3);
+  --tz-color-accent-shade500: rgba(var(--tz-color-accent-rgb), 0.5);
+  --tz-color-accent-shade600: rgba(var(--tz-color-accent-rgb), 0.7);
+  --tz-color-accent-shade700: rgba(var(--tz-color-accent-rgb), 0.8);
+  --tz-color-accent-shade800: rgba(var(--tz-color-accent-rgb), 0.9);
 
   /* success */
   --tz-color-success: rgb(var(--tz-color-success-rgb));
@@ -114,7 +114,7 @@
   --tz-color-secondary-contrast: rgb(var(--tz-color-primary-rgb));
   --tz-color-surface-contrast: rgb(var(--tz-color-primary-rgb));
   --tz-color-background-contrast: #04202b;
-  --tz-color-brand-contrast: #ffffff;
+  --tz-color-accent-contrast: #ffffff;
   --tz-color-success-contrast: #ffffff;
   --tz-color-error-contrast: #ffffff;
   --tz-color-info-contrast: #ffffff;
@@ -122,7 +122,7 @@
 
   /* semantic — derived from brand; flip automatically when the palette is swapped per mode.
      (Elevated panels use `--tz-color-surface`; `--tz-color-background` is the rear + shell canvas
-     the panels float on; `--tz-color-secondary` is no longer a surface — just a free brand color.) */
+     the panels float on; `--tz-color-secondary` is no longer a surface — just a free theme color.) */
   --tz-color-text: rgb(var(--tz-color-primary-rgb));
   --tz-color-border: rgba(var(--tz-color-primary-rgb), 0.12);
 

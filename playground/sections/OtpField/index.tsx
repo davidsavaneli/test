@@ -60,7 +60,7 @@ export function OtpFieldSection() {
         label="Colors"
         description="color tints the caret + focus ring + active box via the shared --tz-btn-rgb pattern."
       >
-        {(['primary', 'brand', 'success', 'warning'] as const).map((color) => (
+        {(['primary', 'accent', 'success', 'warning'] as const).map((color) => (
           <div key={color} style={{ marginBottom: 'var(--tz-space-sm)' }}>
             <OtpField color={color} defaultValue="12" aria-label={`${color} code`} />
           </div>

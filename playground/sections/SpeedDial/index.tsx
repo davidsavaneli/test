@@ -116,7 +116,7 @@ export function SpeedDialSection() {
             ariaLabel="Create"
             icon="Add"
             openIcon="CloseSquare"
-            color="brand"
+            color="accent"
             style={DIAL_POS.up}
           >
             <SpeedDialAction icon="Edit2" label="New Doc" />

@@ -60,7 +60,7 @@ export interface TagsFieldProps extends Omit<
   onChange?: (value: string[] | string) => void
   /** Character/string that splits typed & pasted input and joins the value when it's a string. Defaults to `,`. */
   separator?: string
-  /** Brand token tinting the tag chips. Defaults to `primary`. */
+  /** Theme palette token tinting the tag chips. Defaults to `primary`. */
   color?: ThemeColor
   /** Allow the same tag more than once. Off by default (duplicates are ignored). */
   allowDuplicates?: boolean

@@ -19,7 +19,7 @@ export interface UserCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'col
   avatar?: string
   /** Fallback avatar icon when there's no image or name. Defaults to `'User'`. */
   icon?: IconName
-  /** Brand palette token tinting the avatar. Defaults to `'primary'`. */
+  /** Theme palette token tinting the avatar. Defaults to `'primary'`. */
   color?: ThemeColor
   /** Preset size (avatar + fonts + button). Defaults to `'md'`. */
   size?: UserCardSize

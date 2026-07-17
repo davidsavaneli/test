@@ -1,7 +1,7 @@
 export interface ThemePalette {
   primary: string
   /**
-   * A free brand color (near-white by default) selectable via the `color` prop — it is **no longer**
+   * A free theme color (near-white by default) selectable via the `color` prop — it is **no longer**
    * the component surface (elevated panels use `--tz-color-surface`).
    */
   secondary: string
@@ -13,18 +13,18 @@ export interface ThemePalette {
   /**
    * The elevated **panel surface** — cards, sidebar, inputs/forms, dropdowns, modals (the panels that
    * float over `--tz-color-background`). Built-in defaults: white in light mode, a touch lighter than
-   * the canvas in dark mode. Configurable per mode like any brand color.
+   * the canvas in dark mode. Configurable per mode like any theme color.
    */
   surface: string
-  /** The single brand accent — the default tint for controls (`Button`, `IconButton`, …). */
-  brand: string
+  /** The single accent color — the default tint for controls (`Button`, `IconButton`, …). */
+  accent: string
   success: string
   error: string
   info: string
   warning: string
 }
 
-/** Names of the brand palette tokens (maps to `--tz-color-<name>`). */
+/** Names of the theme palette tokens (maps to `--tz-color-<name>`). */
 export type ThemeColor = keyof ThemePalette
 
 function hexToRgbTriplet(hex: string): string {

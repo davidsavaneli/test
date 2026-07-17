@@ -105,7 +105,7 @@ export function ListSection() {
       <Block label="colored selection">
         <Col gap={16} style={{ maxWidth: 420 }}>
           <List>
-            <ListItem icon="TaskSquare" color="brand" selected clickable>
+            <ListItem icon="TaskSquare" color="accent" selected clickable>
               Selected (medium)
             </ListItem>
             <ListItem icon="TaskSquare" color="success" selected clickable>

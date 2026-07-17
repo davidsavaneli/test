@@ -5,7 +5,7 @@
 
 A labeled checkbox. The native `<input type="checkbox">` is **visually hidden** (sr-only) but stays
 focusable + announced; a styled `.box` shows the state, and the tick is a **CSS checkmark** (rotated
-corner — no icon dependency). `label` · `color` (checked fill, default `brand`) · `size` (box +
+corner — no icon dependency). `label` · `color` (checked fill, default `accent`) · `size` (box +
 label) · `error` · `required` · `disabled` · `checked`/`defaultChecked` ·
 `onChange(checked)` (emits a `boolean`). Uses the `--tz-btn-rgb`/`--tz-btn-on` pattern: checked →
 `background: rgb(var(--tz-btn-rgb))` with a contrast-colored tick; `:focus-visible` ring; `error`

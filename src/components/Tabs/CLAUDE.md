@@ -28,9 +28,9 @@ anchored to the inner content). Two flavors of dot: a plain **`dot: true`** is t
 (`--tz-btn-rgb`, e.g. an unread/notification marker), while **`error: true`** shows a **red**
 (`--tz-color-error`) dot — the validation/"needs-fixing" signal (e.g. an invalid `TranslatedFields`
 locale) — and **does not tint the rest of the tab** (no red label; the active underline/pill stays the
-brand color). `error` renders its red dot even without an explicit `dot`. When the tabs don't fit, the strip **scrolls horizontally** (`overflow-x:auto`,
+theme color). `error` renders its red dot even without an explicit `dot`. When the tabs don't fit, the strip **scrolls horizontally** (`overflow-x:auto`,
 scrollbar hidden; tabs keep their natural width) and the active tab is kept in view (`scrollIntoView`).
-For an **icon-only** tab pass `ariaLabel` (falls back to `value`). `variant` (`underline` default · `pill`), `size` (`sm/md/lg`), `color` (brand
+For an **icon-only** tab pass `ariaLabel` (falls back to `value`). `variant` (`underline` default · `pill`), `size` (`sm/md/lg`), `color` (theme palette
 token, default `primary`, via the `--tz-btn-rgb` pattern), `orientation` (`horizontal` default ·
 `vertical`), `fullWidth`, and **`autoFocus`** (focus the active tab on mount — e.g. when the strip lives
 inside a popover that just opened, as `DateTimePicker` does). a11y: `role="tablist"`/`tab`/`tabpanel`, `aria-selected`, roving tabindex with

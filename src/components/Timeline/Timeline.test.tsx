@@ -38,7 +38,7 @@ describe('Timeline', () => {
   it('tints nodes via --tl-rgb — the timeline color, overridden per item', () => {
     const { container } = render(
       <Timeline
-        color="brand"
+        color="accent"
         items={[
           { label: 'A', icon: 'TickCircle', color: 'success' },
           { label: 'B', icon: 'Truck' },
@@ -47,7 +47,7 @@ describe('Timeline', () => {
     )
     const [first, second] = [...container.querySelectorAll('li')]
     expect(first.getAttribute('style')).toContain('--tl-rgb: var(--tz-color-success-rgb)')
-    expect(second.getAttribute('style')).toContain('--tl-rgb: var(--tz-color-brand-rgb)')
+    expect(second.getAttribute('style')).toContain('--tl-rgb: var(--tz-color-accent-rgb)')
   })
 
   it('applies the size class to every item', () => {

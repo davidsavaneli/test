@@ -34,7 +34,7 @@ scrollable ancestor — the page would jump to the stepper on mount) — so it f
 vertical collapse. **`onStepClick(index)`**
 makes each step head a `<button>` (a `disabled` step never fires; an **uncontrolled** stepper also
 selects the clicked step itself) — omit it for a display-only indicator. `size` (`sm`/`md`/`lg` — circle 24/30/38px, one-off literals like `Pagination`'s box px) and
-`color` (brand token, default `primary`, via the shared **`--tz-btn-rgb` / `--tz-btn-on`** pattern, set
+`color` (theme palette token, default `primary`, via the shared **`--tz-btn-rgb` / `--tz-btn-on`** pattern, set
 once on the root). The forwarded ref points at the **root `<div>`** (it wraps the `<ol>` list + the
 horizontal content panel); the `<ol>` carries the `aria-label`, the active step `aria-current="step"`,
 connectors are `aria-hidden`. Own CSS module. _A `<Form>` binding isn't relevant; a linear/non-linear

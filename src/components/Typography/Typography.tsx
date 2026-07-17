@@ -23,7 +23,7 @@ export type TypographyVariant =
 export type TypographyAlign = 'left' | 'center' | 'right' | 'justify'
 
 /**
- * Text color: a brand palette token, the semantic `text` role, or `muted` (a soft primary shade for
+ * Text color: a theme palette token, the semantic `text` role, or `muted` (a soft primary shade for
  * secondary text). Omit to inherit the surrounding color.
  */
 export type TypographyColor = ThemeColor | 'text' | 'muted'

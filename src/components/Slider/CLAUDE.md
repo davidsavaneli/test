@@ -6,7 +6,7 @@
 A range slider — drag (or arrow-key / Home / End) a thumb along the track to pick a number, **snapping
 to `step`**. Built on a **native `<input type="range">`**, so keyboard, dragging, step/min/max, and a11y
 (`role="slider"`) come for free; the track / fill / thumb are styled via `--tz-*` tokens and tinted by
-`color` (default `brand`, via the **`--tz-btn-rgb`** pattern). The filled portion is a hard-stop
+`color` (default `accent`, via the **`--tz-btn-rgb`** pattern). The filled portion is a hard-stop
 gradient driven by an inline **`--tz-slider-fill`** percent (WebKit `::-webkit-slider-runnable-track`;
 Firefox uses native `::-moz-range-progress`). Props: `min` (0) · `max` (100) · `step` (1) · `size`
 (`sm`/`md`/`lg` → track + thumb px via `--sl-track`/`--sl-thumb`, one-off literals) · `valueLabel`

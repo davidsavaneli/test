@@ -16,7 +16,7 @@ export interface ToggleButtonProps extends Omit<
   selected?: boolean
   /** Fires with the next selected state — standalone use only. */
   onChange?: (selected: boolean, value: string) => void
-  /** Brand palette token tinting the selected state. Defaults to `primary`. */
+  /** Theme palette token tinting the selected state. Defaults to `primary`. */
   color?: ThemeColor
   /** Preset size. Defaults to `md`. */
   size?: ToggleButtonSize

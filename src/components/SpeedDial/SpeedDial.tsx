@@ -57,7 +57,7 @@ export interface SpeedDialProps extends Omit<HTMLAttributes<HTMLDivElement>, 'co
   openIcon?: IconName | ReactNode
   /** Which way the actions fan out. Defaults to `up`. */
   direction?: SpeedDialDirection
-  /** Brand token tinting the FAB. Defaults to `primary`. */
+  /** Theme palette token tinting the FAB. Defaults to `primary`. */
   color?: ThemeColor
   /** FAB size (actions render one step smaller). Defaults to `md`. */
   size?: SpeedDialSize

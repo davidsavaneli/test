@@ -51,7 +51,7 @@ export interface RootLayoutProps {
  * `sidebarFooter`) beside the header + content. Set it as the root route's component and pass
  * `<Outlet />` as `children`; the `Sidebar` builds itself from the routes' `staticData`. The header
  * holds an optional `ThemeToggle` (on by default), a **Settings** button (opens a right-side drawer to
- * pick + persist the `brand` accent), plus an account `Avatar` whose menu has a **Sign out** item when
+ * pick + persist the `accent` color), plus an account `Avatar` whose menu has a **Sign out** item when
  * `header.onLogout` is given. The content area stacks
  * **`Breadcrumbs` → the page title (the active route's `staticData.name`) → `children`**; pages wrap
  * their own body in `PageLayout`. Set `header.pageTitle = false` to drop the auto `h2` when pages

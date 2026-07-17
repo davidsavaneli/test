@@ -13,7 +13,7 @@ styled `.circle` + scaled-in `.dot` shows the state (filled from `--tz-btn-rgb`)
 (`string`) · `onChange(value)` · `name` · `options` (data-driven `{ value, label?, disabled? }[]`, an
 alternative to passing `<Radio>` children) · `orientation` (`vertical` default · `horizontal`) ·
 `label` · `error` (reddens the radio rings — **no message text**, like `Checkbox`) · `required`
-(asterisk) · `size` · `color` (default `brand`) · `disabled`. `role="radiogroup"` with `aria-invalid`;
+(asterisk) · `size` · `color` (default `accent`) · `disabled`. `role="radiogroup"` with `aria-invalid`;
 the label renders through `Typography`. Binds to a
 surrounding `<Form>` by **`name`** — its form value is a **`string`** (validate with e.g.
 `z.string().min(1)`), read/written via `values`/`setValue`. Uses the `--tz-btn-rgb` pattern; own CSS

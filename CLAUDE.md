@@ -90,7 +90,7 @@ literal** color, size, radius, spacing, shadow, z-index, or duration in a compon
 
 ### 3.1 Color model — RGB triplets
 
-Each brand color resolves to a **comma-separated RGB triplet** (not hex) so we can derive alpha shades
+Each theme color resolves to a **comma-separated RGB triplet** (not hex) so we can derive alpha shades
 with `rgba()`. The triplet itself is **injected at runtime** by `ConfigProvider` (from
 `DEFAULT_LIGHT_COLORS` + the app's overrides — see §5); `theme.css` declares only the structure that
 references it:
@@ -103,15 +103,15 @@ references it:
 --tz-color-primary-contrast: #ffffff; /* readable text color on a solid fill (theme.css fallback) */
 ```
 
-**Brand palette (9 colors)** — light-mode defaults:
+**Theme palette (9 colors)** — light-mode defaults:
 
 | token        | hex       | role                                                                                |
 | ------------ | --------- | ----------------------------------------------------------------------------------- |
 | `primary`    | `#13404e` | primary brand / default text                                                        |
-| `secondary`  | `#ffffff` | a free brand color (near-white), selectable via `color` — **not** the panel surface |
+| `secondary`  | `#ffffff` | a free theme color (near-white), selectable via `color` — **not** the panel surface |
 | `background` | `#f9f9f9` | rear page background + shell canvas + flat `PageLayout` (behind the panels)         |
 | `surface`    | `#ffffff` | the elevated panel surface — cards, sidebar, inputs, dropdowns, modals              |
-| `brand`      | `#056472` | the single brand accent (tints controls via `--tz-btn-rgb`)                         |
+| `accent`     | `#056472` | the single accent color (tints controls via `--tz-btn-rgb`)                         |
 | `success`    | `#00a854` | semantic — success                                                                  |
 | `error`      | `#f04134` | semantic — error/danger                                                             |
 | `info`       | `#039aa1` | semantic — info                                                                     |
@@ -137,12 +137,12 @@ that color used as a solid fill. Used by `contained` controls. Defaults are most
 
 ### 3.2 Semantic colors
 
-Thin aliases derived from brand tokens, so they flip automatically when the palette is swapped per
+Thin aliases derived from theme tokens, so they flip automatically when the palette is swapped per
 mode. The surface hierarchy is **two layers**: `--tz-color-background` is the **rear + canvas** — the
 `<body>` fill and the shell canvas the panels float on (the flat `PageLayout` blends into it), and
 `--tz-color-surface` is the **elevated panel surface** — the sidebar card, cards, inputs, dropdowns,
 modals, and the Badge / Avatar cut-out rings. `--tz-color-secondary` is **no longer a surface**: it's
-just a free brand color (near-white by default, selectable via `color`). `RootLayout` uses a **floating
+just a free theme color (near-white by default, selectable via `color`). `RootLayout` uses a **floating
 layout**: the soft `--tz-color-background` canvas with rounded, elevated `--tz-color-surface` panels
 (border + `--tz-shadow-xs`) floating on it. So the surface stack is **background (rear + canvas + flat
 `PageLayout`) → surface (floating panels)**:
@@ -209,7 +209,7 @@ Inputs, selects, buttons — the `sm/md/lg` sizing baseline:
 ## 4. Color application (`applyTheme`)
 
 `src/theme/applyTheme.ts` writes per-color CSS variables onto an element (default
-`document.documentElement`) from a `ThemePalette` (a `{ name: hex }` map of the 9 brand colors):
+`document.documentElement`) from a `ThemePalette` (a `{ name: hex }` map of the 9 theme colors):
 
 For each color it sets:
 
@@ -285,9 +285,9 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 ```
 
 - **Default palettes live in TS, in `ConfigProvider.tsx`** — `DEFAULT_LIGHT_COLORS` (the full built-in
-  light palette = the single source of truth for every brand color's default value) and
+  light palette = the single source of truth for every theme color's default value) and
   `DEFAULT_DARK_COLORS` (the deltas that differ in dark: `primary #e6e8eb`, `secondary` & `surface
-#191919`, `background #0f0f0f`, plus a brighter `brand` teal `#16a6b4`). `theme.css` holds **no** color values — only the structure (solids, shades,
+#191919`, `background #0f0f0f`, plus a brighter `accent` teal `#16a6b4`). `theme.css` holds **no** color values — only the structure (solids, shades,
   contrast fallbacks) that references the `-rgb` triplets `applyTheme` writes onto `<html>`.
 - **`Config`** (the `<ConfigProvider config={…}>` type): `{ theme?: ThemeConfig; locales?: LocaleConfig[]; keys?: KeysConfig; table?: TableConfig; header?: HeaderConfig }`
   — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),
@@ -357,20 +357,27 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   the app's light overrides win.
 - **Dark merge**: `{ ...light, ...DEFAULT_DARK_COLORS, ...config.colors.dark }` — the merged light
   palette as base, then the library's dark deltas, then the app's own dark overrides win.
-- On mode / brand change (in `useLayoutEffect`, before paint): calls `applyTheme(palette)`, sets
-  `data-tz-theme` attr, sets CSS `color-scheme`, and persists the mode to `localStorage['tz-theme-mode']`.
-- **Brand-color override**: a user-picked `brand` accent (via `useTheme().setBrandColor`) overrides the
-  configured/default `brand` in **both modes**, is applied by the same effect, and persists to
-  **`localStorage['tz-brand-color']`** — so a chosen accent is restored on the next visit (`null` clears
-  it, back to the configured/default brand). The `RootLayout` header **Settings** drawer drives it (see
-  the Layout §).
-- **`useTheme()`** returns `{ mode, setMode, toggleMode, brandColor, setBrandColor }` (`brandColor` = the
-  override hex or `null`). Throws if used outside a provider.
-- Initial mode = stored value if present, else `config.mode`, else `'light'`; initial `brandColor` = the
-  stored override if present, else `null`.
+- On mode / accent change the resolved palette is committed to `<html>` — `applyTheme(palette)` + the
+  `data-tz-theme` attr + CSS `color-scheme` + persisting the mode to `localStorage['tz-theme-mode']`.
+  This runs **eagerly in `setMode`/`toggleMode`/`setAccentColor`** (so `<html>` updates the instant you
+  toggle, not after React re-renders the whole subtree) **and** in a `useLayoutEffect` (mount / external
+  changes) — the commit is idempotent, so doing both is safe.
+- **Accent-color override**: a user-picked `accent` color (via `useTheme().setAccentColor(color, mode?)`)
+  overrides the configured/default `accent` **per mode** (light and dark keep **independent** overrides),
+  is applied by the same effect, and persists to **`localStorage['tz-accent-color-<mode>']`** — so each
+  mode's chosen accent is restored on the next visit (`null` clears that mode's, back to its
+  configured/default accent). The `RootLayout` header **Settings** drawer drives it with **two swatch
+  pickers** (one per mode — deeper tones for light, brighter for dark; see the Layout §).
+- **`useTheme()`** returns `{ mode, setMode, toggleMode, accentColors, defaultAccentColors, setAccentColor }`
+  where **`accentColors`** / **`defaultAccentColors`** are `Record<'light'|'dark', …>` (the per-mode
+  overrides `string | null` / the per-mode configured defaults `string`, i.e. the "no override" values —
+  so UI needn't hardcode), and **`setAccentColor(color, mode?)`** sets one mode's override (defaults to
+  the current mode). Throws outside a provider.
+- Initial mode = stored value if present, else `config.mode`, else `'light'`; initial `accentColors` = the
+  stored per-mode overrides if present, else `null` each.
 - **No-JS note:** because the triplet values are injected by `applyTheme` (not declared in `theme.css`),
   colors require `ConfigProvider` to have mounted. It runs in `useLayoutEffect` (before first paint), so
-  there's no flash in a normal CSR app; importing the CSS alone (no provider) yields no brand colors.
+  there's no flash in a normal CSR app; importing the CSS alone (no provider) yields no theme colors.
 
 ---
 
@@ -390,7 +397,7 @@ export type WidgetSize = 'sm' | 'md' | 'lg'
 export interface WidgetProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
   /** JSDoc on EVERY prop — short, English, describes behavior + default. */
   variant?: WidgetVariant
-  /** Brand palette token that tints the control. Defaults to `brand`. */
+  /** Theme palette token that tints the control. Defaults to `accent`. */
   color?: ThemeColor
   size?: WidgetSize
 }
@@ -437,7 +444,7 @@ Rules baked into the pattern:
 | prop           | type                                        | default       | notes                                                                                                                               |
 | -------------- | ------------------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `variant`      | `'contained'\|'filled'\|'outlined'\|'text'` | `'contained'` | for tintable controls                                                                                                               |
-| `color`        | `ThemeColor`                                | `'brand'`     | brand token; drives `--tz-btn-rgb`. Text/`Typography` default stays `primary` (via `--tz-color-text`).                              |
+| `color`        | `ThemeColor`                                | `'accent'`    | theme palette token; drives `--tz-btn-rgb`. Text/`Typography` default stays `primary` (via `--tz-color-text`).                      |
 | `size`         | `'sm'\|'md'\|'lg'`                          | `'md'`        | maps to control-height / font / icon size                                                                                           |
 | `loading`      | `boolean`                                   | `false`       | shows `Loader`, sets native `disabled` + `aria-busy`                                                                                |
 | `disabled`     | `boolean`                                   | `false`       | `opacity: 0.5` + `cursor: not-allowed`                                                                                              |

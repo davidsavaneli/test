@@ -175,17 +175,17 @@ createRoot(el).render(
 )
 ```
 
-> **Gotcha:** importing the stylesheets alone yields **no brand colors** — the color-value triplets are
+> **Gotcha:** importing the stylesheets alone yields **no theme colors** — the color-value triplets are
 > injected at runtime by `ConfigProvider` (it calls `applyTheme` in a `useLayoutEffect`, before first
 > paint). Everything must render **inside** `<ConfigProvider>`; a subtree mounted outside it (e.g. a
 > stray portal, a Storybook story without the provider) renders uncolored.
 
 ## 3. Theming
 
-- **9 brand colors** (`ThemeColor`): `primary secondary background surface brand success error info warning`.
+- **9 theme colors** (`ThemeColor`): `primary secondary background surface accent success error info warning`.
 - `background` is the **rear + shell canvas** (the `<body>` fill + the canvas `RootLayout` floats on;
   the flat `PageLayout` blends into it); **`surface`** is the **elevated panels** (the `RootLayout`
-  sidebar card, cards, inputs, dropdowns, modals); and `secondary` is just a **free brand color**
+  sidebar card, cards, inputs, dropdowns, modals); and `secondary` is just a **free theme color**
   (near-white by default, selectable via `color`) — no longer a surface. Defaults: `background` a soft
   off-white / `surface` white in light mode (a subtle canvas behind the panels), and a near-black canvas
   / a touch-lighter panels in dark mode; override per mode like any color.
@@ -208,10 +208,12 @@ createRoot(el).render(
   - **`keys.translationsNamespace`** (default `'translations'`) — the `<TranslatedFields>` namespace word (e.g.
     `'languages'`). Read with `useTranslationsNamespace()` (pass it to `buildTranslations` /
     `nestTranslations` to match).
-- `useTheme()` → `{ mode, setMode, toggleMode, brandColor, setBrandColor }` (must be inside
-  `ConfigProvider`). `setBrandColor(hex)` overrides the `brand` accent in both modes and persists it to
-  `localStorage['tz-brand-color']` (restored next visit); `setBrandColor(null)` clears it. The
-  `RootLayout` header **Settings** drawer uses this.
+- `useTheme()` → `{ mode, setMode, toggleMode, accentColors, defaultAccentColors, setAccentColor }` (must be
+  inside `ConfigProvider`). `setAccentColor(hex, mode?)` overrides the `accent` color for `mode` (defaults
+  to the current) and persists it per mode to `localStorage['tz-accent-color-<mode>']` (light + dark are
+  independent, restored next visit); `setAccentColor(null, mode)` clears that mode's. `accentColors` /
+  `defaultAccentColors` are `{ light, dark }` maps — the per-mode overrides / the configured defaults (the
+  "no override" values). The `RootLayout` header **Settings** drawer uses these (a picker per mode).
 - `<ThemeToggle />` / `<FullscreenToggle />` — ready-made light/dark and browser-fullscreen switch buttons.
 - **Always pass a color by token name** via the `color` prop (`color="error"`); never hardcode hex.
 - Sizes everywhere are `sm | md | lg` (default `md`).
@@ -315,7 +317,7 @@ keyboard). Typing advances, Backspace steps back, Arrows navigate, and **paste /
 `onChange(color)` · `swatches` · `placeholder`. The input accepts hex (`#rgb`/`#rrggbb`/`#rrggbbaa`) or
 `rgb()`/`rgba()`; the **value is `#rrggbb` when opaque, `rgba(r, g, b, a)` when translucent**. Binds to
 `<Form>` by `name` (validate with `z.string().regex(/^#[0-9a-f]{6}$/i, '…')`, or a looser pattern if
-you allow `rgba()`). `<ColorPicker label="Brand color" name="brandColor" />`.
+you allow `rgba()`). `<ColorPicker label="Theme color" name="brandColor" />`.
 
 **Select** — a single-select dropdown. Data-driven `options: { value, label, disabled?, icon? }[]`.
 `label` · `size` · `error` + `helperText` · `required` · `fullWidth` (**default true**) · `disabled` ·
@@ -411,11 +413,11 @@ pass-through props as `ThemeToggle`.
 **Badge** — wraps a child (e.g. a `Button`/`IconButton`) and pins a count or dot to its corner:
 `<Badge content={2}><IconButton …/></Badge>`. `content` (`number | string`) → a count (numbers cap to
 `${max}+`, `max` default 99; a `0` hides unless `showZero`); `dot` → a plain indicator. `color`
-(default `brand`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
+(default `accent`), `placement` (`top-right` default · `top-left` · `bottom-right` · `bottom-left`).
 
 **Card** — a surface card. `title` (clamps to two lines, then ellipsis) · `subtitle` (muted line under
 the title) · `icon` (`IconName`/node, shown in a filled icon box) · `color` (tints the icon box,
-default `brand`) · `actions` (header, right) ·
+default `accent`) · `actions` (header, right) ·
 `footer` (bottom actions, right) · `footerStart` (bottom actions, left) · `children` (body) ·
 `collapsible` (chevron folds the body+footer smoothly;
 header actions hide while collapsed) · `collapsed`/`defaultCollapsed`/`onCollapsedChange`. A subtle
@@ -424,7 +426,7 @@ divider separates the header from the body while expanded.
 
 **Tooltip** — wraps a single element and shows a floating label on hover/focus:
 `<Tooltip content="Save"><IconButton …/></Tooltip>`. `content: ReactNode`, `placement`
-(`top` default · `bottom` · `left` · `right`), `color` (brand token, default `primary`). Closes on
+(`top` default · `bottom` · `left` · `right`), `color` (theme palette token, default `primary`). Closes on
 `Escape`; a11y-wired via `aria-describedby`.
 
 **Avatar** — `src` (image, auto-fallback on error) · `icon` (`IconName`/node) · `children` (e.g.

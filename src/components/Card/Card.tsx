@@ -15,7 +15,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title' 
   subtitle?: ReactNode
   /** Leading header icon — a known `IconName` or any node. */
   icon?: IconName | ReactNode
-  /** Brand color that tints the leading icon box. Defaults to `medium`. */
+  /** Theme color that tints the leading icon box. Defaults to `accent`. */
   color?: ThemeColor
   /** Render flat — no shadow, the page `background` instead of the elevated `secondary` surface. Used by `PageLayout`. */
   flat?: boolean
@@ -47,7 +47,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
     title,
     subtitle,
     icon,
-    color = 'brand',
+    color = 'accent',
     flat = false,
     actions,
     footer,

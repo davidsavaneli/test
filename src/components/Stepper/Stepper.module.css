@@ -126,7 +126,7 @@ button.main:not(:disabled):hover .indicator {
   display: inline-flex;
 }
 
-/* completed — filled with the brand color + a check */
+/* completed — filled with the theme color + a check */
 .step.completed .indicator {
   border-color: rgb(var(--tz-btn-rgb));
   background: rgb(var(--tz-btn-rgb));

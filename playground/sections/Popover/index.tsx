@@ -33,7 +33,7 @@ function FilterPopover() {
     >
       {/* header — tinted icon box + title (like Card/Modal), then a solid divider */}
       <Row align="center" gap="sm" padding="var(--tz-space-sm) var(--tz-space-md)">
-        <IconButton variant="filled" color="brand" size="sm" nonClickable aria-hidden>
+        <IconButton variant="filled" color="accent" size="sm" nonClickable aria-hidden>
           <Icon name="Filter" />
         </IconButton>
         <Typography variant="h4" as="h4">

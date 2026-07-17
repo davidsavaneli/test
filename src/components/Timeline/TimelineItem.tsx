@@ -20,7 +20,7 @@ export interface TimelineItemProps extends Omit<LiHTMLAttributes<HTMLLIElement>,
    * **dot** node instead (the compact activity-log look).
    */
   icon?: IconName | ReactNode
-  /** Brand palette token tinting this item's node. Inherits the timeline's `color` when omitted. */
+  /** Theme palette token tinting this item's node. Inherits the timeline's `color` when omitted. */
   color?: ThemeColor
 }
 

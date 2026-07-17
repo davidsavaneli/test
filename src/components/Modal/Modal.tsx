@@ -52,7 +52,7 @@ export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'
   description?: ReactNode
   /** Leading header icon shown in a tinted box (like `Card`) — a known `IconName` or any node. */
   icon?: IconName | ReactNode
-  /** Brand color that tints the leading icon box. Defaults to `medium`. */
+  /** Theme color that tints the leading icon box. Defaults to `accent`. */
   color?: ThemeColor
   /** Footer slot — right-aligned actions over a top divider (e.g. Cancel / Confirm buttons). */
   footer?: ReactNode
@@ -93,7 +93,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
     title,
     description,
     icon,
-    color = 'brand',
+    color = 'accent',
     footer,
     showCloseButton = true,
     closeOnBackdrop = true,

@@ -21,7 +21,7 @@ describe('Loader', () => {
     expect(screen.getByRole('status').style.color).toBe('')
   })
 
-  it('resolves a brand color token to a CSS variable', () => {
+  it('resolves a theme color token to a CSS variable', () => {
     render(<Loader color="warning" />)
     expect(screen.getByRole('status').style.color).toBe('var(--tz-color-warning)')
   })

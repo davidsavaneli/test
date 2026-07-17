@@ -51,7 +51,7 @@ export function ChipSection() {
           <Chip clickable onClick={() => alert('Chip clicked')}>
             Clickable
           </Chip>
-          <Chip clickable variant="contained" color="brand" onClick={() => alert('Filter')}>
+          <Chip clickable variant="contained" color="accent" onClick={() => alert('Filter')}>
             Filter
           </Chip>
           <Chip disabled>Disabled</Chip>

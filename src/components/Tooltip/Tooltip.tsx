@@ -19,7 +19,7 @@ export interface TooltipProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'con
   content: ReactNode
   /** Which side of the trigger the tooltip appears on. Defaults to `top`. */
   placement?: TooltipPlacement
-  /** Brand palette token for the fill (label uses its contrast color). Defaults to `primary`. */
+  /** Theme palette token for the fill (label uses its contrast color). Defaults to `primary`. */
   color?: ThemeColor
   /** A single focusable element to attach the tooltip to (e.g. a `Button` or `IconButton`). */
   children: ReactElement

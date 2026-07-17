@@ -62,7 +62,7 @@ export interface ChoiceCardGroupProps extends Omit<
   align?: ChoiceCardAlign
   /** Preset size for every card. Defaults to `md`. */
   size?: ChoiceCardSize
-  /** Brand palette token for the selected tint. Defaults to `primary`. */
+  /** Theme palette token for the selected tint. Defaults to `primary`. */
   color?: ThemeColor
   /** Marks the group invalid — reddens the card borders (no message text, like `RadioGroup`). */
   error?: boolean

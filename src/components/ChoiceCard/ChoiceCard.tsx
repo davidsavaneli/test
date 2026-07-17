@@ -36,7 +36,7 @@ export interface ChoiceCardProps extends Omit<
    * icon and `left` without one.
    */
   align?: ChoiceCardAlign
-  /** Brand palette token for the selected tint. Defaults to `primary` (inherits the group's `color`). */
+  /** Theme palette token for the selected tint. Defaults to `primary` (inherits the group's `color`). */
   color?: ThemeColor
   /** Preset size — padding, icon circle and fonts. Inherits the group's `size` when omitted. */
   size?: ChoiceCardSize
@@ -51,7 +51,7 @@ export interface ChoiceCardProps extends Omit<
 /**
  * A selectable card — a rich checkbox/radio with an icon, title and description. The native input is
  * visually hidden but fully accessible (Space toggles; in an `exclusive` group the cards are real
- * radios, so Arrow keys rove between them); the card shows the state with a brand border + soft halo,
+ * radios, so Arrow keys rove between them); the card shows the state with a accent border + soft halo,
  * a top-right tick indicator, and an icon circle that fills with the color while selected. Designed to
  * live inside a `<ChoiceCardGroup>` (which supplies the selection, `exclusive` mode and
  * `size`/`color`/`disabled`/`error` via context), but also works standalone as a single fancy checkbox
@@ -140,7 +140,7 @@ export const ChoiceCard = forwardRef<HTMLInputElement, ChoiceCardProps>(function
         {...props}
       />
       {/* top-right selection indicator — radio-style ring + dot in exclusive groups (mirrors Radio),
-          else a circle that fills with the brand color + a CSS tick (checkbox semantics) */}
+          else a circle that fills with the theme color + a CSS tick (checkbox semantics) */}
       <span
         className={clsx(styles.indicator, group?.exclusive && styles.radioDot)}
         aria-hidden="true"

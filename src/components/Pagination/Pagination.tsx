@@ -39,7 +39,7 @@ export interface PaginationProps extends Omit<HTMLAttributes<HTMLElement>, 'colo
   variant?: PaginationVariant
   /** Control size — sets the box, font, and icon sizes. Defaults to `md`. */
   size?: PaginationSize
-  /** Brand palette token that tints the selected page. Defaults to `medium`. */
+  /** Theme palette token that tints the selected page. Defaults to `accent`. */
   color?: ThemeColor
   /** Render circular page buttons instead of rounded rectangles. Defaults to `false`. */
   rounded?: boolean
@@ -70,7 +70,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(function Pagi
     hideNextButton = false,
     variant = 'outlined',
     size = 'md',
-    color = 'brand',
+    color = 'accent',
     rounded = false,
     disabled = false,
     className,

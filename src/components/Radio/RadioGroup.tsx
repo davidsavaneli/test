@@ -42,7 +42,7 @@ export interface RadioGroupProps extends Omit<
   orientation?: RadioOrientation
   /** Preset size for every radio. Defaults to `md`. */
   size?: RadioSize
-  /** Brand palette token for the selected fill. Defaults to `medium`. */
+  /** Theme palette token for the selected fill. Defaults to `accent`. */
   color?: ThemeColor
   /** Marks the group invalid — reddens the radio rings (no message text, like `Checkbox`). */
   error?: boolean
@@ -72,7 +72,7 @@ export const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(function R
     options,
     orientation = 'vertical',
     size = 'md',
-    color = 'brand',
+    color = 'accent',
     error,
     required = false,
     disabled = false,

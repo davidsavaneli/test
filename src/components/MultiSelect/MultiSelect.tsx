@@ -48,7 +48,7 @@ export interface MultiSelectProps {
   onChange?: (value: string[]) => void
   /** Text shown in the trigger when nothing is selected. Defaults to `"Select…"`. */
   placeholder?: string
-  /** Brand token tinting the selected chips. Defaults to `primary`. */
+  /** Theme palette token tinting the selected chips. Defaults to `primary`. */
   color?: ThemeColor
   /** Shows a clear (×) button in the trigger when anything is selected. Defaults to `true`. */
   clearable?: boolean

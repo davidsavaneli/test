@@ -141,7 +141,7 @@ export function FileUploaderEditDialog({
       description={name}
       footer={
         <>
-          <Button variant="text" color="brand" onClick={onClose} disabled={busy}>
+          <Button variant="text" color="accent" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
           <Button onClick={handleSave} loading={busy}>

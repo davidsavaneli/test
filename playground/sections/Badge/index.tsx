@@ -74,7 +74,7 @@ export function BadgeSection() {
           <Badge content={5} placement="top-left">
             <Button variant="filled">Top Left</Button>
           </Badge>
-          <Badge content="new" color="brand">
+          <Badge content="new" color="accent">
             <Button variant="filled">Text</Button>
           </Badge>
         </Row>

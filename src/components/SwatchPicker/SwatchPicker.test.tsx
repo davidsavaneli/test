@@ -7,8 +7,8 @@ const COLORS = ['#056472', '#7c3aed', '#2563eb']
 
 describe('SwatchPicker', () => {
   it('renders one radio swatch per color inside a radiogroup', () => {
-    render(<SwatchPicker colors={COLORS} aria-label="Brand color" />)
-    expect(screen.getByRole('radiogroup', { name: 'Brand color' })).toBeInTheDocument()
+    render(<SwatchPicker colors={COLORS} aria-label="Theme color" />)
+    expect(screen.getByRole('radiogroup', { name: 'Theme color' })).toBeInTheDocument()
     expect(screen.getAllByRole('radio')).toHaveLength(3)
     // each swatch carries the color as its --sw var
     expect(screen.getByRole('radio', { name: '#7c3aed' }).getAttribute('style')).toContain(
@@ -40,6 +40,17 @@ describe('SwatchPicker', () => {
   it('uses per-color labels when provided', () => {
     render(<SwatchPicker colors={COLORS} labels={{ '#056472': 'Default (teal)' }} />)
     expect(screen.getByRole('radio', { name: 'Default (teal)' })).toBeInTheDocument()
+  })
+
+  it('renders label + helperText and marks the group invalid while error', () => {
+    render(<SwatchPicker colors={COLORS} label="Accent" required error helperText="Pick a color" />)
+    expect(screen.getByText('Accent')).toBeInTheDocument()
+    expect(screen.getByText('Pick a color')).toBeInTheDocument()
+    // the group (named by its label) is flagged invalid
+    expect(screen.getByRole('radiogroup', { name: 'Accent' })).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    )
   })
 
   it('applies the size class and forwards the ref to the root', () => {

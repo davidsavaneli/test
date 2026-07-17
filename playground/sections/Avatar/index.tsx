@@ -9,7 +9,7 @@ export function AvatarSection() {
       <Block label="image · icon · initials · default">
         <Row gap={16} wrap>
           <Avatar src={FACE(12)} name="David Savaneli" />
-          <Avatar icon={<Icon name="User" />} color="brand" />
+          <Avatar icon={<Icon name="User" />} color="accent" />
           <Avatar name="David Savaneli">D.S.</Avatar>
           <Avatar name="Mariam Kapanadze" />
           <Avatar />
@@ -48,7 +48,7 @@ export function AvatarSection() {
           </AvatarGroup>
           <AvatarGroup max={4} size="lg">
             <Avatar name="Ann Lee" />
-            <Avatar name="Bo Cox" color="brand" />
+            <Avatar name="Bo Cox" color="accent" />
             <Avatar name="Cy Day" color="success" />
             <Avatar name="Di Fox" color="error" />
             <Avatar name="Ed Guy" color="warning" />

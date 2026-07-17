@@ -191,7 +191,7 @@ export function StepperSection() {
         label="Colors"
         description="color tints the completed / active circles and connectors via the shared --tz-btn-rgb pattern."
       >
-        {(['primary', 'brand', 'success', 'warning'] as const).map((color) => (
+        {(['primary', 'accent', 'success', 'warning'] as const).map((color) => (
           <div key={color} style={{ marginBottom: 'var(--tz-space-md)' }}>
             <Typography variant="caption" color="muted" as="div" style={{ marginBottom: 4 }}>
               {cap(color)}

@@ -13,7 +13,7 @@ import { DEFAULT_TRANSLATIONS_NAMESPACE } from '../helpers/translations'
 export type ThemeMode = 'light' | 'dark'
 
 export interface ThemeColors {
-  /** Light-mode palette. Override any subset of the brand colors — the rest use the library defaults. */
+  /** Light-mode palette. Override any subset of the theme colors — the rest use the library defaults. */
   light?: Partial<ThemePalette>
   /** Dark-mode overrides, layered on the (merged) light palette + the library's dark defaults. */
   dark?: Partial<ThemePalette>
@@ -29,7 +29,7 @@ export interface LocaleConfig {
 
 /** Theme settings — color overrides + initial mode. Lives under `Config.theme`. */
 export interface ThemeConfig {
-  /** Brand color overrides. Omit entirely to use the library's built-in theme. */
+  /** Theme color overrides. Omit entirely to use the library's built-in theme. */
   colors?: ThemeColors
   /** Initial color mode. */
   mode?: ThemeMode
@@ -195,10 +195,12 @@ interface ThemeContextValue {
   mode: ThemeMode
   setMode: (mode: ThemeMode) => void
   toggleMode: () => void
-  /** The persisted brand-color override (a hex), or `null` when using the configured/default brand. */
-  brandColor: string | null
-  /** Set (or clear with `null`) the brand-color override — persists to localStorage and re-applies live. */
-  setBrandColor: (color: string | null) => void
+  /** The persisted accent-color overrides **per mode** (a hex, or `null` when using that mode's default). */
+  accentColors: Record<ThemeMode, string | null>
+  /** The configured/default `accent` **per mode** (before any override) — the "no override" values. */
+  defaultAccentColors: Record<ThemeMode, string>
+  /** Set (or clear with `null`) the accent override for `mode` (defaults to the current) — persists + re-applies. */
+  setAccentColor: (color: string | null, mode?: ThemeMode) => void
   locales: LocaleConfig[]
   /** Resolved translations namespace (`config.keys.translationsNamespace` ?? the built-in default). */
   translationsNamespace: string
@@ -216,8 +218,8 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 const STORAGE_KEY = 'tz-theme-mode'
-/** Where the user's picked brand-color override is persisted (survives reloads / sessions). */
-const BRAND_STORAGE_KEY = 'tz-brand-color'
+/** Where the user's picked accent-color override is persisted, **per mode** (survives reloads). */
+const accentStorageKey = (mode: ThemeMode) => `tz-accent-color-${mode}`
 /** The built-in default URL query param name a **top-level** `<Tabs>` syncs to (no `queryKey`/config). */
 export const DEFAULT_TABS_QUERY_KEY = 'tab'
 /** The built-in default URL query param name a **nested** `<Tabs>` syncs to (no `queryKey`/config). */
@@ -232,7 +234,7 @@ const EMPTY_TABLE_QUERY: TableQueryConfig = {}
 const EMPTY_HEADER: HeaderConfig = {}
 
 /**
- * The library's built-in light palette — the single source of truth for every brand color's default
+ * The library's built-in light palette — the single source of truth for every theme color's default
  * value. Apps override any subset via `config.colors.light`; the rest fall back to these. (theme.css
  * holds only the structure that references these values, not the values themselves.)
  */
@@ -241,7 +243,7 @@ const DEFAULT_LIGHT_COLORS: ThemePalette = {
   secondary: '#ffffff',
   background: '#f9f9f9', // the rear + shell canvas — a soft off-white behind the white panels
   surface: '#ffffff', // the elevated panels (cards, sidebar, inputs, dropdowns, modals)
-  brand: '#056472',
+  accent: '#056472',
   success: '#00a854',
   error: '#f04134',
   info: '#039aa1',
@@ -257,7 +259,7 @@ const DEFAULT_DARK_COLORS: Partial<ThemePalette> = {
   secondary: '#191919',
   background: '#0f0f0f', // the near-black rear + canvas
   surface: '#191919', // a touch lighter than the canvas, for the elevated panels
-  brand: '#16a6b4', // a brighter teal — the light-mode brand is too dark on the dark canvas
+  accent: '#16a6b4', // a brighter teal — the light-mode accent is too dark on the dark canvas
   success: '#00a854',
   error: '#f04134',
   info: '#039aa1',
@@ -269,9 +271,12 @@ function getInitialMode(fallback: ThemeMode): ThemeMode {
   return stored === 'light' || stored === 'dark' ? stored : fallback
 }
 
-/** The persisted brand-color override (a hex string), or `null` when none was picked. */
-function getInitialBrand(): string | null {
-  return localStorage.getItem(BRAND_STORAGE_KEY) || null
+/** The persisted per-mode accent-color overrides (a hex string per mode, or `null` when none picked). */
+function getInitialAccentByMode(): Record<ThemeMode, string | null> {
+  return {
+    light: localStorage.getItem(accentStorageKey('light')) || null,
+    dark: localStorage.getItem(accentStorageKey('dark')) || null,
+  }
 }
 
 export interface ConfigProviderProps {
@@ -281,37 +286,72 @@ export interface ConfigProviderProps {
 }
 
 export function ConfigProvider({ config, children }: ConfigProviderProps) {
-  const [mode, setMode] = useState<ThemeMode>(() => getInitialMode(config?.theme?.mode ?? 'light'))
-  // a user-picked brand accent that overrides the configured/default `brand` in BOTH modes; persisted
-  const [brandColor, setBrandColorState] = useState<string | null>(getInitialBrand)
-
+  const [mode, setModeState] = useState<ThemeMode>(() =>
+    getInitialMode(config?.theme?.mode ?? 'light'),
+  )
+  // user-picked accents that override the configured/default `accent` — kept PER MODE; persisted
+  const [accentByMode, setAccentByMode] =
+    useState<Record<ThemeMode, string | null>>(getInitialAccentByMode)
   const colors = config?.theme?.colors
 
-  useLayoutEffect(() => {
-    // light = the library defaults, then the app's light overrides
+  // the configured/default palette for BOTH modes, before any accent override:
+  // light = library defaults then the app's light overrides; dark = that, then the library dark deltas,
+  // then the app's dark overrides. (Both computed so the Settings drawer can offer a picker per mode.)
+  const basePalettes = useMemo(() => {
     const light = { ...DEFAULT_LIGHT_COLORS, ...colors?.light }
-    // dark = the merged light palette, then the library dark deltas, then the app's dark overrides
-    const base = mode === 'dark' ? { ...light, ...DEFAULT_DARK_COLORS, ...colors?.dark } : light
-    // a picked brand override wins over the configured/default brand (applies to both modes)
-    const palette = brandColor ? { ...base, brand: brandColor } : base
-    applyTheme(palette)
+    const dark = { ...light, ...DEFAULT_DARK_COLORS, ...colors?.dark }
+    return { light, dark }
+  }, [colors])
+  // the accent per mode when there's NO override — exposed so UI needn't hardcode it
+  const defaultAccentColors = useMemo(
+    () => ({ light: basePalettes.light.accent, dark: basePalettes.dark.accent }),
+    [basePalettes],
+  )
 
-    const root = document.documentElement
-    root.setAttribute('data-tz-theme', mode)
-    root.style.setProperty('color-scheme', mode)
-    localStorage.setItem(STORAGE_KEY, mode)
-  }, [mode, colors, brandColor])
+  // Commit a mode's resolved theme straight to `<html>` (CSS vars + attrs + persisted mode). Called
+  // **eagerly** on change (so the DOM updates the instant you toggle, NOT after React re-renders the
+  // whole subtree — which is what made the switch feel ~1s late) and from the effect below (initial
+  // mount / accent change / external `setMode`). Idempotent, so applying twice is harmless.
+  const applyMode = useCallback(
+    (nextMode: ThemeMode, accent: string | null = accentByMode[nextMode]) => {
+      const base = basePalettes[nextMode]
+      applyTheme(accent ? { ...base, accent } : base)
+      const root = document.documentElement
+      root.setAttribute('data-tz-theme', nextMode)
+      root.style.setProperty('color-scheme', nextMode)
+      localStorage.setItem(STORAGE_KEY, nextMode)
+    },
+    [basePalettes, accentByMode],
+  )
 
-  const toggleMode = useCallback(() => {
-    setMode((current) => (current === 'light' ? 'dark' : 'light'))
-  }, [])
+  useLayoutEffect(() => {
+    applyMode(mode)
+  }, [applyMode, mode])
 
-  // set (or clear with `null`) the brand override; persists to localStorage and re-applies live
-  const setBrandColor = useCallback((color: string | null) => {
-    setBrandColorState(color)
-    if (color) localStorage.setItem(BRAND_STORAGE_KEY, color)
-    else localStorage.removeItem(BRAND_STORAGE_KEY)
-  }, [])
+  const setMode = useCallback(
+    (next: ThemeMode) => {
+      applyMode(next) // eager DOM update — don't wait for the re-render/commit
+      setModeState(next)
+    },
+    [applyMode],
+  )
+
+  const toggleMode = useCallback(
+    () => setMode(mode === 'light' ? 'dark' : 'light'),
+    [mode, setMode],
+  )
+
+  // set (or clear with `null`) the accent override for `target` (defaults to the current mode); persists
+  const setAccentColor = useCallback(
+    (color: string | null, target?: ThemeMode) => {
+      const m = target ?? mode
+      setAccentByMode((prev) => ({ ...prev, [m]: color }))
+      if (color) localStorage.setItem(accentStorageKey(m), color)
+      else localStorage.removeItem(accentStorageKey(m))
+      if (m === mode) applyMode(mode, color) // eager for the active mode
+    },
+    [mode, applyMode],
+  )
 
   const locales = config?.locales ?? EMPTY_LOCALES
   const translationsNamespace =
@@ -327,8 +367,9 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       mode,
       setMode,
       toggleMode,
-      brandColor,
-      setBrandColor,
+      accentColors: accentByMode,
+      defaultAccentColors,
+      setAccentColor,
       locales,
       translationsNamespace,
       tabQueryKey,
@@ -341,8 +382,9 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       mode,
       setMode,
       toggleMode,
-      brandColor,
-      setBrandColor,
+      accentByMode,
+      defaultAccentColors,
+      setAccentColor,
       locales,
       translationsNamespace,
       tabQueryKey,

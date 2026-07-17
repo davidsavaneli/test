@@ -10,7 +10,7 @@ const LIGHT: ThemePalette = {
   secondary: '#f4f9f8',
   background: '#ffffff',
   surface: '#f5f7fa',
-  brand: '#056472',
+  accent: '#056472',
   success: '#00a854',
   error: '#f04134',
   info: '#039aa1',

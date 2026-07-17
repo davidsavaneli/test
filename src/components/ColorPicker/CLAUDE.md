@@ -31,4 +31,4 @@ itself (SV square + hue/alpha sliders + input + swatches) is an internal **`Colo
 its `FloatingPanel` — and the **`RichTextEditor`** text-color control reuses the same panel (import via
 `../ColorPicker/ColorPickerPanel`; not in the public surface). `clearable` (default `true`) shows the
 leading "no color" swatch; the RTE passes `clearable={false}` and a non-empty default so the first
-swatch (the brand color) shows selected when the text has no explicit color.
+swatch (the theme color) shows selected when the text has no explicit color.

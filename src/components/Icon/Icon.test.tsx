@@ -25,7 +25,7 @@ describe('Icon', () => {
     expect(container.querySelector('svg')!.getAttribute('class')).toContain('lg')
   })
 
-  it('resolves a brand color token to a CSS variable', () => {
+  it('resolves a theme color token to a CSS variable', () => {
     const { container } = render(<Icon name="Add" color="success" />)
     expect((container.querySelector('svg') as SVGElement).style.color).toBe(
       'var(--tz-color-success)',
