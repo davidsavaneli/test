@@ -4,11 +4,44 @@ import { Modal } from '../Modal'
 import { SwatchPicker } from '../SwatchPicker'
 import { Typography } from '../Typography'
 
-// Accent choices offered alongside the provider's default (which leads each list), tuned PER
-// MODE: deeper tones for light, brighter ones for dark. Paired by hue so a color keeps its identity.
+// Accent choices offered alongside the provider's default (which leads each list) — 15 per mode, so
+// each theme shows 16 total. Tuned PER MODE (deeper tones for light, brighter for dark) and paired by
+// hue (red → violet + a neutral) so a color keeps its identity across themes.
 const ALT_SWATCHES: Record<'light' | 'dark', string[]> = {
-  light: ['#7c3aed', '#2563eb', '#0891b2', '#059669', '#ca8a04', '#ea580c', '#dc2626', '#db2777'],
-  dark: ['#a78bfa', '#60a5fa', '#22d3ee', '#34d399', '#fbbf24', '#fb923c', '#f87171', '#f472b6'],
+  light: [
+    '#dc2626', // red
+    '#ea580c', // orange
+    '#d97706', // amber
+    '#ca8a04', // yellow
+    '#65a30d', // lime
+    '#16a34a', // green
+    '#059669', // emerald
+    '#0891b2', // cyan
+    '#0284c7', // sky
+    '#2563eb', // blue
+    '#4f46e5', // indigo
+    '#7c3aed', // violet
+    '#c026d3', // fuchsia
+    '#db2777', // pink
+    '#475569', // slate
+  ],
+  dark: [
+    '#f87171', // red
+    '#fb923c', // orange
+    '#fbbf24', // amber
+    '#facc15', // yellow
+    '#a3e635', // lime
+    '#4ade80', // green
+    '#34d399', // emerald
+    '#22d3ee', // cyan
+    '#38bdf8', // sky
+    '#60a5fa', // blue
+    '#818cf8', // indigo
+    '#a78bfa', // violet
+    '#e879f9', // fuchsia
+    '#f472b6', // pink
+    '#94a3b8', // slate
+  ],
 }
 
 export interface SettingsDrawerProps {
