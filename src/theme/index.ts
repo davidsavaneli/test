@@ -13,6 +13,8 @@ export {
   DEFAULT_TABS_QUERY_KEY,
   DEFAULT_NESTED_TAB_QUERY_KEY,
   DEFAULT_STEP_QUERY_KEY,
+  DEFAULT_FONT_FAMILY,
+  PRELOADED_FONTS,
 } from './ConfigProvider'
 export type {
   Config,

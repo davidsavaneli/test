@@ -1,8 +1,12 @@
-import { useTheme } from '../../theme'
+import { useState } from 'react'
+import { PRELOADED_FONTS, useTheme } from '../../theme'
 import { Col } from '../Flex'
+import { Icon } from '../Icon'
 import { Modal } from '../Modal'
 import { ChoiceCardGroup } from '../ChoiceCard'
+import { Select } from '../Select'
 import { SwatchPicker } from '../SwatchPicker'
+import { TextField } from '../TextField'
 import { Typography } from '../Typography'
 
 // Accent choices offered alongside the provider's default (which leads each list) — 15 per mode, so
@@ -64,8 +68,31 @@ export interface SettingsDrawerProps {
  * preference. Internal to the admin shell — not a public export.
  */
 export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
-  const { accentColors, defaultAccentColors, setAccentColor, headerSticky, setHeaderSticky } =
-    useTheme()
+  const {
+    accentColors,
+    defaultAccentColors,
+    setAccentColor,
+    headerSticky,
+    setHeaderSticky,
+    fontFamily,
+    setFontFamily,
+  } = useTheme()
+
+  // font options: the pre-imported presets, plus the active font if it's a custom (non-preset) one, so
+  // the Select always shows the current choice (a picked custom font stays selectable)
+  const fontValues: string[] = (PRELOADED_FONTS as readonly string[]).includes(fontFamily)
+    ? [...PRELOADED_FONTS]
+    : [fontFamily, ...PRELOADED_FONTS]
+  const fontOptions = fontValues.map((f) => ({ value: f, label: f }))
+
+  // a free-text custom font (any Google Font family) — applied on Enter or the adornment button
+  const [customFont, setCustomFont] = useState('')
+  const applyCustomFont = () => {
+    const f = customFont.trim()
+    if (!f) return
+    setFontFamily(f)
+    setCustomFont('')
+  }
 
   const picker = (mode: 'light' | 'dark', label: string) => {
     const def = defaultAccentColors[mode]
@@ -110,6 +137,44 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       <Col gap="md" style={{ marginTop: 'var(--tz-space-sm)' }}>
         {picker('light', 'Light theme')}
         {picker('dark', 'Dark theme')}
+      </Col>
+
+      <Typography variant="subtitle" as="h3" style={{ marginTop: 'var(--tz-space-md)' }}>
+        Font
+      </Typography>
+      <Typography
+        variant="bodySmall"
+        color="muted"
+        as="p"
+        style={{ marginTop: 'var(--tz-space-xxs)' }}
+      >
+        Pick a preset or type any Google Font — applied app-wide and saved for next time.
+      </Typography>
+      <Col gap="sm" style={{ marginTop: 'var(--tz-space-sm)' }}>
+        <Select
+          label="Font family"
+          value={fontFamily}
+          options={fontOptions}
+          onChange={(v) => setFontFamily(v)}
+          aria-label="Font family"
+        />
+        <TextField
+          label="Custom font"
+          placeholder="e.g. Poppins"
+          helperText="Any Google Font family name"
+          value={customFont}
+          onChange={(e) => setCustomFont(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              applyCustomFont()
+            }
+          }}
+          adornment={<Icon name="Add" />}
+          adornmentPosition="right"
+          onAdornmentClick={applyCustomFont}
+          adornmentLabel="Apply font"
+        />
       </Col>
 
       <Typography variant="subtitle" as="h3" style={{ marginTop: 'var(--tz-space-md)' }}>

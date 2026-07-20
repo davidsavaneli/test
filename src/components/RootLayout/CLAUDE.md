@@ -47,10 +47,16 @@ swatch calls **`useTheme().setAccentColor(color, mode)`**, which overrides that 
 persists it to `localStorage['tz-accent-color-<mode>']` (light + dark keep independent accents), so the
 choice is restored next visit. Each list leads with the provider's configured default for that mode
 (read via `useTheme().defaultAccentColors[mode]` — not hardcoded) — selected when there's no override,
-and picking it clears that mode's override. Below the accents, a **Header** section holds an exclusive
-**`ChoiceCardGroup`** (**Fixed** / **Static** cards) that drives `useTheme().setHeaderSticky(bool)` — the
-same persisted (`localStorage['tz-header-sticky']`) fixed-vs-static header preference described above.
-`SettingsDrawer` is internal to the shell (no `index.ts`, not a public export).
+and picking it clears that mode's override. Below the accents, a **Font** section lets the user set the app-wide font family — a **`Select`** of the
+pre-imported presets (**Inter** (default) / **Roboto** / **Lato**, `@import`ed in the shipped CSS) plus a
+**`TextField`** to type **any Google Font** family name (applied on Enter or the ✚ adornment). It drives
+**`useTheme().setFontFamily(family)`**, which writes the stack to **`--tz-font-family`** on `<html>`,
+persists it (`localStorage['tz-font-family']`), and **loads a non-preset family on demand** (injects a
+Google Fonts `<link>`); seeded from **`config.theme.fontFamily`** (default `Inter`). Then a **Header**
+section holds an exclusive **`ChoiceCardGroup`** (**Fixed** / **Static** cards) that drives
+`useTheme().setHeaderSticky(bool)` — the same persisted (`localStorage['tz-header-sticky']`) fixed-vs-static
+header preference described above. `SettingsDrawer` is internal to the shell (no `index.ts`, not a public
+export).
 
 The content area stacks **the page title (the active route's `staticData.name`, via the internal
 `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**; the

@@ -33,6 +33,12 @@ export interface ThemeConfig {
   colors?: ThemeColors
   /** Initial color mode. */
   mode?: ThemeMode
+  /**
+   * Default font family — the app-wide default the user's Settings choice overrides (persisted). One of
+   * the pre-imported presets (`Inter` / `Roboto` / `Lato`) or any Google Font family name. Defaults to
+   * `Inter`. A non-preset family is loaded on demand at runtime.
+   */
+  fontFamily?: string
 }
 
 /**
@@ -226,6 +232,10 @@ interface ThemeContextValue {
   headerSticky: boolean
   /** Set + persist the header sticky/static preference (overrides `config.header.sticky`). */
   setHeaderSticky: (sticky: boolean) => void
+  /** The active font family (drives `--tz-font-family`). Persisted; seeded from `config.theme.fontFamily`. */
+  fontFamily: string
+  /** Set + persist the font family (a preset or any Google Font name; loaded on demand). */
+  setFontFamily: (family: string) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
@@ -234,6 +244,32 @@ const STORAGE_KEY = 'tz-theme-mode'
 const accentStorageKey = (mode: ThemeMode) => `tz-accent-color-${mode}`
 /** Where the user's header sticky/static choice is persisted (survives reloads). */
 const HEADER_STICKY_KEY = 'tz-header-sticky'
+/** Where the user's chosen font family is persisted (survives reloads). */
+const FONT_STORAGE_KEY = 'tz-font-family'
+/** The default font family (matches the `--tz-font-family` token's primary family). */
+export const DEFAULT_FONT_FAMILY = 'Inter'
+/** Font families pre-imported in the shipped stylesheet — offered as presets, no runtime load needed. */
+export const PRELOADED_FONTS = ['Inter', 'Roboto', 'Lato'] as const
+/** The full fallback stack applied to `--tz-font-family` for a chosen family (mirrors theme.css). */
+const fontStack = (family: string) =>
+  `'${family}', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif`
+
+/**
+ * Ensure a Google Fonts stylesheet `<link>` exists for `family` (deduped by id). The presets are
+ * already `@import`ed in the shipped CSS, so only non-preset families trigger a runtime load. Bare
+ * family request (no weight axes) so it works for any font — Google serves the available weights.
+ */
+function ensureFontLoaded(family: string) {
+  if (typeof document === 'undefined') return
+  if ((PRELOADED_FONTS as readonly string[]).includes(family)) return
+  const id = `tz-font-${family.trim().replace(/\s+/g, '-').toLowerCase()}`
+  if (document.getElementById(id)) return
+  const link = document.createElement('link')
+  link.id = id
+  link.rel = 'stylesheet'
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family.trim()).replace(/%20/g, '+')}&display=swap`
+  document.head.appendChild(link)
+}
 /** The built-in default URL query param name a **top-level** `<Tabs>` syncs to (no `queryKey`/config). */
 export const DEFAULT_TABS_QUERY_KEY = 'tab'
 /** The built-in default URL query param name a **nested** `<Tabs>` syncs to (no `queryKey`/config). */
@@ -299,6 +335,11 @@ function getInitialHeaderSticky(fallback: boolean): boolean {
   return stored === '1' ? true : stored === '0' ? false : fallback
 }
 
+/** The persisted font family (`fallback` = `config.theme.fontFamily` ?? the default when unset). */
+function getInitialFont(fallback: string): string {
+  return localStorage.getItem(FONT_STORAGE_KEY) || fallback
+}
+
 export interface ConfigProviderProps {
   /** App config — theme overrides, initial mode, locales. Omit for the built-in defaults (light mode). */
   config?: Config
@@ -315,6 +356,10 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
   // user's header sticky/static choice — persisted; seeded from config.header.sticky (default static)
   const [headerSticky, setHeaderStickyState] = useState<boolean>(() =>
     getInitialHeaderSticky(config?.header?.sticky ?? false),
+  )
+  // user's chosen font family — persisted; seeded from config.theme.fontFamily (default Inter)
+  const [fontFamily, setFontFamilyState] = useState<string>(() =>
+    getInitialFont(config?.theme?.fontFamily ?? DEFAULT_FONT_FAMILY),
   )
   const colors = config?.theme?.colors
 
@@ -383,6 +428,26 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
     localStorage.setItem(HEADER_STICKY_KEY, sticky ? '1' : '0')
   }, [])
 
+  // apply the font: load it (if not preloaded) + write the stack to --tz-font-family on <html>.
+  // Eager on change + in a layout effect (mount / external change), like the mode/accent commit.
+  const applyFont = useCallback((family: string) => {
+    ensureFontLoaded(family)
+    document.documentElement.style.setProperty('--tz-font-family', fontStack(family))
+  }, [])
+  useLayoutEffect(() => {
+    applyFont(fontFamily)
+  }, [applyFont, fontFamily])
+  // set + persist the chosen font family (overrides config.theme.fontFamily)
+  const setFontFamily = useCallback(
+    (family: string) => {
+      const next = family.trim() || DEFAULT_FONT_FAMILY
+      applyFont(next) // eager — don't wait for the re-render
+      setFontFamilyState(next)
+      localStorage.setItem(FONT_STORAGE_KEY, next)
+    },
+    [applyFont],
+  )
+
   const locales = config?.locales ?? EMPTY_LOCALES
   const translationsNamespace =
     config?.keys?.translationsNamespace ?? DEFAULT_TRANSLATIONS_NAMESPACE
@@ -409,6 +474,8 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       header: headerConfig,
       headerSticky,
       setHeaderSticky,
+      fontFamily,
+      setFontFamily,
     }),
     [
       mode,
@@ -426,6 +493,8 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       headerConfig,
       headerSticky,
       setHeaderSticky,
+      fontFamily,
+      setFontFamily,
     ],
   )
 

@@ -237,4 +237,36 @@ describe('ConfigProvider', () => {
       expect(restored.result.current.headerSticky).toBe(false)
     })
   })
+
+  describe('font family preference', () => {
+    it('defaults to Inter (applied to --tz-font-family) and follows config.theme.fontFamily', () => {
+      const a = renderHook(() => useTheme(), { wrapper: ConfigProvider })
+      expect(a.result.current.fontFamily).toBe('Inter')
+      expect(cssVar('--tz-font-family')).toContain("'Inter'")
+
+      renderHook(() => useTheme(), {
+        wrapper: ({ children }) => (
+          <ConfigProvider config={{ theme: { fontFamily: 'Roboto' } }}>{children}</ConfigProvider>
+        ),
+      })
+      expect(cssVar('--tz-font-family')).toContain("'Roboto'")
+    })
+
+    it('setFontFamily updates + persists, and a stored value wins over the config default', () => {
+      const { result } = renderHook(() => useTheme(), { wrapper: ConfigProvider })
+      act(() => result.current.setFontFamily('Lato'))
+      expect(result.current.fontFamily).toBe('Lato')
+      expect(cssVar('--tz-font-family')).toContain("'Lato'")
+      expect(localStorage.getItem('tz-font-family')).toBe('Lato')
+
+      // a persisted family overrides config.theme.fontFamily on the next mount
+      localStorage.setItem('tz-font-family', 'Poppins')
+      const restored = renderHook(() => useTheme(), {
+        wrapper: ({ children }) => (
+          <ConfigProvider config={{ theme: { fontFamily: 'Roboto' } }}>{children}</ConfigProvider>
+        ),
+      })
+      expect(restored.result.current.fontFamily).toBe('Poppins')
+    })
+  })
 })
