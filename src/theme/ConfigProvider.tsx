@@ -248,22 +248,38 @@ const HEADER_STICKY_KEY = 'tz-header-sticky'
 const FONT_STORAGE_KEY = 'tz-font-family'
 /** The default font family (matches the `--tz-font-family` token's primary family). */
 export const DEFAULT_FONT_FAMILY = 'Inter'
-/** Font families pre-imported in the shipped stylesheet — offered as presets, no runtime load needed. */
-export const PRELOADED_FONTS = ['Inter', 'Roboto', 'Lato'] as const
+/** Families already in the shipped CSS (only the default) — these skip the runtime `<link>` load. */
+const BUNDLED_FONTS: readonly string[] = [DEFAULT_FONT_FAMILY]
 /** The full fallback stack applied to `--tz-font-family` for a chosen family (mirrors theme.css). */
 const fontStack = (family: string) =>
   `'${family}', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif`
 
+/** Add the Google Fonts preconnect hints once, so the on-demand font fetch isn't delayed by DNS/TLS. */
+function ensureFontPreconnect() {
+  if (typeof document === 'undefined' || document.getElementById('tz-font-preconnect')) return
+  const api = document.createElement('link')
+  api.id = 'tz-font-preconnect'
+  api.rel = 'preconnect'
+  api.href = 'https://fonts.googleapis.com'
+  document.head.appendChild(api)
+  const gstatic = document.createElement('link')
+  gstatic.rel = 'preconnect'
+  gstatic.href = 'https://fonts.gstatic.com'
+  gstatic.crossOrigin = 'anonymous'
+  document.head.appendChild(gstatic)
+}
+
 /**
- * Ensure a Google Fonts stylesheet `<link>` exists for `family` (deduped by id). The presets are
- * already `@import`ed in the shipped CSS, so only non-preset families trigger a runtime load. Bare
- * family request (no weight axes) so it works for any font — Google serves the available weights.
+ * Ensure a Google Fonts stylesheet `<link>` exists for `family` (deduped by id). Only the default
+ * (`Inter`) ships pre-imported, so every other family — the Roboto/Lato presets and any custom pick —
+ * is loaded here on first use. Bare family request (no weight axes) so it works for any font — Google
+ * serves the available weights.
  */
 function ensureFontLoaded(family: string) {
-  if (typeof document === 'undefined') return
-  if ((PRELOADED_FONTS as readonly string[]).includes(family)) return
+  if (typeof document === 'undefined' || BUNDLED_FONTS.includes(family)) return
   const id = `tz-font-${family.trim().replace(/\s+/g, '-').toLowerCase()}`
   if (document.getElementById(id)) return
+  ensureFontPreconnect()
   const link = document.createElement('link')
   link.id = id
   link.rel = 'stylesheet'

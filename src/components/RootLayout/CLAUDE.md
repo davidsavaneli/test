@@ -40,19 +40,25 @@ on) — all `size="sm"` (the toggles `filled`, Settings `variant="text"`), plus 
 given; when `user` is supplied the menu opens with a `User`-icon (or `user.avatar` image) plus a name +
 email header above a divider. The **Settings** button (a `Setting5` gear beside the theme toggle that
 **spins continuously** via a keyframe animation, shown when `header.settings` — default `true`) opens the
-internal **`SettingsDrawer`** — a right-side `Modal` (`placement="right"`, `size="sm"`) with **two
+internal **`SettingsDrawer`** — a right-side `Modal` (`placement="right"`, `size="sm"`). It opens with a
+**Theme** section — an exclusive **`ChoiceCardGroup`** (**Light** / **Dark** cards, `Sun`/`Moon` icons)
+driving **`useTheme().setMode`** — then **Accent Color** with **two
 `SwatchPicker`s** (one labelled **Light theme**, one **Dark theme**) so both accents are chosen
 independently at once — each a **per-mode** set (deeper tones for light, brighter for dark). Picking a
 swatch calls **`useTheme().setAccentColor(color, mode)`**, which overrides that mode's `accent` and
 persists it to `localStorage['tz-accent-color-<mode>']` (light + dark keep independent accents), so the
 choice is restored next visit. Each list leads with the provider's configured default for that mode
 (read via `useTheme().defaultAccentColors[mode]` — not hardcoded) — selected when there's no override,
-and picking it clears that mode's override. Below the accents, a **Font** section lets the user set the app-wide font family — a **`Select`** of the
-pre-imported presets (**Inter** (default) / **Roboto** / **Lato**, `@import`ed in the shipped CSS) plus a
-**`TextField`** to type **any Google Font** family name (applied on Enter or the ✚ adornment). It drives
+and picking it clears that mode's override. Below the accents, a **Font** section is a single **searchable `Select`** that doubles as a
+"type any Google Font" field: **Inter** (the default) is the only listed preset, but typing a family
+name offers it as its own option — picking it applies that font. It drives
 **`useTheme().setFontFamily(family)`**, which writes the stack to **`--tz-font-family`** on `<html>`,
-persists it (`localStorage['tz-font-family']`), and **loads a non-preset family on demand** (injects a
-Google Fonts `<link>`); seeded from **`config.theme.fontFamily`** (default `Inter`). Then a **Header**
+persists it (`localStorage['tz-font-family']`), and **loads the family on demand** the first time it's
+picked (injects a Google Fonts `<link>` + preconnect hints); seeded from **`config.theme.fontFamily`**
+(default `Inter`). **Only the default `Inter` ships pre-imported** in the stylesheet — any other family
+loads lazily on selection, so an app that never changes the font fetches just one family. (The Select
+uses `onSearchChange` to own the option list; it always keeps Inter + the active font in the list so the
+trigger label resolves even mid-search.) Then a **Header**
 section holds an exclusive **`ChoiceCardGroup`** (**Fixed** / **Static** cards) that drives
 `useTheme().setHeaderSticky(bool)` — the same persisted (`localStorage['tz-header-sticky']`) fixed-vs-static
 header preference described above. `SettingsDrawer` is internal to the shell (no `index.ts`, not a public

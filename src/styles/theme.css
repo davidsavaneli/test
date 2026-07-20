@@ -1,8 +1,7 @@
-/* Pre-imported font families the Settings drawer offers out of the box (Inter is the default). Any
-   other family a user picks is loaded on demand at runtime (ConfigProvider injects a Google Fonts link). */
+/* Only the default font (Inter) is pre-imported, so an app that never changes the font pays for just
+   one family. Every other family — the Roboto/Lato presets and any custom pick — is loaded on demand
+   at runtime (ConfigProvider injects a Google Fonts <link> the first time it's selected). */
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
 
 :root {
   /* Theme color VALUES (the `-rgb` triplets) are NOT declared here — ConfigProvider injects them onto

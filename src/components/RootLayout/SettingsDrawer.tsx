@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { PRELOADED_FONTS, useTheme } from '../../theme'
+import { DEFAULT_FONT_FAMILY, useTheme } from '../../theme'
 import { Col } from '../Flex'
-import { Icon } from '../Icon'
+import { Divider } from '../Divider'
 import { Modal } from '../Modal'
 import { ChoiceCardGroup } from '../ChoiceCard'
 import { Select } from '../Select'
 import { SwatchPicker } from '../SwatchPicker'
-import { TextField } from '../TextField'
 import { Typography } from '../Typography'
 
 // Accent choices offered alongside the provider's default (which leads each list) — 15 per mode, so
@@ -57,18 +56,20 @@ export interface SettingsDrawerProps {
 }
 
 /**
- * The header user-menu **Settings** drawer (a right-side `Modal`). Holds **two `SwatchPicker`s** — one
- * for the **Light theme** and one for the **Dark theme** — so both accents are chosen independently in
- * one place (each with a per-mode set: deeper tones for light, brighter for dark). Picking a swatch
- * calls `useTheme().setAccentColor(color, mode)`, overriding that mode's `accent` and persisting it, so
- * the choice is restored on the next visit. Each list leads with the provider's default for that mode
- * (`defaultAccentColors[mode]`), selected when there's no override; picking it clears that mode's
- * override. Below the accents, a **Header** section holds an exclusive `ChoiceCardGroup` (**Static** /
- * **Fixed** cards) driving `useTheme().setHeaderSticky` — the persisted fixed-vs-static header
- * preference. Internal to the admin shell — not a public export.
+ * The header user-menu **Settings** drawer (a right-side `Modal`), top to bottom: a **Theme** section —
+ * an exclusive `ChoiceCardGroup` (**Light** / **Dark** cards) driving `useTheme().setMode`; **Accent
+ * Color** — **two `SwatchPicker`s** (Light + Dark) so both accents are chosen independently, each with a
+ * per-mode set (deeper tones for light, brighter for dark), calling `setAccentColor(color, mode)` and
+ * persisting it — each list leads with the provider's default for that mode (`defaultAccentColors[mode]`),
+ * selected when there's no override (picking it clears the override); a **Font** section (a searchable
+ * `Select` — Inter preset + type any Google Font — driving `setFontFamily`); and a **Header** section
+ * (an exclusive `ChoiceCardGroup` **Static** / **Fixed** driving `setHeaderSticky`). Internal to the
+ * admin shell — not a public export.
  */
 export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
   const {
+    mode,
+    setMode,
     accentColors,
     defaultAccentColors,
     setAccentColor,
@@ -78,21 +79,19 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
     setFontFamily,
   } = useTheme()
 
-  // font options: the pre-imported presets, plus the active font if it's a custom (non-preset) one, so
-  // the Select always shows the current choice (a picked custom font stays selectable)
-  const fontValues: string[] = (PRELOADED_FONTS as readonly string[]).includes(fontFamily)
-    ? [...PRELOADED_FONTS]
-    : [fontFamily, ...PRELOADED_FONTS]
-  const fontOptions = fontValues.map((f) => ({ value: f, label: f }))
-
-  // a free-text custom font (any Google Font family) — applied on Enter or the adornment button
-  const [customFont, setCustomFont] = useState('')
-  const applyCustomFont = () => {
-    const f = customFont.trim()
-    if (!f) return
-    setFontFamily(f)
-    setCustomFont('')
-  }
+  // One searchable Select doubles as a "type any Google Font" field. Base = Inter (the only preset) +
+  // the active font (so a custom pick stays visible/selectable). While searching, the typed query is
+  // offered as its own option — picking it applies + loads that family. Base is always kept in the
+  // list (never filtered out) so `value` always resolves in the trigger, even mid-search.
+  const [fontQuery, setFontQuery] = useState('')
+  const q = fontQuery.trim()
+  const base =
+    fontFamily !== DEFAULT_FONT_FAMILY ? [DEFAULT_FONT_FAMILY, fontFamily] : [DEFAULT_FONT_FAMILY]
+  const showTyped = q.length > 0 && !base.some((f) => f.toLowerCase() === q.toLowerCase())
+  const fontOptions = (showTyped ? [q, ...base] : base).map((f) => ({
+    value: f,
+    label: f === DEFAULT_FONT_FAMILY ? `${f} (Default)` : f,
+  }))
 
   const picker = (mode: 'light' | 'dark', label: string) => {
     const def = defaultAccentColors[mode]
@@ -124,6 +123,35 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       icon="Setting5"
     >
       <Typography variant="subtitle" as="h3">
+        Theme
+      </Typography>
+      <Typography
+        variant="bodySmall"
+        color="muted"
+        as="p"
+        style={{ marginTop: 'var(--tz-space-xxs)' }}
+      >
+        Switch between the light and dark theme.
+      </Typography>
+      <ChoiceCardGroup
+        exclusive
+        color="accent"
+        minCardWidth={130}
+        value={mode}
+        onChange={(v) => {
+          if (typeof v === 'string') setMode(v as 'light' | 'dark')
+        }}
+        options={[
+          { value: 'light', label: 'Light', description: 'Bright theme', icon: 'Sun' },
+          { value: 'dark', label: 'Dark', description: 'Dim theme', icon: 'Moon' },
+        ]}
+        aria-label="Theme mode"
+        style={{ marginTop: 'var(--tz-space-sm)' }}
+      />
+
+      <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
+
+      <Typography variant="subtitle" as="h3">
         Accent Color
       </Typography>
       <Typography
@@ -139,7 +167,9 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
         {picker('dark', 'Dark theme')}
       </Col>
 
-      <Typography variant="subtitle" as="h3" style={{ marginTop: 'var(--tz-space-md)' }}>
+      <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
+
+      <Typography variant="subtitle" as="h3">
         Font
       </Typography>
       <Typography
@@ -150,34 +180,24 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       >
         Pick a preset or type any Google Font — applied app-wide and saved for next time.
       </Typography>
-      <Col gap="sm" style={{ marginTop: 'var(--tz-space-sm)' }}>
-        <Select
-          label="Font family"
-          value={fontFamily}
-          options={fontOptions}
-          onChange={(v) => setFontFamily(v)}
-          aria-label="Font family"
-        />
-        <TextField
-          label="Custom font"
-          placeholder="e.g. Poppins"
-          helperText="Any Google Font family name"
-          value={customFont}
-          onChange={(e) => setCustomFont(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              applyCustomFont()
-            }
-          }}
-          adornment={<Icon name="Add" />}
-          adornmentPosition="right"
-          onAdornmentClick={applyCustomFont}
-          adornmentLabel="Apply font"
-        />
-      </Col>
+      <Select
+        label="Font family"
+        searchable
+        searchPlaceholder="Search or type any Google Font…"
+        value={fontFamily}
+        options={fontOptions}
+        onSearchChange={setFontQuery}
+        onChange={(v) => {
+          setFontFamily(v)
+          setFontQuery('')
+        }}
+        aria-label="Font family"
+        style={{ marginTop: 'var(--tz-space-sm)' }}
+      />
 
-      <Typography variant="subtitle" as="h3" style={{ marginTop: 'var(--tz-space-md)' }}>
+      <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
+
+      <Typography variant="subtitle" as="h3">
         Header
       </Typography>
       <Typography
@@ -198,8 +218,8 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
           if (typeof v === 'string') setHeaderSticky(v === 'fixed')
         }}
         options={[
-          { value: 'static', label: 'Static', description: 'Scrolls away', icon: 'LockSlash' },
-          { value: 'fixed', label: 'Fixed', description: 'Stays on scroll', icon: 'Padlock' },
+          { value: 'static', label: 'Static', description: 'Scrolls away' },
+          { value: 'fixed', label: 'Fixed', description: 'Stays on scroll' },
         ]}
         aria-label="Header behavior on scroll"
         style={{ marginTop: 'var(--tz-space-sm)' }}

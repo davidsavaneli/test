@@ -377,8 +377,9 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   persists it (`localStorage['tz-header-sticky']`) — the `RootLayout` **Settings** drawer drives it.
   **`fontFamily`** (`string`) is the active font (seeded from `config.theme.fontFamily`, default `Inter`)
   and **`setFontFamily(family)`** sets + persists it (`localStorage['tz-font-family']`), writing the stack
-  to `--tz-font-family` and loading a non-preset Google Font on demand — `Inter`/`Roboto`/`Lato` ship
-  pre-imported (`PRELOADED_FONTS`); the Settings drawer offers them + a free-text field for any family.
+  to `--tz-font-family` and loading the Google Font on demand (only the default `Inter` is pre-imported;
+  any other family loads lazily on first selection). The Settings drawer surfaces this as one searchable
+  `Select` — Inter is the only preset, and typing any Google Font name offers it as a pick.
   Throws outside a provider.
 - Initial mode = stored value if present, else `config.mode`, else `'light'`; initial `accentColors` = the
   stored per-mode overrides if present, else `null` each.
