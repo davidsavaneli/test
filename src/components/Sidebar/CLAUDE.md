@@ -19,5 +19,9 @@
 - Tree logic is a pure, tested **`buildNavTree(routes)`** (router-free); **`useNavTree`** feeds it the
   live RBAC-filtered routes. **Internal (not exported):** `buildNavTree`, `useNavTree`, `firstNavTo`,
   and the `NavLeaf`/`NavGroup`/`NavModule`/`NavRoute` types.
+- **Depth cap:** the menu is **3 levels** by design (module → group → page). A named page that
+  itself has deeper children still renders as a leaf (its chrome isn't dropped); routes **deeper than
+  3 segments** appear **flattened** as leaves under their depth-2 group (their `to` stays correct) —
+  the nav just doesn't nest past level 3.
 - **Gotcha:** never name a leaf route file `loader.tsx` (reserved by the router plugin) — use a
   `loader/index.tsx` folder.

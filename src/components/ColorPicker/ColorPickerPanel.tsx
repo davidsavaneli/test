@@ -3,6 +3,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
 import { clsx } from 'clsx'
@@ -129,6 +130,79 @@ export function ColorPickerPanel({
     applyAlpha(clamp01((x - rect.left) / rect.width))
   })
 
+  // keyboard control — arrows nudge, Home/End jump to the extents (mirrors Calendar/TimeColumns a11y)
+  const SV_STEP = 0.01
+  const onSvKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const { h, s, v } = hsvRef.current
+    let ns = s
+    let nv = v
+    switch (event.key) {
+      case 'ArrowLeft':
+        ns = clamp01(s - SV_STEP)
+        break
+      case 'ArrowRight':
+        ns = clamp01(s + SV_STEP)
+        break
+      case 'ArrowUp':
+        nv = clamp01(v + SV_STEP)
+        break
+      case 'ArrowDown':
+        nv = clamp01(v - SV_STEP)
+        break
+      default:
+        return
+    }
+    event.preventDefault()
+    applyHsv({ h, s: ns, v: nv })
+  }
+  const onHueKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const { h } = hsvRef.current
+    let nh = h
+    switch (event.key) {
+      case 'ArrowLeft':
+      case 'ArrowDown':
+        nh = Math.max(0, h - 1)
+        break
+      case 'ArrowRight':
+      case 'ArrowUp':
+        nh = Math.min(360, h + 1)
+        break
+      case 'Home':
+        nh = 0
+        break
+      case 'End':
+        nh = 360
+        break
+      default:
+        return
+    }
+    event.preventDefault()
+    applyHsv({ ...hsvRef.current, h: nh })
+  }
+  const onAlphaKey = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    let na = alphaRef.current
+    switch (event.key) {
+      case 'ArrowLeft':
+      case 'ArrowDown':
+        na = clamp01(alphaRef.current - 0.01)
+        break
+      case 'ArrowRight':
+      case 'ArrowUp':
+        na = clamp01(alphaRef.current + 0.01)
+        break
+      case 'Home':
+        na = 0
+        break
+      case 'End':
+        na = 1
+        break
+      default:
+        return
+    }
+    event.preventDefault()
+    applyAlpha(na)
+  }
+
   // color input (accepts hex / rgb() / rgba()) + clear
   const [colorDraft, setColorDraft] = useState('')
   useEffect(() => {
@@ -159,20 +233,45 @@ export function ColorPickerPanel({
 
   return (
     <div className={styles.popover} style={{ '--cp-hue': hsv.h } as CSSProperties}>
-      <div className={styles.sv} onPointerDown={onSvDown}>
+      <div
+        className={styles.sv}
+        onPointerDown={onSvDown}
+        onKeyDown={onSvKey}
+        role="slider"
+        tabIndex={0}
+        aria-label="Saturation and brightness"
+        aria-valuetext={`${Math.round(hsv.s * 100)}% saturation, ${Math.round(hsv.v * 100)}% brightness`}
+      >
         <span
           className={styles.svThumb}
           style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, background: solidHex }}
         />
       </div>
 
-      <div className={styles.hue} onPointerDown={onHueDown}>
+      <div
+        className={styles.hue}
+        onPointerDown={onHueDown}
+        onKeyDown={onHueKey}
+        role="slider"
+        tabIndex={0}
+        aria-label="Hue"
+        aria-valuemin={0}
+        aria-valuemax={360}
+        aria-valuenow={Math.round(hsv.h)}
+      >
         <span className={styles.hueThumb} style={{ left: `${(hsv.h / 360) * 100}%` }} />
       </div>
 
       <div
         className={styles.alpha}
         onPointerDown={onAlphaDown}
+        onKeyDown={onAlphaKey}
+        role="slider"
+        tabIndex={0}
+        aria-label="Opacity"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(alpha * 100)}
         style={{ '--cp-rgb': cpRgb } as CSSProperties}
       >
         <span className={styles.alphaThumb} style={{ left: `${alpha * 100}%` }} />

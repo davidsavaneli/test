@@ -116,7 +116,6 @@ export const ToggleButtonGroup = forwardRef<HTMLDivElement, ToggleButtonGroupPro
       size,
       color,
       disabled,
-      fullWidth,
     }
 
     return (

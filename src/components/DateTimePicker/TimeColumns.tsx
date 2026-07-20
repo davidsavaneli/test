@@ -153,6 +153,13 @@ export function TimeColumns({
   const hourOptions = numberOptions(hour12 ? range(1, 12) : range(0, 23))
   const selectedHour = value ? (hour12 ? h24 % 12 || 12 : h24) : null
 
+  // snap the highlighted minute to the nearest step so a non-aligned value (e.g. :37 with step 15)
+  // still lands on a real option — otherwise selectedIndex is -1 and roving focus sticks at :00
+  const maxMinuteOption = Math.floor(59 / step) * step
+  const selectedMinute = value
+    ? Math.min(Math.round(base.minute() / step) * step, maxMinuteOption)
+    : null
+
   const pickHour = (h: number) =>
     onChange(hour12 ? base.hour((h % 12) + (isPM ? 12 : 0)) : base.hour(h))
   const pickMinute = (m: number) => onChange(base.minute(m))
@@ -171,7 +178,7 @@ export function TimeColumns({
       />
       <TimeList
         options={numberOptions(range(0, 59, step))}
-        selected={value ? base.minute() : null}
+        selected={selectedMinute}
         onSelect={pickMinute}
         label="Minute"
       />

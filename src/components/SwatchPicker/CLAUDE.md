@@ -11,7 +11,7 @@ drawer). Props: **`colors`** (required — the CSS color strings to render, hex 
 **`value`** / **`defaultValue`** (`string | null` — the selected color, matched **case-insensitively**
 against `colors`; controlled vs uncontrolled) · **`onChange(color)`** (fires with the clicked color) ·
 **`size`** (`sm` / `md` / `lg`, default `md` — each sets the tile size `30`/`36`/`42`px, its own corner
-radius, and the tick size `16`/`20`/`24`px, all via per-size CSS vars) ·
+radius, and the tick size `12`/`16`/`20`px, all via per-size CSS vars) ·
 **`labels`** (a `{ [color]: string }` map of per-swatch accessible names, falling back to the color
 value) · **`label`** · **`error`** + **`helperText`** · **`required`** — the field-family chrome (it
 reuses **`TextField.module.css`** for the label / helper / required / error styling, like `Slider` /

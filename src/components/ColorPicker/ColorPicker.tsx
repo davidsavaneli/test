@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type FocusEvent,
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
@@ -142,6 +143,15 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
     if (refocus) triggerRef.current?.focus()
   }, [])
 
+  // mark the form field touched when focus leaves the whole widget — but not when it moves into the
+  // (portaled) popover or stays on the trigger, so a form-bound picker shows its error like every
+  // other popover field (Select/DatePicker) instead of only after submit
+  const handleTriggerBlur = (event: FocusEvent<HTMLButtonElement>) => {
+    const next = event.relatedTarget as Node | null
+    if (next && (popoverRef.current?.contains(next) || triggerRef.current?.contains(next))) return
+    bound?.onBlur(event as unknown as FocusEvent<HTMLInputElement>)
+  }
+
   return (
     <div
       className={clsx(
@@ -180,6 +190,7 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
         aria-describedby={resolvedHelperText != null ? helperId : undefined}
         aria-label={label || parsed || placeholder ? undefined : 'Pick a color'}
         onClick={() => setOpen((o) => !o)}
+        onBlur={handleTriggerBlur}
       >
         <span className={clsx(styles.value, !parsed && styles.placeholder)}>
           {displayText ?? placeholder}

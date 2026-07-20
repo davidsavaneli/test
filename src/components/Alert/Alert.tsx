@@ -91,7 +91,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
       {action != null && <div className={styles.action}>{action}</div>}
       {onClose && (
         <IconButton
-          variant="filled"
+          variant="text"
           color={color}
           size="sm"
           className={styles.close}

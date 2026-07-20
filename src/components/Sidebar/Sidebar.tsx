@@ -158,8 +158,13 @@ export function buildNavTree(routes: NavRoute[]): { links: NavLeaf[]; modules: N
 
   const topLinks: LeafAcc[] = []
   for (const { path, name, sd } of entries) {
-    if (isContainer(path) || sd.hidden) continue
     const segs = path.split('/')
+    // The menu is 3 levels deep by design (module → group → page). A path only counts as a
+    // "container" (holds children instead of being its own row) at the module/group levels; a
+    // depth-3+ route is always a leaf, so a named page with even-deeper children isn't dropped.
+    // Routes deeper than 3 segments still appear — flattened as leaves under their depth-2 group
+    // (their `to` stays correct) — the nav just can't nest beyond level 3.
+    if ((segs.length <= 2 && isContainer(path)) || sd.hidden) continue
     if (segs.length === 1) {
       topLinks.push({
         label: name,
@@ -434,6 +439,11 @@ export function NavSearch() {
   // reset the highlighted row whenever the query changes
   useEffect(() => setActive(0), [query])
 
+  // clamp the highlight if the result set shrinks without a query change (e.g. RBAC pages update)
+  useEffect(() => {
+    setActive((a) => (a > results.length - 1 ? Math.max(0, results.length - 1) : a))
+  }, [results.length])
+
   // close the suggestions on an outside pointerdown
   useEffect(() => {
     if (!open) return
@@ -545,6 +555,12 @@ function NavGroupItem({ group, pathname }: { group: NavGroup; pathname: string }
   const active = groupIsActive(group, pathname)
   const hasChildren = !!group.children?.length
   const [open, setOpen] = useState(active)
+
+  // re-open when navigation makes this group active via a path the mount-time seed missed
+  // (NavSearch, Breadcrumbs, back/forward) — collapsing an active group hides the current page
+  useEffect(() => {
+    if (active) setOpen(true)
+  }, [active])
 
   // a plain level-2 page (no children) — just a link row
   if (!hasChildren && group.to) {

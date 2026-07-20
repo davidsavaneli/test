@@ -97,7 +97,7 @@ export const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserC
 
       {onLogout ? (
         <Button
-          variant="filled"
+          variant="outlined"
           color="error"
           size={buttonSize}
           fullWidth

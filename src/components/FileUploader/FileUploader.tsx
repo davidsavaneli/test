@@ -567,12 +567,21 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   const markSourceFailed = (src: string) =>
     setFailedSources((prev) => (prev.has(src) ? prev : new Set(prev).add(src)))
 
+  // Files whose object-URL preview failed to load (a corrupt/undecodable image) — same fallback.
+  const [failedFiles, setFailedFiles] = useState<ReadonlySet<File>>(() => new Set())
+  const markFileFailed = (file: File) =>
+    setFailedFiles((prev) => (prev.has(file) ? prev : new Set(prev).add(file)))
+
   // Object URLs for image/video File previews, revoked when the File leaves the value / on unmount.
   const objectUrls = useRef(new Map<File, string>())
   const previewOf = (item: FileUploaderItem): string | null => {
     if (item.file) {
       const type = item.file.type
-      if ((!type.startsWith('image/') && !type.startsWith('video/')) || !canMakeObjectUrl())
+      if (
+        (!type.startsWith('image/') && !type.startsWith('video/')) ||
+        !canMakeObjectUrl() ||
+        failedFiles.has(item.file)
+      )
         return null
       let url = objectUrls.current.get(item.file)
       if (!url) {
@@ -586,12 +595,23 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     if (item.source && !failedSources.has(item.source)) return item.source
     return null
   }
+  // fullscreen preview (Eye) — snapshot the media so the lightbox is self-contained. Declared above
+  // the object-URL cleanup effect below so that effect can spare the URL the lightbox is showing.
+  const [preview, setPreview] = useState<{
+    url: string
+    isVideo: boolean
+    isSvg: boolean
+    name: string
+  } | null>(null)
   useEffect(() => {
     const cache = objectUrls.current
     const liveFiles = new Set(items.map((it) => it.file).filter(Boolean) as File[])
     const liveSources = new Set(items.filter((it) => !it.file && it.source).map((it) => it.source!))
     for (const [file, url] of cache) {
-      if (!liveFiles.has(file)) {
+      // don't revoke the URL the open lightbox is showing — a controlled value swap that removes the
+      // item would otherwise break the media mid-display; the deferred revoke runs once it closes
+      // (this effect re-runs on `preview` change) or on unmount
+      if (!liveFiles.has(file) && url !== preview?.url) {
         URL.revokeObjectURL(url)
         cache.delete(file)
       }
@@ -601,7 +621,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
       const next = new Set([...prev].filter((s) => liveSources.has(s)))
       return next.size === prev.size ? prev : next
     })
-  }, [current]) // eslint-disable-line react-hooks/exhaustive-deps -- `current` is the value identity
+  }, [current, preview]) // eslint-disable-line react-hooks/exhaustive-deps -- `current` is the value identity
   useEffect(() => {
     const cache = objectUrls.current
     return () => {
@@ -646,13 +666,6 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   }
   const closeEditor = () => setEditId(null)
 
-  // fullscreen preview (Eye) — snapshot the media so the lightbox is self-contained
-  const [preview, setPreview] = useState<{
-    url: string
-    isVideo: boolean
-    isSvg: boolean
-    name: string
-  } | null>(null)
   const openPreview = (item: FileUploaderItem) => {
     const url = previewOf(item)
     if (!url) return
@@ -938,7 +951,11 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
                     : undefined
                 }
                 onPreviewError={
-                  !item.file && item.source ? () => markSourceFailed(item.source!) : undefined
+                  item.file
+                    ? () => markFileFailed(item.file!)
+                    : item.source
+                      ? () => markSourceFailed(item.source!)
+                      : undefined
                 }
               />
             ))}

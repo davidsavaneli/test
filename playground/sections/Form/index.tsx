@@ -95,7 +95,9 @@ const buildSchema = (codes: string[]) => {
     role: z.string().min(1, 'Pick a role'),
     accent: z.string().min(1, 'Pick a brand color'),
     otp: z.string().length(4, 'Enter the 4-digit code'),
-    published: z.boolean(),
+    // require the switch ON so the Form demo actually exercises Switch validation (a bare
+    // z.boolean() can never fail, so the control would never redden)
+    published: z.boolean().refine((v) => v === true, 'You must publish to continue'),
     priority: z.number().min(1, 'Set a priority (min 1)'),
     // RTE value is HTML, but a blank editor emits '' (not <p><br></p>), so min(1) is enough
     body: z.string().min(1, 'Required'),

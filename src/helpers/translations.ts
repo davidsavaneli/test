@@ -123,8 +123,10 @@ export function flattenTranslations(
 /**
  * Serialize flat form values into a `FormData` for a `multipart/form-data` POST. The flat translation
  * keys map straight through (`translations[en-US].title`); arrays become indexed keys (`tags[0]`,
- * `tags[1]`); `Blob`/`File` values are appended as-is; `null`/`undefined` are skipped; everything else
- * is stringified.
+ * `tags[1]`) with nullish items skipped so indices stay contiguous; `Blob`/`File` values are appended
+ * as-is; a `Date` becomes an ISO string; only **plain** objects recurse (a class instance like a dayjs
+ * object is stringified, not exploded into `$d`/`$y` keys); `null`/`undefined` are skipped; everything
+ * else is stringified.
  *
  * ```ts
  * await fetch('/news', { method: 'POST', body: toFormData(form.values) })
@@ -136,11 +138,21 @@ export function toFormData(values: Record<string, unknown>): FormData {
     if (value === null || value === undefined) return
     if (value instanceof Blob) {
       fd.append(key, value)
+    } else if (value instanceof Date) {
+      fd.append(key, value.toISOString())
     } else if (Array.isArray(value)) {
-      value.forEach((item, index) => append(`${key}[${index}]`, item))
+      // drop nullish items so indices stay contiguous (gapped indices break strict parsers)
+      value
+        .filter((item) => item != null)
+        .forEach((item, index) => append(`${key}[${index}]`, item))
     } else if (typeof value === 'object') {
-      for (const [k, v] of Object.entries(value as Record<string, unknown>))
-        append(`${key}[${k}]`, v)
+      const proto = Object.getPrototypeOf(value)
+      if (proto === Object.prototype || proto === null) {
+        for (const [k, v] of Object.entries(value as Record<string, unknown>))
+          append(`${key}[${k}]`, v)
+      } else {
+        fd.append(key, String(value)) // class instance (Date handled above) → stringify, don't explode keys
+      }
     } else {
       fd.append(key, String(value))
     }

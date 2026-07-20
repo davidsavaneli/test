@@ -6,6 +6,8 @@
 .overlay {
   position: fixed;
   inset: 0;
+  /* the overlay backs the Modal, so it sits on the modal layer — a popover/select/picker opened inside
+     a Modal is portaled at --tz-z-popover (deliberately above --tz-z-modal) and still floats above it */
   z-index: var(--tz-z-modal);
   display: flex;
   align-items: center;

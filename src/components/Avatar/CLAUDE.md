@@ -10,5 +10,6 @@
 a11y: an image renders `<img alt>` (alt ← `alt`/`name`); a non-image avatar with a name gets
 `role="img"` + `aria-label`. **AvatarGroup** overlaps `Avatar` children (negative margin + a
 `--tz-color-surface` ring) and collapses the overflow past `max` into a trailing `+N` avatar;
-`size`/`color` normalize all of them (children are cloned to the group `size`). Both live in
+the group `size` is cloned onto every child (so they match), while the group `color` tints only the
+`+N` overflow avatar (each child keeps its own `color`). Both live in
 `src/components/Avatar/` (one folder, two exports); `Avatar` ships named **and** default. Own CSS module.

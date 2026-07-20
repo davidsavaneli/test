@@ -31,6 +31,8 @@ import {
   REMOVE_LIST_COMMAND,
 } from '@lexical/list'
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link'
+import { sanitizeLinkUrl } from './urlSafety'
+import { toast } from '../Toast/toastStore'
 import {
   $getSelectionStyleValueForProperty,
   $patchStyleText,
@@ -278,8 +280,9 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         label: 'Link URL',
         placeholder: 'https://example.com',
         confirmLabel: isLink ? 'Update' : 'Insert',
-        // an empty value removes the link (matches the old prompt behavior)
-        onConfirm: (url) => editor.dispatchCommand(TOGGLE_LINK_COMMAND, url === '' ? null : url),
+        // an empty value removes the link (matches the old prompt behavior); sanitize the scheme
+        onConfirm: (url) =>
+          editor.dispatchCommand(TOGGLE_LINK_COMMAND, url === '' ? null : sanitizeLinkUrl(url)),
       },
       linkUrl, // prefill the current link's URL when the cursor sits in one
     )
@@ -300,8 +303,13 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
     const file = event.target.files?.[0]
     event.target.value = '' // allow re-picking the same file
     if (!file) return
-    const url = onImageUpload ? await onImageUpload(file) : await fileToDataUrl(file)
-    editor.update(() => $insertNodeToNearestRoot($createImageNode(url, file.name)))
+    try {
+      const url = onImageUpload ? await onImageUpload(file) : await fileToDataUrl(file)
+      editor.update(() => $insertNodeToNearestRoot($createImageNode(url, file.name)))
+    } catch {
+      // a rejecting consumer upload handler (or a failed data-URL read) shouldn't fail silently
+      toast.error('Could not add the image. Please try again.')
+    }
   }
 
   const insertVideo = () =>
@@ -387,6 +395,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
             variant="text"
             color="primary"
             size={size}
+            disabled={disabled}
             endIcon={<Icon name="ArrowDown4" />}
             aria-label="Font size"
             onMouseDown={(e) => e.preventDefault()} // keep the selection while opening
@@ -413,7 +422,14 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         size={size}
         disabled={disabled}
         trigger={
-          <Button variant="text" color="primary" size={size} endIcon={<Icon name="ArrowDown4" />}>
+          <Button
+            variant="text"
+            color="primary"
+            size={size}
+            disabled={disabled}
+            endIcon={<Icon name="ArrowDown4" />}
+            onMouseDown={(e) => e.preventDefault()} // keep the selection while opening
+          >
             {BLOCK_LABEL[dropdownBlock]}
           </Button>
         }
@@ -506,7 +522,13 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         disabled={disabled}
         minWidth={false}
         trigger={
-          <IconButton variant="text" color="primary" size={size} aria-label="Insert image">
+          <IconButton
+            variant="text"
+            color="primary"
+            size={size}
+            disabled={disabled}
+            aria-label="Insert image"
+          >
             <Icon name="GalleryAdd" />
           </IconButton>
         }

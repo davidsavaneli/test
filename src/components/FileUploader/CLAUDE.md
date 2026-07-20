@@ -26,7 +26,7 @@ helper / error styling (the `Slider`/`NumberField` precedent) — so `label` · 
 reaches the right edge and wraps once another 200px won't fit), a fixed **200px tall**. The dropzone shows while `multiple` (or, in single mode, until a file is
 picked — `showDropzone = multiple || items.length === 0`); a static `hint` inside it spells out the
 constraints (`"Up to 5 files · Max 5 MB each"`). Each card shows a **preview** — an image renders as an
-`<img>`, a **video** as a first-frame **`<video>`** thumbnail (no controls) with a centered **`PlayCircle`
+`<img>`, a **video** as a first-frame **`<video>`** thumbnail (no controls) with a centered **`Play`
 badge** so it reads as a video (`isVideoItem` — File by MIME, source by extension / `data:video`), and any
 non-media / failed load falls back to a centered `Document` icon — with **two scrim overlays**: a **top**
 one holding the **name** (middle-truncated as `name….ext` so the extension always stays visible) + a
@@ -71,7 +71,7 @@ check would miss; pass **`allowDuplicates`** to let identical files stack (singl
 it can't stack).
 
 **Edit modals — crop + alt text (`allowAltText`).** Each card has **two** buttons opening **separate**
-modals (one internal **`FileUploaderEditDialog`** with a `mode` prop): the **crop** button (`Edit2`) → a
+modals (one internal **`FileUploaderEditDialog`** with a `mode` prop): the **crop** button (`Crop`) → a
 crop modal (`size="lg"`); the **alt-text** button (`Text`) → an alt-text modal (`size="sm"`). **Crop** (via
 **`react-image-crop`**): the image with a draggable selection rectangle ("Drag to select the area to keep"),
 the selection's **native pixel size shown live** (`W × H px`) — or the image's **original size** before a

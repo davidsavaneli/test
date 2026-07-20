@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useRef,
   useState,
   type CSSProperties,
   type HTMLAttributes,
@@ -64,6 +65,13 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(function Avatar(
   ref,
 ) {
   const [imgError, setImgError] = useState(false)
+  // reset the error when `src` changes, so a new/valid image isn't stuck on the fallback forever
+  // (React-blessed "adjust state on prop change" — restarts the render, no fallback flash)
+  const lastSrc = useRef(src)
+  if (lastSrc.current !== src) {
+    lastSrc.current = src
+    setImgError(false)
+  }
   const showImage = Boolean(src) && !imgError
   const label = alt ?? name
 

@@ -25,14 +25,16 @@ export function hasAccess(roles?: string[]) {
   return roles.some((r) => keys.includes(r))
 }
 
+// hoisted so its identity is stable across renders — an inline arrow would make
+// useSyncExternalStore unsubscribe+resubscribe on every render of every consumer
+const subscribe = (cb: () => void) => {
+  listeners.add(cb)
+  return () => {
+    listeners.delete(cb)
+  }
+}
+
 /** Reactive read for components — re-renders the subscriber when the keys change (login/logout). */
 export function useAccessKeys() {
-  return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb)
-      return () => listeners.delete(cb)
-    },
-    getAccessKeys,
-    getAccessKeys,
-  )
+  return useSyncExternalStore(subscribe, getAccessKeys, getAccessKeys)
 }

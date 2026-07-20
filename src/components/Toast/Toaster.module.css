@@ -39,7 +39,7 @@
 /* ── a single toast ───────────────────────────────────────────────────────── */
 .item {
   pointer-events: auto;
-  width: 360px;
+  width: 360px; /* fixed toast width — a deliberate one-off literal (no --tz-space token is this wide) */
   max-width: calc(100vw - var(--tz-space-md) * 2);
   opacity: 0;
   transition:

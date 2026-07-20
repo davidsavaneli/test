@@ -50,7 +50,10 @@ export const FullscreenToggle = forwardRef<HTMLButtonElement, FullscreenTogglePr
         aria-checked={isFullscreen}
         aria-label="Toggle fullscreen"
         {...props}
-        onClick={toggle}
+        onClick={(event) => {
+          props.onClick?.(event) // preserve a caller-supplied handler, then toggle
+          toggle()
+        }}
       >
         <Icon name="Maximize3" style={isFullscreen ? { transform: 'rotate(180deg)' } : undefined} />
       </IconButton>

@@ -1,9 +1,11 @@
 import {
   forwardRef,
   useId,
+  useRef,
   useState,
   type CSSProperties,
   type HTMLAttributes,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
@@ -30,7 +32,7 @@ export interface SwatchPickerProps extends Omit<
   onChange?: (color: string) => void
   /**
    * Swatch size — `sm` 30 / `md` 36 / `lg` 42 px, each with its own corner radius and tick size
-   * (16/20/24). Defaults to `md`. All three are per-size CSS vars in the module.
+   * (12/16/20). Defaults to `md`. All three are per-size CSS vars in the module.
    */
   size?: SwatchPickerSize
   /** Per-color accessible labels (falls back to the color value itself). */
@@ -108,6 +110,36 @@ export const SwatchPicker = forwardRef<HTMLDivElement, SwatchPickerProps>(functi
     onChange?.(color)
   }
 
+  // roving tabindex (ARIA radiogroup): only the selected swatch — or the first, if none — is tabbable;
+  // arrows move selection between swatches (wrapping), Home/End jump to the ends
+  const swatchRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const selectedIndex = colors.findIndex((c) => c.toLowerCase() === active)
+  const tabbableIndex = selectedIndex >= 0 ? selectedIndex : 0
+  const onSwatchKey = (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
+    let target = index
+    switch (event.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        target = (index + 1) % colors.length
+        break
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        target = (index - 1 + colors.length) % colors.length
+        break
+      case 'Home':
+        target = 0
+        break
+      case 'End':
+        target = colors.length - 1
+        break
+      default:
+        return
+    }
+    event.preventDefault()
+    pick(colors[target])
+    swatchRefs.current[target]?.focus()
+  }
+
   return (
     <div
       ref={ref}
@@ -141,18 +173,23 @@ export const SwatchPicker = forwardRef<HTMLDivElement, SwatchPickerProps>(functi
         // name + tabIndex are load-bearing for the form's scroll-to-error
         {...(name ? { name, tabIndex: -1 } : {})}
       >
-        {colors.map((color) => {
+        {colors.map((color, index) => {
           const isSelected = color.toLowerCase() === active
           return (
             <button
               key={color}
+              ref={(el) => {
+                swatchRefs.current[index] = el
+              }}
               type="button"
               role="radio"
               aria-checked={isSelected}
               aria-label={labels?.[color] ?? color}
+              tabIndex={index === tabbableIndex ? 0 : -1}
               className={styles.swatch}
               style={{ '--sw': color } as CSSProperties}
               onClick={() => pick(color)}
+              onKeyDown={(e) => onSwatchKey(e, index)}
             >
               {isSelected ? (
                 <Icon

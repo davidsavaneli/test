@@ -320,11 +320,14 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
       case 'Escape':
         if (open) {
           event.preventDefault()
+          event.stopPropagation() // don't let FloatingPanel's own Escape also fire closeMenu/onBlur
           closeMenu(true)
         }
         break
       case 'Tab':
-        if (open) closeMenu(false)
+        // refocus the trigger so Tab continues from the field's visual location, not the portaled
+        // search input's DOM position (end of <body>); don't preventDefault — let Tab move on
+        if (open) closeMenu(true)
         break
       case 'Home':
         if (open) {

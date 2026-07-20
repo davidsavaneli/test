@@ -36,7 +36,12 @@ a base64 `data:` URL by default (no backend), or, if **`onImageUpload(file) => P
 given, uploads through it and inserts the returned URL; **video** is **URL-embed only** (a `VideoNode`
 that normalizes YouTube/Vimeo links to a responsive `<iframe>` embed and renders direct media files as
 `<video controls>` — no upload). Custom `ImageNode` / `VideoNode` (`DecoratorNode`s) serialize to clean
-`<img>` / `<iframe>`/`<video>` and parse back on paste/load. **HTML value hygiene:** the exported HTML is
+`<img>` / `<iframe>`/`<video>` and parse back on paste/load. **URL safety:** every link/image/video URL
+is run through a scheme allowlist (`urlSafety.ts` — `http(s)`/`mailto`/`tel`/`ftp` + relative/anchor,
+plus `data:image`/`data:video`/`blob:` for media) before it enters the value, so a `javascript:` (or
+other script-scheme) URL — typed into a dialog **or pasted** — is neutralized (`href` → `#`, media
+`src` → empty) rather than landing in the exported HTML. Links are sanitized both at insert and via a
+`LinkNode` transform (covers pasted anchors); images/videos in their node constructor (covers every path). **HTML value hygiene:** the exported HTML is
 **class-stripped** (`cleanExportedHtml`) so the value is portable markup (`<h2>` not
 `<h2 class="_h2_ab12">`); re-import keys off tag names, so it round-trips. A **blank editor emits `''`**
 (not Lexical's `<p><br></p>`) via `$isEditorEmpty`, so a cleared field reads as empty and a `required`

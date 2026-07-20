@@ -106,7 +106,7 @@ export function parseTableQuery(
       size = Number.MAX_SAFE_INTEGER // the "All" sentinel
     } else {
       const n = Number(rawSize)
-      if (Number.isFinite(n)) size = n
+      if (Number.isInteger(n) && n >= 1) size = n // reject '', 0, negatives, floats
     }
   }
 
@@ -115,7 +115,13 @@ export function parseTableQuery(
   const rawPage = params.get(m.pageParam)
   if (rawPage != null) {
     const n = Number(rawPage)
-    if (Number.isFinite(n)) page = m.pagination === 'offset' ? Math.floor(n / (size || 1)) + 1 : n
+    if (m.pagination === 'offset') {
+      // needs a real size to convert; without one, leave the page unresolved (caller applies its default)
+      if (Number.isInteger(n) && n >= 0 && size != null && size >= 1)
+        page = Math.floor(n / size) + 1
+    } else if (Number.isInteger(n) && n >= 1) {
+      page = n
+    }
   }
 
   const search = params.get(m.searchParam) ?? ''

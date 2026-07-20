@@ -28,8 +28,9 @@
   --tz-color-secondary-shade700: rgba(var(--tz-color-secondary-rgb), 0.8);
   --tz-color-secondary-shade800: rgba(var(--tz-color-secondary-rgb), 0.9);
 
-  /* surface — a light surface color (very light in light mode, elevated dark in dark). Defined +
-     injected like any theme color, but NOT yet wired to any component — reserved for future use. */
+  /* surface — the elevated panel color (very light in light mode, elevated dark in dark). The panel
+     surface behind Card, Accordion, the sidebar, inputs/dropdowns/modals, and the Badge / Avatar
+     cut-out rings + EmptyState gradient. Defined + injected like any theme color. */
   --tz-color-surface: rgb(var(--tz-color-surface-rgb));
   --tz-color-surface-shade100: rgba(var(--tz-color-surface-rgb), 0.06);
   --tz-color-surface-shade200: rgba(var(--tz-color-surface-rgb), 0.1);

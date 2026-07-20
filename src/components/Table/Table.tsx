@@ -1091,7 +1091,11 @@ export const Table = forwardRef(function Table<T>(
               </Dropdown>
             )}
             {hasFilters && (
-              <TableFilters filters={filters} value={filterState} onChange={handleFiltersChange} />
+              <TableFilters
+                filters={filters}
+                value={resolvedFilterState}
+                onChange={handleFiltersChange}
+              />
             )}
           </div>
         </div>

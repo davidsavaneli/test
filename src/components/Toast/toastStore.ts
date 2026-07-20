@@ -54,8 +54,11 @@ export const getToasts = (): ToastRecord[] => toasts
 
 const upsert = (message: ReactNode, color: ThemeColor, options?: ToastOptions): string => {
   const id = options?.id ?? `tz-toast-${++seq}`
-  const record: ToastRecord = { ...options, id, message, color, open: true }
   const index = toasts.findIndex((t) => t.id === id)
+  // on update-by-id, merge over the existing record so fields omitted this call (action, a sticky
+  // duration, …) are preserved rather than silently reset to defaults
+  const prev = index >= 0 ? toasts[index] : undefined
+  const record: ToastRecord = { ...prev, ...options, id, message, color, open: true }
   toasts = index >= 0 ? toasts.map((t, i) => (i === index ? record : t)) : [...toasts, record]
   emit()
   return id

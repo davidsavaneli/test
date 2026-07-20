@@ -11,7 +11,8 @@ export interface ToggleButtonGroupContextValue {
   size?: ToggleButtonSize
   color?: ThemeColor
   disabled?: boolean
-  fullWidth?: boolean
+  // (no `fullWidth` — the group applies its own `.fullWidth` class on the container; a child only honors
+  // its own `fullWidth` prop when standalone, so passing it through context would be dead state)
 }
 
 export const ToggleButtonGroupContext = createContext<ToggleButtonGroupContextValue | null>(null)

@@ -10,6 +10,7 @@ import {
   type Spread,
 } from 'lexical'
 import type { ReactNode } from 'react'
+import { sanitizeMediaUrl } from '../urlSafety'
 
 /** Serialized shape of a {@link VideoNode} (editor-state JSON). */
 export type SerializedVideoNode = Spread<{ src: string }, SerializedLexicalNode>
@@ -59,7 +60,8 @@ export class VideoNode extends DecoratorNode<ReactNode> {
 
   constructor(src: string, key?: NodeKey) {
     super(key)
-    this.__src = src
+    // sanitize here so every path (insert, paste import, JSON load, clone) gets a safe scheme
+    this.__src = sanitizeMediaUrl(src)
   }
 
   static importJSON(json: SerializedVideoNode): VideoNode {

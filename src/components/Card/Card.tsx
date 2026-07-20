@@ -1,4 +1,4 @@
-import { forwardRef, useState, type HTMLAttributes, type ReactNode } from 'react'
+import { forwardRef, useId, useState, type HTMLAttributes, type ReactNode } from 'react'
 import { clsx } from 'clsx'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
@@ -65,6 +65,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
   const isControlled = collapsed !== undefined
   const [internal, setInternal] = useState(defaultCollapsed)
   const isCollapsed = collapsible && (isControlled ? collapsed! : internal)
+  const collapsibleId = useId() // ties the toggle to the fold region via aria-controls
 
   const toggle = () => {
     const next = !isCollapsed
@@ -124,6 +125,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
                   size="sm"
                   aria-label={isCollapsed ? 'Expand' : 'Collapse'}
                   aria-expanded={!isCollapsed}
+                  aria-controls={collapsibleId}
                   onClick={toggle}
                 >
                   <Icon
@@ -138,7 +140,10 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
         </div>
       )}
       {hasCollapsibleContent && (
-        <div className={clsx(styles.collapsible, collapsible && styles.foldable)}>
+        <div
+          id={collapsibleId}
+          className={clsx(styles.collapsible, collapsible && styles.foldable)}
+        >
           <div className={styles.collapsibleInner}>
             {hasBody && <div className={styles.body}>{children}</div>}
             {hasFooter && (

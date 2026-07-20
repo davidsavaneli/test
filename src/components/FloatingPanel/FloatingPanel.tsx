@@ -40,7 +40,10 @@ export interface FloatingPanelProps {
 }
 
 /** Focusable descendants used by the optional focus trap. */
-const FOCUSABLE = 'button:not([tabindex="-1"]):not(:disabled), [tabindex="0"]'
+// include inputs/selects/textareas/links — picker panels (DatePicker/ColorPicker/…) contain text
+// inputs, and a button-only selector let Shift+Tab escape the trap into the scroll-locked page
+const FOCUSABLE =
+  'a[href]:not([tabindex="-1"]), button:not([tabindex="-1"]):not(:disabled), input:not([tabindex="-1"]):not(:disabled), select:not([tabindex="-1"]):not(:disabled), textarea:not([tabindex="-1"]):not(:disabled), [tabindex="0"]'
 
 /**
  * The shared floating popover used across the library — `Select` / `MultiSelect`, the date/time

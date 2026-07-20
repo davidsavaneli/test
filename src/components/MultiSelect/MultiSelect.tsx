@@ -289,11 +289,14 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
       case 'Escape':
         if (open) {
           event.preventDefault()
+          event.stopPropagation() // don't let FloatingPanel's own Escape also fire closeMenu/onBlur
           closeMenu(true)
         }
         break
       case 'Tab':
-        if (open) closeMenu(false)
+        // refocus the trigger so Tab continues from the field's visual location, not the portaled
+        // search input's DOM position (end of <body>); don't preventDefault — let Tab move on
+        if (open) closeMenu(true)
         break
       case 'Backspace':
         // remove the last chip when the (search) input is empty or there's no search box
@@ -513,6 +516,8 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
                   className={clsx(index === highlightedIndex && styles.active)}
                   trailing={isSelected ? <Icon name="TickCircle" size="sm" /> : undefined}
                   onMouseEnter={() => !opt.disabled && setHighlightedIndex(index)}
+                  // keep focus on the search input (menu stays open on toggle) so typing keeps working
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => toggleOption(opt)}
                 >
                   {opt.label}

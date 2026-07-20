@@ -230,8 +230,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
             onBlur={handleBlur}
             disabled={disabled}
             className={clsx(styles.input, styles.rangeInput)}
-            // raise the start thumb when both pile up at the top, so it stays grabbable
-            style={{ zIndex: lo >= max ? 4 : 3 }}
+            // end thumb sits on top by default (z 4); raise the start above it (z 5) only when both pile
+            // at max, so whichever thumb needs grabbing is always reachable
+            style={{ zIndex: lo >= max ? 5 : 3 }}
             aria-label={label != null ? `${String(label)} start` : 'Range start'}
             aria-invalid={resolvedError || undefined}
             aria-describedby={resolvedHelperText != null ? helperId : undefined}
@@ -250,8 +251,10 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(function Slider(
             onBlur={handleBlur}
             disabled={disabled}
             className={clsx(styles.input, styles.rangeInput)}
+            style={{ zIndex: 4 }}
             aria-label={label != null ? `${String(label)} end` : 'Range end'}
             aria-invalid={resolvedError || undefined}
+            aria-describedby={resolvedHelperText != null ? helperId : undefined}
           />
         </div>
       ) : (

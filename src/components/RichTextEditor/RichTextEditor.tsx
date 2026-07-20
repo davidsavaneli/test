@@ -34,6 +34,7 @@ import {
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import { ListItemNode, ListNode } from '@lexical/list'
 import { LinkNode } from '@lexical/link'
+import { sanitizeLinkUrl } from './urlSafety'
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html'
 import { useFormContext } from '../../form/formContext'
 import { Typography } from '../Typography'
@@ -154,6 +155,18 @@ function ValuePlugin({ value, defaultValue, onChange, disabled }: ValuePluginPro
   onChangeRef.current = onChange
 
   useEffect(() => editor.setEditable(!disabled), [editor, disabled])
+
+  // neutralize unsafe link schemes (javascript:, data:, …) on every LinkNode — covers pasted anchors
+  // as well as toolbar inserts (which are also pre-sanitized), so no script URL survives into the value
+  useEffect(
+    () =>
+      editor.registerNodeTransform(LinkNode, (node) => {
+        const url = node.getURL()
+        const safe = sanitizeLinkUrl(url)
+        if (safe !== url) node.setURL(safe)
+      }),
+    [editor],
+  )
 
   // initial defaultValue (uncontrolled) — once
   useEffect(() => {

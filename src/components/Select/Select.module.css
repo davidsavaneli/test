@@ -13,7 +13,7 @@
 .label {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 2px; /* tight label↔asterisk gap — a deliberate one-off literal (no token is this small) */
   margin-bottom: var(--tz-space-xxs);
   width: fit-content;
   cursor: default;

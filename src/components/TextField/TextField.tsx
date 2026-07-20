@@ -1,6 +1,9 @@
 import {
   forwardRef,
+  useCallback,
   useId,
+  useLayoutEffect,
+  useRef,
   useState,
   type ChangeEvent,
   type CSSProperties,
@@ -50,6 +53,25 @@ function applyMask(raw: string, mask: string): string {
 function stripMaskLiterals(value: string, mask: string): string {
   const literals = new Set([...mask].filter((c) => !MASK_TOKENS[c]))
   return [...value].filter((c) => !literals.has(c)).join('')
+}
+
+/**
+ * Where to place the caret after re-masking: keep it after the same number of "significant"
+ * (data, i.e. alphanumeric) chars it followed in the raw input — so inserting mid-value doesn't
+ * jump the caret to the end. Literal mask chars (spaces, `()`, `-`, …) don't count.
+ */
+const SIGNIFICANT = /[A-Za-z0-9]/
+function maskCaretPosition(rawBeforeCaret: string, masked: string): number {
+  const target = (rawBeforeCaret.match(/[A-Za-z0-9]/g) ?? []).length
+  if (target <= 0) return 0
+  let count = 0
+  for (let i = 0; i < masked.length; i++) {
+    if (SIGNIFICANT.test(masked[i])) {
+      count += 1
+      if (count === target) return i + 1
+    }
+  }
+  return masked.length
 }
 
 export interface TextFieldProps extends Omit<
@@ -141,15 +163,43 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   const [internal, setInternal] = useState<string>(defaultValue != null ? String(defaultValue) : '')
   const currentValue = value !== undefined ? value : bound ? bound.value : internal
 
+  // merge the consumer ref with an internal one so we can restore the caret after re-masking
+  const innerRef = useRef<HTMLInputElement | null>(null)
+  const setInputRef = useCallback(
+    (node: HTMLInputElement | null) => {
+      innerRef.current = node
+      if (typeof ref === 'function') ref(node)
+      else if (ref) (ref as { current: HTMLInputElement | null }).current = node
+    },
+    [ref],
+  )
+  const pendingCaret = useRef<number | null>(null)
+  useLayoutEffect(() => {
+    const pos = pendingCaret.current
+    if (pos == null) return
+    pendingCaret.current = null
+    innerRef.current?.setSelectionRange(pos, pos)
+  })
+
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    let next = event.target.value
-    if (mask) next = applyMask(next, mask)
+    const el = event.target
+    let next = el.value
+    if (mask) {
+      const caret = el.selectionStart ?? el.value.length
+      const rawBeforeCaret = el.value.slice(0, caret) // capture before applyMask reassigns `next`
+      next = applyMask(next, mask)
+      // keep the caret after the same run of data chars, so mid-value edits don't jump to the end
+      pendingCaret.current = maskCaretPosition(rawBeforeCaret, next)
+    }
     if (regex) {
       const candidate = mask ? stripMaskLiterals(next, mask) : next
-      if (!regex.test(candidate)) return // reject the change, leaving the value unchanged
+      if (!regex.test(candidate)) {
+        pendingCaret.current = null
+        return // reject the change, leaving the value unchanged
+      }
     }
     if (!isControlled) setInternal(next)
-    event.target.value = next // hand consumers the masked/filtered value
+    el.value = next // hand consumers the masked/filtered value
     bound?.onChange(event)
     onChange?.(event)
   }
@@ -253,7 +303,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
       >
         {effAdornmentPosition === 'left' && adornmentNode}
         <input
-          ref={ref}
+          ref={setInputRef}
           id={id}
           name={name}
           type={inputType}

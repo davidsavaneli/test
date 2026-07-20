@@ -23,8 +23,10 @@ export type ModalPlacement = 'center' | 'left' | 'right'
 const ICON_NAME_SET = new Set<string>(ICON_NAMES)
 
 /** Focusable descendants used by the focus trap + initial focus. */
+// every clause excludes tabindex="-1" so decorative/programmatic-only nodes (e.g. the header's
+// `nonClickable aria-hidden` IconButton) don't count as trap boundaries or initial-focus targets
 const FOCUSABLE =
-  'a[href], button:not(:disabled), textarea:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex]:not([tabindex="-1"])'
+  'a[href]:not([tabindex="-1"]), button:not(:disabled):not([tabindex="-1"]), textarea:not(:disabled):not([tabindex="-1"]), input:not(:disabled):not([tabindex="-1"]), select:not(:disabled):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
 
 export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'color'> {
   /** Whether the modal is open — gates the portal and drives the enter animation. */

@@ -147,7 +147,8 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(function Tabs(
     return new URLSearchParams(window.location.search).get(syncKey)
   }, [syncKey])
 
-  const firstEnabled = items.find((i) => !i.disabled)?.value ?? items[0]?.value
+  // undefined when every tab is disabled — better than defaulting to a disabled tab (nothing active)
+  const firstEnabled = items.find((i) => !i.disabled)?.value
 
   const [internal, setInternal] = useState<string | undefined>(() => {
     const q = readQuery()

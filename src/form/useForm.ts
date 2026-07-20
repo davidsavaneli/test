@@ -1,6 +1,7 @@
 import {
   useCallback,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type Dispatch,
@@ -117,8 +118,11 @@ function collectErrors(schema: ZodType, values: unknown): Record<string, string>
   if (result.success) return {}
   const errors: Record<string, string> = {}
   for (const issue of result.error.issues) {
-    const key = String(issue.path[0] ?? '')
-    if (key && !(key in errors)) errors[key] = issue.message // keep the first issue per field
+    // path-less issues (a root `.refine()` / `.superRefine()`, e.g. password-confirm) land under a
+    // reserved `_form` key so `isValid` reflects them and the message is surfaceable — instead of
+    // being silently dropped (which made the form look valid while submit no-op'd).
+    const key = String(issue.path[0] ?? '_form')
+    if (!(key in errors)) errors[key] = issue.message // keep the first issue per field
   }
   return errors
 }
@@ -140,10 +144,15 @@ export function useForm<S extends ZodType>({
   type Values = TypeOf<S>
 
   const [values, setValues] = useState<Values>(defaultValues)
+  // hold the initial values in a first-render ref so `reset`'s identity doesn't churn when the caller
+  // passes an inline `defaultValues` literal (a fresh object every render)
+  const defaultValuesRef = useRef(defaultValues)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [submitted, setSubmitted] = useState(false)
   const [submitCount, setSubmitCount] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // synchronous re-entrancy guard — blocks a double-click before the `isSubmitting` re-render lands
+  const submittingRef = useRef(false)
 
   const errors = useMemo(() => collectErrors(schema, values), [schema, values])
   const isValid = Object.keys(errors).length === 0
@@ -170,7 +179,9 @@ export function useForm<S extends ZodType>({
         value: raw == null ? '' : String(raw),
         onChange: (event) => setValue(name, event.target.value as Values[typeof name]),
         onBlur: () => {
-          if (mode !== 'change') setTouched((prev) => ({ ...prev, [name]: true }))
+          // always record touched (so `FormApi.touched` is accurate in every mode); when a field's
+          // error becomes *visible* is governed separately by `isShown`/`mode`
+          setTouched((prev) => (prev[name] ? prev : { ...prev, [name]: true }))
         },
         error: isShown(name) && Boolean(errors[name]),
         helperText: isShown(name) ? errors[name] : undefined,
@@ -179,19 +190,17 @@ export function useForm<S extends ZodType>({
     [values, errors, isShown, setValue, mode],
   )
 
-  const reset = useCallback(
-    (next?: Values) => {
-      setValues(next ?? defaultValues)
-      setTouched({})
-      setSubmitted(false)
-      setSubmitCount(0)
-    },
-    [defaultValues],
-  )
+  const reset = useCallback((next?: Values) => {
+    setValues(next ?? defaultValuesRef.current)
+    setTouched({})
+    setSubmitted(false)
+    setSubmitCount(0)
+  }, [])
 
   const handleSubmit = useCallback(
     (event?: SyntheticEvent) => {
       event?.preventDefault()
+      if (submittingRef.current) return // ignore re-entrant submits while an async onSubmit is in flight
       setSubmitted(true)
       setSubmitCount((c) => c + 1)
 
@@ -210,37 +219,62 @@ export function useForm<S extends ZodType>({
 
       const outcome = onSubmit?.(result.data as Values, { reset, setValue, setValues })
       if (outcome instanceof Promise) {
+        submittingRef.current = true
         setIsSubmitting(true)
-        void outcome.finally(() => setIsSubmitting(false))
+        const done = () => {
+          submittingRef.current = false
+          setIsSubmitting(false)
+        }
+        // clear on resolve OR reject — `.then(done, done)` also marks the rejection handled
+        // (a bare `.finally` would re-throw into a discarded chain → unhandled promise rejection)
+        outcome.then(done, done)
       }
     },
     [schema, values, onSubmit, reset, setValue, scrollToError],
   )
 
-  return {
-    /** Current form values. */
-    values,
-    /** `{ field: firstErrorMessage }` for every invalid field (regardless of visibility). */
-    errors,
-    /** Which fields have been blurred. */
-    touched,
-    /** True when the whole form passes the schema. */
-    isValid,
-    /** True once a submit has been attempted. */
-    isSubmitted: submitted,
-    /** Number of submit attempts (increments on every `handleSubmit`). */
-    submitCount,
-    /** True while an async `onSubmit` is in flight. */
-    isSubmitting,
-    /** Spread onto a `<TextField />`: wires value/onChange/onBlur and shows the field's error. */
-    field,
-    /** Imperatively set one field's value. */
-    setValue,
-    /** Replace all values. */
-    setValues,
-    /** Reset to `defaultValues` (or the given values) and clear touched/submitted state. */
-    reset,
-    /** Form `onSubmit` handler — validates, then calls `onSubmit` with parsed values when valid. */
-    handleSubmit,
-  }
+  // memoized so `<Form>` (which feeds this straight into context) doesn't re-render every bound field
+  // on each render of the form-owning component — only when a real piece of state/identity changes
+  return useMemo(
+    () => ({
+      /** Current form values. */
+      values,
+      /** `{ field: firstErrorMessage }` for every invalid field (regardless of visibility). */
+      errors,
+      /** Which fields have been blurred. */
+      touched,
+      /** True when the whole form passes the schema. */
+      isValid,
+      /** True once a submit has been attempted. */
+      isSubmitted: submitted,
+      /** Number of submit attempts (increments on every `handleSubmit`). */
+      submitCount,
+      /** True while an async `onSubmit` is in flight. */
+      isSubmitting,
+      /** Spread onto a `<TextField />`: wires value/onChange/onBlur and shows the field's error. */
+      field,
+      /** Imperatively set one field's value. */
+      setValue,
+      /** Replace all values. */
+      setValues,
+      /** Reset to `defaultValues` (or the given values) and clear touched/submitted state. */
+      reset,
+      /** Form `onSubmit` handler — validates, then calls `onSubmit` with parsed values when valid. */
+      handleSubmit,
+    }),
+    [
+      values,
+      errors,
+      touched,
+      isValid,
+      submitted,
+      submitCount,
+      isSubmitting,
+      field,
+      setValue,
+      setValues,
+      reset,
+      handleSubmit,
+    ],
+  )
 }

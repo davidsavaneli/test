@@ -64,6 +64,8 @@
 /* bare input — the control owns the border/background; flex-grows to fill its row */
 .input {
   flex: 1;
+  /* keep a usable typing width once chips wrap the input onto its own line — a deliberate one-off
+     literal (no --tz-space token maps to this minimum) */
   min-width: 80px;
   /* no vertical padding — the chip height drives the row, and align-items:center centers the input,
      so a single row stays exactly the control height (matches TextField) */

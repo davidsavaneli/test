@@ -26,7 +26,10 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(funct
       aria-checked={isDark}
       aria-label="Toggle color theme"
       {...props}
-      onClick={toggleMode}
+      onClick={(event) => {
+        props.onClick?.(event) // preserve a caller-supplied handler, then toggle
+        toggleMode()
+      }}
     >
       <Icon name={isDark ? 'Moon' : 'Sun'} />
     </IconButton>

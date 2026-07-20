@@ -198,6 +198,10 @@ export function Dropdown({
         event.preventDefault()
         close()
         triggerRef.current?.focus()
+      } else if (event.key === 'Tab') {
+        // Tab would move focus by portal DOM order (end of <body>), orphaning the open menu — close it
+        // and let focus continue naturally from the trigger (Select/MultiSelect do the same)
+        close()
       } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault()
         const items = focusableItems(panelRef.current)

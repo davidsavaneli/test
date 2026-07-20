@@ -57,10 +57,13 @@ export function ToastItem({ toast, duration, position }: ToastItemProps) {
     remaining.current -= Date.now() - startedAt.current
   }
   useEffect(() => {
+    // (re)start from the full duration on open, and whenever an update-by-id changes `duration`
+    // (otherwise the original countdown keeps running against the stale ttl)
+    remaining.current = ttl
     resume()
     return clearTimer
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast.open])
+  }, [toast.open, ttl])
 
   return (
     <div

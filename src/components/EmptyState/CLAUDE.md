@@ -9,7 +9,7 @@ records yet, no search matches). A centered column: a muted glyph in a **soft ne
 color) + a **`title`** (default `"No Results Found"`) + an optional muted **`description`** + an **`action`** slot
 (e.g. an "Add Item" / "Clear Filters" button). **`icon`** is an `IconName` (default `FolderOpen`), any node (pass
 a tinted `<Icon>`/illustration), or **`false`** to hide it. **`size`** (`sm`/`md`/`lg`) scales the circle
-(48 / 64 / 80px — one-off literals), the icon, the title font, and the vertical padding so it fills the
+(42 / 56 / 70px — one-off literals), the icon, the title font, and the vertical padding so it fills the
 empty area; `children` renders extra content below the action. **`pattern`** is the polished
 "hero" look — a **faded grid backdrop** (token `--tz-color-border` lines on a 40px cell, radial-masked
 so it fades out toward the edges, never a hard box) + an **elevated icon puck** (a `surface →

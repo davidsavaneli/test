@@ -109,7 +109,9 @@ export function FileUploaderEditDialog({
     )
     // toBlob throws on a cross-origin-tainted canvas — let handleSave catch it
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mimeType, 1))
-    if (!blob) return undefined
+    // a null blob is a failed export too (not just tainted) — throw so it surfaces as a crop error
+    // instead of silently resolving to `undefined` and discarding the crop with no feedback
+    if (!blob) throw new Error('canvas.toBlob returned null')
     return new File([blob], name, { type: mimeType, lastModified: Date.now() })
   }
 

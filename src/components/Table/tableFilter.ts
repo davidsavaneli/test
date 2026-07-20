@@ -92,11 +92,41 @@ export function activeFilterCount(filters: TableFilter[], state: TableFilterStat
   return filters.reduce((n, f) => (isFilterActive(f.type, state[f.key]) ? n + 1 : n), 0)
 }
 
-// Comparable substrings of an ISO-ish value (both row + filter sliced the same way, so lexical compare
-// works). `date` → day, `dateTime` → to the minute, `time` → HH:mm of the time part (after a `T`, if any).
-const datePart = (s: string) => s.slice(0, 10) // YYYY-MM-DD
-const dateTimePart = (s: string) => s.slice(0, 16) // YYYY-MM-DDTHH:mm
-const timePart = (s: string) => (s.includes('T') ? s.slice(s.indexOf('T') + 1) : s).slice(0, 5) // HH:mm
+// Comparable substrings of an ISO-ish value, normalized to the viewer's LOCAL calendar so both the
+// row and the filter are reduced the same way (lexical compare then works). Without this, a UTC
+// timestamp near midnight (`…T23:30:00Z`) slices to a different day than the local day the user picked
+// and silently drops out. A full timestamp (with `Z`/offset) converts to local; a bare date/time is
+// read as local wall-clock (so it stays on the day/minute picked); anything unparseable falls back to
+// the raw slice. `date` → day, `dateTime` → to the minute, `time` → HH:mm.
+const pad = (n: number) => String(n).padStart(2, '0')
+const localDay = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+const localMinute = (d: Date) => `${localDay(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+const localTime = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`
+
+/** Parse an ISO-ish value to a Date; a bare `YYYY-MM-DD` is read as LOCAL midnight (not UTC). */
+const toLocalDate = (s: string): Date | null => {
+  if (!s) return null
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(s) ? `${s}T00:00:00` : s
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+const datePart = (s: string) => {
+  const d = toLocalDate(s)
+  return d ? localDay(d) : s.slice(0, 10)
+}
+const dateTimePart = (s: string) => {
+  const d = toLocalDate(s)
+  return d ? localMinute(d) : s.slice(0, 16)
+}
+const timePart = (s: string) => {
+  // a full timestamp → its local HH:mm; a bare `HH:mm[:ss]` → its own HH:mm
+  if (/\d{4}-\d{2}-\d{2}/.test(s)) {
+    const d = toLocalDate(s)
+    if (d) return localTime(d)
+  }
+  return (s.includes('T') ? s.slice(s.indexOf('T') + 1) : s).slice(0, 5)
+}
 
 /** Does one row's cell value match one active filter? */
 function matchOne(type: TableFilterType, cell: unknown, value: TableFilterValue): boolean {
