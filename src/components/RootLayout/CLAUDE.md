@@ -7,7 +7,7 @@ The admin-panel shell lives under `src/components/` (`RootLayout/`, `Sidebar/`, 
 shipped as ordinary components, so it imports from `sava-test/components` like everything else. Powered
 by **`@tanstack/react-router`** (optional peer, `>=1`, `external` in the build).
 `RootLayout({ logo?, sidebarFooter?, header?, toaster?, children })` uses a **floating layout**: the
-shell is a grid (`auto 1fr`, `--tz-space-sm` padding + gap) on the soft **`--tz-color-background`** canvas,
+shell is a grid (`auto 1fr`, `--tz-space-md` padding + gap) on the soft **`--tz-color-background`** canvas,
 with a rounded, elevated **`--tz-color-surface` sidebar card** (border + `--tz-radius-lg` +
 `--tz-shadow-xs`) beside the header + content; set it as the **root route's** component and pass
 `<Outlet/>` as `children`. The sidebar card is **sticky** (`top: --tz-space-md`, `height: calc(100vh -
@@ -63,7 +63,7 @@ bridged by a small typed `NavLink` cast since `to` is router-specific); the acti
 is a **flat `Card`** (`<Card flat>`) for a page's content — so it gains Card's full anatomy (optional
 header `icon`/`title`/`subtitle`/`actions`, body, `footer`/`footerStart`, `collapsible`) while staying on
 the `--tz-color-background` canvas with no shadow. The shell is a **floating layout** (the FreshCart look):
-the whole app sits on a soft **`--tz-color-background`** canvas (the shell has `--tz-space-sm` padding +
+the whole app sits on a soft **`--tz-color-background`** canvas (the shell has `--tz-space-md` padding +
 gap via `--shell-pad`), and the **sidebar is a rounded,
 elevated `--tz-color-surface` card** (border +
 `--tz-radius-lg` + `--tz-shadow-xs`, sticky at `100vh - padding`) with the `logo` at the top, the nav

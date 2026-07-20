@@ -35,7 +35,7 @@ export interface UserCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'col
  * A compact account card — an `Avatar` + name/email and an optional **Sign out** button. Drop it into
  * the `RootLayout` `sidebarFooter` (or anywhere) for a consistent signed-in-user block across apps,
  * instead of hand-rolling the markup each time. Shows the image (`avatar`) → initials (from `name`) →
- * `icon` (default `User`) in priority order; renders the sign-out `Button` (outlined `error`) only when
+ * `icon` (default `User`) in priority order; renders the sign-out `Button` (filled `error`) only when
  * `onLogout` is given. `size` (`sm`/`md`/`lg`) scales the avatar + type; `color` (default `primary`)
  * tints the avatar. Own CSS module (token-only).
  */
@@ -97,7 +97,7 @@ export const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserC
 
       {onLogout ? (
         <Button
-          variant="outlined"
+          variant="filled"
           color="error"
           size={buttonSize}
           fullWidth

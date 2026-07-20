@@ -4,7 +4,7 @@
 
 .shell {
   /* the inset of the floating cards from the window edges (+ the gap between sidebar and content) */
-  --shell-pad: var(--tz-space-sm);
+  --shell-pad: var(--tz-space-md);
   display: grid;
   /* first column tracks the sidebar card's own (animatable) width */
   grid-template-columns: auto 1fr;
@@ -78,7 +78,6 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  margin: 0 var(--tz-space-sm);
 }
 
 /* header — transparent, on the canvas (no background); scrolls with the content (not pinned) */
