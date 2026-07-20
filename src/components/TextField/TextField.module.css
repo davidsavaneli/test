@@ -137,3 +137,42 @@
   aspect-ratio: 1 / 1;
   transform: scale(0.84); /* shrink the whole button a touch (centered; layout box unchanged) */
 }
+
+/* Caps Lock warning — a small inline hint under the field (warning color from Typography). */
+.caps {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tz-space-xxs);
+  margin-top: var(--tz-space-xxs);
+}
+.caps svg {
+  width: 1em; /* track the bodySmall font size so the icon lines up with the text */
+  height: 1em;
+}
+
+/* Password-strength meter — a segmented bar + label; the fill color comes from --tz-strength-color
+   (set inline per level: error / warning / success). */
+.strength {
+  display: flex;
+  align-items: center;
+  gap: var(--tz-space-xs);
+  margin-top: var(--tz-space-xxs);
+}
+.strengthBars {
+  display: flex;
+  flex: 1;
+  gap: var(--tz-space-xxs);
+}
+.strengthBar {
+  flex: 1;
+  height: 4px; /* thin track — a deliberate one-off literal (no --tz-space token is this small) */
+  border-radius: 999px; /* pill — the same literal Button/Chip use for fully-round ends */
+  background: var(--tz-color-border);
+  transition: background var(--tz-duration);
+}
+.strengthBar[data-on='true'] {
+  background: var(--tz-strength-color);
+}
+.strengthLabel {
+  flex: none;
+}

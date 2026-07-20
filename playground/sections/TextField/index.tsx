@@ -102,6 +102,39 @@ export function TextFieldSection() {
           <TextField label="License Plate" mask="aa-999-aa" placeholder="AB-123-CD" fullWidth />
         </Col>
       </Block>
+
+      <Block label="password — reveal toggle · Caps Lock warning · strength meter">
+        <Col gap={16} style={{ maxWidth: 360 }}>
+          <TextField
+            label="Password"
+            type="password"
+            placeholder="Reveal toggle (default)"
+            fullWidth
+          />
+          <TextField
+            label="Password (no toggle)"
+            type="password"
+            passwordToggle={false}
+            placeholder="passwordToggle={false}"
+            fullWidth
+          />
+          <TextField
+            label="Password (Caps Lock warning)"
+            type="password"
+            capsLockWarning
+            placeholder="Turn Caps Lock on and type"
+            fullWidth
+          />
+          <TextField
+            label="Password (strength + Caps Lock)"
+            type="password"
+            passwordStrength
+            capsLockWarning
+            placeholder="Try: abc → Abcdef1! "
+            fullWidth
+          />
+        </Col>
+      </Block>
     </Section>
   )
 }

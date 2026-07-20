@@ -9,10 +9,12 @@ import {
   type CSSProperties,
   type FocusEvent,
   type InputHTMLAttributes,
+  type KeyboardEvent,
   type MouseEvent,
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
+import type { ThemeColor } from '../../theme'
 import { useFormContext } from '../../form/formContext'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
@@ -74,6 +76,39 @@ function maskCaretPosition(rawBeforeCaret: string, masked: string): number {
   return masked.length
 }
 
+/** Password-strength buckets surfaced by the `passwordStrength` meter. */
+export type PasswordStrength = 'weak' | 'medium' | 'strong'
+
+/**
+ * A cheap, dependency-free password score: one point each for length ≥ 8, mixed upper/lower case, a
+ * digit, and a symbol → 0–4. Empty input scores 0 (the meter hides). Not a security guarantee — a UX
+ * hint that nudges toward longer, more varied passwords.
+ */
+function scorePassword(pw: string): number {
+  if (!pw) return 0
+  let score = 0
+  if (pw.length >= 8) score += 1
+  if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score += 1
+  if (/\d/.test(pw)) score += 1
+  if (/[^A-Za-z0-9]/.test(pw)) score += 1
+  return score
+}
+
+/** Maps a 0–4 score to a strength bucket (`null` when there's nothing to show). */
+function strengthLevel(score: number): PasswordStrength | null {
+  if (score <= 0) return null
+  if (score === 1) return 'weak'
+  if (score === 2) return 'medium'
+  return 'strong'
+}
+
+const STRENGTH_META: Record<PasswordStrength, { label: string; color: ThemeColor; bars: number }> =
+  {
+    weak: { label: 'Weak', color: 'error', bars: 1 },
+    medium: { label: 'Medium', color: 'warning', bars: 2 },
+    strong: { label: 'Strong', color: 'success', bars: 3 },
+  }
+
 export interface TextFieldProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'size' | 'prefix'
@@ -106,6 +141,21 @@ export interface TextFieldProps extends Omit<
   regex?: RegExp
   /** Input mask, e.g. `"(999) 999-9999"` (`9` digit · `a` letter · `*` alphanumeric · other chars literal). Emits the masked value. */
   mask?: string
+  /**
+   * For `type="password"`: show the built-in show/hide reveal toggle in the right adornment slot.
+   * Defaults to `true`. Set `false` to drop it (e.g. to use your own right adornment instead).
+   */
+  passwordToggle?: boolean
+  /**
+   * Show a "Caps Lock is on" warning under the field while it's focused and Caps Lock is active.
+   * Detected from key events, so it appears once the user starts typing. Defaults to `false`.
+   */
+  capsLockWarning?: boolean
+  /**
+   * Show a password-strength meter (segmented bar + label) under the field, derived from the current
+   * value. A UX hint only — not a security check. Defaults to `false` (best paired with `type="password"`).
+   */
+  passwordStrength?: boolean
 }
 
 /**
@@ -133,11 +183,17 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     adornmentLabel = 'Field action',
     regex,
     mask,
+    passwordToggle = true,
+    capsLockWarning = false,
+    passwordStrength = false,
     name,
     value,
     defaultValue,
     onChange,
     onBlur,
+    onFocus,
+    onKeyDown,
+    onKeyUp,
     disabled = false,
     type,
     id: idProp,
@@ -205,26 +261,53 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   }
 
   const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+    setCapsOn(false) // hide the Caps Lock hint once focus leaves the field
     bound?.onBlur(event)
     onBlur?.(event)
   }
 
-  // Password fields get an automatic reveal toggle in the (right) adornment slot; it flips the
-  // input between `password` and `text` and overrides any adornment props for that field.
+  // Caps Lock warning — read the modifier off key events (can't be known until the user types), and
+  // clear it on blur. Cheap: only tracks state when the feature is enabled.
+  const [capsOn, setCapsOn] = useState(false)
+  const readCaps = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (capsLockWarning) setCapsOn(event.getModifierState?.('CapsLock') ?? false)
+  }
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    readCaps(event)
+    onKeyDown?.(event)
+  }
+  const handleKeyUp = (event: KeyboardEvent<HTMLInputElement>) => {
+    readCaps(event)
+    onKeyUp?.(event)
+  }
+
+  // Password fields get an automatic reveal toggle in the (right) adornment slot (unless
+  // `passwordToggle={false}`); it flips the input between `password`/`text` and overrides any
+  // adornment props for that field.
   const [revealed, setRevealed] = useState(false)
   const isPasswordField = type === 'password'
+  const showReveal = isPasswordField && passwordToggle
   const inputType = isPasswordField && revealed ? 'text' : type
 
-  const effAdornment = isPasswordField ? <Icon name={revealed ? 'EyeSlash' : 'Eye'} /> : adornment
-  const effAdornmentPosition = isPasswordField ? 'right' : adornmentPosition
-  const effOnAdornmentClick = isPasswordField
-    ? () => setRevealed((shown) => !shown)
-    : onAdornmentClick
-  const effAdornmentLabel = isPasswordField
+  const effAdornment = showReveal ? <Icon name={revealed ? 'EyeSlash' : 'Eye'} /> : adornment
+  const effAdornmentPosition = showReveal ? 'right' : adornmentPosition
+  const effOnAdornmentClick = showReveal ? () => setRevealed((shown) => !shown) : onAdornmentClick
+  const effAdornmentLabel = showReveal
     ? revealed
       ? 'Hide password'
       : 'Show password'
     : adornmentLabel
+
+  // Password-strength meter, derived from the current value (a UX hint, not a security check).
+  const strength = passwordStrength
+    ? strengthLevel(scorePassword(String(currentValue ?? '')))
+    : null
+  const strengthId = `${id}-strength`
+  const capsId = `${id}-caps`
+  const describedBy =
+    [resolvedHelperText != null ? helperId : null, capsLockWarning && capsOn ? capsId : null]
+      .filter(Boolean)
+      .join(' ') || undefined
 
   const hasAdornment = effAdornment != null && effAdornment !== false
   const isTextAdornment = typeof effAdornment === 'string' || typeof effAdornment === 'number'
@@ -311,13 +394,60 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
           value={currentValue}
           onChange={handleChange}
           onBlur={handleBlur}
+          onFocus={onFocus}
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
           disabled={disabled}
           aria-invalid={resolvedError || undefined}
-          aria-describedby={resolvedHelperText != null ? helperId : undefined}
+          aria-describedby={describedBy}
           {...props}
         />
         {effAdornmentPosition === 'right' && adornmentNode}
       </div>
+
+      {capsLockWarning && capsOn && (
+        <Typography
+          as="span"
+          id={capsId}
+          variant="bodySmall"
+          color="warning"
+          className={styles.caps}
+          role="alert"
+        >
+          <Icon name="Danger" />
+          Caps Lock is on
+        </Typography>
+      )}
+
+      {strength && (
+        <div
+          className={styles.strength}
+          style={
+            {
+              '--tz-strength-color': `var(--tz-color-${STRENGTH_META[strength].color})`,
+            } as CSSProperties
+          }
+        >
+          <span className={styles.strengthBars} aria-hidden="true">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className={styles.strengthBar}
+                data-on={i < STRENGTH_META[strength].bars}
+              />
+            ))}
+          </span>
+          <Typography
+            as="span"
+            id={strengthId}
+            variant="bodySmall"
+            color={STRENGTH_META[strength].color}
+            className={styles.strengthLabel}
+          >
+            {STRENGTH_META[strength].label}
+          </Typography>
+        </div>
+      )}
 
       {resolvedHelperText != null && (
         <Typography

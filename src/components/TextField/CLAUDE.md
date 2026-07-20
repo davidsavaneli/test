@@ -16,7 +16,14 @@ icon's inset is identical on top, bottom and its outer side; the `<input>` drops
 side the adornment occupies. Passing **`type="password"`** auto-adds a show/hide reveal toggle
 (`Eye`/`EyeSlash`) in the right adornment slot — it flips the input between `password`/`text` and
 overrides the `adornment` props for that field (no separate `isPassword` prop; the standard `type`
-drives it). Input-level constraints:
+drives it). **Password extras** (all default off except the toggle): **`passwordToggle`** (default
+`true`) drops the reveal button when `false` (e.g. to keep your own right adornment);
+**`capsLockWarning`** shows a **"Caps Lock is on"** hint (a `Danger` icon + `warning`-colored line)
+under the field while it's focused and Caps Lock is active (detected from key events, so it appears
+once typing starts, and clears on blur); **`passwordStrength`** shows a **segmented strength meter**
+(3 bars + a `Weak`/`Medium`/`Strong` label colored `error`/`warning`/`success`) derived from the
+current value via a cheap built-in score (length ≥ 8 · mixed case · a digit · a symbol → 0–4) — a UX
+hint, **not** a security check. Input-level constraints:
 `regex` (allowed-input filter — a change whose value fails the pattern is rejected, e.g. `/^\d*$/`)
 and `mask` (`9` digit · `a` letter · `*` alphanumeric · other chars literal, e.g. `"(999) 999-9999"`).
 Works controlled (`value`+`onChange`) or uncontrolled (`defaultValue`); with a `mask`, `onChange`

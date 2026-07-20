@@ -1,6 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { createEvent, fireEvent, render, screen } from '@testing-library/react'
 import { Icon } from '../Icon'
 import { TextField } from './TextField'
 
@@ -121,6 +121,81 @@ describe('TextField', () => {
 
       expect(input).toHaveAttribute('type', 'text')
       expect(screen.getByRole('button', { name: 'Hide password' })).toBeInTheDocument()
+    })
+
+    it('omits the reveal toggle when passwordToggle is false', () => {
+      render(<TextField label="Password" type="password" passwordToggle={false} />)
+      expect(screen.queryByRole('button', { name: 'Show password' })).not.toBeInTheDocument()
+      expect(screen.getByLabelText('Password')).toHaveAttribute('type', 'password')
+    })
+  })
+
+  describe('capsLockWarning', () => {
+    // Caps Lock is read off the key event's getModifierState — put it on the dispatched native event.
+    const keyDownCaps = (input: HTMLElement, on: boolean) => {
+      const evt = createEvent.keyDown(input, { key: 'a' })
+      Object.defineProperty(evt, 'getModifierState', { value: () => on })
+      fireEvent(input, evt)
+    }
+
+    it('shows the hint while Caps Lock is on and hides it on blur', () => {
+      render(<TextField label="Password" type="password" capsLockWarning />)
+      const input = screen.getByLabelText('Password')
+
+      expect(screen.queryByText('Caps Lock is on')).not.toBeInTheDocument()
+      keyDownCaps(input, true)
+      expect(screen.getByText('Caps Lock is on')).toBeInTheDocument()
+
+      keyDownCaps(input, false)
+      expect(screen.queryByText('Caps Lock is on')).not.toBeInTheDocument()
+
+      keyDownCaps(input, true)
+      expect(screen.getByText('Caps Lock is on')).toBeInTheDocument()
+      fireEvent.blur(input)
+      expect(screen.queryByText('Caps Lock is on')).not.toBeInTheDocument()
+    })
+
+    it('does nothing without the prop', () => {
+      render(<TextField label="Password" type="password" />)
+      keyDownCaps(screen.getByLabelText('Password'), true)
+      expect(screen.queryByText('Caps Lock is on')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('passwordStrength', () => {
+    it('rates strength by value and hides when empty', () => {
+      const { rerender } = render(
+        <TextField
+          label="Password"
+          type="password"
+          passwordStrength
+          value=""
+          onChange={() => {}}
+        />,
+      )
+      expect(screen.queryByText(/Weak|Medium|Strong/)).not.toBeInTheDocument()
+
+      rerender(
+        <TextField
+          label="Password"
+          type="password"
+          passwordStrength
+          value="abcdefgh"
+          onChange={() => {}}
+        />,
+      )
+      expect(screen.getByText('Weak')).toBeInTheDocument() // length only → score 1
+
+      rerender(
+        <TextField
+          label="Password"
+          type="password"
+          passwordStrength
+          value="Abcdef1!"
+          onChange={() => {}}
+        />,
+      )
+      expect(screen.getByText('Strong')).toBeInTheDocument()
     })
   })
 
