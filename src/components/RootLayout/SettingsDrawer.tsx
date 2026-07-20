@@ -63,7 +63,7 @@ export interface SettingsDrawerProps {
  * persisting it — each list leads with the provider's default for that mode (`defaultAccentColors[mode]`),
  * selected when there's no override (picking it clears the override); a **Font** section (a searchable
  * `Select` — Inter preset + type any Google Font — driving `setFontFamily`); and a **Header** section
- * (an exclusive `ChoiceCardGroup` **Static** / **Fixed** driving `setHeaderSticky`). Internal to the
+ * (an exclusive `ChoiceCardGroup` **Scrollable** / **Fixed** driving `setHeaderSticky`). Internal to the
  * admin shell — not a public export.
  */
 export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
@@ -218,7 +218,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
           if (typeof v === 'string') setHeaderSticky(v === 'fixed')
         }}
         options={[
-          { value: 'static', label: 'Static', description: 'Scrolls away' },
+          { value: 'static', label: 'Scrollable', description: 'Scrolls away' },
           { value: 'fixed', label: 'Fixed', description: 'Stays on scroll' },
         ]}
         aria-label="Header behavior on scroll"

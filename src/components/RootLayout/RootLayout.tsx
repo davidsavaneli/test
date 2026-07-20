@@ -32,7 +32,7 @@ export interface RootLayoutProps {
   /**
    * Header config for **this** shell — merged **over** the app-wide `config.header` (the prop wins).
    * Fields: the built-in `theme` / `search` / `settings` toggles (default `true`), `fullscreen`
-   * (default `false`), `breadcrumbs` (default `false`), `pageTitle` (default `true`), and the account
+   * (default `false`), `breadcrumbs` (default `true`), `pageTitle` (default `true`), and the account
    * (`onLogout` / `user`).
    */
   header?: RootLayoutHeader
@@ -78,7 +78,7 @@ export function RootLayout({
   const showFullscreen = h.fullscreen ?? false
   const showSettings = h.settings ?? true
   const showSearch = h.search ?? true
-  const showBreadcrumbs = h.breadcrumbs ?? false
+  const showBreadcrumbs = h.breadcrumbs ?? true
   const toasterProps = typeof toaster === 'object' ? toaster : undefined
   const showPageTitle = h.pageTitle ?? true
   const onLogout = h.onLogout

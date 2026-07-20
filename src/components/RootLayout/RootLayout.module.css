@@ -47,7 +47,7 @@
   display: flex;
   align-items: center;
   gap: var(--tz-space-sm);
-  padding: var(--tz-space-md) var(--tz-space-md);
+  padding: var(--tz-space-lg) var(--tz-space-md) var(--tz-space-md) var(--tz-space-md);
 }
 
 .brand svg,

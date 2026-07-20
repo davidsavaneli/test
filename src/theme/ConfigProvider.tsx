@@ -169,7 +169,7 @@ export interface HeaderConfig {
   settings?: boolean
   /** Show the nav search over the sidebar's pages (with suggestions). Defaults to `true`. */
   search?: boolean
-  /** Show the breadcrumb trail at the top of the content. Defaults to **`false`** (hidden). */
+  /** Show the breadcrumb trail at the top of the content. Defaults to **`true`**. */
   breadcrumbs?: boolean
   /** Render the automatic page-title `h2` (the active route's `staticData.name`). Defaults to `true`. */
   pageTitle?: boolean

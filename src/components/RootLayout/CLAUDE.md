@@ -27,7 +27,7 @@ the **Settings** drawer and the choice is **persisted** (`localStorage['tz-heade
 next visit, read via `useTheme().headerSticky` / set via `setHeaderSticky`), overriding the config.
 The header carries the sidebar toggle + a built-in **nav search** (`search`, default `true`) on the
 **left** and the controls on the right, driven by the
-`header` config (`HeaderConfig`) — `{ theme?: boolean /* default true */; sticky?: boolean /* default false */; fullscreen?: boolean /* default false */; settings?: boolean /* default true */; search?: boolean /* default true */; breadcrumbs?: boolean /* default false */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`.
+`header` config (`HeaderConfig`) — `{ theme?: boolean /* default true */; sticky?: boolean /* default false */; fullscreen?: boolean /* default false */; settings?: boolean /* default true */; search?: boolean /* default true */; breadcrumbs?: boolean /* default true */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`.
 Set it **app-wide** via **`config.header`** (`<ConfigProvider>`) or **per shell** via the `RootLayout`
 **`header` prop** — the prop is merged **over** `config.header` (prop wins).
 The **`NavSearch`** (an internal `Sidebar` export) searches the sidebar's pages — it flattens the same
@@ -59,14 +59,14 @@ picked (injects a Google Fonts `<link>` + preconnect hints); seeded from **`conf
 loads lazily on selection, so an app that never changes the font fetches just one family. (The Select
 uses `onSearchChange` to own the option list; it always keeps Inter + the active font in the list so the
 trigger label resolves even mid-search.) Then a **Header**
-section holds an exclusive **`ChoiceCardGroup`** (**Fixed** / **Static** cards) that drives
+section holds an exclusive **`ChoiceCardGroup`** (**Scrollable** / **Fixed** cards) that drives
 `useTheme().setHeaderSticky(bool)` — the same persisted (`localStorage['tz-header-sticky']`) fixed-vs-static
 header preference described above. `SettingsDrawer` is internal to the shell (no `index.ts`, not a public
 export).
 
 The content area stacks **the page title (the active route's `staticData.name`, via the internal
 `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**; the
-`Breadcrumbs` trail sits above the title **only when `header.breadcrumbs` is on** (default off).
+`Breadcrumbs` trail sits above the title **when `header.breadcrumbs` is on** (default on).
 Set **`header.pageTitle: false`** to drop that auto `h2` when pages render their own heading inside
 their `PageLayout` header instead (icon + title + actions) — so the title isn't shown twice.
 RootLayout also **mounts a `<Toaster>` by default** (so `toast.*()` works app-wide with no extra setup):
@@ -122,8 +122,8 @@ functions `setAccessKeys`/`getAccessKeys`/`hasAccess` (from `sava-test/helpers`)
 types — RootLayout/Breadcrumbs use them via direct file imports. Gotcha: never name a leaf route file
 `loader.tsx` (reserved by the router plugin) — use a `loader/index.tsx` folder.
 
-**Breadcrumbs.** `RootLayout` renders `<Breadcrumbs/>` at the top of the content area **only when
-`header.breadcrumbs` is `true`** (it defaults to **`false`** — hidden). It's built from the active match chain via `useBreadcrumbs()` — one crumb per
+**Breadcrumbs.** `RootLayout` renders `<Breadcrumbs/>` at the top of the content area **when
+`header.breadcrumbs` is `true`** (it defaults to **`true`**; pass `false` to hide it). It's built from the active match chain via `useBreadcrumbs()` — one crumb per
 matched route that declares a `staticData.name` (module → group → page). It always opens with a home
 icon linking to the first allowed menu page (same target as `FirstRouteRedirect`). Intermediate crumbs
 link only when they map to a real navigable menu page (reusing the access-filtered nav tree, so
