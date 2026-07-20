@@ -86,7 +86,22 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--tz-space-sm);
-  min-height: calc(var(--tz-control-height-md) + var(--tz-space-md));
+  margin-bottom: var(--tz-space-sm);
+}
+
+/* sticky (fixed) header — pins at the same inset as the sidebar card (--shell-pad) while the content
+   scrolls under it. It reads as a rounded, bordered --tz-color-surface card (matching the sidebar) so
+   content can't show through, and sits on the sticky layer (portaled dropdowns/popovers at
+   --tz-z-popover still float above it). Nothing scrolls above the header — it's the first child of
+   .main — so the top gap needs no masking. */
+.topbarSticky {
+  position: sticky;
+  top: var(--shell-pad);
+  z-index: var(--tz-z-sticky);
+  background: var(--tz-color-surface);
+  border-radius: var(--tz-radius-lg);
+  border: 1px solid var(--tz-color-border);
+  padding: calc(var(--tz-space-sm) / 1.2) var(--tz-space-md);
 }
 
 /* left side of the header — the sidebar toggle + the nav search */

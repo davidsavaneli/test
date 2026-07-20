@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { fireEvent, render, renderHook, screen } from '@testing-library/react'
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { ConfigProvider, useTheme } from './ConfigProvider'
 import type { ThemePalette } from './applyTheme'
 
@@ -206,5 +206,35 @@ describe('ConfigProvider', () => {
 
   it('throws when useTheme is called outside a provider', () => {
     expect(() => renderHook(() => useTheme())).toThrow(/within a <ConfigProvider>/)
+  })
+
+  describe('header sticky preference', () => {
+    it('defaults to static (false), and follows config.header.sticky when set', () => {
+      const a = renderHook(() => useTheme(), { wrapper: ConfigProvider })
+      expect(a.result.current.headerSticky).toBe(false)
+
+      const b = renderHook(() => useTheme(), {
+        wrapper: ({ children }) => (
+          <ConfigProvider config={{ header: { sticky: true } }}>{children}</ConfigProvider>
+        ),
+      })
+      expect(b.result.current.headerSticky).toBe(true)
+    })
+
+    it('setHeaderSticky updates + persists, and a stored value wins over the config default', () => {
+      const { result } = renderHook(() => useTheme(), { wrapper: ConfigProvider })
+      act(() => result.current.setHeaderSticky(true))
+      expect(result.current.headerSticky).toBe(true)
+      expect(localStorage.getItem('tz-header-sticky')).toBe('1')
+
+      // a persisted '0' overrides config.header.sticky: true on the next mount
+      localStorage.setItem('tz-header-sticky', '0')
+      const restored = renderHook(() => useTheme(), {
+        wrapper: ({ children }) => (
+          <ConfigProvider config={{ header: { sticky: true } }}>{children}</ConfigProvider>
+        ),
+      })
+      expect(restored.result.current.headerSticky).toBe(false)
+    })
   })
 })

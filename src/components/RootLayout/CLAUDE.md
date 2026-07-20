@@ -19,10 +19,15 @@ with a rounded, elevated **`--tz-color-surface` sidebar card** (border + `--tz-r
 too. Nav icons match the row label (text) color via `--tz-list-icon-color`; the hover / active **pill**
 tints with the **`accent`** color (`--tz-list-accent-rgb: var(--tz-color-accent-rgb)` on the nav, not
 the default `primary`) and is a touch stronger than the default `List` tint (bumped
-`--tz-list-hover-alpha`/`--tz-list-selected-alpha`). The **header is borderless on the canvas** (transparent, scrolls with the content — not pinned), with
-the sidebar toggle + a built-in **nav search** (`search`, default `true`) on the **left** and the
-controls on the right, driven by the
-`header` config (`HeaderConfig`) — `{ theme?: boolean /* default true */; fullscreen?: boolean /* default false */; settings?: boolean /* default true */; search?: boolean /* default true */; breadcrumbs?: boolean /* default false */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`.
+`--tz-list-hover-alpha`/`--tz-list-selected-alpha`). The **header is borderless on the canvas** (transparent) — by default it **scrolls with the content**
+(static), but it can be made **sticky/fixed** (`header.sticky`, default `false`): it then pins at the
+same `--shell-pad` inset as the sidebar — as a rounded, **bordered**, padded **`--tz-color-surface`
+card** (matching the sidebar) on the `--tz-z-sticky` layer — while the content scrolls under it. `header.sticky` is only the **app default** — the user flips it live in
+the **Settings** drawer and the choice is **persisted** (`localStorage['tz-header-sticky']`, restored
+next visit, read via `useTheme().headerSticky` / set via `setHeaderSticky`), overriding the config.
+The header carries the sidebar toggle + a built-in **nav search** (`search`, default `true`) on the
+**left** and the controls on the right, driven by the
+`header` config (`HeaderConfig`) — `{ theme?: boolean /* default true */; sticky?: boolean /* default false */; fullscreen?: boolean /* default false */; settings?: boolean /* default true */; search?: boolean /* default true */; breadcrumbs?: boolean /* default false */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`.
 Set it **app-wide** via **`config.header`** (`<ConfigProvider>`) or **per shell** via the `RootLayout`
 **`header` prop** — the prop is merged **over** `config.header` (prop wins).
 The **`NavSearch`** (an internal `Sidebar` export) searches the sidebar's pages — it flattens the same
@@ -42,8 +47,10 @@ swatch calls **`useTheme().setAccentColor(color, mode)`**, which overrides that 
 persists it to `localStorage['tz-accent-color-<mode>']` (light + dark keep independent accents), so the
 choice is restored next visit. Each list leads with the provider's configured default for that mode
 (read via `useTheme().defaultAccentColors[mode]` — not hardcoded) — selected when there's no override,
-and picking it clears that mode's override. `SettingsDrawer` is internal to the shell (no `index.ts`,
-not a public export).
+and picking it clears that mode's override. Below the accents, a **Header** section holds an exclusive
+**`ChoiceCardGroup`** (**Fixed** / **Static** cards) that drives `useTheme().setHeaderSticky(bool)` — the
+same persisted (`localStorage['tz-header-sticky']`) fixed-vs-static header preference described above.
+`SettingsDrawer` is internal to the shell (no `index.ts`, not a public export).
 
 The content area stacks **the page title (the active route's `staticData.name`, via the internal
 `usePageTitle()`, as an `h2`) → `children`** — pages wrap their own body in **`PageLayout`**; the

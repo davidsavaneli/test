@@ -151,6 +151,12 @@ export interface HeaderUser {
 export interface HeaderConfig {
   /** Show the built-in light/dark theme toggle. Defaults to `true`. */
   theme?: boolean
+  /**
+   * Make the shell header **stick to the top on scroll** (fixed) instead of scrolling away (static).
+   * This is the app-wide default; the user can flip it in the **Settings** drawer and their choice is
+   * persisted (`localStorage['tz-header-sticky']`), overriding this. Defaults to `false` (static).
+   */
+  sticky?: boolean
   /** Show the browser-fullscreen toggle (auto-hides where the Fullscreen API is unavailable). Defaults to `false`. */
   fullscreen?: boolean
   /** Show the **Settings** button (opens the right-side drawer to pick the per-mode `accent`). Defaults to `true`. */
@@ -216,12 +222,18 @@ interface ThemeContextValue {
   tableQuery: TableQueryConfig
   /** App-wide `RootLayout` header config (`config.header` ?? `{}`); the `RootLayout` prop merges over it. */
   header: HeaderConfig
+  /** Whether the shell header sticks to the top on scroll (fixed) vs scrolls away (static). Persisted. */
+  headerSticky: boolean
+  /** Set + persist the header sticky/static preference (overrides `config.header.sticky`). */
+  setHeaderSticky: (sticky: boolean) => void
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 const STORAGE_KEY = 'tz-theme-mode'
 /** Where the user's picked accent-color override is persisted, **per mode** (survives reloads). */
 const accentStorageKey = (mode: ThemeMode) => `tz-accent-color-${mode}`
+/** Where the user's header sticky/static choice is persisted (survives reloads). */
+const HEADER_STICKY_KEY = 'tz-header-sticky'
 /** The built-in default URL query param name a **top-level** `<Tabs>` syncs to (no `queryKey`/config). */
 export const DEFAULT_TABS_QUERY_KEY = 'tab'
 /** The built-in default URL query param name a **nested** `<Tabs>` syncs to (no `queryKey`/config). */
@@ -281,6 +293,12 @@ function getInitialAccentByMode(): Record<ThemeMode, string | null> {
   }
 }
 
+/** The persisted header sticky choice (`fallback` = the app's `config.header.sticky` when unset). */
+function getInitialHeaderSticky(fallback: boolean): boolean {
+  const stored = localStorage.getItem(HEADER_STICKY_KEY)
+  return stored === '1' ? true : stored === '0' ? false : fallback
+}
+
 export interface ConfigProviderProps {
   /** App config — theme overrides, initial mode, locales. Omit for the built-in defaults (light mode). */
   config?: Config
@@ -294,6 +312,10 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
   // user-picked accents that override the configured/default `accent` — kept PER MODE; persisted
   const [accentByMode, setAccentByMode] =
     useState<Record<ThemeMode, string | null>>(getInitialAccentByMode)
+  // user's header sticky/static choice — persisted; seeded from config.header.sticky (default static)
+  const [headerSticky, setHeaderStickyState] = useState<boolean>(() =>
+    getInitialHeaderSticky(config?.header?.sticky ?? false),
+  )
   const colors = config?.theme?.colors
 
   // the configured/default palette for BOTH modes, before any accent override:
@@ -355,6 +377,12 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
     [mode, applyMode],
   )
 
+  // set + persist the header sticky preference (overrides config.header.sticky)
+  const setHeaderSticky = useCallback((sticky: boolean) => {
+    setHeaderStickyState(sticky)
+    localStorage.setItem(HEADER_STICKY_KEY, sticky ? '1' : '0')
+  }, [])
+
   const locales = config?.locales ?? EMPTY_LOCALES
   const translationsNamespace =
     config?.keys?.translationsNamespace ?? DEFAULT_TRANSLATIONS_NAMESPACE
@@ -379,6 +407,8 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       stepQueryKey,
       tableQuery,
       header: headerConfig,
+      headerSticky,
+      setHeaderSticky,
     }),
     [
       mode,
@@ -394,6 +424,8 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       stepQueryKey,
       tableQuery,
       headerConfig,
+      headerSticky,
+      setHeaderSticky,
     ],
   )
 

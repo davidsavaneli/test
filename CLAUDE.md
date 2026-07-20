@@ -368,11 +368,14 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   mode's chosen accent is restored on the next visit (`null` clears that mode's, back to its
   configured/default accent). The `RootLayout` header **Settings** drawer drives it with **two swatch
   pickers** (one per mode — deeper tones for light, brighter for dark; see the Layout §).
-- **`useTheme()`** returns `{ mode, setMode, toggleMode, accentColors, defaultAccentColors, setAccentColor }`
+- **`useTheme()`** returns `{ mode, setMode, toggleMode, accentColors, defaultAccentColors, setAccentColor, headerSticky, setHeaderSticky }`
   where **`accentColors`** / **`defaultAccentColors`** are `Record<'light'|'dark', …>` (the per-mode
   overrides `string | null` / the per-mode configured defaults `string`, i.e. the "no override" values —
   so UI needn't hardcode), and **`setAccentColor(color, mode?)`** sets one mode's override (defaults to
-  the current mode). Throws outside a provider.
+  the current mode). **`headerSticky`** (`boolean`) is the persisted fixed-vs-static shell-header
+  preference (seeded from `config.header.sticky`, default `false`) and **`setHeaderSticky(bool)`** sets +
+  persists it (`localStorage['tz-header-sticky']`) — the `RootLayout` **Settings** drawer drives it.
+  Throws outside a provider.
 - Initial mode = stored value if present, else `config.mode`, else `'light'`; initial `accentColors` = the
   stored per-mode overrides if present, else `null` each.
 - **No-JS note:** because the triplet values are injected by `applyTheme` (not declared in `theme.css`),

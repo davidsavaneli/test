@@ -1,6 +1,7 @@
 import { useTheme } from '../../theme'
 import { Col } from '../Flex'
 import { Modal } from '../Modal'
+import { ChoiceCardGroup } from '../ChoiceCard'
 import { SwatchPicker } from '../SwatchPicker'
 import { Typography } from '../Typography'
 
@@ -58,10 +59,13 @@ export interface SettingsDrawerProps {
  * calls `useTheme().setAccentColor(color, mode)`, overriding that mode's `accent` and persisting it, so
  * the choice is restored on the next visit. Each list leads with the provider's default for that mode
  * (`defaultAccentColors[mode]`), selected when there's no override; picking it clears that mode's
- * override. Internal to the admin shell — not a public export.
+ * override. Below the accents, a **Header** section holds an exclusive `ChoiceCardGroup` (**Static** /
+ * **Fixed** cards) driving `useTheme().setHeaderSticky` — the persisted fixed-vs-static header
+ * preference. Internal to the admin shell — not a public export.
  */
 export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
-  const { accentColors, defaultAccentColors, setAccentColor } = useTheme()
+  const { accentColors, defaultAccentColors, setAccentColor, headerSticky, setHeaderSticky } =
+    useTheme()
 
   const picker = (mode: 'light' | 'dark', label: string) => {
     const def = defaultAccentColors[mode]
@@ -107,6 +111,34 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
         {picker('light', 'Light theme')}
         {picker('dark', 'Dark theme')}
       </Col>
+
+      <Typography variant="subtitle" as="h3" style={{ marginTop: 'var(--tz-space-md)' }}>
+        Header
+      </Typography>
+      <Typography
+        variant="bodySmall"
+        color="muted"
+        as="p"
+        style={{ marginTop: 'var(--tz-space-xxs)' }}
+      >
+        Keep the header fixed on scroll, or let it scroll away — saved for next time.
+      </Typography>
+      <ChoiceCardGroup
+        exclusive
+        color="accent"
+        minCardWidth={130}
+        value={headerSticky ? 'fixed' : 'static'}
+        // exclusive (radio) → always a string; set sticky from the picked card
+        onChange={(v) => {
+          if (typeof v === 'string') setHeaderSticky(v === 'fixed')
+        }}
+        options={[
+          { value: 'static', label: 'Static', description: 'Scrolls away', icon: 'LockSlash' },
+          { value: 'fixed', label: 'Fixed', description: 'Stays on scroll', icon: 'Padlock' },
+        ]}
+        aria-label="Header behavior on scroll"
+        style={{ marginTop: 'var(--tz-space-sm)' }}
+      />
     </Modal>
   )
 }

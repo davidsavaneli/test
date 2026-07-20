@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { clsx } from 'clsx'
-import { useHeaderConfig, type HeaderConfig, type HeaderUser } from '../../theme'
+import { useHeaderConfig, useTheme, type HeaderConfig, type HeaderUser } from '../../theme'
 import { Avatar } from '../Avatar'
 import { Col, Row } from '../Flex'
 import { Divider } from '../Divider'
@@ -69,6 +69,8 @@ export function RootLayout({
   children,
 }: RootLayoutProps) {
   const title = usePageTitle()
+  // header sticky/static — the user's persisted choice (seeded from config.header.sticky)
+  const { headerSticky } = useTheme()
   // app-wide header config (config.header) as the base; this shell's `header` prop wins over it
   const configHeader = useHeaderConfig()
   const h: HeaderConfig = { ...configHeader, ...header }
@@ -94,7 +96,7 @@ export function RootLayout({
         {sidebarFooter ? <div className={styles.sidebarFooter}>{sidebarFooter}</div> : null}
       </aside>
       <div className={styles.main}>
-        <header className={styles.topbar}>
+        <header className={clsx(styles.topbar, headerSticky && styles.topbarSticky)}>
           <div className={styles.headerStart}>
             <IconButton
               aria-label={collapsed ? 'Show sidebar' : 'Hide sidebar'}
