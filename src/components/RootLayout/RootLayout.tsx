@@ -39,9 +39,9 @@ export interface RootLayoutProps {
   sidebarFooter?: ReactNode
   /**
    * Header config for **this** shell — merged **over** the app-wide `config.header` (the prop wins).
-   * Fields: the built-in `theme` / `search` / `settings` toggles (default `true`), `fullscreen`
-   * (default `false`), `breadcrumbs` (default `true`), `pageTitle` (default `true`), and the account
-   * (`onLogout` / `user`).
+   * Fields: the built-in `theme` / `search` / `settings` / `languages` toggles (default `true`),
+   * `fullscreen` (default `false`), `breadcrumbs` (default `true`), `pageTitle` (default `true`), and the
+   * account (`onLogout` / `user`).
    */
   header?: RootLayoutHeader
   /**
@@ -88,6 +88,7 @@ export function RootLayout({
   const showFullscreen = h.fullscreen ?? false
   const showSettings = h.settings ?? true
   const showSearch = h.search ?? true
+  const showLanguages = h.languages ?? true
   const showBreadcrumbs = h.breadcrumbs ?? true
   const toasterProps = typeof toaster === 'object' ? toaster : undefined
   const showPageTitle = h.pageTitle ?? true
@@ -122,7 +123,7 @@ export function RootLayout({
           <div className={styles.headerEnd}>
             {showFullscreen ? <FullscreenToggle variant="filled" size="sm" /> : null}
             {showTheme ? <ThemeToggle variant="filled" size="sm" /> : null}
-            {languages.length > 1 ? (
+            {showLanguages && languages.length > 1 ? (
               <Dropdown
                 placement="bottom-end"
                 trigger={
@@ -201,7 +202,11 @@ export function RootLayout({
       </div>
       {toaster !== false && <Toaster {...toasterProps} />}
       {showSettings ? (
-        <SettingsDrawer open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+        <SettingsDrawer
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          showTheme={showTheme}
+        />
       ) : null}
     </div>
   )

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DEFAULT_FONT_FAMILY, useLanguage, useT, useTheme } from '../../theme'
+import { DEFAULT_FONT_FAMILY, useT, useTheme } from '../../theme'
 import { Col } from '../Flex'
 import { Divider } from '../Divider'
 import { Modal } from '../Modal'
@@ -53,20 +53,25 @@ export interface SettingsDrawerProps {
   open: boolean
   /** Close handler. */
   onClose: () => void
+  /** Show the light/dark **Theme** section (gated by the shell's `header.theme`, the same flag as the header toggle). */
+  showTheme?: boolean
 }
 
 /**
- * The header user-menu **Settings** drawer (a right-side `Modal`), top to bottom: a **Theme** section —
- * an exclusive `ChoiceCardGroup` (**Light** / **Dark** cards) driving `useTheme().setMode`; **Accent
- * Color** — **two `SwatchPicker`s** (Light + Dark) so both accents are chosen independently, each with a
- * per-mode set (deeper tones for light, brighter for dark), calling `setAccentColor(color, mode)` and
- * persisting it — each list leads with the provider's default for that mode (`defaultAccentColors[mode]`),
- * selected when there's no override (picking it clears the override); a **Font** section (a searchable
- * `Select` — Inter preset + type any Google Font — driving `setFontFamily`); and a **Header** section
- * (an exclusive `ChoiceCardGroup` **Scrollable** / **Fixed** driving `setHeaderSticky`). Internal to the
- * admin shell — not a public export.
+ * The header user-menu **Settings** drawer (a right-side `Modal`), top to bottom: a **Theme** section — an
+ * exclusive `ChoiceCardGroup` (**Light** / **Dark** cards) driving `useTheme().setMode`, shown only when
+ * **`showTheme`** (the shell's `header.theme`, so the header toggle + this section appear/disappear
+ * together); **Accent Color** — **two `SwatchPicker`s** (Light + Dark) so both accents are chosen
+ * independently, each with a per-mode set (deeper tones for light, brighter for dark), calling
+ * `setAccentColor(color, mode)` and persisting it — each list leads with the provider's default for that
+ * mode (`defaultAccentColors[mode]`), selected when there's no override (picking it clears the override).
+ * When `showTheme` is off the panel is locked to one mode, so **only the active mode's accent picker**
+ * shows (the other is pointless without a theme switch);
+ * a **Font** section (a searchable `Select` — Inter preset + type any Google Font — driving
+ * `setFontFamily`); and a **Header** section (an exclusive `ChoiceCardGroup` **Scrollable** / **Fixed**
+ * driving `setHeaderSticky`). Internal to the admin shell — not a public export.
  */
-export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
+export function SettingsDrawer({ open, onClose, showTheme = true }: SettingsDrawerProps) {
   const {
     mode,
     setMode,
@@ -78,7 +83,6 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
     fontFamily,
     setFontFamily,
   } = useTheme()
-  const { language, setLanguage, languages } = useLanguage()
   const t = useT()
 
   // One searchable Select doubles as a "type any Google Font" field. Base = Inter (the only preset) +
@@ -124,48 +128,10 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       title={t('settings.label')}
       icon="Setting5"
     >
-      <Typography variant="subtitle" as="h3">
-        {t('settings.themeTitle')}
-      </Typography>
-      <Typography
-        variant="bodySmall"
-        color="muted"
-        as="p"
-        style={{ marginTop: 'var(--tz-space-xxs)' }}
-      >
-        {t('settings.themeDesc')}
-      </Typography>
-      <ChoiceCardGroup
-        exclusive
-        color="accent"
-        minCardWidth={130}
-        value={mode}
-        onChange={(v) => {
-          if (typeof v === 'string') setMode(v as 'light' | 'dark')
-        }}
-        options={[
-          {
-            value: 'light',
-            label: t('settings.light'),
-            description: t('settings.lightDesc'),
-            icon: 'Sun',
-          },
-          {
-            value: 'dark',
-            label: t('settings.dark'),
-            description: t('settings.darkDesc'),
-            icon: 'Moon',
-          },
-        ]}
-        aria-label={t('settings.themeTitle')}
-        style={{ marginTop: 'var(--tz-space-sm)' }}
-      />
-
-      {languages.length > 1 && (
+      {showTheme && (
         <>
-          <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
           <Typography variant="subtitle" as="h3">
-            {t('language.label')}
+            {t('settings.themeTitle')}
           </Typography>
           <Typography
             variant="bodySmall"
@@ -173,19 +139,37 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
             as="p"
             style={{ marginTop: 'var(--tz-space-xxs)' }}
           >
-            {t('settings.languageDesc')}
+            {t('settings.themeDesc')}
           </Typography>
-          <Select
-            value={language}
-            onChange={setLanguage}
-            options={languages.map((l) => ({ value: l.code, label: l.label ?? l.code }))}
-            aria-label={t('language.label')}
+          <ChoiceCardGroup
+            exclusive
+            color="accent"
+            minCardWidth={130}
+            value={mode}
+            onChange={(v) => {
+              if (typeof v === 'string') setMode(v as 'light' | 'dark')
+            }}
+            options={[
+              {
+                value: 'light',
+                label: t('settings.light'),
+                description: t('settings.lightDesc'),
+                icon: 'Sun',
+              },
+              {
+                value: 'dark',
+                label: t('settings.dark'),
+                description: t('settings.darkDesc'),
+                icon: 'Moon',
+              },
+            ]}
+            aria-label={t('settings.themeTitle')}
             style={{ marginTop: 'var(--tz-space-sm)' }}
           />
+
+          <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
         </>
       )}
-
-      <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
 
       <Typography variant="subtitle" as="h3">
         {t('settings.accentTitle')}
@@ -199,8 +183,15 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
         {t('settings.accentDesc')}
       </Typography>
       <Col gap="md" style={{ marginTop: 'var(--tz-space-sm)' }}>
-        {picker('light', t('settings.lightTheme'))}
-        {picker('dark', t('settings.darkTheme'))}
+        {showTheme ? (
+          <>
+            {picker('light', t('settings.lightTheme'))}
+            {picker('dark', t('settings.darkTheme'))}
+          </>
+        ) : (
+          // theme switching is off → the panel stays in one mode, so only that mode's accent matters
+          picker(mode, mode === 'light' ? t('settings.lightTheme') : t('settings.darkTheme'))
+        )}
       </Col>
 
       <Divider style={{ margin: 'var(--tz-space-md) 0' }} />

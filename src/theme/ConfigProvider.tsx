@@ -177,6 +177,12 @@ export interface HeaderConfig {
   settings?: boolean
   /** Show the nav search over the sidebar's pages (with suggestions). Defaults to `true`. */
   search?: boolean
+  /**
+   * Show the header **language switcher** (the `Global`-icon dropdown of `config.i18n.languages`).
+   * Defaults to `true`, but it only renders when more than one UI language is configured — so pass
+   * `false` to hide it even with several languages (the panel stays on its current/default language).
+   */
+  languages?: boolean
   /** Show the breadcrumb trail at the top of the content. Defaults to **`true`**. */
   breadcrumbs?: boolean
   /** Render the automatic page-title `h2` (the active route's `staticData.name`). Defaults to `true`. */

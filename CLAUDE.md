@@ -293,7 +293,7 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   — theme settings grouped under **`theme`** (`{ colors?: { light?: Partial<ThemePalette>; dark?: Partial<ThemePalette> }; mode?: 'light' | 'dark' }`),
   the configurable key/param **names** grouped under **`keys`**, the `<Table>` server-request query mapping
   under **`table`** (`{ query?: TableQueryConfig }` — see below), the **`RootLayout` header** app-wide
-  under **`header`** (`HeaderConfig` — the shell top-bar `theme`/`fullscreen`/`settings`/`search`/`breadcrumbs`/
+  under **`header`** (`HeaderConfig` — the shell top-bar `theme`/`fullscreen`/`settings`/`search`/`languages`/`breadcrumbs`/
   `pageTitle` toggles + `onLogout`/`user`; a `RootLayout` `header` prop merges over it, prop wins; read
   via **`useHeaderConfig()`**). Best practice: put the **static toggles** in `config.header` (app-wide)
   and pass the **runtime `user` + `onLogout`** via the `RootLayout` `header` prop at the render site
@@ -398,7 +398,8 @@ overrides)`, and each language is one file under `src/i18n/locales/` — a compl
   `t('select.noOptions')`, with `{name}` interpolation (`t('pagination.page', { page })`). Resolution per
   key: consumer `config.i18n.messages` (exact code → base) → built-in catalog → English → the key. The
   active language is persisted (`localStorage['tz-locale']`), default English, switched via
-  **`useLanguage()`** / the `RootLayout` **Settings → Language** `Select` (shown when >1 language).
+  **`useLanguage()`** / the `RootLayout` header **language `Dropdown`** (the `Global`-icon switcher, each
+  item flagged; shown when >1 language and `header.languages` is on).
   **Adding a built-in string:** add its key to `Messages`, fill `EN_MESSAGES`, translate in the built-in
   catalogs. _Coverage of the library's own components is complete — every user-facing string routes through
   `useT()`; a couple of deliberate exceptions stay English-in-all-languages by design (the `CodeBlock`

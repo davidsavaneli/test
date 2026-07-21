@@ -27,7 +27,7 @@ the **Settings** drawer and the choice is **persisted** (`localStorage['tz-heade
 next visit, read via `useTheme().headerSticky` / set via `setHeaderSticky`), overriding the config.
 The header carries the sidebar toggle + a built-in **nav search** (`search`, default `true`) on the
 **left** and the controls on the right, driven by the
-`header` config (`HeaderConfig`) — `{ theme?: boolean /* default true */; sticky?: boolean /* default false */; fullscreen?: boolean /* default false */; settings?: boolean /* default true */; search?: boolean /* default true */; breadcrumbs?: boolean /* default true */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`.
+`header` config (`HeaderConfig`) — `{ theme?: boolean /* default true */; sticky?: boolean /* default false */; fullscreen?: boolean /* default false */; settings?: boolean /* default true */; search?: boolean /* default true */; languages?: boolean /* default true — only renders when >1 UI language */; breadcrumbs?: boolean /* default true */; pageTitle?: boolean /* default true */; onLogout?: () => void; user?: { name?; email?; avatar? } }`.
 Set it **app-wide** via **`config.header`** (`<ConfigProvider>`) or **per shell** via the `RootLayout`
 **`header` prop** — the prop is merged **over** `config.header` (prop wins).
 The **`NavSearch`** (an internal `Sidebar` export) searches the sidebar's pages — it flattens the same
@@ -35,8 +35,9 @@ The **`NavSearch`** (an internal `Sidebar` export) searches the sidebar's pages 
 `List` of `ListItem`s below a `TextField` (filter by page name or section; Up/Down + Enter navigate via
 `useNavigate`, Escape/outside-pointerdown close). The right-side controls are
 a `ThemeToggle` (default on) + `FullscreenToggle` (default off) + a **language** `Global`-icon `Dropdown`
-(shown only when `config.i18n.languages` has more than one — lists them via `useLanguage()`, switching the
-UI language) + a **Settings** `IconButton` (default
+(each item carries its language's **`Flag`**; gated by **`header.languages`** default on **and** shown
+only when `config.i18n.languages` has more than one — lists them via `useLanguage()`, switching the UI
+language; pass `header.languages: false` to hide the switcher even with several languages) + a **Settings** `IconButton` (default
 on) — all `size="sm"` (the toggles/language `filled`, Settings `variant="text"`), plus an account `Avatar` — a focusable button whose
 `Dropdown` menu has a single **Sign out** `ListItem` (calling `onLogout`), shown when `onLogout` is
 given; when `user` is supplied the menu opens with a `User`-icon (or `user.avatar` image) plus a name +
@@ -44,8 +45,9 @@ email header above a divider. The **Settings** button (a `Setting5` gear beside 
 **spins continuously** via a keyframe animation, shown when `header.settings` — default `true`) opens the
 internal **`SettingsDrawer`** — a right-side `Modal` (`placement="right"`, `size="sm"`). It opens with a
 **Theme** section — an exclusive **`ChoiceCardGroup`** (**Light** / **Dark** cards, `Sun`/`Moon` icons)
-driving **`useTheme().setMode`** — a **Language** section (a `Select` of `config.i18n.languages` driving
-**`useLanguage().setLanguage`**, shown only when more than one UI language is configured) — then **Accent Color** with **two
+driving **`useTheme().setMode`**, shown only when **`header.theme`** is on (RootLayout passes it as the
+drawer's `showTheme` prop, so the header `ThemeToggle` and this section appear/disappear together) — then
+**Accent Color** with **two
 `SwatchPicker`s** (one labelled **Light theme**, one **Dark theme**) so both accents are chosen
 independently at once — each a **per-mode** set (deeper tones for light, brighter for dark). Picking a
 swatch calls **`useTheme().setAccentColor(color, mode)`**, which overrides that mode's `accent` and

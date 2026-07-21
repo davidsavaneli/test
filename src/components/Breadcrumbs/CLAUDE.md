@@ -8,7 +8,7 @@
 
 - Built from the active match chain via **`useBreadcrumbs()`** — one crumb per matched route that
   declares a `staticData.name` (module → group → page). `RootLayout` renders `<Breadcrumbs/>` **only
-  when `header.breadcrumbs` is `true`** (defaults to `false` — hidden).
+  when `header.breadcrumbs` is `true`** (defaults to **`true`**; pass `false` to hide it).
 - Always opens with a **home icon** linking to the first allowed menu page (same target as
   `FirstRouteRedirect`). Intermediate crumbs link only when they map to a real navigable menu page
   (reusing the access-filtered nav tree, so forbidden/non-page ancestors render as plain text); the
