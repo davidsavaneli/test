@@ -1,5 +1,8 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { useRouterState } from '@tanstack/react-router'
 import { clsx } from 'clsx'
+import { useMediaQuery } from '../../hooks/useMediaQuery'
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 import {
   useHeaderConfig,
   useLanguage,
@@ -94,18 +97,64 @@ export function RootLayout({
   const showPageTitle = h.pageTitle ?? true
   const onLogout = h.onLogout
   const user = h.user
-  const [collapsed, setCollapsed] = useState(false)
+  // below 1280px the sidebar auto-collapses (and auto-expands again above it); a manual toggle holds
+  // until the next breakpoint cross. `useMediaQuery` is correct on the first client render, so no flash.
+  const isNarrow = useMediaQuery('(max-width: 1279.98px)')
+  const [collapsed, setCollapsed] = useState(isNarrow)
+  useEffect(() => {
+    setCollapsed(isNarrow)
+  }, [isNarrow])
+  // while the sidebar overlays the content (narrow + open), lock page scroll so scrolling inside the
+  // drawer doesn't scroll the content behind it
+  useLockBodyScroll(isNarrow && !collapsed)
+  // navigating from the overlay drawer (a nav link or a search suggestion — both change the route) auto-
+  // closes it, so you land on the page instead of the still-open sidebar; desktop navigation is untouched
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  useEffect(() => {
+    if (isNarrow) setCollapsed(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname])
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   return (
     <div className={clsx(styles.shell, collapsed && styles.shellCollapsed)}>
       <aside className={styles.sidebar}>
-        {logo ? <div className={styles.brand}>{logo}</div> : null}
-        <div className={styles.navScroll}>
-          <Sidebar />
+        {/* fixed-width inner: the outer <aside> animates its width to 0 (and clips via overflow),
+            while this keeps the sidebar's real width so the content never reflows mid-collapse */}
+        <div className={styles.sidebarInner}>
+          {logo ? (
+            <div className={styles.brand}>
+              {logo}
+              {/* in-drawer close — only shown when the sidebar overlays (narrow), where the header
+                  toggle is behind the backdrop; closes the drawer */}
+              <IconButton
+                variant="filled"
+                size="sm"
+                className={styles.sidebarClose}
+                aria-label={t('common.close')}
+                onClick={() => setCollapsed(true)}
+              >
+                <Icon name="Close" />
+              </IconButton>
+            </div>
+          ) : null}
+          {/* the search lives in the header on desktop; below 576px (full-width drawer) it moves here,
+              between the logo and the menu (CSS toggles which instance shows) */}
+          {showSearch ? (
+            <div className={styles.sidebarSearch}>
+              <NavSearch />
+            </div>
+          ) : null}
+          <div className={styles.navScroll}>
+            <Sidebar />
+          </div>
+          {sidebarFooter ? <div className={styles.sidebarFooter}>{sidebarFooter}</div> : null}
         </div>
-        {sidebarFooter ? <div className={styles.sidebarFooter}>{sidebarFooter}</div> : null}
       </aside>
+      {/* dim backdrop behind the overlay sidebar — a sibling of the sidebar (same stacking context, so the
+          sidebar reliably sits above it, unlike a body-portaled Overlay). Only shown/interactive below
+          1280px while open (CSS); clicking it closes the drawer. On desktop the sidebar is a grid column. */}
+      <div className={styles.backdrop} onClick={() => setCollapsed(true)} aria-hidden="true" />
       <div className={styles.main}>
         <header className={clsx(styles.topbar, headerSticky && styles.topbarSticky)}>
           <div className={styles.headerStart}>
@@ -118,7 +167,11 @@ export function RootLayout({
             >
               <Icon name="Menu" />
             </IconButton>
-            {showSearch ? <NavSearch /> : null}
+            {showSearch ? (
+              <div className={styles.headerSearch}>
+                <NavSearch />
+              </div>
+            ) : null}
           </div>
           <div className={styles.headerEnd}>
             {showFullscreen ? <FullscreenToggle variant="filled" size="sm" /> : null}

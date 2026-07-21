@@ -25,13 +25,12 @@
 /* the sidebar as a rounded, elevated white card — sticky + full viewport height (minus the shell
    padding); logo fixed at top, nav scrolls, an optional footer card pinned at the bottom */
 .sidebar {
+  --sidebar-w: 264px;
   position: sticky;
   top: var(--shell-pad);
   align-self: start;
-  width: 264px;
+  width: var(--sidebar-w);
   height: calc(100vh - var(--shell-pad) * 2);
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--tz-color-surface);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-lg);
@@ -39,6 +38,71 @@
   transition:
     width var(--tz-duration),
     border-width var(--tz-duration);
+}
+
+/* fixed-width inner shell — carries the actual layout so the content keeps its width while the outer
+   <aside> animates to 0 (the outer's overflow:hidden clips this instead of letting it reflow/wrap) */
+.sidebarInner {
+  width: var(--sidebar-w);
+  height: 100%;
+  display: grid;
+  /* rows: brand · (mobile) search · nav · footer — the search track is empty (0) unless shown below 576px */
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+/* in-drawer close button — pinned to the right of the logo; only shown when the sidebar overlays (narrow) */
+.sidebarClose {
+  display: none;
+  margin-left: auto;
+  flex: none;
+}
+
+/* dim backdrop behind the overlay sidebar — desktop keeps the sidebar in the grid, so it's hidden there */
+.backdrop {
+  display: none;
+}
+
+/* Below 1280px the sidebar is an **overlay drawer**: fixed + full-height, sliding in over a dim backdrop
+   instead of taking a grid column — so opening it never shrinks the content (unlike the desktop layout). */
+@media (max-width: 1279.98px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    height: 100vh;
+    border-radius: 0;
+    border-width: 0;
+    box-shadow: var(--tz-shadow-lg);
+    z-index: var(--tz-z-modal);
+    transform: translateX(0);
+    transition: transform var(--tz-duration);
+  }
+
+  /* collapsed on narrow = slid fully off-screen (keeps its width, so the content never reflows) */
+  .shellCollapsed .sidebar {
+    width: var(--sidebar-w);
+    border-width: 0;
+    transform: translateX(-100%);
+  }
+
+  /* shown only while the drawer is open; a literal scrim (like the Modal backdrop) sits under the sidebar */
+  .shell:not(.shellCollapsed) .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--tz-z-modal) - 1);
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  /* the in-drawer close button appears next to the logo (the header toggle is behind the backdrop here) */
+  .sidebarClose {
+    display: inline-flex;
+  }
 }
 
 /* brand row — fixed at the top of the sidebar card (airy, no divider) */
@@ -57,10 +121,22 @@
   max-height: 32px;
 }
 
+/* the (mobile-only) search row between the brand and the nav — hidden until the full-width drawer (≤576px) */
+.sidebarSearch {
+  grid-row: 2;
+  display: none;
+  padding: 0 var(--tz-space-sm) var(--tz-space-xs);
+}
+
+/* the NavSearch root (its only child) fills the drawer width — the header instance is a fixed 320px field */
+.sidebarSearch > div {
+  width: 100%;
+}
+
 /* only the nav scrolls; brand + footer stay put. min-width:0 so long content (a nav label, the
    footer user card) can't grow the sidebar's grid column past its fixed width — it clips/truncates */
 .navScroll {
-  grid-row: 2;
+  grid-row: 3;
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
@@ -69,9 +145,14 @@
 
 /* optional footer content (promo / help / user card) pinned to the bottom of the sidebar */
 .sidebarFooter {
-  grid-row: 3;
+  grid-row: 4;
   min-width: 0;
   padding: var(--tz-space-sm);
+}
+
+/* the header search is a transparent wrapper (NavSearch acts as a direct header flex child) */
+.headerSearch {
+  display: contents;
 }
 
 .main {
@@ -155,4 +236,27 @@
 }
 .settings svg {
   animation: tz-settings-spin 4s linear infinite;
+}
+
+/* Phones (≤576px): the overlay drawer stretches **full-width** (overriding the shared `--sidebar-w` widens
+   both the outer <aside> and the fixed-width inner in one place), and the nav **search moves out of the
+   header into the drawer** (between the logo and the menu). Kept at the end of the file so it overrides the
+   base `.sidebarSearch` / `.headerSearch` display rules (a media query adds no specificity — source order wins). */
+@media (max-width: 575.98px) {
+  .sidebar {
+    --sidebar-w: 100vw;
+  }
+
+  .brand {
+    padding: var(--tz-space-md) var(--tz-space-sm) var(--tz-space-md) var(--tz-space-sm);
+  }
+
+  .sidebarSearch {
+    display: block;
+    padding: 0 var(--tz-space-sm) var(--tz-space-sm);
+  }
+
+  .headerSearch {
+    display: none;
+  }
 }

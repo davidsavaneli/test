@@ -15,8 +15,24 @@ with a rounded, elevated **`--tz-color-surface` sidebar card** (border + `--tz-r
 `logo`/brand row fixed at the top, the nav scrolling (`overflow-y:auto`), and an optional
 **`sidebarFooter`** card (any node — e.g. a "Need help?" promo) pinned at the bottom. A header
 **toggle** `IconButton` (left, `filled`, `Menu` icon) collapses/hides the sidebar by animating its
-`width` to `0` (the shell's first grid column is `auto`, so it follows); the `ThemeToggle` is `filled`
-too. Nav icons match the row label (text) color via `--tz-list-icon-color`; the hover / active **pill**
+`width` to `0` (the shell's first grid column is `auto`, so it follows) — a **fixed-width inner wrapper**
+(`.sidebarInner`) holds the real layout so the content is **clipped, not reflowed**, during the collapse.
+**Responsive:** below **1280px** (`max-width: 1279.98px`, via `useMediaQuery`) the sidebar **auto-collapses**
+and auto-expands again above it; a manual toggle holds until the next breakpoint cross. At that width the
+sidebar also becomes an **overlay drawer** — `position: fixed`, full-height, sliding in (`translateX`) over
+a **dim `.backdrop`** — so opening it never shrinks the content. The backdrop is a plain sibling `div` (a
+literal scrim at `--tz-z-modal - 1`, sidebar at `--tz-z-modal`), **not** the portaled `Overlay` — kept in
+the same stacking context as the sidebar so the sidebar reliably paints above it (a body-portaled overlay
+ended up above the fixed sidebar); clicking it closes the drawer. While the drawer is open it **locks page
+scroll** (`useLockBodyScroll`), so scrolling inside the sidebar doesn't scroll the content behind it, and
+**navigating from it auto-closes it** (a route change from a nav link or a search suggestion, via a
+`useRouterState` pathname effect — narrow only; desktop navigation is untouched). Below
+**576px** (`max-width: 575.98px`) the drawer stretches **full-width** (`--sidebar-w: 100vw`) and the **nav
+search moves out of the header into the drawer** — between the logo and the menu (`.sidebarSearch`); the
+header `NavSearch` (`.headerSearch`) hides. Both instances render; CSS toggles which shows. In that mode an in-drawer **close**
+(`Close` icon) `IconButton` shows beside the logo (`.sidebarClose`), since the header toggle is behind the
+backdrop; on desktop the sidebar is a grid column and neither the backdrop nor that button appears. The
+`ThemeToggle` is `filled` too. Nav icons match the row label (text) color via `--tz-list-icon-color`; the hover / active **pill**
 tints with the **`accent`** color (`--tz-list-accent-rgb: var(--tz-color-accent-rgb)` on the nav, not
 the default `primary`) and is a touch stronger than the default `List` tint (bumped
 `--tz-list-hover-alpha`/`--tz-list-selected-alpha`). The **header is borderless on the canvas** (transparent) — by default it **scrolls with the content**
