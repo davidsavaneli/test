@@ -8,7 +8,8 @@
   display: grid;
   /* first column tracks the sidebar card's own (animatable) width */
   grid-template-columns: auto 1fr;
-  gap: var(--shell-pad);
+  /* the sidebar↔content gap lives on the sidebar's margin-right (not a grid `gap`), so it collapses to 0
+     WITH the sidebar's width — otherwise a `gap` would linger and leave the content offset when collapsed */
   min-height: 100vh;
   padding: var(--shell-pad);
   box-sizing: border-box;
@@ -16,27 +17,30 @@
   font-family: var(--tz-font-family);
 }
 
-/* sidebar toggle: smoothly collapse the sidebar card's width to 0 and hide it */
+/* sidebar toggle: smoothly collapse the sidebar card's width (and its margin-right gap) to 0 and hide it */
 .shellCollapsed .sidebar {
   width: 0;
+  margin-right: 0;
   border-width: 0;
 }
 
 /* the sidebar as a rounded, elevated white card — sticky + full viewport height (minus the shell
    padding); logo fixed at top, nav scrolls, an optional footer card pinned at the bottom */
 .sidebar {
-  --sidebar-w: 264px;
+  --sidebar-w: 280px;
   position: sticky;
   top: var(--shell-pad);
   align-self: start;
   width: var(--sidebar-w);
   height: calc(100vh - var(--shell-pad) * 2);
+  margin-right: var(--shell-pad);
   background: var(--tz-color-surface);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-lg);
   overflow: hidden;
   transition:
     width var(--tz-duration),
+    margin-right var(--tz-duration),
     border-width var(--tz-duration);
 }
 
@@ -62,49 +66,6 @@
   display: none;
 }
 
-/* Below 1280px the sidebar is an **overlay drawer**: fixed + full-height, sliding in over a dim backdrop
-   instead of taking a grid column — so opening it never shrinks the content (unlike the desktop layout). */
-@media (max-width: 1279.98px) {
-  .shell {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    height: 100vh;
-    border-radius: 0;
-    border-width: 0;
-    box-shadow: var(--tz-shadow-lg);
-    z-index: var(--tz-z-modal);
-    transform: translateX(0);
-    transition: transform var(--tz-duration);
-  }
-
-  /* collapsed on narrow = slid fully off-screen (keeps its width, so the content never reflows) */
-  .shellCollapsed .sidebar {
-    width: var(--sidebar-w);
-    border-width: 0;
-    transform: translateX(-100%);
-  }
-
-  /* shown only while the drawer is open; a literal scrim (like the Modal backdrop) sits under the sidebar */
-  .shell:not(.shellCollapsed) .backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: calc(var(--tz-z-modal) - 1);
-    background: rgba(0, 0, 0, 0.5);
-  }
-
-  /* the in-drawer close button appears next to the logo (the header toggle is behind the backdrop here) */
-  .sidebarClose {
-    display: inline-flex;
-  }
-}
-
 /* brand row — fixed at the top of the sidebar card (airy, no divider) */
 .brand {
   grid-row: 1;
@@ -125,7 +86,7 @@
 .sidebarSearch {
   grid-row: 2;
   display: none;
-  padding: 0 var(--tz-space-sm) var(--tz-space-xs);
+  padding: 0 var(--tz-space-sm) var(--tz-space-sm);
 }
 
 /* the NavSearch root (its only child) fills the drawer width — the header instance is a fixed 320px field */
@@ -238,22 +199,92 @@
   animation: tz-settings-spin 4s linear infinite;
 }
 
+/* Below 1280px the sidebar is an **overlay drawer**: fixed + full-height, sliding in over a dim backdrop
+   instead of taking a grid column — so opening it never shrinks the content (unlike the desktop layout).
+   Kept at the end of the file (after the base rules) so its overrides win — a media query adds no
+   specificity, so source order decides. */
+@media (max-width: 1279.98px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    height: 100vh;
+    border-radius: 0;
+    border-width: 0;
+    box-shadow: var(--tz-shadow-lg);
+    z-index: var(--tz-z-modal);
+    transform: translateX(0);
+    transition: transform var(--tz-duration);
+  }
+
+  /* collapsed on narrow = slid fully off-screen (keeps its width, so the content never reflows) */
+  .shellCollapsed .sidebar {
+    width: var(--sidebar-w);
+    border-width: 0;
+    transform: translateX(-100%);
+  }
+
+  /* tighter, symmetric brand padding once the sidebar is an overlay drawer */
+  .brand {
+    padding: var(--tz-space-md) var(--tz-space-sm) var(--tz-space-md) var(--tz-space-sm);
+  }
+
+  /* shown only while the drawer is open; a literal scrim (like the Modal backdrop) sits under the sidebar */
+  .shell:not(.shellCollapsed) .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--tz-z-modal) - 1);
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  /* the in-drawer close button appears next to the logo (the header toggle is behind the backdrop here) */
+  .sidebarClose {
+    display: inline-flex;
+  }
+}
+
 /* Phones (≤576px): the overlay drawer stretches **full-width** (overriding the shared `--sidebar-w` widens
    both the outer <aside> and the fixed-width inner in one place), and the nav **search moves out of the
    header into the drawer** (between the logo and the menu). Kept at the end of the file so it overrides the
    base `.sidebarSearch` / `.headerSearch` display rules (a media query adds no specificity — source order wins). */
 @media (max-width: 575.98px) {
-  .sidebar {
-    --sidebar-w: 100vw;
+  .shell {
+    padding: 0 var(--tz-space-sm) var(--tz-space-sm) var(--tz-space-sm);
   }
 
-  .brand {
-    padding: var(--tz-space-md) var(--tz-space-sm) var(--tz-space-md) var(--tz-space-sm);
+  .sidebar {
+    --sidebar-w: 100vw;
   }
 
   .sidebarSearch {
     display: block;
     padding: 0 var(--tz-space-sm) var(--tz-space-sm);
+  }
+
+  /* header — transparent, on the canvas (no background); scrolls with the content (not pinned) */
+  .topbar {
+    padding: calc(var(--tz-space-sm) / 1.4) var(--tz-space-sm);
+    margin: 0 calc(var(--tz-space-sm) * -1) var(--tz-space-xs) calc(var(--tz-space-sm) * -1);
+  }
+
+  /* sticky (fixed) header — pins at the same inset as the sidebar card (--shell-pad) while the content
+   scrolls under it. It reads as a rounded, bordered --tz-color-surface card (matching the sidebar) so
+   content can't show through, and sits on the sticky layer (portaled dropdowns/popovers at
+   --tz-z-popover still float above it). Nothing scrolls above the header — it's the first child of
+   .main — so the top gap needs no masking. */
+  .topbarSticky {
+    top: 0;
+    border-radius: 0;
+    margin-bottom: var(--tz-space-sm);
+    border: 0;
+    border-bottom: 1px dashed var(--tz-color-border);
+    padding: calc(var(--tz-space-sm) / 1.4) var(--tz-space-sm);
   }
 
   .headerSearch {
