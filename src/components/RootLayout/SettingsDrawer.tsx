@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DEFAULT_FONT_FAMILY, useTheme } from '../../theme'
+import { DEFAULT_FONT_FAMILY, useLanguage, useT, useTheme } from '../../theme'
 import { Col } from '../Flex'
 import { Divider } from '../Divider'
 import { Modal } from '../Modal'
@@ -78,6 +78,8 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
     fontFamily,
     setFontFamily,
   } = useTheme()
+  const { language, setLanguage, languages } = useLanguage()
+  const t = useT()
 
   // One searchable Select doubles as a "type any Google Font" field. Base = Inter (the only preset) +
   // the active font (so a custom pick stays visible/selectable). While searching, the typed query is
@@ -90,7 +92,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
   const showTyped = q.length > 0 && !base.some((f) => f.toLowerCase() === q.toLowerCase())
   const fontOptions = (showTyped ? [q, ...base] : base).map((f) => ({
     value: f,
-    label: f === DEFAULT_FONT_FAMILY ? `${f} (Default)` : f,
+    label: f === DEFAULT_FONT_FAMILY ? t('settings.fontDefault', { font: f }) : f,
   }))
 
   const picker = (mode: 'light' | 'dark', label: string) => {
@@ -107,8 +109,8 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
         onChange={(color) =>
           setAccentColor(color.toLowerCase() === def.toLowerCase() ? null : color, mode)
         }
-        labels={{ [def]: `Default (${def})` }}
-        aria-label={`Accent color — ${label}`}
+        labels={{ [def]: t('settings.accentDefault', { color: def }) }}
+        aria-label={String(label)}
       />
     )
   }
@@ -119,11 +121,11 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
       onClose={onClose}
       placement="right"
       size="sm"
-      title="Settings"
+      title={t('settings.label')}
       icon="Setting5"
     >
       <Typography variant="subtitle" as="h3">
-        Theme
+        {t('settings.themeTitle')}
       </Typography>
       <Typography
         variant="bodySmall"
@@ -131,7 +133,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
         as="p"
         style={{ marginTop: 'var(--tz-space-xxs)' }}
       >
-        Switch between the light and dark theme.
+        {t('settings.themeDesc')}
       </Typography>
       <ChoiceCardGroup
         exclusive
@@ -142,17 +144,51 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
           if (typeof v === 'string') setMode(v as 'light' | 'dark')
         }}
         options={[
-          { value: 'light', label: 'Light', description: 'Bright theme', icon: 'Sun' },
-          { value: 'dark', label: 'Dark', description: 'Dim theme', icon: 'Moon' },
+          {
+            value: 'light',
+            label: t('settings.light'),
+            description: t('settings.lightDesc'),
+            icon: 'Sun',
+          },
+          {
+            value: 'dark',
+            label: t('settings.dark'),
+            description: t('settings.darkDesc'),
+            icon: 'Moon',
+          },
         ]}
-        aria-label="Theme mode"
+        aria-label={t('settings.themeTitle')}
         style={{ marginTop: 'var(--tz-space-sm)' }}
       />
+
+      {languages.length > 1 && (
+        <>
+          <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
+          <Typography variant="subtitle" as="h3">
+            {t('language.label')}
+          </Typography>
+          <Typography
+            variant="bodySmall"
+            color="muted"
+            as="p"
+            style={{ marginTop: 'var(--tz-space-xxs)' }}
+          >
+            {t('settings.languageDesc')}
+          </Typography>
+          <Select
+            value={language}
+            onChange={setLanguage}
+            options={languages.map((l) => ({ value: l.code, label: l.label ?? l.code }))}
+            aria-label={t('language.label')}
+            style={{ marginTop: 'var(--tz-space-sm)' }}
+          />
+        </>
+      )}
 
       <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
 
       <Typography variant="subtitle" as="h3">
-        Accent Color
+        {t('settings.accentTitle')}
       </Typography>
       <Typography
         variant="bodySmall"
@@ -160,17 +196,17 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
         as="p"
         style={{ marginTop: 'var(--tz-space-xxs)' }}
       >
-        Pick an accent for each theme — it's saved and restored next time you open the panel.
+        {t('settings.accentDesc')}
       </Typography>
       <Col gap="md" style={{ marginTop: 'var(--tz-space-sm)' }}>
-        {picker('light', 'Light theme')}
-        {picker('dark', 'Dark theme')}
+        {picker('light', t('settings.lightTheme'))}
+        {picker('dark', t('settings.darkTheme'))}
       </Col>
 
       <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
 
       <Typography variant="subtitle" as="h3">
-        Font
+        {t('settings.fontTitle')}
       </Typography>
       <Typography
         variant="bodySmall"
@@ -178,12 +214,12 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
         as="p"
         style={{ marginTop: 'var(--tz-space-xxs)' }}
       >
-        Pick a preset or type any Google Font — applied app-wide and saved for next time.
+        {t('settings.fontDesc')}
       </Typography>
       <Select
-        label="Font family"
+        label={t('settings.fontFamily')}
         searchable
-        searchPlaceholder="Search or type any Google Font…"
+        searchPlaceholder={t('settings.fontSearch')}
         value={fontFamily}
         options={fontOptions}
         onSearchChange={setFontQuery}
@@ -191,14 +227,14 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
           setFontFamily(v)
           setFontQuery('')
         }}
-        aria-label="Font family"
+        aria-label={t('settings.fontFamily')}
         style={{ marginTop: 'var(--tz-space-sm)' }}
       />
 
       <Divider style={{ margin: 'var(--tz-space-md) 0' }} />
 
       <Typography variant="subtitle" as="h3">
-        Header
+        {t('settings.headerTitle')}
       </Typography>
       <Typography
         variant="bodySmall"
@@ -206,7 +242,7 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
         as="p"
         style={{ marginTop: 'var(--tz-space-xxs)' }}
       >
-        Keep the header fixed on scroll, or let it scroll away — saved for next time.
+        {t('settings.headerDesc')}
       </Typography>
       <ChoiceCardGroup
         exclusive
@@ -218,10 +254,14 @@ export function SettingsDrawer({ open, onClose }: SettingsDrawerProps) {
           if (typeof v === 'string') setHeaderSticky(v === 'fixed')
         }}
         options={[
-          { value: 'static', label: 'Scrollable', description: 'Scrolls away' },
-          { value: 'fixed', label: 'Fixed', description: 'Stays on scroll' },
+          {
+            value: 'static',
+            label: t('settings.scrollable'),
+            description: t('settings.scrollableDesc'),
+          },
+          { value: 'fixed', label: t('settings.fixed'), description: t('settings.fixedDesc') },
         ]}
-        aria-label="Header behavior on scroll"
+        aria-label={t('settings.headerTitle')}
         style={{ marginTop: 'var(--tz-space-sm)' }}
       />
     </Modal>

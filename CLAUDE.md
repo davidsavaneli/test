@@ -69,7 +69,7 @@ src/
     icons.ts              # generated inline-SVG registry (committed source of truth)
     names.ts              # generated IconName union + ICON_NAMES / ICON_COUNT (~1198 names)
   entries/                # curated public surfaces, one file per subpath export
-    components.ts hooks.ts theme.ts icons.ts helpers.ts
+    components.ts hooks.ts theme.ts i18n.ts icons.ts helpers.ts
   styles/
     reset.css             # global reset (consumer imports once)
     theme.css             # --tz-* token structure (solids/shades/contrast); color values come from TS
@@ -386,6 +386,37 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
 - **No-JS note:** because the triplet values are injected by `applyTheme` (not declared in `theme.css`),
   colors require `ConfigProvider` to have mounted. It runs in `useLayoutEffect` (before first paint), so
   there's no flash in a normal CSR app; importing the CSS alone (no provider) yields no theme colors.
+- **UI i18n (`config.i18n`, distinct from `locales`).** The library **ships translations for its own
+  built-in strings** (labels/placeholders/aria-labels), so a consuming app gets a localized panel with
+  zero setup — it just lists **`config.i18n.languages`** (`{ code, label }[]`, default English only) and
+  optionally a default **`language`**. It's a tiny **dependency-free** layer (no i18next — the string set
+  is small + fixed), in `src/i18n/messages.ts`: a typed `Messages` interface, a complete **English**
+  baseline + built-in **Georgian** (`ka`), and `createTranslator(locale, overrides)`. Components read via
+  **`useT()`** (lenient — English outside a provider, so they render standalone / in tests):
+  `t('select.noOptions')`, with `{name}` interpolation (`t('pagination.page', { page })`). Resolution per
+  key: consumer `config.i18n.messages` (exact code → base) → built-in catalog → English → the key. The
+  active language is persisted (`localStorage['tz-locale']`), default English, switched via
+  **`useLanguage()`** / the `RootLayout` **Settings → Language** `Select` (shown when >1 language).
+  **Adding a built-in string:** add its key to `Messages`, fill `EN_MESSAGES`, translate in the built-in
+  catalogs. _Coverage of the library's own components is complete — every user-facing string routes through
+  `useT()`; a couple of deliberate exceptions stay English-in-all-languages by design (the `CodeBlock`
+  syntax content is code, and the `RichTextEditor` block-type dropdown labels — Paragraph / Heading /
+  Bullet List / … — are editor-standard terms kept literal on purpose)._
+- **App's OWN strings — `config.i18n.appMessages` + `useTranslations()`.** For the consuming app's own copy
+  (section titles, labels, business text — e.g. `"Customer transactions"`), the app passes its **own**
+  free-form catalogs in **`config.i18n.appMessages`** (`Record<langCode, Record<key, string>>`, keyed by
+  language code/base then any string key it picks) and reads them via **`useTranslations()`** — an
+  `AppTranslator` `(key, vars?) => string` **bound to the active UI language**, so the app's text switches
+  together with the panel from the one language switcher. Per-key resolution: exact code → base language →
+  English (`'en'`) → **the key itself** (a missing translation renders visibly, not blank), with the same
+  `{name}` interpolation. Lenient outside a provider (echoes the key). This keeps app localization
+  **zero-extra-infra** (no second i18n library needed for the panel), but apps are still free to use
+  react-i18next/etc. for their own content if they prefer — `useTranslations()` is the built-in shortcut,
+  not a mandate. `useT()` is for the library's strings; `useTranslations()` is for the app's. The pure
+  builder is **`createAppTranslator(locale, appMessages)`**. All i18n exports (`useT`, `useTranslations`,
+  `useLanguage`, `createTranslator`/`createAppTranslator`, message types) live on the **`sava-test/i18n`**
+  subpath — its own home, so localization imports don't reach through `theme`; they're on the root `.`
+  import too. (`I18nConfig` stays with `Config` in `sava-test/theme`.)
 
 ---
 
@@ -632,7 +663,8 @@ define each surface; the root `src/index.ts` re-exports them all. `package.json`
 | `./components`                        | `src/entries/components.ts`           | every component + shell + `Form`                                                                                                                                                                                                                       |
 | `./components/*`                      | each `src/components/<Name>/index.ts` | one component (named **and** `default`)                                                                                                                                                                                                                |
 | `./hooks`                             | `src/entries/hooks.ts`                | `useDisclosure`, `useLockBodyScroll`, `useMediaQuery`, `useForm`, `useAccessKeys`                                                                                                                                                                      |
-| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useStepQueryKey`, `useTableQueryConfig`, `useHeaderConfig`, `applyTheme`                                                           |
+| `./theme`                             | `src/entries/theme.ts`                | `ConfigProvider`, `useTheme`, `useLocales`, `useTranslationsNamespace`, `useTabsQueryKey`, `useNestedTabQueryKey`, `useStepQueryKey`, `useTableQueryConfig`, `useHeaderConfig`, `applyTheme` (+ config types incl. `I18nConfig`)                       |
+| `./i18n`                              | `src/entries/i18n.ts`                 | UI-localization: `useT` (library strings), `useTranslations` (app strings), `useLanguage` (active language + switcher), `createTranslator`/`createAppTranslator`, and the message types (`Messages`/`Translator`/`AppMessages`/…)                      |
 | `./icons`                             | `src/entries/icons.ts`                | `Icon`, `IconName`, `ICON_NAMES`, `icons`                                                                                                                                                                                                              |
 | `./helpers`                           | `src/entries/helpers.ts`              | RBAC (`setAccessKeys`/`getAccessKeys`/`hasAccess`) + translation helpers (`buildTranslations`/`nestTranslations`/`flattenTranslations`/`toFormData`/`buildTranslationName`) + the `Table` query builder + parser (`buildTableQuery`/`parseTableQuery`) |
 | `./css/reset.css`, `./css/styles.css` | —                                     | the two stylesheets                                                                                                                                                                                                                                    |

@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
+import { useT } from '../../theme'
 import { useFormContext } from '../../form/formContext'
 import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import { Button } from '../Button'
@@ -135,6 +136,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(function
   },
   ref,
 ) {
+  const t = useT()
   const reactId = useId()
   const id = idProp ?? reactId
   const helperId = `${id}-helper`
@@ -294,7 +296,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(function
           <button
             type="button"
             className={styles.clear}
-            aria-label="Clear time"
+            aria-label={t('timePicker.clear')}
             tabIndex={-1}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
@@ -313,7 +315,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(function
           color="primary"
           size={size}
           disabled={disabled}
-          aria-label="Open time picker"
+          aria-label={t('timePicker.open')}
           aria-haspopup="dialog"
           aria-expanded={open}
           className={styles.calendarButton}
@@ -344,7 +346,7 @@ export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(function
         />
         <div className={tp.footer}>
           <Button size="sm" variant="filled" color="primary" onClick={() => closePopover(true)}>
-            Done
+            {t('common.done')}
           </Button>
         </div>
       </FloatingPanel>

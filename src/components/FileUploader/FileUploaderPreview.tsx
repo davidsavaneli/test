@@ -1,4 +1,5 @@
 import { clsx } from 'clsx'
+import { useT } from '../../theme'
 import { Icon } from '../Icon'
 import { Overlay } from '../Overlay/Overlay'
 import styles from './FileUploaderPreview.module.css'
@@ -33,6 +34,7 @@ export function FileUploaderPreview({
   name,
   onClose,
 }: FileUploaderPreviewProps) {
+  const t = useT()
   return (
     <Overlay
       open
@@ -41,12 +43,12 @@ export function FileUploaderPreview({
       className={styles.backdrop}
       role="dialog"
       aria-modal="true"
-      aria-label={`Preview: ${name}`}
+      aria-label={t('fileUploader.preview', { name })}
     >
       <button
         type="button"
         className={styles.close}
-        aria-label="Close preview"
+        aria-label={t('fileUploader.closePreview')}
         onClick={onClose}
         autoFocus
       >

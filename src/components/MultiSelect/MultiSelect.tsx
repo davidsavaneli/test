@@ -14,7 +14,7 @@ import {
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
 import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import { Chip } from '../Chip'
 import { Icon } from '../Icon'
 import { List, ListItem } from '../List'
@@ -105,15 +105,15 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
     value,
     defaultValue,
     onChange,
-    placeholder = 'Select…',
+    placeholder,
     color = 'primary',
     clearable = true,
     searchable = false,
-    searchPlaceholder = 'Search…',
+    searchPlaceholder,
     onSearchChange,
     loading = false,
-    loadingText = 'Loading…',
-    noOptionsText = 'No options',
+    loadingText,
+    noOptionsText,
     name,
     id: idProp,
     className,
@@ -130,6 +130,8 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
 
   // ── value (controlled / form-bound / uncontrolled) — always a string[] ─────────────────────────
   // Read the RAW form value (field().value String-coerces, which would flatten the array).
+  const t = useT()
+  const searchPh = searchPlaceholder ?? t('common.search')
   const form = useFormContext()
   const isFormBound = Boolean(form && name)
   const bound = isFormBound ? form!.field(name!) : undefined
@@ -413,7 +415,7 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
           </span>
         ) : (
           <span className={clsx(styles.value, styles.placeholder)}>
-            <span className={styles.valueLabel}>{placeholder}</span>
+            <span className={styles.valueLabel}>{placeholder ?? t('select.placeholder')}</span>
           </span>
         )}
 
@@ -421,7 +423,7 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
           <button
             type="button"
             className={styles.clear}
-            aria-label="Clear all"
+            aria-label={t('multiSelect.clearAll')}
             tabIndex={-1}
             onMouseDown={(e) => e.preventDefault()}
             onClick={(e) => {
@@ -462,8 +464,8 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
               aria-controls={listboxId}
               aria-activedescendant={activeId}
               aria-autocomplete="list"
-              aria-label={searchPlaceholder}
-              placeholder={searchPlaceholder}
+              aria-label={searchPh}
+              placeholder={searchPh}
               value={searchQuery}
               spellCheck={false}
               onChange={(e) => {
@@ -489,13 +491,17 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(function
             <div className={styles.loading}>
               <Loader size="sm" />
               <Typography as="span" variant="bodySmall" color="muted">
-                {loadingText}
+                {loadingText ?? t('common.loading')}
               </Typography>
             </div>
           ) : filteredOptions.length === 0 ? (
             <div className={styles.noOptions}>
               <Typography as="span" variant="bodySmall" color="muted">
-                {typeof noOptionsText === 'function' ? noOptionsText(searchQuery) : noOptionsText}
+                {noOptionsText == null
+                  ? t('select.noOptions')
+                  : typeof noOptionsText === 'function'
+                    ? noOptionsText(searchQuery)
+                    : noOptionsText}
               </Typography>
             </div>
           ) : (

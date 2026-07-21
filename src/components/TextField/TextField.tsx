@@ -14,7 +14,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
-import type { ThemeColor } from '../../theme'
+import { useT, type MessageKey, type ThemeColor } from '../../theme'
 import { useFormContext } from '../../form/formContext'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
@@ -102,12 +102,14 @@ function strengthLevel(score: number): PasswordStrength | null {
   return 'strong'
 }
 
-const STRENGTH_META: Record<PasswordStrength, { label: string; color: ThemeColor; bars: number }> =
-  {
-    weak: { label: 'Weak', color: 'error', bars: 1 },
-    medium: { label: 'Medium', color: 'warning', bars: 2 },
-    strong: { label: 'Strong', color: 'success', bars: 3 },
-  }
+const STRENGTH_META: Record<
+  PasswordStrength,
+  { labelKey: MessageKey; color: ThemeColor; bars: number }
+> = {
+  weak: { labelKey: 'textField.strengthWeak', color: 'error', bars: 1 },
+  medium: { labelKey: 'textField.strengthMedium', color: 'warning', bars: 2 },
+  strong: { labelKey: 'textField.strengthStrong', color: 'success', bars: 3 },
+}
 
 export interface TextFieldProps extends Omit<
   InputHTMLAttributes<HTMLInputElement>,
@@ -180,7 +182,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
     adornment,
     adornmentPosition = 'left',
     onAdornmentClick,
-    adornmentLabel = 'Field action',
+    adornmentLabel,
     regex,
     mask,
     passwordToggle = true,
@@ -203,6 +205,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   },
   ref,
 ) {
+  const t = useT()
   const reactId = useId()
   const id = idProp ?? reactId
   const helperId = `${id}-helper`
@@ -294,9 +297,9 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
   const effOnAdornmentClick = showReveal ? () => setRevealed((shown) => !shown) : onAdornmentClick
   const effAdornmentLabel = showReveal
     ? revealed
-      ? 'Hide password'
-      : 'Show password'
-    : adornmentLabel
+      ? t('textField.hidePassword')
+      : t('textField.showPassword')
+    : (adornmentLabel ?? t('textField.fieldAction'))
 
   // Password-strength meter, derived from the current value (a UX hint, not a security check).
   const strength = passwordStrength
@@ -415,7 +418,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
           role="alert"
         >
           <Icon name="Danger" />
-          Caps Lock is on
+          {t('textField.capsLock')}
         </Typography>
       )}
 
@@ -444,7 +447,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
             color={STRENGTH_META[strength].color}
             className={styles.strengthLabel}
           >
-            {STRENGTH_META[strength].label}
+            {t(STRENGTH_META[strength].labelKey)}
           </Typography>
         </div>
       )}

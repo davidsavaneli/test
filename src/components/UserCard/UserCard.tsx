@@ -1,6 +1,6 @@
 import { forwardRef, type CSSProperties, type HTMLAttributes, type ReactNode } from 'react'
 import { clsx } from 'clsx'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import type { IconName } from '../../icons/names'
 import { Avatar } from '../Avatar'
 import { Button } from '../Button'
@@ -48,7 +48,7 @@ export const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserC
     color = 'primary',
     size = 'md',
     onLogout,
-    logoutLabel = 'Sign out',
+    logoutLabel,
     children,
     className,
     style,
@@ -56,6 +56,7 @@ export const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserC
   },
   ref,
 ) {
+  const t = useT()
   // the identity row + the sign-out button share the same visual size step
   const avatarSize = size === 'lg' ? 'lg' : size === 'sm' ? 'sm' : 'md'
   const buttonSize = size === 'lg' ? 'md' : 'sm'
@@ -104,7 +105,7 @@ export const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserC
           startIcon={<Icon name="Logout2" />}
           onClick={onLogout}
         >
-          {logoutLabel}
+          {logoutLabel ?? t('userCard.signOut')}
         </Button>
       ) : null}
     </div>

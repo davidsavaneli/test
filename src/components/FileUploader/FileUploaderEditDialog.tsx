@@ -1,7 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react'
 import ReactCrop, { type Crop, type PercentCrop, type PixelCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
-import type { LocaleConfig } from '../../theme'
+import { useT, type LocaleConfig } from '../../theme'
 import { Button } from '../Button'
 import { Modal } from '../Modal'
 import { TextField } from '../TextField'
@@ -59,6 +59,7 @@ export function FileUploaderEditDialog({
   onClose,
   onSave,
 }: FileUploaderEditDialogProps) {
+  const t = useT()
   const imgRef = useRef<HTMLImageElement>(null)
   const [crop, setCrop] = useState<Crop>()
   // store the crop in NATIVE coords (computed on every drag) so the export never depends on display size
@@ -128,7 +129,7 @@ export function FileUploaderEditDialog({
           : undefined
       onSave({ croppedFile }) // parent commits + closes (this dialog unmounts)
     } catch {
-      setCropError('Couldn’t crop this image — it may be served cross-origin without CORS.')
+      setCropError(t('fileUploader.cropError'))
       setBusy(false)
     }
   }
@@ -139,15 +140,15 @@ export function FileUploaderEditDialog({
       onClose={onClose}
       size={mode === 'crop' ? 'lg' : 'sm'}
       icon={mode === 'crop' ? 'Crop' : 'Text'}
-      title={mode === 'crop' ? 'Crop image' : 'Alt text'}
+      title={mode === 'crop' ? t('fileUploader.cropTitle') : t('fileUploader.altTitle')}
       description={name}
       footer={
         <>
           <Button variant="text" color="accent" onClick={onClose} disabled={busy}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSave} loading={busy}>
-            Save
+            {t('common.save')}
           </Button>
         </>
       }
@@ -156,7 +157,7 @@ export function FileUploaderEditDialog({
         <div className={styles.cropSection}>
           <div className={styles.cropHead}>
             <Typography variant="bodySmall" color="muted">
-              Drag to select the area to keep
+              {t('fileUploader.cropHint')}
             </Typography>
             <Typography variant="bodySmall" color={naturalCrop ? 'text' : 'muted'}>
               {naturalCrop
@@ -193,8 +194,8 @@ export function FileUploaderEditDialog({
           {editLocales.map((l) => (
             <TextField
               key={l.code}
-              label={l.label ?? (l.code || 'Alt text')}
-              placeholder="Describe the image for screen readers…"
+              label={l.label ?? (l.code || t('fileUploader.altTitle'))}
+              placeholder={t('fileUploader.altPlaceholder')}
               value={draft[l.code] ?? ''}
               onChange={(e: ChangeEvent<HTMLInputElement>) =>
                 setDraft((d) => ({ ...d, [l.code]: e.target.value }))

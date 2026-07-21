@@ -9,6 +9,14 @@ import {
 } from 'react'
 import { applyTheme, type ThemePalette } from './applyTheme'
 import { DEFAULT_TRANSLATIONS_NAMESPACE } from '../helpers/translations'
+import {
+  createAppTranslator,
+  createTranslator,
+  type AppMessages,
+  type AppTranslator,
+  type MessageOverrides,
+  type Translator,
+} from '../i18n/messages'
 
 export type ThemeMode = 'light' | 'dark'
 
@@ -180,6 +188,40 @@ export interface HeaderConfig {
 }
 
 /**
+ * UI-language config for the admin panel's **own** static strings (labels, placeholders, aria-labels).
+ * Distinct from `locales` (which is content-translation locales for `<TranslatedFields>`). The library
+ * ships built-in translations (English + Georgian), so listing `languages` here is enough to get a
+ * localized panel — no per-app setup. Any language the library doesn't ship is supplied via `messages`.
+ */
+export interface I18nConfig {
+  /**
+   * Active UI language on first load (a locale code, e.g. `'ka-GE'`). Defaults to English if listed in
+   * `languages`, else the first `languages` entry, else `'en-US'`. The user's switcher choice (persisted)
+   * overrides it.
+   */
+  language?: string
+  /**
+   * The UI languages the panel offers — drives the Settings language switcher. One entry = a fixed
+   * language (no switcher). Defaults to English only. (Reuses the `{ code, label }` shape.)
+   */
+  languages?: LocaleConfig[]
+  /**
+   * Extra / override message catalogs for the **library's own** strings, merged **over** the built-ins
+   * and keyed by language code or base language (`'ka-GE'` or `'ka'`). Use this to localize into a
+   * language the library doesn't ship, or to tweak a built-in string. Unset keys fall back to English.
+   */
+  messages?: MessageOverrides
+  /**
+   * Catalogs for the **consuming app's own** UI strings — its section titles, labels, business copy —
+   * keyed by language code/base then by any string key the app picks. Read via **`useTranslations()`**,
+   * which binds to the active UI language, so the app's text switches together with the panel. Resolution
+   * per key: exact code → base language → English (`'en'`) → the key itself. This is the app's own copy;
+   * `messages` above is only for the library's built-in strings.
+   */
+  appMessages?: AppMessages
+}
+
+/**
  * App-level configuration passed to `<ConfigProvider config={…}>`. Groups theming under `theme`,
  * the configurable key/param names under `keys`, and keeps the rest (`locales`, …) at the top — a
  * single place to grow.
@@ -189,6 +231,8 @@ export interface Config {
   theme?: ThemeConfig
   /** Content locales the app supports — drive `<TranslatedFields>`' tabs (one per locale). */
   locales?: LocaleConfig[]
+  /** UI-language config for the panel's own strings (the library ships the translations). See `I18nConfig`. */
+  i18n?: I18nConfig
   /**
    * Configurable key / query-param names the components read — e.g. the `<Tabs>` query keys
    * (`tabQueryKey` / `nestedTabQueryKey`) and the `<TranslatedFields>` namespace
@@ -236,6 +280,16 @@ interface ThemeContextValue {
   fontFamily: string
   /** Set + persist the font family (a preset or any Google Font name; loaded on demand). */
   setFontFamily: (family: string) => void
+  /** Active UI language code (drives `t`). Persisted; seeded from `config.i18n.language` (default English). */
+  language: string
+  /** Set + persist the active UI language (must be one of `languages`). */
+  setLanguage: (code: string) => void
+  /** The UI languages the panel offers (from `config.i18n.languages`, default English only). */
+  languages: LocaleConfig[]
+  /** Translator for the library's built-in strings, bound to the active `language`. */
+  t: Translator
+  /** Translator for the **app's own** strings (`config.i18n.appMessages`), bound to the active `language`. */
+  appT: AppTranslator
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
@@ -246,6 +300,10 @@ const accentStorageKey = (mode: ThemeMode) => `tz-accent-color-${mode}`
 const HEADER_STICKY_KEY = 'tz-header-sticky'
 /** Where the user's chosen font family is persisted (survives reloads). */
 const FONT_STORAGE_KEY = 'tz-font-family'
+/** Where the user's chosen UI language is persisted (survives reloads). */
+const LOCALE_KEY = 'tz-locale'
+/** Default UI languages when `config.i18n.languages` is unset — English only. */
+const DEFAULT_LANGUAGES: LocaleConfig[] = [{ code: 'en-US', label: 'English' }]
 /** The default font family (matches the `--tz-font-family` token's primary family). */
 export const DEFAULT_FONT_FAMILY = 'Inter'
 /** Families already in the shipped CSS (only the default) — these skip the runtime `<link>` load. */
@@ -356,6 +414,19 @@ function getInitialFont(fallback: string): string {
   return localStorage.getItem(FONT_STORAGE_KEY) || fallback
 }
 
+/**
+ * The initial UI language: the persisted choice (if still offered), else `config.i18n.language`, else
+ * English if it's among the offered languages, else the first offered, else `'en-US'`. Always clamped
+ * to a code that's actually in `languages`.
+ */
+function getInitialLanguage(languages: LocaleConfig[], configLanguage?: string): string {
+  const codes = languages.map((l) => l.code)
+  const stored = localStorage.getItem(LOCALE_KEY)
+  if (stored && codes.includes(stored)) return stored
+  if (configLanguage && codes.includes(configLanguage)) return configLanguage
+  return codes.find((c) => c.toLowerCase().startsWith('en')) ?? codes[0] ?? 'en-US'
+}
+
 export interface ConfigProviderProps {
   /** App config — theme overrides, initial mode, locales. Omit for the built-in defaults (light mode). */
   config?: Config
@@ -376,6 +447,13 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
   // user's chosen font family — persisted; seeded from config.theme.fontFamily (default Inter)
   const [fontFamily, setFontFamilyState] = useState<string>(() =>
     getInitialFont(config?.theme?.fontFamily ?? DEFAULT_FONT_FAMILY),
+  )
+  // UI languages offered + the active one (persisted; seeded from config.i18n, default English)
+  const languages = config?.i18n?.languages ?? DEFAULT_LANGUAGES
+  const i18nMessages = config?.i18n?.messages
+  const appMessages = config?.i18n?.appMessages
+  const [language, setLanguageState] = useState<string>(() =>
+    getInitialLanguage(languages, config?.i18n?.language),
   )
   const colors = config?.theme?.colors
 
@@ -464,6 +542,22 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
     [applyFont],
   )
 
+  // set + persist the active UI language
+  const setLanguage = useCallback((code: string) => {
+    setLanguageState(code)
+    localStorage.setItem(LOCALE_KEY, code)
+  }, [])
+  // the translator bound to the active language (rebuilt only when the language or overrides change)
+  const t = useMemo<Translator>(
+    () => createTranslator(language, i18nMessages),
+    [language, i18nMessages],
+  )
+  // the app's-own-strings translator, bound to the same active language (rebuilt on language/catalog change)
+  const appT = useMemo<AppTranslator>(
+    () => createAppTranslator(language, appMessages),
+    [language, appMessages],
+  )
+
   const locales = config?.locales ?? EMPTY_LOCALES
   const translationsNamespace =
     config?.keys?.translationsNamespace ?? DEFAULT_TRANSLATIONS_NAMESPACE
@@ -492,6 +586,11 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       setHeaderSticky,
       fontFamily,
       setFontFamily,
+      language,
+      setLanguage,
+      languages,
+      t,
+      appT,
     }),
     [
       mode,
@@ -511,6 +610,11 @@ export function ConfigProvider({ config, children }: ConfigProviderProps) {
       setHeaderSticky,
       fontFamily,
       setFontFamily,
+      language,
+      setLanguage,
+      languages,
+      t,
+      appT,
     ],
   )
 
@@ -531,6 +635,57 @@ export function useTheme(): ThemeContextValue {
  */
 export function useLocales(): LocaleConfig[] {
   return useContext(ThemeContext)?.locales ?? EMPTY_LOCALES
+}
+
+/** Fallback English translator so a component used **without** a `<ConfigProvider>` still shows text. */
+const DEFAULT_TRANSLATOR: Translator = createTranslator('en')
+/** Fallback app translator (no catalogs) — returns the key itself, so `useTranslations()` is safe anywhere. */
+const DEFAULT_APP_TRANSLATOR: AppTranslator = createAppTranslator('en')
+
+/**
+ * The translator for the library's built-in UI strings, bound to the active `config.i18n` language.
+ * **Lenient** — outside a provider it returns an English translator, so components render standalone
+ * (and in tests) with their default English labels. Use it for any built-in string:
+ * `t('select.noOptions')`.
+ */
+export function useT(): Translator {
+  return useContext(ThemeContext)?.t ?? DEFAULT_TRANSLATOR
+}
+
+/**
+ * Translator for the **consuming app's own** strings — the catalogs passed to
+ * `<ConfigProvider config={{ i18n: { appMessages } }}>` — bound to the active UI language, so the app's
+ * copy switches together with the panel. Free-form string keys; per key it resolves exact code → base
+ * language → English (`'en'`) → the key itself, with `{name}` interpolation:
+ *
+ * ```tsx
+ * const t = useTranslations()
+ * <PageLayout title={t('customer-transactions.title')} />
+ * <p>{t('customer-transactions.count', { count: 128 })}</p>
+ * ```
+ *
+ * **Lenient** — outside a provider (or with no `appMessages`) it echoes the key back, so it's safe
+ * anywhere. Use `useT()` for the library's built-in strings; use this for your own.
+ */
+export function useTranslations(): AppTranslator {
+  return useContext(ThemeContext)?.appT ?? DEFAULT_APP_TRANSLATOR
+}
+
+/**
+ * The active UI language + switcher data: `{ language, setLanguage, languages }`. Lenient outside a
+ * provider (English, single language, no-op setter) so it's safe to call anywhere.
+ */
+export function useLanguage(): {
+  language: string
+  setLanguage: (code: string) => void
+  languages: LocaleConfig[]
+} {
+  const ctx = useContext(ThemeContext)
+  return {
+    language: ctx?.language ?? 'en-US',
+    setLanguage: ctx?.setLanguage ?? (() => {}),
+    languages: ctx?.languages ?? DEFAULT_LANGUAGES,
+  }
 }
 
 /**

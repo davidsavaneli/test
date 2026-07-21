@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Link, type LinkProps } from '@tanstack/react-router'
+import { useT } from '../../theme'
 import { Icon } from '../Icon'
 import { ICON_NAMES, type IconName } from '../../icons/names'
 import { useBreadcrumbs } from '../Sidebar/Sidebar'
@@ -36,18 +37,19 @@ function Separator({ separator }: { separator: IconName | ReactNode }) {
  */
 export function Breadcrumbs({ separator = 'ArrowRight4' }: BreadcrumbsProps = {}) {
   const { homeTo, items } = useBreadcrumbs()
+  const t = useT()
   if (items.length === 0) return null
 
   return (
-    <nav aria-label="Breadcrumb" className={styles.breadcrumbs}>
+    <nav aria-label={t('breadcrumbs.label')} className={styles.breadcrumbs}>
       <ol className={styles.list}>
         <li className={styles.item}>
           {homeTo ? (
-            <Link to={linkTo(homeTo)} className={styles.home} aria-label="Home">
+            <Link to={linkTo(homeTo)} className={styles.home} aria-label={t('breadcrumbs.home')}>
               <Icon name="Home2" size="sm" />
             </Link>
           ) : (
-            <span className={styles.home} aria-label="Home">
+            <span className={styles.home} aria-label={t('breadcrumbs.home')}>
               <Icon name="Home2" size="sm" />
             </span>
           )}

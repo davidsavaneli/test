@@ -3,7 +3,7 @@ import { clsx } from 'clsx'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
 import { ICON_NAMES, type IconName } from '../../icons/names'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import styles from './Alert.module.css'
 
 export type AlertVariant = 'contained' | 'filled' | 'outlined' | 'text'
@@ -51,7 +51,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
     icon,
     action,
     onClose,
-    closeLabel = 'Close',
+    closeLabel,
     className,
     style,
     children,
@@ -59,6 +59,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
   },
   ref,
 ) {
+  const t = useT()
   const renderedIcon =
     icon === false ? null : icon == null ? (
       <Icon name={DEFAULT_ICON[color] ?? 'InfoCircle'} />
@@ -95,7 +96,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
           color={color}
           size="sm"
           className={styles.close}
-          aria-label={closeLabel}
+          aria-label={closeLabel ?? t('common.close')}
           onClick={onClose}
         >
           <Icon name="Close" />

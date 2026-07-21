@@ -1,5 +1,6 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from 'react'
 import { clsx } from 'clsx'
+import { useT } from '../../theme'
 import { Icon } from '../Icon'
 import { ICON_NAMES, type IconName } from '../../icons/names'
 import styles from './EmptyState.module.css'
@@ -35,19 +36,11 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLDivElement>, 't
  * design; pass a custom `icon` node for a tinted glyph. Token-only styling.
  */
 export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(function EmptyState(
-  {
-    icon,
-    title = 'No Results Found',
-    description,
-    action,
-    size = 'md',
-    pattern = true,
-    className,
-    children,
-    ...props
-  },
+  { icon, title, description, action, size = 'md', pattern = true, className, children, ...props },
   ref,
 ) {
+  const t = useT()
+  const resolvedTitle = title ?? t('emptyState.title')
   const renderedIcon =
     icon === false ? null : icon == null ? (
       <Icon name="FolderOpen" />
@@ -68,7 +61,7 @@ export const EmptyState = forwardRef<HTMLDivElement, EmptyStateProps>(function E
           {renderedIcon}
         </div>
       )}
-      {title != null && <div className={styles.title}>{title}</div>}
+      {resolvedTitle != null && <div className={styles.title}>{resolvedTitle}</div>}
       {description != null && <div className={styles.description}>{description}</div>}
       {action != null && <div className={styles.action}>{action}</div>}
       {children}

@@ -4,6 +4,7 @@
 export * from './entries/components'
 export * from './entries/hooks'
 export * from './entries/theme'
+export * from './entries/i18n'
 export * from './entries/helpers'
 // `Icon`, `IconName`, `ICON_NAMES` already come through `./entries/components`; add the raw registry.
 export { icons } from './icons/icons'

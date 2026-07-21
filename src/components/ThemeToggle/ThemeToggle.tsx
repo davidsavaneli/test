@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { useTheme } from '../../theme'
+import { useTheme, useT } from '../../theme'
 import { Icon } from '../Icon'
 import { IconButton, type IconButtonProps } from '../IconButton'
 
@@ -16,6 +16,7 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(funct
   ref,
 ) {
   const { mode, toggleMode } = useTheme()
+  const t = useT()
   const isDark = mode === 'dark'
 
   return (
@@ -24,7 +25,7 @@ export const ThemeToggle = forwardRef<HTMLButtonElement, ThemeToggleProps>(funct
       variant={variant}
       role="switch"
       aria-checked={isDark}
-      aria-label="Toggle color theme"
+      aria-label={t('themeToggle.label')}
       {...props}
       onClick={(event) => {
         props.onClick?.(event) // preserve a caller-supplied handler, then toggle

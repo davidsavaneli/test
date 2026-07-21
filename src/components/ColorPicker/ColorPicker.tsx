@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
+import { useT } from '../../theme'
 import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import { Typography } from '../Typography'
 import { ColorPickerPanel } from './ColorPickerPanel'
@@ -87,6 +88,7 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
   },
   ref,
 ) {
+  const t = useT()
   const reactId = useId()
   const id = idProp ?? reactId
   const helperId = `${id}-helper`
@@ -188,7 +190,7 @@ export const ColorPicker = forwardRef<HTMLButtonElement, ColorPickerProps>(funct
         aria-expanded={open}
         aria-invalid={resolvedError || undefined}
         aria-describedby={resolvedHelperText != null ? helperId : undefined}
-        aria-label={label || parsed || placeholder ? undefined : 'Pick a color'}
+        aria-label={label || parsed || placeholder ? undefined : t('colorPicker.pick')}
         onClick={() => setOpen((o) => !o)}
         onBlur={handleTriggerBlur}
       >

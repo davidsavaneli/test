@@ -49,7 +49,7 @@ describe('CodeBlock', () => {
     render(<CodeBlock code={CODE} />)
     fireEvent.click(screen.getByRole('button', { name: 'Copy code' }))
     expect(writeText).toHaveBeenCalledWith(CODE)
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Copied!' })).toBeInTheDocument())
   })
 
   it('shows a copy tooltip that flips to "Copied!" after the click', async () => {

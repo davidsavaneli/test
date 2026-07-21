@@ -27,6 +27,7 @@ export default defineConfig({
         'entries/components': resolve(src, 'entries/components.ts'),
         'entries/hooks': resolve(src, 'entries/hooks.ts'),
         'entries/theme': resolve(src, 'entries/theme.ts'),
+        'entries/i18n': resolve(src, 'entries/i18n.ts'),
         'entries/icons': resolve(src, 'entries/icons.ts'),
         'entries/helpers': resolve(src, 'entries/helpers.ts'),
         ...componentEntries,

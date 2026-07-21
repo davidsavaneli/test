@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { clsx } from 'clsx'
+import { useT } from '../../theme'
 import { pad2, range, today, type Dayjs } from '../DatePicker/dateUtils'
 import styles from './DateTimePicker.module.css'
 
@@ -126,11 +127,6 @@ function TimeList<V>({
 const numberOptions = (values: number[]): Option<number>[] =>
   values.map((v) => ({ value: v, label: pad2(v) }))
 
-const MERIDIEM_OPTIONS: Option<boolean>[] = [
-  { value: false, label: 'AM' },
-  { value: true, label: 'PM' },
-]
-
 /**
  * The time-picker columns shown beside the calendar in `DateTimePicker`. Scrollable hour + minute
  * (+ optional seconds) lists plus an AM/PM toggle in 12-hour mode — each a roving-focus listbox. All
@@ -145,6 +141,11 @@ export function TimeColumns({
   showSeconds,
   autoFocus,
 }: TimeColumnsProps) {
+  const t = useT()
+  const meridiemOptions: Option<boolean>[] = [
+    { value: false, label: t('time.am') },
+    { value: true, label: t('time.pm') },
+  ]
   const base = value ?? today()
   const h24 = base.hour()
   const isPM = h24 >= 12
@@ -173,29 +174,29 @@ export function TimeColumns({
         options={hourOptions}
         selected={selectedHour}
         onSelect={pickHour}
-        label="Hour"
+        label={t('time.hour')}
         autoFocus={autoFocus}
       />
       <TimeList
         options={numberOptions(range(0, 59, step))}
         selected={selectedMinute}
         onSelect={pickMinute}
-        label="Minute"
+        label={t('time.minute')}
       />
       {showSeconds && (
         <TimeList
           options={numberOptions(range(0, 59))}
           selected={value ? base.second() : null}
           onSelect={pickSecond}
-          label="Second"
+          label={t('time.second')}
         />
       )}
       {hour12 && (
         <TimeList
-          options={MERIDIEM_OPTIONS}
+          options={meridiemOptions}
           selected={value ? isPM : null}
           onSelect={pickMeridiem}
-          label="AM/PM"
+          label={t('time.meridiem')}
         />
       )}
     </div>

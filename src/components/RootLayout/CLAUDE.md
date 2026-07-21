@@ -34,15 +34,18 @@ The **`NavSearch`** (an internal `Sidebar` export) searches the sidebar's pages 
 `useNavTree` (so it's RBAC-filtered) into `{ label, to, context }` and shows suggestions as a floating
 `List` of `ListItem`s below a `TextField` (filter by page name or section; Up/Down + Enter navigate via
 `useNavigate`, Escape/outside-pointerdown close). The right-side controls are
-a `ThemeToggle` (default on) + `FullscreenToggle` (default off) + a **Settings** `IconButton` (default
-on) — all `size="sm"` (the toggles `filled`, Settings `variant="text"`), plus an account `Avatar` — a focusable button whose
+a `ThemeToggle` (default on) + `FullscreenToggle` (default off) + a **language** `Global`-icon `Dropdown`
+(shown only when `config.i18n.languages` has more than one — lists them via `useLanguage()`, switching the
+UI language) + a **Settings** `IconButton` (default
+on) — all `size="sm"` (the toggles/language `filled`, Settings `variant="text"`), plus an account `Avatar` — a focusable button whose
 `Dropdown` menu has a single **Sign out** `ListItem` (calling `onLogout`), shown when `onLogout` is
 given; when `user` is supplied the menu opens with a `User`-icon (or `user.avatar` image) plus a name +
 email header above a divider. The **Settings** button (a `Setting5` gear beside the theme toggle that
 **spins continuously** via a keyframe animation, shown when `header.settings` — default `true`) opens the
 internal **`SettingsDrawer`** — a right-side `Modal` (`placement="right"`, `size="sm"`). It opens with a
 **Theme** section — an exclusive **`ChoiceCardGroup`** (**Light** / **Dark** cards, `Sun`/`Moon` icons)
-driving **`useTheme().setMode`** — then **Accent Color** with **two
+driving **`useTheme().setMode`** — a **Language** section (a `Select` of `config.i18n.languages` driving
+**`useLanguage().setLanguage`**, shown only when more than one UI language is configured) — then **Accent Color** with **two
 `SwatchPicker`s** (one labelled **Light theme**, one **Dark theme**) so both accents are chosen
 independently at once — each a **per-mode** set (deeper tones for light, brighter for dark). Picking a
 swatch calls **`useTheme().setAccentColor(color, mode)`**, which overrides that mode's `accent` and

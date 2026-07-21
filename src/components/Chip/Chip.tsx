@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import { Icon } from '../Icon'
 import styles from './Chip.module.css'
 
@@ -58,7 +58,7 @@ export const Chip = forwardRef<HTMLDivElement, ChipProps>(function Chip(
     avatar,
     onDelete,
     deleteIcon,
-    deleteLabel = 'Remove',
+    deleteLabel,
     deleteTabIndex,
     className,
     style,
@@ -68,6 +68,7 @@ export const Chip = forwardRef<HTMLDivElement, ChipProps>(function Chip(
   },
   ref,
 ) {
+  const t = useT()
   const interactive = clickable && !disabled
 
   const handleDelete = (event: MouseEvent<HTMLButtonElement>) => {
@@ -121,7 +122,7 @@ export const Chip = forwardRef<HTMLDivElement, ChipProps>(function Chip(
           className={styles.deleteBtn}
           onClick={handleDelete}
           onMouseDown={(event) => event.preventDefault()}
-          aria-label={deleteLabel}
+          aria-label={deleteLabel ?? t('common.remove')}
           tabIndex={deleteTabIndex}
           disabled={disabled}
         >

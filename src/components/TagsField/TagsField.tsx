@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import { Chip } from '../Chip'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
@@ -98,7 +98,7 @@ export const TagsField = forwardRef<HTMLInputElement, TagsFieldProps>(function T
     allowDuplicates = false,
     placeholder,
     addIcon,
-    addLabel = 'Add tag',
+    addLabel,
     name,
     id: idProp,
     className,
@@ -130,6 +130,7 @@ export const TagsField = forwardRef<HTMLInputElement, TagsFieldProps>(function T
   const externalValue = value !== undefined ? value : isFormBound ? rawFormValue : undefined
   const isControlled = value !== undefined || isFormBound
   // Mirror the value's shape on output: a joined string when the source is a string, else an array.
+  const t = useT()
   const shapeSource = externalValue !== undefined ? externalValue : defaultValue
   const stringMode = typeof shapeSource === 'string'
 
@@ -275,7 +276,7 @@ export const TagsField = forwardRef<HTMLInputElement, TagsFieldProps>(function T
           color="primary"
           size={size}
           disabled={disabled || input.trim() === ''}
-          aria-label={addLabel}
+          aria-label={addLabel ?? t('tagsField.add')}
           className={styles.addButton}
           // keep the input's focus ring while clicking add (don't steal focus → blur → double add)
           onMouseDown={(event) => event.preventDefault()}

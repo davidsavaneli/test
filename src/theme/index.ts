@@ -10,6 +10,9 @@ export {
   useStepQueryKey,
   useTableQueryConfig,
   useHeaderConfig,
+  useT,
+  useTranslations,
+  useLanguage,
   DEFAULT_TABS_QUERY_KEY,
   DEFAULT_NESTED_TAB_QUERY_KEY,
   DEFAULT_STEP_QUERY_KEY,
@@ -27,4 +30,14 @@ export type {
   TableQueryConfig,
   HeaderConfig,
   HeaderUser,
+  I18nConfig,
 } from './ConfigProvider'
+export type {
+  Messages,
+  MessageKey,
+  MessageCatalog,
+  MessageOverrides,
+  Translator,
+  AppMessages,
+  AppTranslator,
+} from '../i18n/messages'

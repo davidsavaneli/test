@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useState } from 'react'
+import { useT } from '../../theme'
 import { Icon } from '../Icon'
 import { IconButton, type IconButtonProps } from '../IconButton'
 
@@ -23,6 +24,7 @@ export const FullscreenToggle = forwardRef<HTMLButtonElement, FullscreenTogglePr
         typeof document.documentElement.requestFullscreen === 'function',
     )
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const t = useT()
 
     useEffect(() => {
       const sync = () => setIsFullscreen(document.fullscreenElement != null)
@@ -48,7 +50,7 @@ export const FullscreenToggle = forwardRef<HTMLButtonElement, FullscreenTogglePr
         variant={variant}
         role="switch"
         aria-checked={isFullscreen}
-        aria-label="Toggle fullscreen"
+        aria-label={t('fullscreenToggle.label')}
         {...props}
         onClick={(event) => {
           props.onClick?.(event) // preserve a caller-supplied handler, then toggle

@@ -31,7 +31,7 @@ import type { AutoAnimationPlugin } from '@formkit/auto-animate'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { useDropzone, type Accept, type FileRejection } from 'react-dropzone'
 import { useFormContext } from '../../form/formContext'
-import { useLocales, type LocaleConfig } from '../../theme'
+import { useLocales, useT, type LocaleConfig } from '../../theme'
 import { toast } from '../Toast/toastStore'
 import { Icon } from '../Icon'
 import { Typography } from '../Typography'
@@ -325,16 +325,17 @@ function Row({
     transform: CSS.Transform.toString(transform),
     transition,
   }
+  const t = useT()
   const label = labelOf(item)
   const { base, ext } = splitName(label)
-  const meta = item.file ? formatBytes(item.file.size) : 'Uploaded'
+  const meta = item.file ? formatBytes(item.file.size) : t('fileUploader.uploaded')
   const video = isVideoItem(item)
 
   const downloadBtn = onDownload ? (
     <button
       type="button"
       className={styles.tileAction}
-      aria-label={`Download ${label}`}
+      aria-label={t('fileUploader.download', { name: label })}
       onClick={onDownload}
       onPointerDown={(e) => e.stopPropagation()}
     >
@@ -401,7 +402,7 @@ function Row({
           <button
             type="button"
             className={styles.tileRemove}
-            aria-label={`Remove ${label}`}
+            aria-label={t('fileUploader.remove', { name: label })}
             onClick={onRemove}
             onPointerDown={(e) => e.stopPropagation()} // don't start a drag from the remove button
           >
@@ -418,7 +419,7 @@ function Row({
             <button
               type="button"
               className={styles.tileAction}
-              aria-label={`Crop ${label}`}
+              aria-label={t('fileUploader.crop', { name: label })}
               onClick={onCrop}
               onPointerDown={(e) => e.stopPropagation()}
             >
@@ -429,7 +430,7 @@ function Row({
             <button
               type="button"
               className={styles.tileAction}
-              aria-label={`Edit alt text for ${label}`}
+              aria-label={t('fileUploader.editAlt', { name: label })}
               onClick={onAltText}
               onPointerDown={(e) => e.stopPropagation()}
             >
@@ -441,7 +442,7 @@ function Row({
             <button
               type="button"
               className={clsx(styles.tileAction, styles.tileActionEnd)}
-              aria-label={`Preview ${label}`}
+              aria-label={t('fileUploader.preview', { name: label })}
               onClick={onView}
               onPointerDown={(e) => e.stopPropagation()}
             >
@@ -644,6 +645,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   // mark the bound form field touched (the impl ignores the event — it just flips the touched flag)
   const markTouched = () => bound?.onBlur({} as FocusEvent<HTMLInputElement>)
 
+  const t = useT()
   // ── edit dialogs (separate Crop and Alt-text modals, opened from a card's two buttons) ────────────
   const configLocales = useLocales()
   const altLocales = altTextLocales ?? configLocales
@@ -723,14 +725,17 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
     if (wrongType.length > 0)
       toast.error(
         wrongType.length === 1
-          ? `"${wrongType[0].file.name}" has an unsupported file type`
-          : `${wrongType.length} files have an unsupported type`,
+          ? t('fileUploader.wrongTypeOne', { name: wrongType[0].file.name })
+          : t('fileUploader.wrongTypeMany', { count: wrongType.length }),
       )
     if (tooLarge.length > 0 && maxBytes != null)
       toast.error(
         tooLarge.length === 1
-          ? `"${tooLarge[0].file.name}" exceeds the ${formatBytes(maxBytes)} limit`
-          : `${tooLarge.length} files exceed the ${formatBytes(maxBytes)} limit`,
+          ? t('fileUploader.tooLargeOne', {
+              name: tooLarge[0].file.name,
+              size: formatBytes(maxBytes),
+            })
+          : t('fileUploader.tooLargeMany', { count: tooLarge.length, size: formatBytes(maxBytes) }),
       )
 
     // Soft notices (the file is valid, just not added now) stay in the inline helper slot + auto-dismiss.
@@ -746,14 +751,18 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
         seen.add(key)
         unique.push(file)
       }
-      if (unique.length < taken.length) reasons.push('Some files are already added')
+      if (unique.length < taken.length) reasons.push(t('fileUploader.duplicate'))
       taken = unique
     }
     if (multiple && maxFiles != null) {
       const room = Math.max(0, maxFiles - items.length)
       if (taken.length > room) {
         taken = taken.slice(0, room)
-        reasons.push(`Up to ${maxFiles} ${maxFiles === 1 ? 'file' : 'files'}`)
+        reasons.push(
+          maxFiles === 1
+            ? t('fileUploader.hintUpToOne', { count: maxFiles })
+            : t('fileUploader.hintUpToMany', { count: maxFiles }),
+        )
       }
     }
 
@@ -829,16 +838,21 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
   // static constraint hint shown inside the dropzone (e.g. "Up to 5 files · Max 5 MB each")
   const hintParts: string[] = []
   if (multiple && maxFiles != null)
-    hintParts.push(`Up to ${maxFiles} ${maxFiles === 1 ? 'file' : 'files'}`)
-  if (maxBytes != null) hintParts.push(`Max ${formatBytes(maxBytes)} each`)
+    hintParts.push(
+      maxFiles === 1
+        ? t('fileUploader.hintUpToOne', { count: maxFiles })
+        : t('fileUploader.hintUpToMany', { count: maxFiles }),
+    )
+  if (maxBytes != null) hintParts.push(t('fileUploader.hintMax', { size: formatBytes(maxBytes) }))
   const hint = hintParts.join(' · ')
 
   const prompt: ReactNode = allowDrop ? (
     <>
-      <span className={styles.accent}>Choose a file</span> or drag &amp; drop it here
+      <span className={styles.accent}>{t('fileUploader.choose')}</span>{' '}
+      {t('fileUploader.dropSuffix')}
     </>
   ) : (
-    <span className={styles.accent}>Choose a file</span>
+    <span className={styles.accent}>{t('fileUploader.choose')}</span>
   )
 
   // mark the field touched once focus leaves the whole widget (so blurThenLive errors reveal on blur)
@@ -925,7 +939,7 @@ export const FileUploader = forwardRef<HTMLDivElement, FileUploaderProps>(functi
                 disabled={disabled}
                 error={
                   item.file && maxBytes != null && item.file.size > maxBytes
-                    ? `Exceeds ${formatBytes(maxBytes)} limit`
+                    ? t('fileUploader.exceedsLimit', { size: formatBytes(maxBytes) })
                     : undefined
                 }
                 onRemove={() => removeAt(index)}

@@ -301,11 +301,11 @@ describe('FileUploader alt text (allowAltText)', () => {
   it('opens a fullscreen preview lightbox from the Eye button; Escape closes it', async () => {
     render(<FileUploader multiple defaultValue={[{ source: 'https://x/a.png', sortIndex: 0 }]} />)
     fireEvent.click(screen.getByRole('button', { name: /^Preview / }))
-    const overlay = await screen.findByRole('dialog', { name: /^Preview:/ })
+    const overlay = await screen.findByRole('dialog', { name: /^Preview / })
     expect(within(overlay).getByRole('img')).toHaveAttribute('src', 'https://x/a.png')
     // Escape is handled on the overlay (shared <Overlay>), reached from the focused close button
     fireEvent.keyDown(overlay, { key: 'Escape' })
-    await waitFor(() => expect(screen.queryByRole('dialog', { name: /^Preview:/ })).toBeNull())
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: /^Preview / })).toBeNull())
   })
 
   it('opens the lightbox for an SVG image item with the bounded SVG box', async () => {
@@ -313,7 +313,7 @@ describe('FileUploader alt text (allowAltText)', () => {
       <FileUploader multiple defaultValue={[{ source: 'https://x/logo.svg', sortIndex: 0 }]} />,
     )
     fireEvent.click(screen.getByRole('button', { name: /^Preview / }))
-    const overlay = await screen.findByRole('dialog', { name: /^Preview:/ })
+    const overlay = await screen.findByRole('dialog', { name: /^Preview / })
     const img = within(overlay).getByRole('img')
     expect(img).toHaveAttribute('src', 'https://x/logo.svg')
     // an SVG always gets the bounded box (its natural size is unreliable), applied deterministically

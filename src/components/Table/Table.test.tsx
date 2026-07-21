@@ -140,7 +140,7 @@ describe('Table', () => {
         debounceMs={0}
       />,
     )
-    fireEvent.change(screen.getByRole('textbox', { name: 'Search' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Search…' }), {
       target: { value: 'User 25' },
     })
     await waitFor(() => expect(screen.getByText(/1.1 of 1/)).toBeInTheDocument())
@@ -572,7 +572,7 @@ describe('Table', () => {
           debounceMs={0}
         />,
       )
-      const input = screen.getByRole('textbox', { name: 'Search' })
+      const input = screen.getByRole('textbox', { name: 'Search…' })
       fireEvent.change(input, { target: { value: 'User 25' } })
       await waitFor(() =>
         expect(new URLSearchParams(window.location.search).get('search')).toBe('User 25'),
@@ -600,7 +600,7 @@ describe('Table', () => {
     it('reads the initial search + sort from the URL', () => {
       window.history.replaceState({}, '', '/?search=User+07&sort=-age')
       render(<Table data={makeData(25)} columns={columns} getRowId={(r) => r.id} searchable />)
-      expect(screen.getByRole('textbox', { name: 'Search' })).toHaveValue('User 07')
+      expect(screen.getByRole('textbox', { name: 'Search…' })).toHaveValue('User 07')
       expect(screen.getByRole('columnheader', { name: /Age/ })).toHaveAttribute(
         'aria-sort',
         'descending',
@@ -722,7 +722,7 @@ describe('Table', () => {
           onSearchChange={onSearchChange}
         />,
       )
-      fireEvent.change(screen.getByRole('textbox', { name: 'Search' }), {
+      fireEvent.change(screen.getByRole('textbox', { name: 'Search…' }), {
         target: { value: 'User 25' },
       })
       await waitFor(() => expect(onSearchChange).toHaveBeenCalledWith('User 25'))

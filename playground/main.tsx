@@ -11,6 +11,26 @@ const config: Config = {
     { code: 'en-US', label: 'English' },
     { code: 'ka-GE', label: 'ქართული' },
   ],
+  // UI language of the admin panel itself (distinct from `locales`, which is content-translation).
+  // The library ships en + ka, so listing them here is enough — the header globe dropdown switches.
+  i18n: {
+    languages: [
+      { code: 'en-US', label: 'English' },
+      { code: 'ka-GE', label: 'ქართული' },
+    ],
+    // the APP's OWN strings (section titles, business copy) — read via useTranslations(), which binds to
+    // the active UI language, so they switch together with the panel. Free-form keys; en → the key fallback.
+    appMessages: {
+      en: {
+        'customer-transactions.title': 'Customer transactions',
+        'customer-transactions.count': '{count} transactions',
+      },
+      ka: {
+        'customer-transactions.title': 'მომხმარებლის ტრანზაქციები',
+        'customer-transactions.count': '{count} ტრანზაქცია',
+      },
+    },
+  },
   // configurable key / query-param names the components read (grows: page, size, …)
   keys: {
     tabQueryKey: 'tab', // top-level <Tabs> URL query param, e.g. ?tab=… (try 'view')

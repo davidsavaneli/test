@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
+import { useT } from '../../theme'
 import { IconButton } from '../IconButton'
 import { Icon } from '../Icon'
 import { Tooltip } from '../Tooltip'
@@ -60,6 +61,7 @@ export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(function Cod
   },
   ref,
 ) {
+  const t = useT()
   const [html, setHtml] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const copyTimer = useRef<number | undefined>(undefined)
@@ -105,7 +107,7 @@ export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(function Cod
     // while it's still open (the pointer is on the button). `left` keeps it inside the block's
     // `overflow: hidden` bounds.
     <Tooltip
-      content={copied ? 'Copied!' : 'Copy code'}
+      content={copied ? t('codeBlock.copied') : t('codeBlock.copy')}
       placement="left"
       // always a white pill with dark text over the (always-dark) block — set via `style` so it beats
       // Tooltip's own color-derived --tz-btn-rgb (which is spread before the consumer `style`)
@@ -118,7 +120,7 @@ export const CodeBlock = forwardRef<HTMLDivElement, CodeBlockProps>(function Cod
         // force the button light over the dark surface — passed via `style` so it beats IconButton's
         // own inline `--tz-btn-rgb` (which is spread before the consumer `style`, so this wins)
         style={{ '--tz-btn-rgb': '255, 255, 255' } as CSSProperties}
-        aria-label={copied ? 'Copied' : 'Copy code'}
+        aria-label={copied ? t('codeBlock.copied') : t('codeBlock.copy')}
         onClick={handleCopy}
       >
         <Icon name={copied ? 'CopySuccess' : 'Copy'} />

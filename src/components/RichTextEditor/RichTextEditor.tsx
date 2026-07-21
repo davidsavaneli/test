@@ -36,6 +36,7 @@ import { ListItemNode, ListNode } from '@lexical/list'
 import { LinkNode } from '@lexical/link'
 import { sanitizeLinkUrl } from './urlSafety'
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html'
+import { useT } from '../../theme'
 import { useFormContext } from '../../form/formContext'
 import { Typography } from '../Typography'
 import { Toolbar } from './Toolbar'
@@ -259,7 +260,7 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
       helperText,
       required = false,
       disabled = false,
-      placeholder = 'Write something…',
+      placeholder,
       name,
       value,
       defaultValue,
@@ -272,6 +273,7 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
     },
     ref,
   ) {
+    const t = useT()
     const form = useFormContext()
     const bound = form && name ? form.field(name) : undefined
     const resolvedError = error ?? bound?.error ?? false
@@ -351,7 +353,9 @@ export const RichTextEditor = forwardRef<HTMLDivElement, RichTextEditorProps>(
                     onBlur={handleBlur}
                   />
                 }
-                placeholder={<div className={styles.placeholder}>{placeholder}</div>}
+                placeholder={
+                  <div className={styles.placeholder}>{placeholder ?? t('rte.placeholder')}</div>
+                }
                 ErrorBoundary={LexicalErrorBoundary}
               />
             </div>

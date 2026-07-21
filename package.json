@@ -67,6 +67,16 @@
         "default": "./dist/entries/theme.cjs"
       }
     },
+    "./i18n": {
+      "import": {
+        "types": "./dist/entries/i18n.d.ts",
+        "default": "./dist/entries/i18n.js"
+      },
+      "require": {
+        "types": "./dist/entries/i18n.d.cts",
+        "default": "./dist/entries/i18n.cjs"
+      }
+    },
     "./icons": {
       "import": {
         "types": "./dist/entries/icons.d.ts",

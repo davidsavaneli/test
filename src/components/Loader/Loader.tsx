@@ -1,6 +1,6 @@
 import { forwardRef, type CSSProperties, type HTMLAttributes } from 'react'
 import { clsx } from 'clsx'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import styles from './Loader.module.css'
 
 export type LoaderSize = 'sm' | 'md' | 'lg'
@@ -21,11 +21,12 @@ export const Loader = forwardRef<HTMLSpanElement, LoaderProps>(function Loader(
   { size = 'md', color, className, style, ...props },
   ref,
 ) {
+  const t = useT()
   return (
     <span
       ref={ref}
       role="status"
-      aria-label="Loading"
+      aria-label={t('loader.label')}
       {...props}
       className={clsx(styles.loader, styles[size], className)}
       style={color ? ({ color: `var(--tz-color-${color})`, ...style } as CSSProperties) : style}

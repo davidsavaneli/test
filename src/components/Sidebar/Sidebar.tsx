@@ -21,7 +21,7 @@ import { clsx } from 'clsx'
 import { Icon } from '../Icon'
 import { List, ListItem, type ListItemProps } from '../List'
 import { TextField } from '../TextField'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import type { IconName } from '../../icons/names'
 import { hasAccess, useAccessKeys } from '../../helpers/access'
 import styles from './Sidebar.module.css'
@@ -415,6 +415,7 @@ const MAX_SEARCH_RESULTS = 8
  * respects RBAC). Keyboard: Up/Down move, Enter opens, Escape closes. Rendered by `RootLayout`'s header.
  */
 export function NavSearch() {
+  const t = useT()
   const tree = useNavTree()
   const navigate = useNavigate()
   const pages = useMemo(() => flattenPages(tree), [tree])
@@ -494,8 +495,8 @@ export function NavSearch() {
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
         adornment={<Icon name="SearchNormal" />}
-        placeholder="Search pages…"
-        aria-label="Search pages"
+        placeholder={t('sidebar.searchPages')}
+        aria-label={t('sidebar.searchPages')}
         autoComplete="off"
       />
       {showList ? (

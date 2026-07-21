@@ -33,6 +33,7 @@ import {
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link'
 import { sanitizeLinkUrl } from './urlSafety'
 import { toast } from '../Toast/toastStore'
+import { useT, type MessageKey } from '../../theme'
 import {
   $getSelectionStyleValueForProperty,
   $patchStyleText,
@@ -58,15 +59,13 @@ import styles from './RichTextEditor.module.css'
 type Size = 'sm' | 'md' | 'lg'
 type BlockType = 'paragraph' | HeadingTagType | 'quote' | 'bullet' | 'number' | 'check'
 
-/** Full block-type labels — the dropdown trigger reads this for the current block (incl. Quote). */
-const BLOCK_LABEL: Record<BlockType, string> = {
+// Block-type labels stay **English in every language** by design — "Paragraph" / "Heading" are
+// editor-standard terms the maintainer prefers untranslated, so these are literals, not i18n keys.
+const BLOCK_LABEL: Partial<Record<BlockType, string>> = {
   paragraph: 'Paragraph',
   h1: 'Heading 1',
   h2: 'Heading 2',
   h3: 'Heading 3',
-  h4: 'Heading 4',
-  h5: 'Heading 5',
-  h6: 'Heading 6',
   quote: 'Quote',
   bullet: 'Bullet List',
   number: 'Numbered List',
@@ -81,11 +80,11 @@ const BLOCKS: { type: BlockType; icon?: IconName }[] = [
   { type: 'h3', icon: 'Hashtag' },
 ]
 
-/** Text-alignment controls (set the block element's `text-align`). */
-const ALIGNS: { value: ElementFormatType; label: string; icon: IconName }[] = [
-  { value: 'left', label: 'Align left', icon: 'TextalignLeft' },
-  { value: 'center', label: 'Align center', icon: 'TextalignCenter' },
-  { value: 'right', label: 'Align right', icon: 'TextalignRight' },
+/** Text-alignment controls (set the block element's `text-align`); `labelKey` resolves via `t`. */
+const ALIGNS: { value: ElementFormatType; labelKey: MessageKey; icon: IconName }[] = [
+  { value: 'left', labelKey: 'rte.alignLeft', icon: 'TextalignLeft' },
+  { value: 'center', labelKey: 'rte.alignCenter', icon: 'TextalignCenter' },
+  { value: 'right', labelKey: 'rte.alignRight', icon: 'TextalignRight' },
 ]
 
 /** Font-size options (the `font-size` style value). */
@@ -130,6 +129,8 @@ export interface ToolbarProps {
 
 /** The editor toolbar — reads the live selection and dispatches Lexical commands. */
 export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
+  const t = useT()
+  const blockLabel = (b: BlockType): string => BLOCK_LABEL[b] ?? b // h4–h6 aren't offered by the editor
   const [editor] = useLexicalComposerContext()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -276,10 +277,10 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
     openUrlDialog(
       {
         icon: 'Link2',
-        title: 'Insert Link',
-        label: 'Link URL',
+        title: t('rte.linkTitle'),
+        label: t('rte.linkUrl'),
         placeholder: 'https://example.com',
-        confirmLabel: isLink ? 'Update' : 'Insert',
+        confirmLabel: isLink ? t('common.update') : t('common.insert'),
         // an empty value removes the link (matches the old prompt behavior); sanitize the scheme
         onConfirm: (url) =>
           editor.dispatchCommand(TOGGLE_LINK_COMMAND, url === '' ? null : sanitizeLinkUrl(url)),
@@ -290,10 +291,10 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
   const insertImageByUrl = () =>
     openUrlDialog({
       icon: 'GalleryAdd',
-      title: 'Insert Image',
-      label: 'Image URL',
+      title: t('rte.imageTitle'),
+      label: t('rte.imageUrl'),
       placeholder: 'https://example.com/image.jpg',
-      confirmLabel: 'Insert',
+      confirmLabel: t('common.insert'),
       onConfirm: (url) => {
         if (url) editor.update(() => $insertNodeToNearestRoot($createImageNode(url)))
       },
@@ -308,17 +309,17 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
       editor.update(() => $insertNodeToNearestRoot($createImageNode(url, file.name)))
     } catch {
       // a rejecting consumer upload handler (or a failed data-URL read) shouldn't fail silently
-      toast.error('Could not add the image. Please try again.')
+      toast.error(t('rte.imageError'))
     }
   }
 
   const insertVideo = () =>
     openUrlDialog({
       icon: 'VideoSquare',
-      title: 'Insert Video',
-      label: 'Video URL',
-      placeholder: 'YouTube, Vimeo, or a direct file URL',
-      confirmLabel: 'Insert',
+      title: t('rte.videoTitle'),
+      label: t('rte.videoUrl'),
+      placeholder: t('rte.videoUrlPlaceholder'),
+      confirmLabel: t('common.insert'),
       onConfirm: (url) => {
         if (url) editor.update(() => $insertNodeToNearestRoot($createVideoNode(url)))
       },
@@ -358,7 +359,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
     <div
       className={styles.toolbar}
       role="toolbar"
-      aria-label="Formatting"
+      aria-label={t('rte.formatting')}
       aria-orientation="horizontal"
     >
       <IconButton
@@ -366,7 +367,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         color="primary"
         size={size}
         disabled={disabled || !canUndo}
-        aria-label="Undo"
+        aria-label={t('rte.undo')}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}
       >
@@ -377,7 +378,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         color="primary"
         size={size}
         disabled={disabled || !canRedo}
-        aria-label="Redo"
+        aria-label={t('rte.redo')}
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)}
       >
@@ -397,7 +398,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
             size={size}
             disabled={disabled}
             endIcon={<Icon name="ArrowDown4" />}
-            aria-label="Font size"
+            aria-label={t('rte.fontSize')}
             onMouseDown={(e) => e.preventDefault()} // keep the selection while opening
           >
             {effectiveFontSize}
@@ -430,7 +431,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
             endIcon={<Icon name="ArrowDown4" />}
             onMouseDown={(e) => e.preventDefault()} // keep the selection while opening
           >
-            {BLOCK_LABEL[dropdownBlock]}
+            {blockLabel(dropdownBlock)}
           </Button>
         }
       >
@@ -442,39 +443,44 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
             icon={b.icon}
             onClick={() => applyBlock(b.type)}
           >
-            {BLOCK_LABEL[b.type]}
+            {blockLabel(b.type)}
           </ListItem>
         ))}
       </Dropdown>
 
       <Divider orientation="vertical" />
 
-      {fmtBtn(isBold, 'Bold', () => format('bold'), <Icon name="TextBold" />)}
-      {fmtBtn(isItalic, 'Italic', () => format('italic'), <Icon name="TextItalic" />)}
-      {fmtBtn(isUnderline, 'Underline', () => format('underline'), <Icon name="TextUnderline" />)}
+      {fmtBtn(isBold, t('rte.bold'), () => format('bold'), <Icon name="TextBold" />)}
+      {fmtBtn(isItalic, t('rte.italic'), () => format('italic'), <Icon name="TextItalic" />)}
+      {fmtBtn(
+        isUnderline,
+        t('rte.underline'),
+        () => format('underline'),
+        <Icon name="TextUnderline" />,
+      )}
 
       <Divider orientation="vertical" />
 
       {fmtBtn(
         blockType === 'bullet',
-        'Bullet list',
+        t('rte.bulletList'),
         () => applyBlock('bullet'),
         <Icon name="ListBullet" />,
       )}
       {fmtBtn(
         blockType === 'number',
-        'Numbered list',
+        t('rte.numberedList'),
         () => applyBlock('number'),
         <Icon name="ListNumber" />,
       )}
-      {fmtBtn(blockType === 'quote', 'Quote', toggleQuote, <Icon name="QuoteUp" />)}
+      {fmtBtn(blockType === 'quote', t('rte.quote'), toggleQuote, <Icon name="QuoteUp" />)}
 
       <Divider orientation="vertical" />
 
       {ALIGNS.map((a) =>
         fmtBtn(
           elementFormat === a.value,
-          a.label,
+          t(a.labelKey),
           () => applyAlign(a.value),
           <Icon name={a.icon} />,
           a.value,
@@ -489,7 +495,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         color="primary"
         size={size}
         disabled={disabled}
-        aria-label="Text color"
+        aria-label={t('rte.textColor')}
         aria-expanded={colorOpen}
         onMouseDown={(e) => e.preventDefault()} // keep the editor's selection while opening
         onClick={() => setColorOpen((o) => !o)}
@@ -504,7 +510,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
           if (refocus) colorTriggerRef.current?.focus()
         }}
         role="dialog"
-        ariaLabel="Text color"
+        ariaLabel={t('rte.textColor')}
         width={232}
       >
         {/* no "no color" swatch; with no explicit color the accent default (first swatch) shows selected */}
@@ -515,7 +521,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         />
       </FloatingPanel>
 
-      {fmtBtn(isLink, 'Insert link', insertLink, <Icon name="Link2" />)}
+      {fmtBtn(isLink, t('rte.link'), insertLink, <Icon name="Link2" />)}
 
       <Dropdown
         size={size}
@@ -527,17 +533,17 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
             color="primary"
             size={size}
             disabled={disabled}
-            aria-label="Insert image"
+            aria-label={t('rte.insertImage')}
           >
             <Icon name="GalleryAdd" />
           </IconButton>
         }
       >
         <ListItem clickable icon="GalleryImport" onClick={() => fileInputRef.current?.click()}>
-          Upload image
+          {t('rte.uploadImage')}
         </ListItem>
         <ListItem clickable icon="Link" onClick={insertImageByUrl}>
-          By URL
+          {t('rte.imageByUrl')}
         </ListItem>
       </Dropdown>
 
@@ -546,7 +552,7 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         color="primary"
         size={size}
         disabled={disabled}
-        aria-label="Insert video"
+        aria-label={t('rte.insertVideo')}
         onClick={insertVideo}
       >
         <Icon name="VideoSquare" />
@@ -573,10 +579,10 @@ export function Toolbar({ size, disabled, onImageUpload }: ToolbarProps) {
         footer={
           <>
             <Button variant="text" onClick={closeUrlDialog}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" form="rte-url-form">
-              {urlDialog?.confirmLabel ?? 'Insert'}
+              {urlDialog?.confirmLabel ?? t('common.insert')}
             </Button>
           </>
         }

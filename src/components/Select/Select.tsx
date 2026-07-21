@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
+import { useT } from '../../theme'
 import { useFormContext } from '../../form/formContext'
 import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import { ICON_NAMES, type IconName } from '../../icons/names'
@@ -130,14 +131,14 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
     value,
     defaultValue,
     onChange,
-    placeholder = 'Select…',
+    placeholder,
     clearable = true,
     searchable = false,
-    searchPlaceholder = 'Search…',
+    searchPlaceholder,
     onSearchChange,
     loading = false,
-    loadingText = 'Loading…',
-    noOptionsText = 'No options',
+    loadingText,
+    noOptionsText,
     showSelectedTick = true,
     name,
     id: idProp,
@@ -152,6 +153,9 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
   const listboxId = `${id}-listbox`
   const helperId = `${id}-helper`
   const optionId = (index: number) => `${id}-opt-${index}`
+
+  const t = useT()
+  const searchPh = searchPlaceholder ?? t('common.search')
 
   // ── value (controlled / form-bound / uncontrolled) ─────────────────────────────────────────────
   const form = useFormContext()
@@ -427,14 +431,16 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
           {selected?.icon != null && (
             <span className={styles.valueIcon}>{renderIcon(selected.icon, iconSize)}</span>
           )}
-          <span className={styles.valueLabel}>{selected ? selected.label : placeholder}</span>
+          <span className={styles.valueLabel}>
+            {selected ? selected.label : (placeholder ?? t('select.placeholder'))}
+          </span>
         </span>
 
         {clearable && currentValue !== '' && !disabled && (
           <button
             type="button"
             className={styles.clear}
-            aria-label="Clear selection"
+            aria-label={t('select.clear')}
             tabIndex={-1}
             onMouseDown={(e) => e.preventDefault()}
             onClick={handleClear}
@@ -471,8 +477,8 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
               aria-controls={listboxId}
               aria-activedescendant={activeId}
               aria-autocomplete="list"
-              aria-label={searchPlaceholder}
-              placeholder={searchPlaceholder}
+              aria-label={searchPh}
+              placeholder={searchPh}
               value={searchQuery}
               spellCheck={false}
               onChange={(e) => {
@@ -498,13 +504,17 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(function Select(
             <div className={styles.loading}>
               <Loader size="sm" />
               <Typography as="span" variant="bodySmall" color="muted">
-                {loadingText}
+                {loadingText ?? t('common.loading')}
               </Typography>
             </div>
           ) : filteredOptions.length === 0 ? (
             <div className={styles.noOptions}>
               <Typography as="span" variant="bodySmall" color="muted">
-                {typeof noOptionsText === 'function' ? noOptionsText(searchQuery) : noOptionsText}
+                {noOptionsText == null
+                  ? t('select.noOptions')
+                  : typeof noOptionsText === 'function'
+                    ? noOptionsText(searchQuery)
+                    : noOptionsText}
               </Typography>
             </div>
           ) : (

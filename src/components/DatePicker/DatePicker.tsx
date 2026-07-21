@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
+import { useT } from '../../theme'
 import { useFormContext } from '../../form/formContext'
 import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import { Icon } from '../Icon'
@@ -122,6 +123,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(function
   },
   ref,
 ) {
+  const t = useT()
   const reactId = useId()
   const id = idProp ?? reactId
   const helperId = `${id}-helper`
@@ -296,7 +298,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(function
           <button
             type="button"
             className={styles.clear}
-            aria-label="Clear date"
+            aria-label={t('datePicker.clear')}
             tabIndex={-1}
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
@@ -315,7 +317,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(function
           color="primary"
           size={size}
           disabled={disabled}
-          aria-label="Open calendar"
+          aria-label={t('datePicker.open')}
           aria-haspopup="dialog"
           aria-expanded={open}
           className={styles.calendarButton}

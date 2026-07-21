@@ -7,7 +7,7 @@ import {
 } from 'react'
 import { clsx } from 'clsx'
 import { Icon, type IconName } from '../Icon'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import { paginationRange } from './paginationRange'
 import styles from './Pagination.module.css'
 
@@ -92,6 +92,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(function Pagi
     onChange?.(target)
   }
 
+  const t = useT()
   const items = paginationRange({ count, page: current, siblingCount, boundaryCount })
 
   // The selected fill + its readable text color, derived once via the shared button-tint vars.
@@ -142,11 +143,11 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(function Pagi
     >
       <ul className={styles.list}>
         {showFirstButton &&
-          control('first', 'Previous', 'Go to first page', 1, false, current <= 1)}
+          control('first', 'Previous', t('pagination.first'), 1, false, current <= 1)}
         {control(
           'prev',
           'ArrowLeft',
-          'Go to previous page',
+          t('pagination.previous'),
           current - 1,
           hidePrevButton,
           current <= 1,
@@ -157,7 +158,7 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(function Pagi
               <button
                 type="button"
                 className={clsx(styles.page, item === current && styles.selected)}
-                aria-label={`Go to page ${item}`}
+                aria-label={t('pagination.page', { page: item })}
                 aria-current={item === current ? 'page' : undefined}
                 disabled={disabled}
                 onClick={() => go(item)}
@@ -174,14 +175,14 @@ export const Pagination = forwardRef<HTMLElement, PaginationProps>(function Pagi
         {control(
           'next',
           'ArrowLeft',
-          'Go to next page',
+          t('pagination.next'),
           current + 1,
           hideNextButton,
           current >= count,
           true,
         )}
         {showLastButton &&
-          control('last', 'Next', 'Go to last page', count, false, current >= count)}
+          control('last', 'Next', t('pagination.last'), count, false, current >= count)}
       </ul>
     </nav>
   )

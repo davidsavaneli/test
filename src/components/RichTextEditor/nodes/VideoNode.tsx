@@ -10,6 +10,7 @@ import {
   type Spread,
 } from 'lexical'
 import type { ReactNode } from 'react'
+import { useT } from '../../../theme'
 import { sanitizeMediaUrl } from '../urlSafety'
 
 /** Serialized shape of a {@link VideoNode} (editor-state JSON). */
@@ -114,18 +115,24 @@ export class VideoNode extends DecoratorNode<ReactNode> {
 
   decorate(): ReactNode {
     if (isFileVideo(this.__src)) return <video src={this.__src} controls />
-    return (
-      <div className="tz-rte-embed">
-        <iframe
-          src={this.__src}
-          title="Embedded video"
-          frameBorder={0}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
-      </div>
-    )
+    return <VideoEmbed src={this.__src} />
   }
+}
+
+/** The in-editor embed `<iframe>` — a component so its `title` can be localized via `useT()`. */
+function VideoEmbed({ src }: { src: string }) {
+  const t = useT()
+  return (
+    <div className="tz-rte-embed">
+      <iframe
+        src={src}
+        title={t('rte.embeddedVideo')}
+        frameBorder={0}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  )
 }
 
 /** Creates a `VideoNode`, normalizing the URL to an embeddable one (use inside an `editor.update`). */

@@ -1,6 +1,13 @@
 import { useState, type ReactNode } from 'react'
 import { clsx } from 'clsx'
-import { useHeaderConfig, useTheme, type HeaderConfig, type HeaderUser } from '../../theme'
+import {
+  useHeaderConfig,
+  useLanguage,
+  useT,
+  useTheme,
+  type HeaderConfig,
+  type HeaderUser,
+} from '../../theme'
 import { Avatar } from '../Avatar'
 import { Col, Row } from '../Flex'
 import { Divider } from '../Divider'
@@ -71,6 +78,8 @@ export function RootLayout({
   const title = usePageTitle()
   // header sticky/static — the user's persisted choice (seeded from config.header.sticky)
   const { headerSticky } = useTheme()
+  const { language, setLanguage, languages } = useLanguage()
+  const t = useT()
   // app-wide header config (config.header) as the base; this shell's `header` prop wins over it
   const configHeader = useHeaderConfig()
   const h: HeaderConfig = { ...configHeader, ...header }
@@ -112,9 +121,30 @@ export function RootLayout({
           <div className={styles.headerEnd}>
             {showFullscreen ? <FullscreenToggle variant="filled" size="sm" /> : null}
             {showTheme ? <ThemeToggle variant="filled" size="sm" /> : null}
+            {languages.length > 1 ? (
+              <Dropdown
+                placement="bottom-end"
+                trigger={
+                  <IconButton variant="filled" size="sm" aria-label={t('language.label')}>
+                    <Icon name="Global" />
+                  </IconButton>
+                }
+              >
+                {languages.map((l) => (
+                  <ListItem
+                    key={l.code}
+                    clickable
+                    selected={l.code === language}
+                    onClick={() => setLanguage(l.code)}
+                  >
+                    {l.label ?? l.code}
+                  </ListItem>
+                ))}
+              </Dropdown>
+            ) : null}
             {showSettings ? (
               <IconButton
-                aria-label="Settings"
+                aria-label={t('settings.label')}
                 variant="text"
                 size="sm"
                 className={styles.settings}
@@ -127,7 +157,7 @@ export function RootLayout({
               <Dropdown
                 placement="bottom-end"
                 trigger={
-                  <button type="button" className={styles.account} aria-label="Account">
+                  <button type="button" className={styles.account} aria-label={t('account.label')}>
                     <Avatar size="md" name={user?.name} src={user?.avatar} color="primary" />
                   </button>
                 }
@@ -151,7 +181,7 @@ export function RootLayout({
                   </>
                 ) : null}
                 <ListItem icon={<Icon name="Logout2" color="error" />} clickable onClick={onLogout}>
-                  Sign out
+                  {t('userCard.signOut')}
                 </ListItem>
               </Dropdown>
             ) : null}

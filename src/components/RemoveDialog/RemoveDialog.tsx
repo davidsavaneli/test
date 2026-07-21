@@ -1,4 +1,5 @@
 import { forwardRef, useState, type ReactNode } from 'react'
+import { useT } from '../../theme'
 import { Button } from '../Button'
 import { Icon } from '../Icon'
 import { Modal } from '../Modal'
@@ -40,18 +41,10 @@ export interface RemoveDialogProps {
  * <RemoveDialog open={isOpen} onClose={close} onConfirm={() => deleteItem(id)} />
  */
 export const RemoveDialog = forwardRef<HTMLDivElement, RemoveDialogProps>(function RemoveDialog(
-  {
-    open,
-    onClose,
-    onConfirm,
-    title = 'Remove',
-    message = 'Are you sure you want to delete?',
-    confirmLabel = 'Delete',
-    cancelLabel = 'Cancel',
-    loading = false,
-  },
+  { open, onClose, onConfirm, title, message, confirmLabel, cancelLabel, loading = false },
   ref,
 ) {
+  const t = useT()
   const [submitting, setSubmitting] = useState(false)
   const busy = loading || submitting
 
@@ -78,17 +71,17 @@ export const RemoveDialog = forwardRef<HTMLDivElement, RemoveDialogProps>(functi
       open={open}
       onClose={handleClose}
       size="sm"
-      title={title}
+      title={title ?? t('removeDialog.title')}
       showCloseButton={!busy}
       closeOnBackdrop={!busy}
       closeOnEscape={!busy}
       footer={
         <>
           <Button variant="text" onClick={handleClose} disabled={busy}>
-            {cancelLabel}
+            {cancelLabel ?? t('common.cancel')}
           </Button>
           <Button color="error" variant="filled" onClick={handleConfirm} loading={busy}>
-            {confirmLabel}
+            {confirmLabel ?? t('common.delete')}
           </Button>
         </>
       }
@@ -97,7 +90,7 @@ export const RemoveDialog = forwardRef<HTMLDivElement, RemoveDialogProps>(functi
         <div className={styles.iconBox} aria-hidden>
           <Icon name="Trash" />
         </div>
-        <Typography align="center">{message}</Typography>
+        <Typography align="center">{message ?? t('removeDialog.message')}</Typography>
       </div>
     </Modal>
   )

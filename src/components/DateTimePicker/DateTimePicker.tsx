@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { clsx } from 'clsx'
+import { useT } from '../../theme'
 import { useFormContext } from '../../form/formContext'
 import { FloatingPanel } from '../FloatingPanel/FloatingPanel'
 import { Button } from '../Button'
@@ -156,6 +157,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
     },
     ref,
   ) {
+    const t = useT()
     const reactId = useId()
     const id = idProp ?? reactId
     const helperId = `${id}-helper`
@@ -362,7 +364,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
             <button
               type="button"
               className={styles.clear}
-              aria-label="Clear value"
+              aria-label={t('dateTimePicker.clear')}
               tabIndex={-1}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
@@ -381,7 +383,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
             color="primary"
             size={size}
             disabled={disabled}
-            aria-label="Open date and time picker"
+            aria-label={t('dateTimePicker.open')}
             aria-haspopup="dialog"
             aria-expanded={open}
             className={styles.calendarButton}
@@ -404,7 +406,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
         >
           <Tabs
             className={dt.tabs}
-            aria-label="Date and time"
+            aria-label={t('dateTimePicker.label')}
             fullWidth
             autoFocus
             // the Date/Time tabs are internal popover UI — never sync them to the page URL
@@ -414,7 +416,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
             items={[
               {
                 value: 'date',
-                label: 'Date',
+                label: t('dateTimePicker.dateTab'),
                 icon: 'Calendar3',
                 content: (
                   <Calendar
@@ -432,7 +434,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
               },
               {
                 value: 'time',
-                label: 'Time',
+                label: t('dateTimePicker.timeTab'),
                 icon: 'Clock',
                 content: (
                   <div className={dt.timePane}>
@@ -450,7 +452,7 @@ export const DateTimePicker = forwardRef<HTMLInputElement, DateTimePickerProps>(
           />
           <div className={dt.footer}>
             <Button size="sm" variant="filled" color="primary" onClick={() => closePopover(true)}>
-              Done
+              {t('common.done')}
             </Button>
           </div>
         </FloatingPanel>

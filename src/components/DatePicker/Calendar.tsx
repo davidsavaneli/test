@@ -1,17 +1,9 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { clsx } from 'clsx'
+import { useT, type MessageKey } from '../../theme'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
-import {
-  buildMonthGrid,
-  isDisabled,
-  monthLabels,
-  today,
-  toISO,
-  weekdayLabels,
-  yearList,
-  type Dayjs,
-} from './dateUtils'
+import { buildMonthGrid, isDisabled, today, toISO, yearList, type Dayjs } from './dateUtils'
 import styles from './DatePicker.module.css'
 
 export interface CalendarProps {
@@ -67,6 +59,7 @@ export function Calendar({
   autoFocus,
   labelId,
 }: CalendarProps) {
+  const t = useT()
   const [view, setView] = useState<View>('day')
   const [focused, setFocused] = useState<Dayjs>(() => focusableDay(value, month))
   const bodyRef = useRef<HTMLDivElement | null>(null)
@@ -227,9 +220,13 @@ export function Calendar({
 
   // ── derived data (built once per render) ─────────────────────────────────────────────────────────
   const now = today()
-  const weekdays = weekdayLabels(weekStartsOn)
+  // month names + short weekday labels come from the i18n catalog (localized), not dayjs
+  const monthName = (m: number) => t(`calendar.month${m}` as MessageKey)
+  const weekdays = Array.from({ length: 7 }, (_, i) =>
+    t(`calendar.weekday${(weekStartsOn + i) % 7}` as MessageKey),
+  )
   const monthGrid = view === 'day' ? buildMonthGrid(month, weekStartsOn) : []
-  const months = view === 'month' ? monthLabels() : []
+  const months = view === 'month' ? Array.from({ length: 12 }, (_, m) => monthName(m)) : []
   const years = view === 'year' ? yearList(min, max, month.year()) : []
 
   return (
@@ -240,7 +237,7 @@ export function Calendar({
             variant="text"
             color="primary"
             size="sm"
-            aria-label="Previous month"
+            aria-label={t('calendar.prevMonth')}
             onClick={() => onMonthChange(month.subtract(1, 'month'))}
           >
             <Icon name="ArrowCircleLeft" />
@@ -260,12 +257,12 @@ export function Calendar({
           )}
           {view === 'day' && (
             <button type="button" className={styles.calTitle} onClick={() => switchTo('month')}>
-              {month.format('MMMM')}
+              {monthName(month.month())}
             </button>
           )}
           {view === 'year' && (
             <span id={labelId} className={styles.calTitleStatic}>
-              Select year
+              {t('calendar.selectYear')}
             </span>
           )}
         </div>
@@ -275,7 +272,7 @@ export function Calendar({
             variant="text"
             color="primary"
             size="sm"
-            aria-label="Next month"
+            aria-label={t('calendar.nextMonth')}
             onClick={() => onMonthChange(month.add(1, 'month'))}
           >
             <Icon name="ArrowCircleRight" />
@@ -347,7 +344,7 @@ export function Calendar({
           ref={bodyRef}
           className={styles.grid}
           role="grid"
-          aria-label={month.format('MMMM YYYY')}
+          aria-label={`${monthName(month.month())} ${month.format('YYYY')}`}
           onKeyDown={handleDayKeyDown}
         >
           <div className={styles.weekdays} role="row">

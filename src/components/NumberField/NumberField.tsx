@@ -14,6 +14,7 @@ import {
 } from 'react'
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
+import { useT } from '../../theme'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
 import { Typography } from '../Typography'
@@ -144,6 +145,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
   },
   ref,
 ) {
+  const t = useT()
   const reactId = useId()
   const id = idProp ?? reactId
   const helperId = `${id}-helper`
@@ -296,7 +298,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
               className={fieldStyles.iconButton}
               style={{ marginRight: -2 }}
               disabled={disabled || atMin}
-              aria-label="Decrease"
+              aria-label={t('numberField.decrease')}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => stepBy(-1)}
             >
@@ -307,7 +309,7 @@ export const NumberField = forwardRef<HTMLInputElement, NumberFieldProps>(functi
               color="primary"
               className={fieldStyles.iconButton}
               disabled={disabled || atMax}
-              aria-label="Increase"
+              aria-label={t('numberField.increase')}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => stepBy(1)}
             >

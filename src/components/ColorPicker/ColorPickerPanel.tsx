@@ -7,6 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react'
 import { clsx } from 'clsx'
+import { useT } from '../../theme'
 import { Icon } from '../Icon'
 import {
   clamp01,
@@ -64,6 +65,7 @@ export function ColorPickerPanel({
   swatches = DEFAULT_SWATCHES,
   clearable = true,
 }: ColorPickerPanelProps) {
+  const t = useT()
   const parsed = parseColor(value || '')
   // canonical string for the value (`#rrggbb` when opaque, `rgba(...)` when not), null when unset
   const displayValue = parsed ? formatColor(parsed) : null
@@ -239,7 +241,7 @@ export function ColorPickerPanel({
         onKeyDown={onSvKey}
         role="slider"
         tabIndex={0}
-        aria-label="Saturation and brightness"
+        aria-label={t('colorPicker.saturation')}
         aria-valuetext={`${Math.round(hsv.s * 100)}% saturation, ${Math.round(hsv.v * 100)}% brightness`}
       >
         <span
@@ -254,7 +256,7 @@ export function ColorPickerPanel({
         onKeyDown={onHueKey}
         role="slider"
         tabIndex={0}
-        aria-label="Hue"
+        aria-label={t('colorPicker.hue')}
         aria-valuemin={0}
         aria-valuemax={360}
         aria-valuenow={Math.round(hsv.h)}
@@ -268,7 +270,7 @@ export function ColorPickerPanel({
         onKeyDown={onAlphaKey}
         role="slider"
         tabIndex={0}
-        aria-label="Opacity"
+        aria-label={t('colorPicker.opacity')}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(alpha * 100)}
@@ -288,7 +290,7 @@ export function ColorPickerPanel({
             value={colorDraft}
             spellCheck={false}
             maxLength={28}
-            aria-label="Color value"
+            aria-label={t('colorPicker.value')}
             onChange={(e) => onColorInput(e.target.value)}
           />
         </span>
@@ -300,7 +302,7 @@ export function ColorPickerPanel({
           <button
             type="button"
             className={clsx(styles.swatch, styles.swatchClear)}
-            aria-label="No color"
+            aria-label={t('colorPicker.noColor')}
             aria-pressed={!parsed}
             onClick={handleClear}
           >

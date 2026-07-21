@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { clsx } from 'clsx'
 import { ICON_NAMES, type IconName } from '../../icons/names'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import { Icon } from '../Icon'
 import { IconButton } from '../IconButton'
 import { Overlay } from '../Overlay/Overlay'
@@ -108,6 +108,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
   },
   forwardedRef,
 ) {
+  const t = useT()
   const panelRef = useRef<HTMLDivElement | null>(null)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const footerRef = useRef<HTMLDivElement | null>(null)
@@ -244,7 +245,7 @@ export const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
                 color="primary"
                 size="sm"
                 className={styles.close}
-                aria-label="Close"
+                aria-label={t('common.close')}
                 onClick={onClose}
               >
                 <Icon name="Close" />

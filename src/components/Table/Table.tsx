@@ -42,7 +42,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS, type Transform } from '@dnd-kit/utilities'
-import { useTableQueryConfig, type TableQueryConfig } from '../../theme'
+import { useT, useTableQueryConfig, type TableQueryConfig } from '../../theme'
 import { buildTableQuery, parseTableQuery } from '../../helpers/table'
 import {
   applyFilters,
@@ -370,9 +370,6 @@ function prettyQuery(params: URLSearchParams): string {
     .replace(/%5D/gi, ']')
 }
 
-/** aria-label for the row drag handle (row reordering). */
-const DRAG_HANDLE_LABEL = 'Drag to reorder'
-
 /** Clamp a transform so the dragged node stays within a bounding rect (dnd-kit's `restrictToBoundingRect`). */
 function restrictToBoundingRect(
   transform: Transform,
@@ -419,6 +416,7 @@ function SortableRow({
   clickable: boolean
   onClick?: () => void
 }) {
+  const t = useT()
   const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({
     id,
   })
@@ -442,7 +440,7 @@ function SortableRow({
         <button
           type="button"
           className={styles.dragHandle}
-          aria-label={DRAG_HANDLE_LABEL}
+          aria-label={t('table.dragHandle')}
           {...attributes}
           {...listeners}
           onClick={(e) => e.stopPropagation()}
@@ -502,7 +500,7 @@ export const Table = forwardRef(function Table<T>(
     title,
     toolbar,
     searchable = false,
-    searchPlaceholder = 'Search…',
+    searchPlaceholder,
     defaultSearch = '',
     debounceMs = 300,
     defaultPage = 1,
@@ -545,6 +543,7 @@ export const Table = forwardRef(function Table<T>(
   }: TableProps<T>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
+  const t = useT()
   // the query mapping — the app-wide `config.table.query` merged with this table's override. It drives BOTH
   // the server-request query (`state.query`) AND the browser-URL sync, so the two share one shape.
   const configQueryMapping = useTableQueryConfig()
@@ -686,7 +685,7 @@ export const Table = forwardRef(function Table<T>(
   // rows-per-page choices + an optional trailing "All"
   const pageSizeChoices = useMemo(() => {
     const opts = pageSizeOptions.map((n) => ({ value: String(n), label: String(n) }))
-    return allowAllRows ? [...opts, { value: 'all', label: 'All' }] : opts
+    return allowAllRows ? [...opts, { value: 'all', label: t('common.all') }] : opts
   }, [pageSizeOptions, allowAllRows])
 
   // the columns actually rendered — the consumer's, plus an auto-built pinned-right actions column when
@@ -1023,9 +1022,9 @@ export const Table = forwardRef(function Table<T>(
                 fullWidth={false}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder={searchPlaceholder}
+                placeholder={searchPlaceholder ?? t('common.search')}
                 adornment={<Icon name="SearchNormal" />}
-                aria-label="Search"
+                aria-label={t('common.search')}
               />
             )}
           </div>
@@ -1037,16 +1036,16 @@ export const Table = forwardRef(function Table<T>(
               <Dropdown
                 placement="bottom-end"
                 trigger={
-                  <IconButton variant="filled" size="sm" aria-label="Export">
+                  <IconButton variant="filled" size="sm" aria-label={t('table.export')}>
                     <Icon name="ExportArrow" />
                   </IconButton>
                 }
               >
                 <Typography as="div" variant="caption" color="muted" className={styles.menuTitle}>
-                  Export
+                  {t('table.export')}
                 </Typography>
                 <ListItem clickable icon="Sms" onClick={() => onExportToEmail?.(getTableState())}>
-                  Send On Email
+                  {t('table.sendOnEmail')}
                 </ListItem>
               </Dropdown>
             )}
@@ -1060,14 +1059,14 @@ export const Table = forwardRef(function Table<T>(
                 closeOnSelect={false}
                 trigger={
                   <Badge dot={resolvedSorting.length > 0} color="primary">
-                    <IconButton variant="filled" size="sm" aria-label="Sort">
+                    <IconButton variant="filled" size="sm" aria-label={t('table.sort')}>
                       <Icon name="Sort" />
                     </IconButton>
                   </Badge>
                 }
               >
                 <Typography as="div" variant="caption" color="muted" className={styles.menuTitle}>
-                  Sort By
+                  {t('table.sortBy')}
                 </Typography>
                 {sortableColumns.map((col) => {
                   const active = sortState?.key === col.key
@@ -1232,7 +1231,7 @@ export const Table = forwardRef(function Table<T>(
             {showPageSize && (
               <div className={styles.pageSize}>
                 <Typography variant="bodySmall" color="muted" as="span">
-                  Rows per page
+                  {t('table.rowsPerPage')}
                 </Typography>
                 <Select
                   className={styles.pageSizeSelect}
@@ -1251,7 +1250,7 @@ export const Table = forwardRef(function Table<T>(
               </div>
             )}
             <Typography variant="bodySmall" color="muted" as="span" className={styles.rangeText}>
-              {rangeStart}–{rangeEnd} of {totalRows}
+              {t('table.range', { from: rangeStart, to: rangeEnd, total: totalRows })}
             </Typography>
           </div>
           {/* the page navigator is pointless with a single page (few rows, or the "All" size) — hide it,

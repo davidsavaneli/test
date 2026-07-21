@@ -1,4 +1,5 @@
 import { useId, useState, type ReactNode } from 'react'
+import { useT, type Translator } from '../../theme'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { DatePicker } from '../DatePicker'
@@ -23,10 +24,10 @@ import {
 import styles from './TableFilters.module.css'
 
 /** The three boolean-filter radios, mapped to off / `true` / `false` — labels overridable per filter. */
-const boolOptions = (labels: TableFilter['booleanLabels']) => [
-  { value: '', label: labels?.any ?? 'Any' },
-  { value: 'true', label: labels?.yes ?? 'Yes' },
-  { value: 'false', label: labels?.no ?? 'No' },
+const boolOptions = (labels: TableFilter['booleanLabels'], t: Translator) => [
+  { value: '', label: labels?.any ?? t('common.any') },
+  { value: 'true', label: labels?.yes ?? t('common.yes') },
+  { value: 'false', label: labels?.no ?? t('common.no') },
 ]
 const boolToStr = (v: TableFilterValue | undefined): string =>
   v === true ? 'true' : v === false ? 'false' : ''
@@ -81,6 +82,7 @@ function FilterField({
   value: TableFilterValue | undefined
   onChange: (value: TableFilterValue) => void
 }) {
+  const t = useT()
   const { type, label, options = [], placeholder } = filter
 
   switch (type) {
@@ -108,8 +110,20 @@ function FilterField({
       return (
         <RangeField
           label={label}
-          from={<NumberField placeholder="Min" value={min} onChange={(v) => onChange([v, max])} />}
-          to={<NumberField placeholder="Max" value={max} onChange={(v) => onChange([min, v])} />}
+          from={
+            <NumberField
+              placeholder={t('common.min')}
+              value={min}
+              onChange={(v) => onChange([v, max])}
+            />
+          }
+          to={
+            <NumberField
+              placeholder={t('common.max')}
+              value={max}
+              onChange={(v) => onChange([min, v])}
+            />
+          }
         />
       )
     }
@@ -164,7 +178,7 @@ function FilterField({
         <RadioGroup
           label={label}
           orientation="horizontal"
-          options={boolOptions(filter.booleanLabels)}
+          options={boolOptions(filter.booleanLabels, t)}
           value={boolToStr(value)}
           onChange={(v) => onChange(strToBool(v))}
         />
@@ -183,10 +197,18 @@ function FilterField({
         <RangeField
           label={label}
           from={
-            <DatePicker placeholder="From" value={from} onChange={(v) => onChange([v ?? '', to])} />
+            <DatePicker
+              placeholder={t('common.from')}
+              value={from}
+              onChange={(v) => onChange([v ?? '', to])}
+            />
           }
           to={
-            <DatePicker placeholder="To" value={to} onChange={(v) => onChange([from, v ?? ''])} />
+            <DatePicker
+              placeholder={t('common.to')}
+              value={to}
+              onChange={(v) => onChange([from, v ?? ''])}
+            />
           }
         />
       )
@@ -205,10 +227,18 @@ function FilterField({
         <RangeField
           label={label}
           from={
-            <TimePicker placeholder="From" value={from} onChange={(v) => onChange([v ?? '', to])} />
+            <TimePicker
+              placeholder={t('common.from')}
+              value={from}
+              onChange={(v) => onChange([v ?? '', to])}
+            />
           }
           to={
-            <TimePicker placeholder="To" value={to} onChange={(v) => onChange([from, v ?? ''])} />
+            <TimePicker
+              placeholder={t('common.to')}
+              value={to}
+              onChange={(v) => onChange([from, v ?? ''])}
+            />
           }
         />
       )
@@ -229,14 +259,14 @@ function FilterField({
           stacked
           from={
             <DateTimePicker
-              placeholder="From"
+              placeholder={t('common.from')}
               value={from}
               onChange={(v) => onChange([v ?? '', to])}
             />
           }
           to={
             <DateTimePicker
-              placeholder="To"
+              placeholder={t('common.to')}
               value={to}
               onChange={(v) => onChange([from, v ?? ''])}
             />
@@ -265,6 +295,7 @@ export interface TableFiltersProps {
  * inside it.
  */
 export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState<TableFilterState>(value)
   const count = activeFilterCount(filters, value)
@@ -282,7 +313,7 @@ export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
   return (
     <>
       <Badge content={count} color="primary">
-        <IconButton variant="filled" size="sm" aria-label="Filters" onClick={openPanel}>
+        <IconButton variant="filled" size="sm" aria-label={t('table.filters')} onClick={openPanel}>
           <Icon name="Filter" />
         </IconButton>
       </Badge>
@@ -292,21 +323,21 @@ export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
         placement="right"
         size="sm"
         icon="Filter"
-        title="Filters"
-        description="Narrow the table by the fields below."
+        title={t('table.filters')}
+        description={t('table.filtersDescription')}
         footer={
           // Clear (reset the draft fields) pinned left; Cancel (discard + close) + Apply (commit) on the right
           <div className={styles.footer}>
             <Button variant="filled" startIcon={<Icon name="Trash" />} onClick={() => setDraft({})}>
-              Clear
+              {t('common.clear')}
             </Button>
             <div className={styles.footerEnd}>
               <Button variant="text" onClick={() => setOpen(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               {/* submits the body form (`formId`) — so clicking Apply OR pressing Enter in a field commits */}
               <Button type="submit" form={formId} startIcon={<Icon name="Filter" />}>
-                Apply
+                {t('common.apply')}
               </Button>
             </div>
           </div>

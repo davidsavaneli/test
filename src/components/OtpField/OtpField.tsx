@@ -12,7 +12,7 @@ import {
 } from 'react'
 import { clsx } from 'clsx'
 import { useFormContext } from '../../form/formContext'
-import type { ThemeColor } from '../../theme'
+import { useT, type ThemeColor } from '../../theme'
 import { Typography } from '../Typography'
 import fieldStyles from '../TextField/TextField.module.css'
 import styles from './OtpField.module.css'
@@ -108,6 +108,7 @@ export const OtpField = forwardRef<HTMLDivElement, OtpFieldProps>(function OtpFi
   },
   ref,
 ) {
+  const t = useT()
   const reactId = useId()
   const helperId = `${reactId}-helper`
   const allowed = PATTERN[type]
@@ -268,7 +269,7 @@ export const OtpField = forwardRef<HTMLDivElement, OtpFieldProps>(function OtpFi
             type="text"
             inputMode={type === 'numeric' ? 'numeric' : 'text'}
             autoComplete={i === 0 ? 'one-time-code' : 'off'}
-            aria-label={`Digit ${i + 1} of ${length}`}
+            aria-label={t('otpField.digit', { index: i + 1, total: length })}
             className={clsx(styles.box, char !== '' && styles.filled)}
             value={char}
             placeholder={placeholder}
