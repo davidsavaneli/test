@@ -21,6 +21,7 @@ import { Typography } from '../Typography'
 import { Breadcrumbs } from '../Breadcrumbs'
 import { Toaster, type ToasterProps } from '../Toast'
 import { NavSearch, Sidebar, usePageTitle } from '../Sidebar/Sidebar'
+import { Flag } from '../Flag'
 import { SettingsDrawer } from './SettingsDrawer'
 import styles from './RootLayout.module.css'
 
@@ -136,6 +137,7 @@ export function RootLayout({
                     clickable
                     selected={l.code === language}
                     onClick={() => setLanguage(l.code)}
+                    icon={<Flag code={l.code} />}
                   >
                     {l.label ?? l.code}
                   </ListItem>

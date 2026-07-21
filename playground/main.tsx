@@ -17,6 +17,11 @@ const config: Config = {
     languages: [
       { code: 'en-US', label: 'English' },
       { code: 'ka-GE', label: 'ქართული' },
+      { code: 'es-ES', label: 'Español' },
+      { code: 'de-DE', label: 'Deutsch' },
+      { code: 'it-IT', label: 'Italiano' },
+      { code: 'fr-FR', label: 'Français' },
+      { code: 'ru-RU', label: 'Русский' },
     ],
     // the APP's OWN strings (section titles, business copy) — read via useTranslations(), which binds to
     // the active UI language, so they switch together with the panel. Free-form keys; en → the key fallback.

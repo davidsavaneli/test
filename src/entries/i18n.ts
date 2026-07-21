@@ -3,7 +3,7 @@
 // the active-language switcher (`useLanguage`), and the pure builders + types behind them. These also
 // reach the root `.` import. The i18n *config* shape (`I18nConfig`) stays with `Config` in `./theme`.
 export { useT, useTranslations, useLanguage } from '../theme/ConfigProvider'
-export { createTranslator, createAppTranslator } from '../i18n/messages'
+export { createTranslator, createAppTranslator, flagFor } from '../i18n/messages'
 export type {
   Messages,
   MessageKey,

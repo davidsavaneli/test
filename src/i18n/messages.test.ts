@@ -4,14 +4,24 @@ import { createAppTranslator, createTranslator } from './messages'
 describe('createTranslator', () => {
   it('returns English for en / unknown locales (baseline fallback)', () => {
     expect(createTranslator('en-US')('select.placeholder')).toBe('Select…')
-    // a language the library doesn't ship falls back to English per key
-    expect(createTranslator('fr-FR')('select.noOptions')).toBe('No options')
+    // a language the library doesn't ship (Dutch) falls back to English per key
+    expect(createTranslator('nl-NL')('select.noOptions')).toBe('No options')
   })
 
   it('returns a shipped built-in translation, matched by base language', () => {
     const t = createTranslator('ka-GE')
     expect(t('select.placeholder')).toBe('აირჩიეთ…')
     expect(t('userCard.signOut')).toBe('გასვლა')
+  })
+
+  it('ships es / de / it / fr / ru catalogs (matched by base language)', () => {
+    expect(createTranslator('es-ES')('common.save')).toBe('Guardar')
+    expect(createTranslator('de-DE')('common.save')).toBe('Speichern')
+    expect(createTranslator('it-IT')('common.save')).toBe('Salva')
+    expect(createTranslator('fr-FR')('common.save')).toBe('Enregistrer')
+    expect(createTranslator('ru-RU')('common.save')).toBe('Сохранить')
+    // interpolation survives translation
+    expect(createTranslator('de')('pagination.page', { page: 4 })).toBe('Zu Seite 4')
   })
 
   it('lets a consumer override win (by exact code or base), else falls back', () => {

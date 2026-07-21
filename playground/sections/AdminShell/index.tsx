@@ -14,6 +14,7 @@ import { ToastSection } from '../Toast'
 import { EmptyStateSection } from '../EmptyState'
 import { AccordionSection } from '../Accordion'
 import { AvatarSection } from '../Avatar'
+import { FlagSection } from '../Flag'
 import { BadgeSection } from '../Badge'
 import { ChipSection } from '../Chip'
 import { DividerSection } from '../Divider'
@@ -286,6 +287,12 @@ const badgeRoute = createRoute({
   path: 'badge',
   staticData: { name: 'Badge', icon: 'Notification', order: 2 },
   component: inPage(BadgeSection),
+})
+const flagRoute = createRoute({
+  getParentRoute: () => dataDisplayRoute,
+  path: 'flag',
+  staticData: { name: 'Flag', icon: 'Flag', order: 8 },
+  component: inPage(FlagSection),
 })
 const chipRoute = createRoute({
   getParentRoute: () => dataDisplayRoute,
@@ -600,6 +607,7 @@ const shellRouter = createRouter({
         emptyStateRoute,
         timelineRoute,
         codeBlockRoute,
+        flagRoute,
       ]),
       navigationRoute.addChildren([
         tabsRoute,

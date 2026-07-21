@@ -390,8 +390,10 @@ Any future tintable control (Chip, Badge, Tab, …) should reuse this exact patt
   built-in strings** (labels/placeholders/aria-labels), so a consuming app gets a localized panel with
   zero setup — it just lists **`config.i18n.languages`** (`{ code, label }[]`, default English only) and
   optionally a default **`language`**. It's a tiny **dependency-free** layer (no i18next — the string set
-  is small + fixed), in `src/i18n/messages.ts`: a typed `Messages` interface, a complete **English**
-  baseline + built-in **Georgian** (`ka`), and `createTranslator(locale, overrides)`. Components read via
+  is small + fixed): `src/i18n/messages.ts` owns the typed `Messages` interface + `createTranslator(locale,
+overrides)`, and each language is one file under `src/i18n/locales/` — a complete **English** baseline
+  (`en.ts`) plus built-in **Georgian** (`ka`), **Spanish** (`es`), **German** (`de`), **Italian** (`it`),
+  **French** (`fr`), and **Russian** (`ru`), all registered in `BUILTIN_MESSAGES`. Components read via
   **`useT()`** (lenient — English outside a provider, so they render standalone / in tests):
   `t('select.noOptions')`, with `{name}` interpolation (`t('pagination.page', { page })`). Resolution per
   key: consumer `config.i18n.messages` (exact code → base) → built-in catalog → English → the key. The
@@ -517,6 +519,7 @@ component, create its folder `CLAUDE.md` too (see §12).
 - [Badge](src/components/Badge/CLAUDE.md) — pins a count/dot to a child's corner.
 - [Chip](src/components/Chip/CLAUDE.md) — compact pill tag/token (optional delete / avatar / icon).
 - [Avatar / AvatarGroup](src/components/Avatar/CLAUDE.md) — image/initials/icon avatar; overlapping group with `+N` overflow.
+- [Flag](src/components/Flag/CLAUDE.md) — small rounded language/country flag from the built-in registry (`flagFor`).
 
 ### Buttons & actions
 

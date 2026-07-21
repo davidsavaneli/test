@@ -1,0 +1,16 @@
+.flag {
+  display: inline-flex;
+  height: var(--tz-flag-height, 16px);
+  aspect-ratio: 4 / 3;
+  flex: none;
+  border-radius: var(--tz-radius-xxs);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--tz-color-border);
+}
+
+.flag svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

@@ -13,8 +13,13 @@
  * library doesn't ship can still be supplied by the consumer via `config.i18n.messages`, falling back
  * to English per key. `{name}` tokens are interpolated from the `vars` passed to `t`.
  */
-import { EN_MESSAGES } from './locales/en'
-import { KA_MESSAGES } from './locales/ka'
+import { EN_MESSAGES, EN_FLAG } from './locales/en'
+import { KA_MESSAGES, KA_FLAG } from './locales/ka'
+import { ES_MESSAGES, ES_FLAG } from './locales/es'
+import { DE_MESSAGES, DE_FLAG } from './locales/de'
+import { IT_MESSAGES, IT_FLAG } from './locales/it'
+import { FR_MESSAGES, FR_FLAG } from './locales/fr'
+import { RU_MESSAGES, RU_FLAG } from './locales/ru'
 
 // re-exported so `EN_MESSAGES` stays importable from `../i18n/messages` (its original home)
 export { EN_MESSAGES }
@@ -231,10 +236,35 @@ export type MessageOverrides = Record<string, MessageCatalog>
 export const BUILTIN_MESSAGES: Record<string, MessageCatalog> = {
   en: EN_MESSAGES,
   ka: KA_MESSAGES,
+  es: ES_MESSAGES,
+  de: DE_MESSAGES,
+  it: IT_MESSAGES,
+  fr: FR_MESSAGES,
+  ru: RU_MESSAGES,
+}
+
+/**
+ * Built-in flag SVGs (raw markup strings), keyed by **base** language code — shown beside each language
+ * in the header switcher. A language with no flag here simply renders without one; each locale ships its
+ * own flag from its `./locales/<base>.ts` file. (Coverage grows alongside the catalogs.)
+ */
+export const BUILTIN_FLAGS: Record<string, string> = {
+  en: EN_FLAG,
+  ka: KA_FLAG,
+  es: ES_FLAG,
+  de: DE_FLAG,
+  it: IT_FLAG,
+  fr: FR_FLAG,
+  ru: RU_FLAG,
 }
 
 /** Base language of a locale code — `'ka-GE'` → `'ka'`. */
 const baseLang = (locale: string): string => locale.split('-')[0].toLowerCase()
+
+/** The built-in flag SVG markup for a locale code (matched by base language), or `undefined` if none. */
+export function flagFor(locale: string): string | undefined {
+  return BUILTIN_FLAGS[baseLang(locale)]
+}
 
 /** A bound translator: `t('key')`, with optional `{name}` interpolation. */
 export type Translator = (key: MessageKey, vars?: Record<string, string | number>) => string
