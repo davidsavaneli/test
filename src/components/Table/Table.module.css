@@ -240,18 +240,19 @@
   background-color: rgba(var(--tz-color-surface-rgb), 0.6);
 }
 
-/* ── footer (rows per page + range + pagination) ────────────────────────────────── */
+/* ── footer — the range count on its own top row, then rows-per-page + pagination below ──────────── */
 .footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tz-space-sm);
+}
+/* second row: rows-per-page (left) + the page navigator (right) */
+.footerMain {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--tz-space-sm);
   flex-wrap: wrap;
-}
-.footerStart {
-  display: flex;
-  align-items: center;
-  gap: var(--tz-space-sm);
 }
 .pageSize {
   display: flex;
@@ -285,5 +286,14 @@
     width: auto;
     min-width: 0;
     max-width: 220px;
+  }
+
+  /* center the footer rows on phones (range row + the rows-per-page/pagination row) */
+  .footer {
+    align-items: center;
+    gap: var(--tz-space-xs);
+  }
+  .footerMain {
+    justify-content: center;
   }
 }

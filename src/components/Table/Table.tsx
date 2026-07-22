@@ -1227,7 +1227,13 @@ export const Table = forwardRef(function Table<T>(
 
       {totalRows > 0 && (
         <div className={styles.footer}>
-          <div className={styles.footerStart}>
+          {/* the range count sits on its own row at the top */}
+          <Typography variant="bodySmall" color="muted" as="span" className={styles.rangeText}>
+            {t('table.range', { from: rangeStart, to: rangeEnd, total: totalRows })}
+          </Typography>
+          {/* below it: rows-per-page (left) + the page navigator (right). The navigator is pointless with
+              a single page (few rows / the "All" size) — hidden then. */}
+          <div className={styles.footerMain}>
             {showPageSize && (
               <div className={styles.pageSize}>
                 <Typography variant="bodySmall" color="muted" as="span">
@@ -1249,22 +1255,19 @@ export const Table = forwardRef(function Table<T>(
                 />
               </div>
             )}
-            <Typography variant="bodySmall" color="muted" as="span" className={styles.rangeText}>
-              {t('table.range', { from: rangeStart, to: rangeEnd, total: totalRows })}
-            </Typography>
+            {pageCount > 1 && (
+              <Pagination
+                count={pageCount}
+                page={currentPage}
+                onChange={(nextPage) =>
+                  commitPagination((p) => ({ ...p, pageIndex: nextPage - 1 }))
+                }
+                showFirstButton={showFirstButton}
+                showLastButton={showLastButton}
+                disabled={loading}
+              />
+            )}
           </div>
-          {/* the page navigator is pointless with a single page (few rows, or the "All" size) — hide it,
-              keeping the rows-per-page select + range count */}
-          {pageCount > 1 && (
-            <Pagination
-              count={pageCount}
-              page={currentPage}
-              onChange={(nextPage) => commitPagination((p) => ({ ...p, pageIndex: nextPage - 1 }))}
-              showFirstButton={showFirstButton}
-              showLastButton={showLastButton}
-              disabled={loading}
-            />
-          )}
         </div>
       )}
     </div>
