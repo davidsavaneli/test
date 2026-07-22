@@ -265,3 +265,25 @@
 .rangeText {
   white-space: nowrap;
 }
+
+/* on phones, keep the search and the toolbar buttons (sort / export / filters) on ONE line — the search
+   drops its fixed width and shrinks to whatever space is left instead of wrapping the buttons below it */
+@media (max-width: 575.98px) {
+  .toolbar {
+    flex-wrap: nowrap;
+  }
+  .toolbarStart {
+    flex: 1;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  .toolbarEnd {
+    flex: none;
+  }
+  .search {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    max-width: 220px;
+  }
+}
