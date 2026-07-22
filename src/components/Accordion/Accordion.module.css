@@ -110,3 +110,13 @@
   line-height: var(--tz-line-height);
   color: var(--tz-color-text);
 }
+
+/* on phones, tighten the horizontal padding so panels use more of the narrow screen width (the
+   vertical padding is left untouched) */
+@media (max-width: 575.98px) {
+  .header,
+  .body {
+    padding-left: var(--tz-space-sm);
+    padding-right: var(--tz-space-sm);
+  }
+}

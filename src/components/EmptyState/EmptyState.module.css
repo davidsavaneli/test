@@ -93,3 +93,12 @@
   background: linear-gradient(180deg, var(--tz-color-surface), var(--tz-color-primary-shade100));
   box-shadow: var(--tz-shadow-md);
 }
+
+/* on phones, trim the large hero-ish top/bottom padding so an empty state doesn't eat the screen (the
+   horizontal padding is left untouched) */
+@media (max-width: 575.98px) {
+  .emptyState {
+    padding-top: var(--tz-space-sm);
+    padding-bottom: var(--tz-space-sm);
+  }
+}

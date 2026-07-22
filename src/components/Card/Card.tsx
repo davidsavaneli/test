@@ -17,7 +17,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title' 
   icon?: IconName | ReactNode
   /** Theme color that tints the leading icon box. Defaults to `accent`. */
   color?: ThemeColor
-  /** Render flat — no shadow, the page `background` instead of the elevated `secondary` surface. Used by `PageLayout`. */
+  /** Marks the card flat (used by `PageLayout`). Cards are shadowless, so this currently adds no visual difference — it's a styling hook, not a distinct look. */
   flat?: boolean
   /** Header actions, placed at the end of the header row (before the collapse toggle). */
   actions?: ReactNode

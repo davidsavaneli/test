@@ -17,7 +17,10 @@ the whole page) wider than the viewport. `icon` (an `IconName` or a node) render
 a leading **filled, non-clickable `IconButton`** box (decorative → `aria-hidden`), tinted by `color`
 (theme palette token, default `accent`). `subtitle` is a muted description line under the `title`; both `title`
 and `subtitle` clamp to **two lines** then ellipsis (`-webkit-line-clamp`).
-`--tz-color-surface` panel + border + `--tz-radius-md` + `--tz-shadow-xs`. **`flat`** drops the shadow
-and swaps the `surface` panel for the `--tz-color-background` canvas (blends with the shell, no
-elevation) — used by `PageLayout`, which is a flat Card. Header omitted entirely when there's no title/icon/actions/collapsible.
+`--tz-color-surface` panel + border + `--tz-radius-md` — cards are **shadowless** (a flat, no-elevation
+look). **`flat`** is a marker used by `PageLayout` (and kept for API); it deliberately does **not** change
+the background, so with shadowless cards it currently carries no visual difference — a styling hook, not a
+distinct look. Header omitted entirely when there's no title/icon/actions/collapsible.
+**Responsive:** below **576px** the header / body / footer **horizontal** padding tightens from
+`--tz-space-md` to `--tz-space-sm` (vertical padding unchanged), so cards use more of the narrow screen.
 Own CSS module.

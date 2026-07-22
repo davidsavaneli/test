@@ -4,14 +4,14 @@
   background: var(--tz-color-surface);
   border: 1px solid var(--tz-color-border);
   border-radius: var(--tz-radius-md);
-  box-shadow: var(--tz-shadow-xs);
   font-family: var(--tz-font-family);
   color: var(--tz-color-text);
 }
 
-/* flat — blends with the canvas (no elevation): the `background` rear/canvas + no shadow (used by `PageLayout`) */
+/* flat — a marker class used by `PageLayout` (and kept for API back-compat). Cards are shadowless and it
+   deliberately does NOT change the background, so it currently carries no visual difference from a plain
+   card; it stays as a styling hook for `PageLayout` / future differentiation. */
 .flat {
-  box-shadow: none;
 }
 
 /* ── header ─────────────────────────────────────────────────────────────── */
@@ -129,4 +129,21 @@
   display: flex;
   align-items: center;
   gap: var(--tz-space-xs);
+}
+
+/* on phones, tighten the horizontal padding so cards use more of the narrow screen width (vertical
+   padding is left untouched) */
+@media (max-width: 575.98px) {
+  .header,
+  .body,
+  .footer {
+    padding-left: var(--tz-space-sm);
+    padding-right: var(--tz-space-sm);
+  }
+
+  .header,
+  .footer {
+    padding-top: calc(var(--tz-space-sm) / 1.3);
+    padding-bottom: calc(var(--tz-space-sm) / 1.3);
+  }
 }
