@@ -25,3 +25,10 @@
   width: 22px;
   height: 22px;
 }
+
+/* on phones, trim the body's vertical padding */
+@media (max-width: 575.98px) {
+  .body {
+    padding-block: var(--tz-space-xs);
+  }
+}

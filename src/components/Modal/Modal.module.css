@@ -180,3 +180,32 @@
 .overlay[data-placement='right'][data-open='true'] .modal {
   transform: none;
 }
+
+/* on phones, tighten the padding to match the Card component: horizontal → `--tz-space-sm` on all three
+   regions, and the header / footer vertical padding trimmed too (the body keeps its vertical padding) */
+@media (max-width: 575.98px) {
+  /* tighter inset from the screen edges for the centered dialog (fullScreen / drawer keep their own
+     `padding: 0` — those attribute selectors outrank this single-class rule) */
+  .overlay {
+    padding: var(--tz-space-sm);
+  }
+
+  .header,
+  .body,
+  .footer {
+    padding-left: var(--tz-space-sm);
+    padding-right: var(--tz-space-sm);
+  }
+
+  .header,
+  .footer {
+    padding-top: calc(var(--tz-space-sm) / 1.3);
+    padding-bottom: calc(var(--tz-space-sm) / 1.3);
+  }
+
+  /* the body's tall vertical padding (esp. the extra bottom room) trims down on phones too */
+  .body {
+    padding-top: var(--tz-space-md);
+    padding-bottom: var(--tz-space-lg);
+  }
+}
