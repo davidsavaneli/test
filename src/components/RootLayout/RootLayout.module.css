@@ -216,6 +216,8 @@
     left: 0;
     height: 100vh;
     border-radius: 0;
+    border-top-right-radius: var(--tz-radius-lg);
+    border-bottom-right-radius: var(--tz-radius-lg);
     border-width: 0;
     box-shadow: var(--tz-shadow-lg);
     z-index: var(--tz-z-modal);
@@ -278,6 +280,8 @@
 
   .sidebar {
     --sidebar-w: 100vw;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
   }
 
   .sidebarSearch {
