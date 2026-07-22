@@ -206,6 +206,7 @@
 @media (max-width: 1279.98px) {
   .shell {
     grid-template-columns: 1fr;
+    padding-top: 0;
   }
 
   .sidebar {
@@ -247,6 +248,23 @@
   .sidebarClose {
     display: inline-flex;
   }
+
+  /* full-bleed header — the negative side margins cancel the shell's side padding so it spans edge to
+     edge, while its own padding keeps the controls inset (phones tighten these values below) */
+  .topbar {
+    padding: var(--tz-space-sm) var(--tz-space-md);
+    margin: 0 calc(var(--tz-space-md) * -1) var(--tz-space-xs) calc(var(--tz-space-md) * -1);
+  }
+
+  /* the sticky header drops the floating-card look — a flush, full-bleed bar with just a dashed bottom
+     rule (padding + full-bleed margins already come from `.topbar` above) */
+  .topbarSticky {
+    top: 0;
+    border-radius: 0;
+    margin-bottom: var(--tz-space-sm);
+    border: 0;
+    border-bottom: 1px dashed var(--tz-color-border);
+  }
 }
 
 /* Phones (≤576px): the overlay drawer stretches **full-width** (overriding the shared `--sidebar-w` widens
@@ -267,24 +285,17 @@
     padding: 0 var(--tz-space-sm) var(--tz-space-sm);
   }
 
-  /* header — transparent, on the canvas (no background); scrolls with the content (not pinned) */
+  /* full-bleed header — the negative side margins cancel the shell's side padding so it spans edge to
+     edge, while its own padding keeps the controls inset */
   .topbar {
     padding: calc(var(--tz-space-sm) / 1.4) var(--tz-space-sm);
     margin: 0 calc(var(--tz-space-sm) * -1) var(--tz-space-xs) calc(var(--tz-space-sm) * -1);
   }
 
-  /* sticky (fixed) header — pins at the same inset as the sidebar card (--shell-pad) while the content
-   scrolls under it. It reads as a rounded, bordered --tz-color-surface card (matching the sidebar) so
-   content can't show through, and sits on the sticky layer (portaled dropdowns/popovers at
-   --tz-z-popover still float above it). Nothing scrolls above the header — it's the first child of
-   .main — so the top gap needs no masking. */
+  /* give the sticky header a bit more bottom gap than the static one (the phone `.topbar` shorthand above
+     set margin-bottom tighter, to `xs`) */
   .topbarSticky {
-    top: 0;
-    border-radius: 0;
     margin-bottom: var(--tz-space-sm);
-    border: 0;
-    border-bottom: 1px dashed var(--tz-color-border);
-    padding: calc(var(--tz-space-sm) / 1.4) var(--tz-space-sm);
   }
 
   .headerSearch {
