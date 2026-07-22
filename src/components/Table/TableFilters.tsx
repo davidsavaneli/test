@@ -326,14 +326,12 @@ export function TableFilters({ filters, value, onChange }: TableFiltersProps) {
         title={t('table.filters')}
         description={t('table.filtersDescription')}
         footer={
-          // Clear (reset the draft fields) pinned left; Cancel (discard + close) + Apply (commit) on the right
+          // right-aligned: Clear (reset the draft fields) + Apply (commit). No Cancel — the Modal's × /
+          // Escape / backdrop dismiss the drawer, discarding the uncommitted draft.
           <div className={styles.footer}>
-            <Button variant="filled" startIcon={<Icon name="Trash" />} onClick={() => setDraft({})}>
-              {t('common.clear')}
-            </Button>
             <div className={styles.footerEnd}>
-              <Button variant="text" onClick={() => setOpen(false)}>
-                {t('common.cancel')}
+              <Button variant="text" startIcon={<Icon name="Trash" />} onClick={() => setDraft({})}>
+                {t('common.clear')}
               </Button>
               {/* submits the body form (`formId`) — so clicking Apply OR pressing Enter in a field commits */}
               <Button type="submit" form={formId} startIcon={<Icon name="Filter" />}>

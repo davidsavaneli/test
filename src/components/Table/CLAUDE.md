@@ -115,9 +115,9 @@ when `onExportToEmail` is omitted.
 placeholder? }`) render a toolbar **Filters** button (a `Filter` icon with a **count `Badge`**) opening a
 right **drawer** (`Modal placement="right"`) — a `Modal`, not a popover, so the nested `Select` /
 `DatePicker` popovers work inside it (the `FloatingPanel` outside-pointerdown would otherwise close a
-popover-based panel). The drawer has a `Filter`-icon header + a footer with **Clear** (`filled`, pinned
-left — resets the draft fields) and **Cancel** / **Apply** (right); it edits a **draft** committed only on
-Apply (Cancel discards). Core types: **`text`** (contains) · **`number`** (=) · **`numberRange`** (two open-bounded Min/Max
+popover-based panel). The drawer has a `Filter`-icon header + a right-aligned footer with **Clear** (`text`,
+Trash icon — resets the draft fields) + **Apply** (commit); it edits a **draft** committed only on Apply.
+There's no Cancel — the Modal's **×** / **Escape** / **backdrop** dismiss the drawer, discarding the draft. Core types: **`text`** (contains) · **`number`** (=) · **`numberRange`** (two open-bounded Min/Max
 `NumberField`s — either can be empty) · **`numberRangeSlider`** (same value shape, but a two-thumb `Slider`
 — bounds via **`min`**/**`max`**/**`step`**; a thumb at an extent maps back to an open (`null`) bound so a
 full-range slider is inactive) · **`select`** · **`multiSelect`** (∈) · **`boolean`** (a `RadioGroup` —

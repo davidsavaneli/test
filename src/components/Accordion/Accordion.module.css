@@ -28,14 +28,11 @@
   border-radius: var(--tz-radius-sm);
   background: var(--tz-color-surface);
   overflow: hidden;
-  transition:
-    border-color var(--tz-duration),
-    box-shadow var(--tz-duration);
+  transition: border-color var(--tz-duration);
 }
-/* the open panel lifts: a darker hairline + a soft shadow */
+/* the open panel is set apart by a darker hairline (shadowless, matching the flat Card look) */
 .item[data-open='true'] {
   border-color: rgba(var(--tz-color-primary-rgb), 0.2);
-  box-shadow: var(--tz-shadow-xs);
 }
 
 /* ── header ───────────────────────────────────────────────────────────────── */
@@ -54,12 +51,8 @@
   line-height: var(--tz-line-height);
   text-align: left;
   cursor: pointer;
-  transition: background-color var(--tz-duration);
 }
-/* hover feedback only on closed panels — an open panel's header stays clean over its body */
-.header[aria-expanded='false']:hover:not(:disabled) {
-  background: var(--tz-color-primary-shade100);
-}
+
 .header:focus-visible {
   outline: 2px solid rgba(var(--tz-color-primary-rgb), 0.4);
   outline-offset: -2px;

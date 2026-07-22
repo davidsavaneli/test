@@ -17,8 +17,8 @@ disabled? }[]`) or as **`<AccordionItem>`** children; the group shares the open 
   the shared `grid-template-rows: 0fr → 1fr` animation** (the same CSS-only technique as `Card`'s
   `collapsible` + the Sidebar nav fold — no JS height measurement). The panels are **separated cards**
   (each a bordered, rounded `surface` panel with a gap between them, not a joined box); the **open
-  panel lifts** with a darker hairline + `--tz-shadow-xs`, and **closed** headers get a subtle
-  `--tz-color-primary-shade100` hover (an open panel's header stays clean over its body). The body text
+  panel** is set apart by a darker hairline only — **shadowless**, matching the flat Card look (no
+  header hover fill either). The body text
   sizes with the accordion `size` (`--ac-font`). a11y: each header is a `<button>` with `aria-expanded` + `aria-controls` → its body
   `role="region"` (`aria-labelledby` back to the header). `AccordionItem` requires an `<Accordion>` ancestor
   (throws otherwise). `Accordion` ships named **and** default, `AccordionItem` named. Own CSS module. _A

@@ -208,4 +208,10 @@
     padding-top: var(--tz-space-md);
     padding-bottom: var(--tz-space-lg);
   }
+
+  /* side drawers go full-width on phones — drop the `size` max-width cap so they fill the screen */
+  .overlay[data-placement='left'] .modal,
+  .overlay[data-placement='right'] .modal {
+    max-width: none;
+  }
 }
