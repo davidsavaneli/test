@@ -94,7 +94,8 @@ mirroring the empty state's presence rather than a lone tiny spinner), **`empty`
 default is a full patterned `EmptyState`), **`stickyHeader`**, **`striped`**, **`hoverable`**
 (default `true`). **Row reorder** (**`reorderable`**): prepends a **drag-handle** column (a grip `Menu`
 icon, content-width) and makes rows drag-sortable via **`@dnd-kit`** (`PointerSensor` 5px + `KeyboardSensor`:
-focus the grip → Space → Arrows → Space); a drop fires **`onReorder(rows, meta)`** with the **full `data`
+focus the grip → Space → Arrows → Space). The handle sets **`touch-action: none`** so the pointer sensor
+owns the touch gesture (otherwise a touch-drag scrolls the page and reordering never starts on phones); a drop fires **`onReorder(rows, meta)`** with the **full `data`
 reordered** (the consumer owns `data` and sets it) + a **`meta`** (`TableReorderMeta` = `{ id, from, to }` —
 the dragged row's id + its old/new index, e.g. to log or persist the move). **Local mode**, best with no active sort (a sort fights a
 manual order), and **requires `getRowId`** for stable dnd ids (the dev warning above also fires for

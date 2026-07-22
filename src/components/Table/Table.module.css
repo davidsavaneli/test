@@ -146,6 +146,9 @@
   color: var(--tz-color-primary-shade600);
   cursor: grab;
   border-radius: var(--tz-radius-xs);
+  /* let the pointer sensor own the touch gesture — without this the browser treats a touch-drag on the
+     handle as a scroll, so reordering never starts on phones/tablets */
+  touch-action: none;
   transition:
     color var(--tz-duration),
     background-color var(--tz-duration);
