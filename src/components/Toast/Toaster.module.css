@@ -63,3 +63,25 @@
 .alert {
   box-shadow: var(--tz-shadow-lg);
 }
+
+/* on phones, ignore the configured corner: pin the toasts to the **bottom, full-width**, with a tighter
+   edge inset. `[data-position]` matches the same specificity as the base position selectors (a class +
+   an attribute) and, being later in the file, wins over them. */
+@media (max-width: 575.98px) {
+  .viewport[data-position] {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: none;
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--tz-space-sm);
+  }
+
+  /* stretch each toast to fill the viewport width */
+  .item[data-position] {
+    width: 100%;
+    max-width: none;
+  }
+}
